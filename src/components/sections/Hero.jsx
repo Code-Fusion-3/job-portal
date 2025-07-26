@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Users, Play } from 'lucide-react';
+import { ArrowRight, Users, Play, ChevronDown } from 'lucide-react';
 import Button from '../ui/Button';
 import ImageSlideshow from '../ui/ImageSlideshow';
 
@@ -44,7 +44,7 @@ const Hero = () => {
             {/* Main Heading */}
             <motion.h1
               variants={itemVariants}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight"
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
             >
               {t('hero.title')}
             </motion.h1>
@@ -52,7 +52,7 @@ const Hero = () => {
             {/* Subtitle */}
             <motion.p
               variants={itemVariants}
-              className="text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
             >
               {t('hero.subtitle')}
             </motion.p>
@@ -62,18 +62,24 @@ const Hero = () => {
               variants={itemVariants}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
-              <Button
-                variant="primary"
-                size="lg"
-                className="group bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700"
+              <motion.div
+                whileHover={{ scale: 1.08, boxShadow: '0 0 16px #dc2626' }}
+                whileTap={{ scale: 0.97 }}
+                className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
               >
-                {t('hero.cta.register')}
-                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-              </Button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="group bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700 text-shadow"
+                >
+                  {t('hero.cta.register')}
+                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                </Button>
+              </motion.div>
               <Button
                 variant="outline"
                 size="lg"
-                className="group border-white text-white hover:bg-white hover:text-gray-900"
+                className="group border-white text-white hover:bg-white hover:text-gray-900 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
               >
                 {t('hero.cta.browse')}
                 <Users className="ml-2 group-hover:scale-110 transition-transform duration-200" />
@@ -87,7 +93,7 @@ const Hero = () => {
             >
               <motion.a
                 href="#tour"
-                className="inline-flex items-center text-white hover:text-red-400 transition-colors duration-200 group"
+                className="inline-flex items-center text-white hover:text-red-400 transition-colors duration-200 group drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -99,6 +105,14 @@ const Hero = () => {
             </motion.div>
           </motion.div>
         </div>
+        {/* Scroll Down Indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ChevronDown className="w-10 h-10 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] animate-bounce" />
+        </motion.div>
       </ImageSlideshow>
     </section>
   );
