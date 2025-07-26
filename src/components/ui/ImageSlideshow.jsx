@@ -2,45 +2,45 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+// Import images from assets with correct file names
 import image1 from '../../assets/img1.jpg';
 import image2 from '../../assets/img2.jpg';
 import image3 from '../../assets/img3.jpg';
 import image4 from '../../assets/img4.jpg';
 import image5 from '../../assets/img5.jpg';
 
-const images = [image1, image2, image3, image4, image5];
-
-const slideVariants = {
-  enter: (direction) => ({
-    x: direction === 1 ? 1000 : -1000,
-    opacity: 0,
-    position: 'absolute',
-  }),
-  center: {
-    zIndex: 1,
-    x: 0,
-    opacity: 1,
-    position: 'relative',
-    transition: { x: { type: 'spring', stiffness: 300, damping: 30 }, opacity: { duration: 0.3 } },
-  },
-  exit: (direction) => ({
-    zIndex: 0,
-    x: direction === 1 ? -1000 : 1000,
-    opacity: 0,
-    position: 'absolute',
-    transition: { x: { type: 'spring', stiffness: 300, damping: 30 }, opacity: { duration: 0.3 } },
-  }),
-};
-
 const ImageSlideshow = ({ children }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(1); // 1 for right-to-left, -1 for left-to-right
+  const [direction, setDirection] = useState(0);
 
-  // Always slide right-to-left for auto-advance and right arrow
-  const paginate = (dir = 1) => {
-    setDirection(dir);
+  const images = [image1, image2, image3, image4, image5];
+
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  };
+
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset, velocity) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  const paginate = (newDirection) => {
+    setDirection(newDirection);
     setCurrentIndex((prevIndex) => {
-      if (dir === 1) {
+      if (newDirection === 1) {
         return prevIndex === images.length - 1 ? 0 : prevIndex + 1;
       } else {
         return prevIndex === 0 ? images.length - 1 : prevIndex - 1;
@@ -52,16 +52,14 @@ const ImageSlideshow = ({ children }) => {
   useEffect(() => {
     const timer = setInterval(() => {
       paginate(1);
-    }, 5000);
+    }, 5000); // Change slide every 5 seconds
+
     return () => clearInterval(timer);
   }, [currentIndex]);
 
-  // Manual navigation
-  const goLeft = () => paginate(-1);
-  const goRight = () => paginate(1);
-
   return (
     <div className="relative w-full h-screen overflow-hidden">
+      {/* Background Slideshow */}
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentIndex}
@@ -70,30 +68,47 @@ const ImageSlideshow = ({ children }) => {
           initial="enter"
           animate="center"
           exit="exit"
+          transition={{
+            x: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { duration: 0.2 }
+          }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={1}
+          onDragEnd={(e, { offset, velocity }) => {
+            const swipe = swipePower(offset.x, velocity.x);
+
+            if (swipe < -swipeConfidenceThreshold) {
+              paginate(1);
+            } else if (swipe > swipeConfidenceThreshold) {
+              paginate(-1);
+            }
+          }}
           className="absolute inset-0"
-          style={{ background: 'none' }}
         >
+          {/* Use img element instead of CSS background-image */}
           <img
             src={images[currentIndex]}
             alt={`Slide ${currentIndex + 1}`}
             className="w-full h-full object-cover object-center"
             style={{ minWidth: '100%', minHeight: '100%' }}
           />
-          {/* Overlay for readability, adjust as needed */}
-          <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+          
+          {/* Faint overlay for better text readability using Tailwind's bg-black/10 */}
+          <div className="absolute inset-0 bg-black/70 pointer-events-none" />
         </motion.div>
       </AnimatePresence>
 
       {/* Navigation Arrows */}
       <button
         className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center text-white transition-all duration-200 backdrop-blur-sm"
-        onClick={goLeft}
+        onClick={() => paginate(-1)}
       >
         <ChevronLeft size={24} />
       </button>
       <button
         className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center text-white transition-all duration-200 backdrop-blur-sm"
-        onClick={goRight}
+        onClick={() => paginate(1)}
       >
         <ChevronRight size={24} />
       </button>
