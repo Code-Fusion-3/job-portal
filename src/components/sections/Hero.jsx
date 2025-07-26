@@ -30,6 +30,30 @@ const Hero = () => {
     },
   };
 
+  const titleVariants = {
+    hidden: { opacity: 0, y: -80 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const buttonVariants = {
+    hidden: { opacity: 0, y: 80 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut",
+      },
+    },
+  };
+
   return (
     <section id="home" className="w-full h-screen">
       <ImageSlideshow>
@@ -43,7 +67,7 @@ const Hero = () => {
           >
             {/* Main Heading */}
             <motion.h1
-              variants={itemVariants}
+              variants={titleVariants}
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
             >
               {t('hero.title')}
@@ -51,7 +75,7 @@ const Hero = () => {
 
             {/* Subtitle */}
             <motion.p
-              variants={itemVariants}
+              variants={titleVariants}
               className="text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
             >
               {t('hero.subtitle')}
@@ -59,7 +83,7 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <motion.div
-              variants={itemVariants}
+              variants={buttonVariants}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <motion.div
@@ -88,7 +112,7 @@ const Hero = () => {
 
             {/* Interactive Element - 360° Tour */}
             <motion.div
-              variants={itemVariants}
+              variants={buttonVariants}
               className="flex justify-center pt-8"
             >
               <motion.a
