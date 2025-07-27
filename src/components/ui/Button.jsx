@@ -6,6 +6,7 @@ const Button = forwardRef(({
   variant = 'primary', 
   size = 'md', 
   className = '', 
+  as = 'button',
   ...props 
 }, ref) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]';
@@ -25,8 +26,10 @@ const Button = forwardRef(({
   
   const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
   
+  const Component = as === 'button' ? motion.button : motion.div;
+  
   return (
-    <motion.button
+    <Component
       ref={ref}
       className={classes}
       whileHover={{ scale: 1.02 }}
@@ -34,7 +37,7 @@ const Button = forwardRef(({
       {...props}
     >
       {children}
-    </motion.button>
+    </Component>
   );
 });
 

@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Globe, ChevronDown } from 'lucide-react';
 import Button from '../ui/Button';
 
 const Header = () => {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const menuRef = useRef(null);
@@ -46,10 +48,10 @@ const Header = () => {
   }, [isMenuOpen, isLanguageOpen]);
 
   const navItems = [
-    { key: 'nav.home', href: '#home' },
-    { key: 'nav.jobSeekers', href: '#job-seekers' },
-    { key: 'nav.contact', href: '#contact' },
-    { key: 'nav.about', href: '#about' },
+    { key: 'nav.home', href: '/', isExternal: false },
+    { key: 'nav.jobSeekers', href: '/job-seekers', isExternal: false },
+    { key: 'nav.contact', href: '#contact', isExternal: true },
+    { key: 'nav.about', href: '#about', isExternal: true },
   ];
 
   return (
@@ -75,15 +77,34 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <motion.a
-                key={item.key}
-                href={item.href}
-                className="text-white hover:text-red-400 transition-colors duration-200 font-medium"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {t(item.key)}
-              </motion.a>
+              item.isExternal ? (
+                <motion.a
+                  key={item.key}
+                  href={item.href}
+                  className="text-white hover:text-red-400 transition-colors duration-200 font-medium"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {t(item.key)}
+                </motion.a>
+              ) : (
+                <motion.div
+                  key={item.key}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link
+                    to={item.href}
+                    className={`transition-colors duration-200 font-medium ${
+                      location.pathname === item.href
+                        ? 'text-red-400'
+                        : 'text-white hover:text-red-400'
+                    }`}
+                  >
+                    {t(item.key)}
+                  </Link>
+                </motion.div>
+              )
             ))}
           </nav>
 
@@ -164,15 +185,36 @@ const Header = () => {
             >
               <nav className="flex flex-col space-y-4">
                 {navItems.map((item) => (
-                  <motion.a
-                    key={item.key}
-                    href={item.href}
-                    className="text-white hover:text-red-400 transition-colors duration-200 font-medium"
-                    whileHover={{ x: 4 }}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t(item.key)}
-                  </motion.a>
+                  item.isExternal ? (
+                    <motion.a
+                      key={item.key}
+                      href={item.href}
+                      className="text-white hover:text-red-400 transition-colors duration-200 font-medium"
+                      whileHover={{ x: 4 }}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {t(item.key)}
+                    </motion.a>
+                  ) : (
+                    <motion.div
+                      key={item.key}
+                      whileHover={{ x: 4 }}
+                    >
+                      <Link
+                        to={item.href}
+                        className={`transition-colors duration-200 font-medium ${
+                          location.pathname === item.href
+                            ? 'text-red-400'
+                            : 'text-white hover:text-red-400'
+                        }`}
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                        }}
+                      >
+                        {t(item.key)}
+                      </Link>
+                    </motion.div>
+                  )
                 ))}
                 <div className="pt-4 border-t border-white border-opacity-20">
                   <div className="flex items-center justify-between">

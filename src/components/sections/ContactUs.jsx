@@ -3,76 +3,25 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
 import Button from '../ui/Button';
+import { contactInfo } from '../../data/mockData';
 
 const ContactUs = () => {
   const { t } = useTranslation();
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      });
-    }, 3000);
-  };
-
-  const contactInfo = [
-    {
-      icon: Mail,
-      title: t('contact.info.email.title'),
-      details: t('contact.info.email.details'),
-      description: t('contact.info.email.desc')
-    },
-    {
-      icon: Phone,
-      title: t('contact.info.phone.title'),
-      details: t('contact.info.phone.details'),
-      description: t('contact.info.phone.desc')
-    },
-    {
-      icon: MapPin,
-      title: t('contact.info.office.title'),
-      details: t('contact.info.office.details'),
-      description: t('contact.info.office.desc')
-    }
-  ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.1,
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
       },
     },
   };
@@ -89,8 +38,37 @@ const ContactUs = () => {
     },
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setIsSubmitted(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }, 3000);
+  };
+
+  const renderIcon = (iconName) => {
+    const icons = { Mail, Phone, MapPin };
+    const IconComponent = icons[iconName];
+    return IconComponent ? <IconComponent className="w-6 h-6" /> : null;
+  };
+
   return (
-    <section id="contact" className="py-20 bg-white">
+    <section id="contact" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -100,47 +78,53 @@ const ContactUs = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            {t('contact.title')}
+            {t('contact.title', 'Contact Us')}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t('contact.subtitle')}
+            {t('contact.subtitle', 'Get in touch with us. We\'d love to hear from you and answer any questions you might have.')}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12"
+        >
           {/* Contact Information */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
-            <motion.div variants={itemVariants}>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6">
-                Get in Touch
+          <motion.div variants={itemVariants} className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                {t('contact.info.title', 'Get in Touch')}
               </h3>
               <p className="text-gray-600 mb-8">
-                Have questions about our platform? We're here to help you find the perfect match between talent and opportunity.
+                {t('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
               </p>
-            </motion.div>
+            </div>
 
             <div className="space-y-6">
-              {contactInfo.map((info, index) => (
+              {contactInfo.map((info) => (
                 <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="flex items-start space-x-4"
+                  key={info.id}
+                  className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
+                  whileHover={{ x: 5 }}
                 >
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                      <info.icon className="w-6 h-6 text-red-600" />
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="text-red-600">
+                      {renderIcon(info.icon)}
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900">{info.title}</h4>
-                    <p className="text-red-600 font-medium">{info.details}</p>
-                    <p className="text-gray-600 text-sm">{info.description}</p>
+                    <h4 className="font-semibold text-gray-900 mb-1">
+                      {t(`contact.info.${info.id}.title`, info.title)}
+                    </h4>
+                    <p className="text-gray-600 mb-1">
+                      {t(`contact.info.${info.id}.value`, info.value)}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {t(`contact.info.${info.id}.description`, info.description)}
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -149,8 +133,7 @@ const ContactUs = () => {
 
           {/* Contact Form */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            variants={itemVariants}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="bg-gray-50 rounded-xl p-8 contact-form"
@@ -159,7 +142,7 @@ const ContactUs = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.name')}
+                    {t('contact.form.name', 'Full Name')}
                   </label>
                   <input
                     type="text"
@@ -168,14 +151,14 @@ const ContactUs = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
-                    placeholder={t('contact.form.placeholder.name')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200"
+                    placeholder={t('contact.form.namePlaceholder', 'Enter your full name')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.email')}
+                    {t('contact.form.email', 'Email Address')}
                   </label>
                   <input
                     type="email"
@@ -184,14 +167,14 @@ const ContactUs = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
-                    placeholder={t('contact.form.placeholder.email')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200"
+                    placeholder={t('contact.form.emailPlaceholder', 'Enter your email address')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.subject')}
+                    {t('contact.form.subject', 'Subject')}
                   </label>
                   <input
                     type="text"
@@ -200,14 +183,14 @@ const ContactUs = () => {
                     value={formData.subject}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
-                    placeholder={t('contact.form.placeholder.subject')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200"
+                    placeholder={t('contact.form.subjectPlaceholder', 'Enter subject')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.message')}
+                    {t('contact.form.message', 'Message')}
                   </label>
                   <textarea
                     id="message"
@@ -216,8 +199,8 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     rows={5}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none"
-                    placeholder={t('contact.form.placeholder.message')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 resize-none"
+                    placeholder={t('contact.form.messagePlaceholder', 'Enter your message')}
                   />
                 </div>
 
@@ -226,38 +209,30 @@ const ContactUs = () => {
                   variant="primary"
                   size="lg"
                   className="w-full group"
-                  disabled={isSubmitting}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {t('contact.form.sending')}
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                      {t('contact.form.submit')}
-                    </>
-                  )}
+                  <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  {t('contact.form.submit', 'Send Message')}
                 </Button>
               </form>
             ) : (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-8"
               >
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {t('contact.form.success.title')}
+                  {t('contact.success.title', 'Message Sent Successfully!')}
                 </h3>
                 <p className="text-gray-600">
-                  {t('contact.form.success.message')}
+                  {t('contact.success.message', 'Thank you for your message. We\'ll get back to you as soon as possible.')}
                 </p>
               </motion.div>
             )}
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
