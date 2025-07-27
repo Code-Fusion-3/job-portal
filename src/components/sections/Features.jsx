@@ -124,7 +124,7 @@ const Features = () => {
             <motion.div
               key={index}
               variants={cardVariants}
-              className={`group relative p-8 rounded-2xl border-2 ${feature.borderColor} ${feature.bgColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-2`}
+              className={`group relative p-8 rounded-2xl border-2 ${feature.borderColor} ${feature.bgColor} hover:shadow-xl transition-all duration-300 hover:-translate-y-2 feature-card`}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

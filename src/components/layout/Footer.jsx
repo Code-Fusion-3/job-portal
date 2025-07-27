@@ -32,11 +32,11 @@ const Footer = () => {
       ],
     },
     {
-      title: 'Legal',
+      title: t('footer.legal'),
       links: [
         { name: t('footer.privacy'), href: '#privacy' },
         { name: t('footer.terms'), href: '#terms' },
-        { name: 'Cookie Policy', href: '#cookies' },
+        { name: t('footer.cookies'), href: '#cookies' },
       ],
     },
   ];

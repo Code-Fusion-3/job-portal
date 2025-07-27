@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 const TypingAnimation = ({ 
   text, 
   className = "", 
-  speed = 100, 
-  fallDelay = 50,
-  fallDistance = 200, // Increased to fall from navbar
+  speed = 1, 
+  fallDelay = 100,
+  fallDistance = 300, // Increased to fall from navbar
   onComplete = () => {} 
 }) => {
   const [displayedText, setDisplayedText] = useState('');

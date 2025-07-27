@@ -1,141 +1,273 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Users, Play, ChevronDown } from 'lucide-react';
 import Button from '../ui/Button';
 import ImageSlideshow from '../ui/ImageSlideshow';
+import * as THREE from 'three';
+import { gsap } from 'gsap';
 
 const Hero = () => {
   const { t } = useTranslation();
+  const canvasRef = useRef(null);
+  const sceneRef = useRef(null);
+  const rendererRef = useRef(null);
+  const animationIdRef = useRef(null);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
+  // Three.js setup
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    // Create particles
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 1000;
+    const posArray = new Float32Array(particlesCount * 3);
+
+    for (let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 10;
+    }
+
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 0.02,
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
+
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+
+    // Create floating shapes
+    const shapesGeometry = new THREE.IcosahedronGeometry(0.1, 0);
+    const shapesMaterial = new THREE.MeshBasicMaterial({
+      color: 0xdc2626,
+      transparent: true,
+      opacity: 0.3,
+      wireframe: true
+    });
+
+    const shapes = [];
+    for (let i = 0; i < 20; i++) {
+      const shape = new THREE.Mesh(shapesGeometry, shapesMaterial);
+      shape.position.set(
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 8
+      );
+      shape.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+      scene.add(shape);
+      shapes.push(shape);
+    }
+
+    camera.position.z = 5;
+
+    // Animation loop
+    const animate = () => {
+      animationIdRef.current = requestAnimationFrame(animate);
+
+      // Rotate particles
+      particlesMesh.rotation.x += 0.001;
+      particlesMesh.rotation.y += 0.002;
+
+      // Animate shapes
+      shapes.forEach((shape, index) => {
+        shape.rotation.x += 0.01 + index * 0.001;
+        shape.rotation.y += 0.01 + index * 0.001;
+        shape.position.y += Math.sin(Date.now() * 0.001 + index) * 0.001;
+      });
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Handle resize
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Store references
+    sceneRef.current = scene;
+    rendererRef.current = renderer;
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      renderer.dispose();
+    };
+  }, []);
+
+  // GSAP animations
+  useEffect(() => {
+    const tl = gsap.timeline({ delay: 0.5 });
+
+    // Hero content animations
+    tl.fromTo('.hero-title', 
+      { 
+        opacity: 0, 
+        y: -100, 
+        scale: 0.8,
+        rotationX: -90
       },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
+      { 
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        rotationX: 0,
+        duration: 1.5,
+        ease: 'back.out(1.7)'
+      }
+    )
+    .fromTo('.hero-subtitle',
+      {
+        opacity: 0,
+        y: 50,
+        scale: 0.9
       },
-    },
-  };
-
-  const titleVariants = {
-    hidden: { opacity: 0, y: -80 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 1,
+        ease: 'power2.out'
+      },
+      '-=0.5'
+    )
+    .fromTo('.hero-buttons',
+      {
+        opacity: 0,
+        y: 80,
+        scale: 0.8
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 1,
+        ease: 'power2.out'
+      },
+      '-=0.3'
+    )
+    .fromTo('.hero-tour',
+      {
+        opacity: 0,
+        y: 30,
+        scale: 0.9
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
         duration: 0.8,
-        ease: "easeOut",
+        ease: 'power2.out'
       },
-    },
-  };
+      '-=0.2'
+    );
 
-  const buttonVariants = {
-    hidden: { opacity: 0, y: 80 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.8,
-        ease: "easeOut",
-      },
-    },
-  };
+    // Parallax effect for Three.js background
+    gsap.to(canvasRef.current, {
+      yPercent: -20,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#home',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1
+      }
+    });
+
+  }, []);
 
   return (
-    <section id="home" className="w-full h-screen">
+    <section id="home" className="w-full h-screen relative overflow-hidden">
+      {/* Image Slideshow Background */}
       <ImageSlideshow>
+        {/* Three.js Background */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ zIndex: 1 }}
+        />
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60 pointer-events-none" style={{ zIndex: 2 }} />
+
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-8"
-          >
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center">
+          <div className="space-y-8">
             {/* Main Heading */}
-            <motion.h1
-              variants={titleVariants}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-            >
+            <h1 className="hero-title text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
               {t('hero.title')}
-            </motion.h1>
+            </h1>
 
             {/* Subtitle */}
-            <motion.p
-              variants={titleVariants}
-              className="text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
-            >
+            <p className="hero-subtitle text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
               {t('hero.subtitle')}
-            </motion.p>
+            </p>
 
             {/* CTA Buttons */}
-            <motion.div
-              variants={buttonVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <motion.div
-                whileHover={{ scale: 1.08, boxShadow: '0 0 16px #dc2626' }}
-                whileTap={{ scale: 0.97 }}
-                className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
-              >
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="group bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700 text-shadow"
-                >
-                  {t('hero.cta.register')}
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                </Button>
-              </motion.div>
-              <Button
-                variant="outline"
-                size="lg"
-                className="group border-white text-white hover:bg-white hover:text-gray-900 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
-              >
-                {t('hero.cta.browse')}
-                <Users className="ml-2 group-hover:scale-110 transition-transform duration-200" />
+            <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button variant="primary" size="lg">
+                {t('hero.cta.primary')}
               </Button>
-            </motion.div>
+              <Button variant="secondary" size="lg">
+                {t('hero.cta.secondary')}
+              </Button>
+            </div>
 
             {/* Interactive Element - 360° Tour */}
-            <motion.div
-              variants={buttonVariants}
-              className="flex justify-center pt-8"
-            >
+            <div className="hero-tour flex justify-center pt-8">
               <motion.a
                 href="#tour"
-                className="inline-flex items-center text-white hover:text-red-400 transition-colors duration-200 group drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
+                className="inline-flex items-center gap-2 text-white text-opacity-80 hover:text-opacity-100 transition-all duration-200 group"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mr-3 group-hover:bg-red-700 transition-colors duration-200">
-                  <Play className="w-5 h-5 ml-1" />
-                </div>
-                <span className="text-lg font-medium">360° PLATFORM TOUR</span>
+                <span className="w-8 h-8 border-2 border-white border-opacity-50 rounded-full flex items-center justify-center group-hover:border-opacity-100 transition-all duration-200">
+                  <span className="w-2 h-2 bg-white rounded-full group-hover:scale-150 transition-transform duration-200" />
+                </span>
+                <span className="text-sm font-medium tracking-wide">
+                  {t('hero.tour')}
+                </span>
               </motion.a>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
-        {/* Scroll Down Indicator */}
+
+        {/* Scroll Indicator */}
         <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
-          animate={{ y: [0, 12, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <ChevronDown className="w-10 h-10 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] animate-bounce" />
+          <div className="w-6 h-10 border-2 border-white border-opacity-50 rounded-full flex justify-center">
+            <motion.div
+              className="w-1 h-3 bg-white rounded-full mt-2"
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
         </motion.div>
       </ImageSlideshow>
     </section>

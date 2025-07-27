@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Menu, X, Globe, ChevronDown } from 'lucide-react';
@@ -8,17 +8,48 @@ const Header = () => {
   const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const menuRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const toggleLanguage = (lang) => {
     i18n.changeLanguage(lang);
     setIsLanguageOpen(false);
   };
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && 
+          menuRef.current && 
+          !menuRef.current.contains(event.target) &&
+          buttonRef.current &&
+          !buttonRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // Close language dropdown when clicking outside
+    const handleLanguageClickOutside = (event) => {
+      if (isLanguageOpen && 
+          !event.target.closest('.language-dropdown')) {
+        setIsLanguageOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleLanguageClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleLanguageClickOutside);
+    };
+  }, [isMenuOpen, isLanguageOpen]);
+
   const navItems = [
     { key: 'nav.home', href: '#home' },
-    { key: 'nav.register', href: '#register' },
-    { key: 'nav.login', href: '#login' },
-    { key: 'nav.viewJobSeekers', href: '#job-seekers' },
+    { key: 'nav.jobSeekers', href: '#job-seekers' },
+    { key: 'nav.contact', href: '#contact' },
+    { key: 'nav.about', href: '#about' },
   ];
 
   return (
@@ -56,57 +87,61 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Language Switcher */}
-          <div className="hidden md:relative">
-            <motion.button
-              className="flex items-center space-x-1 text-white hover:text-red-400 transition-colors duration-200"
-              onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Globe size={18} />
-              <span className="font-medium">{i18n.language === 'en' ? 'EN' : 'RW'}</span>
-              <ChevronDown size={16} className={`transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
-            </motion.button>
+          {/* Desktop Right Section */}
+          <div className="hidden md:flex items-center space-x-6">
+            {/* Language Switcher */}
+            <div className="relative language-dropdown">
+              <motion.button
+                className="flex items-center space-x-1 text-white hover:text-red-400 transition-colors duration-200"
+                onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Globe size={18} />
+                <span className="font-medium">{i18n.language === 'en' ? 'EN' : 'RW'}</span>
+                <ChevronDown size={16} className={`transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+              </motion.button>
 
-            <AnimatePresence>
-              {isLanguageOpen && (
-                <motion.div
-                  className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
-                    onClick={() => toggleLanguage('en')}
+              <AnimatePresence>
+                {isLanguageOpen && (
+                  <motion.div
+                    className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    English
-                  </button>
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
-                    onClick={() => toggleLanguage('rw')}
-                  >
-                    Kinyarwanda
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => toggleLanguage('en')}
+                    >
+                      English
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => toggleLanguage('rw')}
+                    >
+                      Kinyarwanda
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-white hover:bg-opacity-20">
-              {t('nav.login')}
-            </Button>
-            <Button variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700">
-              {t('nav.register')}
-            </Button>
+            {/* CTA Buttons */}
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-white hover:bg-opacity-20">
+                {t('nav.login')}
+              </Button>
+              <Button variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700">
+                {t('nav.register')}
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
           <motion.button
+            ref={buttonRef}
             className="md:hidden p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-colors duration-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             whileHover={{ scale: 1.05 }}
@@ -120,6 +155,7 @@ const Header = () => {
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
+              ref={menuRef}
               className="md:hidden border-t border-white border-opacity-20 py-4"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}

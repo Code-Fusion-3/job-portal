@@ -15,6 +15,83 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Enhanced Animation Classes */
+.text-reveal {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+}
+
+.job-seeker-card {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.floating-stat {
+  will-change: transform;
+}
+
+.counter {
+  will-change: contents;
+}
+
+.wave-animation {
+  will-change: transform;
+}
+
+.contact-form {
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card {
+  will-change: transform, opacity;
+}
+
+.parallax-bg {
+  will-change: transform;
+}
+
+/* Hero Section Optimizations */
+.hero-title {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.hero-subtitle {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.hero-buttons {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.hero-tour {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Three.js Canvas Optimization */
+canvas {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Smooth scrolling for better animation performance */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimize animations for better performance */
+* {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
