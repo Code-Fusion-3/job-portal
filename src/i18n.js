@@ -1,6 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+console.log('i18n.js: Starting i18n configuration');
+
 const resources = {
   en: {
     translation: {
@@ -30,6 +32,20 @@ const resources = {
       'features.employers.desc': 'Find qualified candidates and streamline your hiring process',
       'features.privacy.title': 'Privacy First',
       'features.privacy.desc': 'Your data is protected with industry-leading security measures',
+      
+      // Individual Features
+      'features.1.title': 'Smart Matching',
+      'features.1.description': 'AI-powered algorithm matches the best candidates with your specific requirements',
+      'features.2.title': 'Verified Profiles',
+      'features.2.description': 'All candidates undergo thorough verification and background checks',
+      'features.3.title': 'Quick Hiring',
+      'features.3.description': 'Streamlined process to hire qualified candidates within 48 hours',
+      'features.4.title': 'Global Reach',
+      'features.4.description': 'Access to talent pool from across Rwanda and beyond',
+      'features.5.title': 'Direct Communication',
+      'features.5.description': 'Built-in messaging system for seamless candidate-employer communication',
+      'features.6.title': 'Analytics Dashboard',
+      'features.6.description': 'Comprehensive insights and analytics for better hiring decisions',
       
       // About Us Section
       'about.title': 'About Us',
@@ -77,6 +93,7 @@ const resources = {
       'jobSeekers.noResults.message': 'Try adjusting your search criteria or filters',
       'jobSeekers.noResults.clearFilters': 'Clear All Filters',
       'jobSeekers.actions.viewProfile': 'View Profile',
+      'jobSeekers.actions.requestCandidate': 'Request Candidate',
       
       // Contact Us Section
       'contact.title': 'Contact Us',
@@ -127,6 +144,116 @@ const resources = {
       'footer.legal': 'Legal',
       'footer.cookies': 'Cookie Policy',
       'footer.backToTop': 'Back to Top',
+      
+      // Register Page
+      'register.title': 'Create Your Account',
+      'register.subtitle': 'Join thousands of job seekers and start your career journey',
+      'register.userType': 'I am a',
+      'register.jobseeker': 'Job Seeker',
+      'register.jobseekerDesc': 'Looking for opportunities',
+      'register.firstName': 'First Name',
+      'register.lastName': 'Last Name',
+      'register.email': 'Email Address',
+      'register.phone': 'Phone Number',
+      'register.password': 'Password',
+      'register.confirmPassword': 'Confirm Password',
+      'register.createAccount': 'Create Account',
+      'register.creating': 'Creating account...',
+      'register.haveAccount': 'Already have an account?',
+      'register.signIn': 'Sign in',
+      'register.firstNamePlaceholder': 'First name',
+      'register.lastNamePlaceholder': 'Last name',
+      'register.emailPlaceholder': 'Enter your email',
+      'register.phonePlaceholder': 'Enter your phone number',
+      'register.passwordPlaceholder': 'Create a password',
+      'register.confirmPasswordPlaceholder': 'Confirm your password',
+      'register.passwordRequirements': 'Must contain uppercase, lowercase, number, and be at least 8 characters',
+      'register.agreeToTerms': 'I agree to the',
+      'register.terms': 'Terms of Service',
+      'register.and': 'and',
+      'register.privacy': 'Privacy Policy',
+      'register.agreeToMarketing': 'I agree to receive marketing communications and updates',
+      'register.errors.firstNameRequired': 'First name is required',
+      'register.errors.firstNameLength': 'First name must be at least 2 characters',
+      'register.errors.lastNameRequired': 'Last name is required',
+      'register.errors.lastNameLength': 'Last name must be at least 2 characters',
+      'register.errors.emailRequired': 'Email is required',
+      'register.errors.emailInvalid': 'Please enter a valid email',
+      'register.errors.phoneRequired': 'Phone number is required',
+      'register.errors.phoneInvalid': 'Please enter a valid phone number',
+      'register.errors.passwordRequired': 'Password is required',
+      'register.errors.passwordLength': 'Password must be at least 8 characters',
+      'register.errors.passwordComplexity': 'Password must contain uppercase, lowercase, and number',
+      'register.errors.confirmPasswordRequired': 'Please confirm your password',
+      'register.errors.passwordMismatch': 'Passwords do not match',
+      'register.errors.termsRequired': 'You must agree to the terms and conditions',
+      'register.errors.general': 'Registration failed. Please try again.',
+      'register.hero.title': 'Join Our Community',
+      'register.hero.subtitle': 'Connect with top employers and opportunities. Start your journey today and discover endless possibilities.',
+      'register.hero.benefit1': 'Access to thousands of job opportunities',
+      'register.hero.benefit2': 'Connect with top employers and talent',
+      'register.hero.benefit3': 'Advanced matching algorithms',
+      'register.hero.benefit4': 'Professional profile management',
+
+      // Login Page
+      'login.title': 'Welcome Back',
+      'login.subtitle': 'Sign in to your account to continue',
+      'login.role': 'I am a',
+      'login.jobseeker': 'Job Seeker',
+      'login.jobseekerDesc': 'Looking for opportunities',
+      'login.admin': 'Admin',
+      'login.adminDesc': 'Manage platform',
+      'login.email': 'Email Address',
+      'login.emailPlaceholder': 'Enter your email',
+      'login.password': 'Password',
+      'login.passwordPlaceholder': 'Enter your password',
+      'login.rememberMe': 'Remember me',
+      'login.forgotPassword': 'Forgot password?',
+      'login.signIn': 'Sign In',
+      'login.signingIn': 'Signing in...',
+      'login.noAccount': "Don't have an account?",
+      'login.signUp': 'Sign up',
+      'login.errors.emailRequired': 'Email is required',
+      'login.errors.emailInvalid': 'Please enter a valid email',
+      'login.errors.passwordRequired': 'Password is required',
+      'login.errors.passwordLength': 'Password must be at least 6 characters',
+      'login.errors.general': 'Login failed. Please try again.',
+      'login.hero.title': 'Find Your Dream Job',
+      'login.hero.subtitle': 'Connect with top employers and discover opportunities that match your skills and aspirations.',
+      
+      // Employer Request Form
+      'employerRequest.title': 'Request Candidate',
+      'employerRequest.subtitle': 'Send a request to connect with this candidate',
+      'employerRequest.subtitleWithName': 'Request to connect with {{name}}',
+      'employerRequest.employerName': 'Your Name',
+      'employerRequest.companyName': 'Company Name',
+      'employerRequest.email': 'Email Address',
+      'employerRequest.phone': 'Phone Number',
+      'employerRequest.message': 'Message',
+      'employerRequest.employerNamePlaceholder': 'Enter your full name',
+      'employerRequest.companyNamePlaceholder': 'Enter company name',
+      'employerRequest.emailPlaceholder': 'Enter your email',
+      'employerRequest.phonePlaceholder': 'Enter your phone number',
+      'employerRequest.messagePlaceholder': 'Tell us about your requirements and why you\'re interested in this candidate...',
+      'employerRequest.sendRequest': 'Send Request',
+      'employerRequest.sending': 'Sending request...',
+      'employerRequest.disclaimer': 'Your request will be sent to our admin team for review. We\'ll get back to you within 24 hours.',
+      'employerRequest.errors.nameRequired': 'Employer name is required',
+      'employerRequest.errors.companyRequired': 'Company name is required',
+      'employerRequest.errors.emailRequired': 'Email is required',
+      'employerRequest.errors.emailInvalid': 'Please enter a valid email',
+      'employerRequest.errors.phoneRequired': 'Phone number is required',
+      'employerRequest.errors.phoneInvalid': 'Please enter a valid phone number',
+      'employerRequest.errors.messageRequired': 'Message is required',
+      'employerRequest.errors.messageLength': 'Message must be at least 10 characters',
+      'employerRequest.success.title': 'Request Sent Successfully!',
+      'employerRequest.success.message': 'Your request has been sent to our admin team. We\'ll review it and get back to you within 24 hours.',
+      'employerRequest.success.backToJobSeekers': 'Back to Job Seekers',
+      'employerRequest.backToJobSeekers': 'Back to Job Seekers',
+      'employerRequest.candidateInfo': 'Candidate Information',
+      'employerRequest.experience': 'Experience',
+      'employerRequest.location': 'Location',
+      'employerRequest.skills': 'Key Skills',
     }
   },
   rw: {
@@ -158,6 +285,20 @@ const resources = {
       'features.privacy.title': 'Ibyangombwa By\'ibanze',
       'features.privacy.desc': 'Amakuru yawe ari mu kurenganwa n\'uburenganzira bw\'ibanze',
       
+      // Individual Features (Kinyarwanda)
+      'features.1.title': 'Guhuza Ubumenyi',
+      'features.1.description': 'Algoritimu y\'ikoranabuhanga ihuzuza abantu ba nyuma n\'ibyo ushaka',
+      'features.2.title': 'Ibyangombwa By\'ibanze',
+      'features.2.description': 'Abantu bose bafite ubumenyi bw\'ibanze n\'uburenganzira bw\'ibanze',
+      'features.3.title': 'Gufata Ibikorwa By\'uburambe',
+      'features.3.description': 'Uburyo bw\'uburambe bwo gufata abantu bafite ubumenyi mu masaha 48',
+      'features.4.title': 'Kugera ku Bantu',
+      'features.4.description': 'Kugera ku bantu bafite ubumenyi mu Rwanda yose n\'ibirenzeho',
+      'features.5.title': 'Ubutumwa Bw\'ibanze',
+      'features.5.description': 'Sisitemu y\'ubutumwa bw\'ibanze yo guhuza abantu n\'abakozi',
+      'features.6.title': 'Urupapuro rw\'Ibyangombwa',
+      'features.6.description': 'Ibyangombwa n\'uburyo bw\'ibanze bwo gufata ibikorwa by\'uburezi',
+      
       // About Us Section
       'about.title': 'Ibyo',
       'about.subtitle': 'Duhuzuza ubumenyi n\'urupfu mu Rwanda yose dukoresheje ikoranabuhanga rishya n\'ubufasha bw\'ibanze.',
@@ -186,24 +327,25 @@ const resources = {
       'jobSeekers.location': 'Kigali, Rwanda',
       
       // Job Seekers Page
-      'jobSeekers.pageTitle': 'Abashaka Akazi ba Vuba',
+      'jobSeekers.pageTitle': 'Abashaka Akazi Bose',
       'jobSeekers.pageSubtitle': 'Shakira abantu bafite ubumenyi bateguye gutanga ku ntsinzi y\'ishyirwa ryawe',
-      'jobSeekers.searchPlaceholder': 'Shakira abantu bafite ubumenyi bateguye gutanga ku ntsinzi y\'ishyirwa ryawe',
-      'jobSeekers.filters.location': 'Ubumenyi',
-      'jobSeekers.filters.allLocations': 'Ubumenyi wose',
+      'jobSeekers.searchPlaceholder': 'Shakira ku izina, umwuga, cyangwa ubumenyi...',
+      'jobSeekers.filters.location': 'Aho',
+      'jobSeekers.filters.allLocations': 'Aho Hose',
       'jobSeekers.filters.experience': 'Uburambe',
-      'jobSeekers.filters.allExperience': 'Uburambe wose',
+      'jobSeekers.filters.allExperience': 'Uburambe Wose',
       'jobSeekers.filters.sortBy': 'Shakira',
-      'jobSeekers.filters.mostRecent': 'Ibyo by\'uburambe',
-      'jobSeekers.filters.highestRated': 'Ibyo by\'uburambe',
-      'jobSeekers.filters.mostExperienced': 'Ibyo by\'uburambe',
+      'jobSeekers.filters.mostRecent': 'Ibyo By\'uburambe',
+      'jobSeekers.filters.highestRated': 'Ibyo By\'ubwiza',
+      'jobSeekers.filters.mostExperienced': 'Ibyo By\'uburambe',
       'jobSeekers.filters.name': 'Amazina A-Z',
-      'jobSeekers.filters.skills': 'Ibyo',
+      'jobSeekers.filters.skills': 'Ubumenyi',
       'jobSeekers.results': 'ibyiza',
-      'jobSeekers.noResults.title': 'Abashaka Akazi bateguye gutanga ku ntsinzi y\'ishyirwa ryawe',
-      'jobSeekers.noResults.message': 'Dushaka kugira ngo dushyirwa ku ntsinzi y\'ishyirwa ryawe',
-      'jobSeekers.noResults.clearFilters': 'Iryo ry\'ibyiza',
+      'jobSeekers.noResults.title': 'Nta mushaka akazi bahashyizwe',
+      'jobSeekers.noResults.message': 'Gerageza guhindura ibyo ushakisha cyangwa amashyiraho',
+      'jobSeekers.noResults.clearFilters': 'Suzuma Amashyiraho Yose',
       'jobSeekers.actions.viewProfile': 'Reba Profile',
+      'jobSeekers.actions.requestCandidate': 'Shakira Umushaka',
       
       // Contact Us Section
       'contact.title': 'Twandikire',
@@ -216,7 +358,7 @@ const resources = {
       'contact.form.sending': 'Ohereza...',
       'contact.form.success': 'Ubutumwa bwoherejwe neza!',
       'contact.form.success.title': 'Ubutumwa bwoherejwe neza!',
-      'contact.form.success.message': 'Twandikire. Dushaka kumva kuri wewe.',
+      'contact.form.success.message': 'Urakoze kudutangarira. Tuzasubira inyuma.',
       'contact.form.placeholder.name': 'Andika amazina yawe yose',
       'contact.form.placeholder.email': 'Andika imeyili yawe',
       'contact.form.placeholder.subject': 'Andika icyo',
@@ -254,19 +396,142 @@ const resources = {
       'footer.legal': 'Amategeko',
       'footer.cookies': 'Politiki y\'Amakuki',
       'footer.backToTop': 'Subira Hejuru',
+      
+      // Login Page
+      'login.title': 'Murakaza neza',
+      'login.subtitle': 'Injira kuri konti yawe kugira ngo ukoze',
+      'login.role': 'Ndi',
+      'login.jobseeker': 'Umushaka Akazi',
+      'login.jobseekerDesc': 'Ndashaka amahirwe',
+      'login.admin': 'Kwinjira',
+      'login.adminDesc': 'Kugera ku gushyiraho urupapuro',
+      'login.email': 'Imeyili',
+      'login.emailPlaceholder': 'Andika imeyili yawe',
+      'login.password': 'Ijambo ry\'ibanga',
+      'login.passwordPlaceholder': 'Andika ijambo ry\'ibanga',
+      'login.rememberMe': 'Nibutse',
+      'login.forgotPassword': 'Wibagiwe ijambo ry\'ibanga?',
+      'login.signIn': 'Injira',
+      'login.signingIn': 'Ura injira...',
+      'login.noAccount': 'Niba utarafungura konti?',
+      'login.signUp': 'Iyandikishe',
+      'login.errors.emailRequired': 'Ineyili irakenewe',
+      'login.errors.emailInvalid': 'Andika imeyili yemewe',
+      'login.errors.passwordRequired': 'Ijambo ry\'ibanga rirakenewe',
+      'login.errors.passwordLength': 'Ijambo ry\'ibanga rigomba kuba inyuguti 6',
+      'login.errors.general': 'Kwinjira byanze. Ongera ugerageze.',
+      'login.hero.title': 'Shakira Akazi Kawe K\'ubwishime',
+      'login.hero.subtitle': 'Huzuza n\'abakozi ba nyuma kandi ubone amahirwe ahura n\'ubumenyi n\'ibyo ushaka.',
+      
+      // Register Page (Kinyarwanda)
+      'register.title': 'Fungura Konti Yawe',
+      'register.subtitle': 'Uhuze n\'abantu b\'umwuga n\'utangire urugendo rwawe',
+      'register.userType': 'Ndi',
+      'register.jobseeker': 'Umushaka Akazi',
+      'register.jobseekerDesc': 'Ndashaka amahirwe',
+      'register.firstName': 'Izina Rya Mbere',
+      'register.lastName': 'Izina Rya Nyuma',
+      'register.email': 'Ineyili',
+      'register.phone': 'Telefoni',
+      'register.password': 'Ijambo Ry\'ibanga',
+      'register.confirmPassword': 'Emeza Ijambo Ry\'ibanga',
+      'register.createAccount': 'Fungura Konti',
+      'register.creating': 'Ura fungura konti...',
+      'register.haveAccount': 'Urafungura konti?',
+      'register.signIn': 'Injira',
+      'register.firstNamePlaceholder': 'Izina rya mbere',
+      'register.lastNamePlaceholder': 'Izina rya nyuma',
+      'register.emailPlaceholder': 'Andika imeyili yawe',
+      'register.phonePlaceholder': 'Andika telefoni yawe',
+      'register.passwordPlaceholder': 'Kora ijambo ry\'ibanga',
+      'register.confirmPasswordPlaceholder': 'Emeza ijambo ry\'ibanga',
+      'register.passwordRequirements': 'Igomba kuba inyuguti 8, inyuguti nto, inyuguti nto, n\'umubare',
+      'register.agreeToTerms': 'Nemeza',
+      'register.terms': 'Amabwiriza ya Serivisi',
+      'register.and': 'n\'',
+      'register.privacy': 'Politiki y\'Ibyangombwa',
+      'register.agreeToMarketing': 'Nemeza ko nshobora kwakira ubutumwa n\'uburyo',
+      'register.errors.firstNameRequired': 'Izina rya mbere rirakenewe',
+      'register.errors.firstNameLength': 'Izina rya mbere rigomba kuba inyuguti 2',
+      'register.errors.lastNameRequired': 'Izina rya nyuma rirakenewe',
+      'register.errors.lastNameLength': 'Izina rya nyuma rigomba kuba inyuguti 2',
+      'register.errors.emailRequired': 'Ineyili irakenewe',
+      'register.errors.emailInvalid': 'Andika imeyili yemewe',
+      'register.errors.phoneRequired': 'Telefoni irakenewe',
+      'register.errors.phoneInvalid': 'Andika telefoni yemewe',
+      'register.errors.passwordRequired': 'Ijambo ry\'ibanga rirakenewe',
+      'register.errors.passwordLength': 'Ijambo ry\'ibanga rigomba kuba inyuguti 8',
+      'register.errors.passwordComplexity': 'Igomba kuba inyuguti nto, inyuguti nto, n\'umubare',
+      'register.errors.confirmPasswordRequired': 'Emeza ijambo ry\'ibanga',
+      'register.errors.passwordMismatch': 'Amagambo y\'ibanga ntiyemewe',
+      'register.errors.termsRequired': 'Ugomba kwemera amabwiriza',
+      'register.errors.general': 'Kwiyandikisha byanze. Ongera ugerageze.',
+      'register.hero.title': 'Uhuze n\'Umuryango Wacu',
+      'register.hero.subtitle': 'Huzuza n\'ubumenyi n\'amahirwe. Tangira urugendo rwawe uyu munsi kandi ubone amahirwe atangira.',
+      'register.hero.benefit1': 'Kugera ku mahirwe y\'akazi y\'ibihumbi',
+      'register.hero.benefit2': 'Huzuza n\'abakozi ba nyuma n\'ubumenyi',
+      'register.hero.benefit3': 'Algoritimu z\'ibanze zo guhuza',
+      'register.hero.benefit4': 'Gukurikirana kwa profile ya professional',
+
+      // Employer Request Form (Kinyarwanda)
+      'employerRequest.title': 'Shakira Umushaka',
+      'employerRequest.subtitle': 'Ohereza icyifuzo cyo guhuzuza n\'uyu mushaka',
+      'employerRequest.subtitleWithName': 'Shakira guhuzuza na {{name}}',
+      'employerRequest.employerName': 'Izina Ryawe',
+      'employerRequest.companyName': 'Izina Rya Sosiyete',
+      'employerRequest.email': 'Ineyili',
+      'employerRequest.phone': 'Telefoni',
+      'employerRequest.message': 'Ubutumwa',
+      'employerRequest.employerNamePlaceholder': 'Andika izina ryawe ryose',
+      'employerRequest.companyNamePlaceholder': 'Andika izina rya sosiyete',
+      'employerRequest.emailPlaceholder': 'Andika imeyili yawe',
+      'employerRequest.phonePlaceholder': 'Andika telefoni yawe',
+      'employerRequest.messagePlaceholder': 'Tubwire ibyo ushaka n\'impamvu ushaka uyu mushaka...',
+      'employerRequest.sendRequest': 'Ohereza Icyifuzo',
+      'employerRequest.sending': 'Ohereza icyifuzo...',
+      'employerRequest.disclaimer': 'Icyifuzo cyawe kizoherezwa ku mutekano wacu wo gufata ibikorwa. Tuzasubira inyuma mu masaha 24.',
+      'employerRequest.errors.nameRequired': 'Izina rya mukozi rirakenewe',
+      'employerRequest.errors.companyRequired': 'Izina rya sosiyete rirakenewe',
+      'employerRequest.errors.emailRequired': 'Ineyili irakenewe',
+      'employerRequest.errors.emailInvalid': 'Andika imeyili yemewe',
+      'employerRequest.errors.phoneRequired': 'Telefoni irakenewe',
+      'employerRequest.errors.phoneInvalid': 'Andika telefoni yemewe',
+      'employerRequest.errors.messageRequired': 'Ubutumwa burakenewe',
+      'employerRequest.errors.messageLength': 'Ubutumwa bugomba kuba inyuguti 10',
+      'employerRequest.success.title': 'Icyifuzo Cyoherejwe Neza!',
+      'employerRequest.success.message': 'Icyifuzo cyawe cyoherejwe ku mutekano wacu. Tuzasuzuma kandi tuzasubira inyuma mu masaha 24.',
+      'employerRequest.success.backToJobSeekers': 'Subira ku Bashaka Akazi',
+      'employerRequest.backToJobSeekers': 'Subira ku Bashaka Akazi',
+      'employerRequest.candidateInfo': 'Amakuru ya Mushaka',
+      'employerRequest.experience': 'Uburambe',
+      'employerRequest.location': 'Aho',
+      'employerRequest.skills': 'Ubumenyi Bw\'ibanze',
     }
   }
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en', // default language
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false, // React already escapes values
-    },
-  });
+console.log('i18n.js: Resources defined, initializing i18n');
+
+try {
+  i18n
+    .use(initReactI18next)
+    .init({
+      resources,
+      lng: 'en', // default language
+      fallbackLng: 'en',
+      interpolation: {
+        escapeValue: false, // React already escapes values
+      },
+      debug: true, // Enable debug mode to see what's happening
+    })
+    .then(() => {
+      console.log('i18n.js: i18n initialized successfully');
+    })
+    .catch((error) => {
+      console.error('i18n.js: Error initializing i18n:', error);
+    });
+} catch (error) {
+  console.error('i18n.js: Fatal error during i18n setup:', error);
+}
 
 export default i18n; 

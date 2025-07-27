@@ -137,7 +137,7 @@ const JobSeekers = () => {
                 placeholder={t('jobSeekers.searchPlaceholder', 'Search by name, title, or skills...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
               />
             </div>
             <div className="flex gap-2">
@@ -187,7 +187,7 @@ const JobSeekers = () => {
                     <select
                       value={selectedLocation}
                       onChange={(e) => setSelectedLocation(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                     >
                       {filterOptions.locations.map(location => (
                         <option key={location} value={location === 'All Locations' ? '' : location}>
@@ -205,7 +205,7 @@ const JobSeekers = () => {
                     <select
                       value={selectedExperience}
                       onChange={(e) => setSelectedExperience(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                     >
                       {filterOptions.experience.map(exp => (
                         <option key={exp} value={exp === 'All Experience' ? '' : exp}>
@@ -223,7 +223,7 @@ const JobSeekers = () => {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                     >
                       {filterOptions.sortBy.map(sort => (
                         <option key={sort} value={sort}>{sort}</option>

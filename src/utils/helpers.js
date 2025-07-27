@@ -100,6 +100,10 @@ export const formatHourlyRate = (rate) => {
 
 // Generate initials from name
 export const getInitials = (name) => {
+  if (!name || typeof name !== 'string') {
+    return '';
+  }
+  
   return name
     .split(' ')
     .map(word => word.charAt(0))
@@ -110,17 +114,30 @@ export const getInitials = (name) => {
 
 // Truncate text with ellipsis
 export const truncateText = (text, maxLength) => {
+  // Handle null, undefined, or non-string values
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+  
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + '...';
 };
 
 // Capitalize first letter
 export const capitalize = (str) => {
+  if (!str || typeof str !== 'string') {
+    return '';
+  }
+  
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
 // Format phone number
 export const formatPhoneNumber = (phone) => {
+  if (!phone || typeof phone !== 'string') {
+    return '';
+  }
+  
   // Remove all non-digits
   const cleaned = phone.replace(/\D/g, '');
   

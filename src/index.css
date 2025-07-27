@@ -6,13 +6,33 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  /* Removed problematic global text color that was affecting form visibility */
+  /* color: rgba(255, 255, 255, 0.87); */
   /* background-color: #242424; - Removed to eliminate dark margins */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Form element styling for better visibility */
+input, textarea, select {
+  color: #111827; /* text-gray-900 */
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280; /* text-gray-500 */
+}
+
+/* Ensure proper contrast for form labels */
+label {
+  color: #374151; /* text-gray-700 */
+}
+
+/* Form focus states */
+input:focus, textarea:focus, select:focus {
+  color: #111827; /* text-gray-900 */
 }
 
 /* Enhanced Animation Classes */

@@ -151,12 +151,16 @@ const Header = () => {
 
             {/* CTA Buttons */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-white hover:bg-opacity-20">
-                {t('nav.login')}
-              </Button>
-              <Button variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700">
-                {t('nav.register')}
-              </Button>
+              <Link to="/login">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-white hover:bg-opacity-20">
+                  {t('nav.login')}
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button as="div" variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700">
+                  {t('nav.register')}
+                </Button>
+              </Link>
             </div>
           </div>
 
