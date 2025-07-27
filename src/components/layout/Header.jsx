@@ -100,12 +100,6 @@ const Header = () => {
                         ? 'text-red-400'
                         : 'text-white hover:text-red-400'
                     }`}
-                    onClick={() => {
-                      console.log('Navigation clicked:', item.href);
-                      if (item.key === 'nav.jobSeekers') {
-                        console.log('Job Seekers navigation clicked!');
-                      }
-                    }}
                   >
                     {t(item.key)}
                   </Link>
@@ -214,10 +208,6 @@ const Header = () => {
                             : 'text-white hover:text-red-400'
                         }`}
                         onClick={() => {
-                          console.log('Mobile navigation clicked:', item.href);
-                          if (item.key === 'nav.jobSeekers') {
-                            console.log('Mobile Job Seekers clicked!');
-                          }
                           setIsMenuOpen(false);
                         }}
                       >

@@ -232,16 +232,7 @@ const Hero = () => {
               <Button variant="primary" size="lg">
                 {t('hero.cta.primary')}
               </Button>
-              <Link 
-                to="/job-seekers" 
-                onClick={(e) => {
-                  console.log('Browse Candidates clicked!');
-                  console.log('Event:', e);
-                  console.log('Target:', e.target);
-                  console.log('Current target:', e.currentTarget);
-                }}
-                style={{ cursor: 'pointer' }}
-              >
+              <Link to="/job-seekers">
                 <Button as="div" variant="secondary" size="lg">
                   {t('hero.cta.secondary')}
                 </Button>
@@ -263,17 +254,6 @@ const Hero = () => {
                   {t('hero.tour')}
                 </span>
               </motion.a>
-            </div>
-            
-            {/* Test Link */}
-            <div className="mt-4">
-              <Link 
-                to="/job-seekers" 
-                className="text-white underline hover:text-red-400"
-                onClick={() => console.log('Test link clicked!')}
-              >
-                Test Link to Job Seekers
-              </Link>
             </div>
           </div>
         </div>
