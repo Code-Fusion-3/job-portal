@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { User, MapPin, Briefcase, Eye, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -157,10 +158,12 @@ const LatestJobSeekers = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center"
         >
-          <Button variant="outline" size="lg" className="group">
-            {t('jobSeekers.viewMore')}
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-          </Button>
+          <Link to="/job-seekers">
+            <Button as="div" variant="outline" size="lg" className="group" onClick={() => console.log('View More button clicked!')}>
+              {t('jobSeekers.viewMore')}
+              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

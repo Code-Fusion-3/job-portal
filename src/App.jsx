@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
@@ -7,10 +8,12 @@ import LatestJobSeekers from './components/sections/LatestJobSeekers';
 import AboutUs from './components/sections/AboutUs';
 import ContactUs from './components/sections/ContactUs';
 import Footer from './components/layout/Footer';
+import JobSeekers from './pages/JobSeekers';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
-function App() {
+// Home page component
+const HomePage = () => {
   const { containerRef } = useScrollAnimations();
 
   // Smooth scrolling for anchor links
@@ -51,6 +54,19 @@ function App() {
       </main>
       <Footer />
     </motion.div>
+  );
+};
+
+function App() {
+  console.log('App component rendered');
+  
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/job-seekers" element={<JobSeekers />} />
+      </Routes>
+    </Router>
   );
 }
 

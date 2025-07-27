@@ -58,6 +58,26 @@ const resources = {
       'jobSeekers.experience': 'years',
       'jobSeekers.location': 'Kigali, Rwanda',
       
+      // Job Seekers Page
+      'jobSeekers.pageTitle': 'All Job Seekers',
+      'jobSeekers.pageSubtitle': 'Discover talented professionals ready to contribute to your organization',
+      'jobSeekers.searchPlaceholder': 'Search by name, title, or skills...',
+      'jobSeekers.filters.location': 'Location',
+      'jobSeekers.filters.allLocations': 'All Locations',
+      'jobSeekers.filters.experience': 'Experience',
+      'jobSeekers.filters.allExperience': 'All Experience',
+      'jobSeekers.filters.sortBy': 'Sort By',
+      'jobSeekers.filters.mostRecent': 'Most Recent',
+      'jobSeekers.filters.highestRated': 'Highest Rated',
+      'jobSeekers.filters.mostExperienced': 'Most Experienced',
+      'jobSeekers.filters.name': 'Name A-Z',
+      'jobSeekers.filters.skills': 'Skills',
+      'jobSeekers.results': 'results',
+      'jobSeekers.noResults.title': 'No job seekers found',
+      'jobSeekers.noResults.message': 'Try adjusting your search criteria or filters',
+      'jobSeekers.noResults.clearFilters': 'Clear All Filters',
+      'jobSeekers.actions.viewProfile': 'View Profile',
+      
       // Contact Us Section
       'contact.title': 'Contact Us',
       'contact.subtitle': 'Get in touch with us. We\'d love to hear from you.',
@@ -164,6 +184,26 @@ const resources = {
       'jobSeekers.viewMore': 'Reba Birenzeho',
       'jobSeekers.experience': 'imyaka',
       'jobSeekers.location': 'Kigali, Rwanda',
+      
+      // Job Seekers Page
+      'jobSeekers.pageTitle': 'Abashaka Akazi ba Vuba',
+      'jobSeekers.pageSubtitle': 'Shakira abantu bafite ubumenyi bateguye gutanga ku ntsinzi y\'ishyirwa ryawe',
+      'jobSeekers.searchPlaceholder': 'Shakira abantu bafite ubumenyi bateguye gutanga ku ntsinzi y\'ishyirwa ryawe',
+      'jobSeekers.filters.location': 'Ubumenyi',
+      'jobSeekers.filters.allLocations': 'Ubumenyi wose',
+      'jobSeekers.filters.experience': 'Uburambe',
+      'jobSeekers.filters.allExperience': 'Uburambe wose',
+      'jobSeekers.filters.sortBy': 'Shakira',
+      'jobSeekers.filters.mostRecent': 'Ibyo by\'uburambe',
+      'jobSeekers.filters.highestRated': 'Ibyo by\'uburambe',
+      'jobSeekers.filters.mostExperienced': 'Ibyo by\'uburambe',
+      'jobSeekers.filters.name': 'Amazina A-Z',
+      'jobSeekers.filters.skills': 'Ibyo',
+      'jobSeekers.results': 'ibyiza',
+      'jobSeekers.noResults.title': 'Abashaka Akazi bateguye gutanga ku ntsinzi y\'ishyirwa ryawe',
+      'jobSeekers.noResults.message': 'Dushaka kugira ngo dushyirwa ku ntsinzi y\'ishyirwa ryawe',
+      'jobSeekers.noResults.clearFilters': 'Iryo ry\'ibyiza',
+      'jobSeekers.actions.viewProfile': 'Reba Profile',
       
       // Contact Us Section
       'contact.title': 'Twandikire',

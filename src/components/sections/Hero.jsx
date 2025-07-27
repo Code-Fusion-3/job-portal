@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 import ImageSlideshow from '../ui/ImageSlideshow';
 import * as THREE from 'three';
@@ -231,9 +232,20 @@ const Hero = () => {
               <Button variant="primary" size="lg">
                 {t('hero.cta.primary')}
               </Button>
-              <Button variant="secondary" size="lg">
-                {t('hero.cta.secondary')}
-              </Button>
+              <Link 
+                to="/job-seekers" 
+                onClick={(e) => {
+                  console.log('Browse Candidates clicked!');
+                  console.log('Event:', e);
+                  console.log('Target:', e.target);
+                  console.log('Current target:', e.currentTarget);
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                <Button as="div" variant="secondary" size="lg">
+                  {t('hero.cta.secondary')}
+                </Button>
+              </Link>
             </div>
 
             {/* Interactive Element - 360° Tour */}
@@ -251,6 +263,17 @@ const Hero = () => {
                   {t('hero.tour')}
                 </span>
               </motion.a>
+            </div>
+            
+            {/* Test Link */}
+            <div className="mt-4">
+              <Link 
+                to="/job-seekers" 
+                className="text-white underline hover:text-red-400"
+                onClick={() => console.log('Test link clicked!')}
+              >
+                Test Link to Job Seekers
+              </Link>
             </div>
           </div>
         </div>
