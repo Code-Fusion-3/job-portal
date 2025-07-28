@@ -61,11 +61,25 @@ export const AuthProvider = ({ children }) => {
           name: 'John Doe',
           avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
           profile: {
-            title: 'Software Engineer',
+            title: 'Housemaid',
+            category: 'domestic',
+            subcategory: 'Housemaid',
             experience: 3,
             location: 'Kigali, Rwanda',
-            skills: ['React', 'Node.js', 'Python'],
-            bio: 'Passionate software engineer with 3 years of experience.'
+            dailyRate: 5000,
+            monthlyRate: 120000,
+            availability: 'Available',
+            education: 'Secondary School',
+            languages: ['Kinyarwanda', 'English'],
+            skills: ['House Cleaning', 'Laundry', 'Cooking', 'Childcare'],
+            bio: 'Experienced housemaid with 3 years of experience in household management. Skilled in cleaning, cooking, and childcare. Reliable and trustworthy.',
+            contact: {
+              email: email,
+              phone: '+250 789 123 456',
+              linkedin: null
+            },
+            certifications: [],
+            references: []
           }
         };
       }

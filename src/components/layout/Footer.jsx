@@ -11,7 +11,7 @@ import {
 
 // Reusable Footer Section Component
 const FooterSection = ({ title, children, className = '' }) => (
-  <div className={className}>
+  <div className={`text-center sm:text-left ${className}`}>
     <h3 className="text-lg font-semibold mb-6 text-white">
       {title}
     </h3>
@@ -145,14 +145,14 @@ const Footer = ({
       <div className={variantConfig.container}>
         <div className={variantConfig.grid}>
           {/* Company Info */}
-          <div className={variantConfig.companySpan}>
+          <div className={`${variantConfig.companySpan} text-center sm:text-left`}>
             <CompanyLogo className="mb-6" config={config.company} />
-            <p className="text-gray-400 mb-6 leading-relaxed">
+            <p className="text-gray-400 mb-6 leading-relaxed text-sm sm:text-base">
               {t(config.company.description)}
             </p>
             
             {/* Social Links */}
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 justify-center sm:justify-start">
               {socialLinks.map((social, index) => (
                 <SocialLink
                   key={index}
@@ -168,7 +168,7 @@ const Footer = ({
           {/* Footer Links */}
           {footerSections.map((section, index) => (
             <FooterSection key={index} title={section.title}>
-              <ul className="space-y-4">
+              <ul className="space-y-3 sm:space-y-4">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
                     <FooterLink

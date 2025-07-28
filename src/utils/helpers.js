@@ -20,6 +20,11 @@ export const filterJobSeekers = (jobSeekers, filters) => {
       if (seeker.location !== filters.location) return false;
     }
 
+    // Category filter
+    if (filters.category && filters.category !== 'All Categories') {
+      if (seeker.category !== filters.category.toLowerCase()) return false;
+    }
+
     // Experience filter
     if (filters.experience && filters.experience !== 'All Experience') {
       const experienceRange = filters.experience;
@@ -42,6 +47,62 @@ export const filterJobSeekers = (jobSeekers, filters) => {
           if (seekerExp < 10) return false;
           break;
       }
+    }
+
+    // Daily Rate Range filter
+    if (filters.dailyRateRange && filters.dailyRateRange !== 'All Rates') {
+      const dailyRate = seeker.dailyRate || 0;
+      
+      switch (filters.dailyRateRange) {
+        case 'Under 3,000 RWF/day':
+          if (dailyRate >= 3000) return false;
+          break;
+        case '3,000 - 5,000 RWF/day':
+          if (dailyRate < 3000 || dailyRate > 5000) return false;
+          break;
+        case '5,000 - 7,000 RWF/day':
+          if (dailyRate < 5000 || dailyRate > 7000) return false;
+          break;
+        case '7,000 - 10,000 RWF/day':
+          if (dailyRate < 7000 || dailyRate > 10000) return false;
+          break;
+        case 'Over 10,000 RWF/day':
+          if (dailyRate <= 10000) return false;
+          break;
+      }
+    }
+
+    // Monthly Rate Range filter
+    if (filters.monthlyRateRange && filters.monthlyRateRange !== 'All Monthly Rates') {
+      const monthlyRate = seeker.monthlyRate || 0;
+      
+      switch (filters.monthlyRateRange) {
+        case 'Under 80,000 RWF/month':
+          if (monthlyRate >= 80000) return false;
+          break;
+        case '80,000 - 120,000 RWF/month':
+          if (monthlyRate < 80000 || monthlyRate > 120000) return false;
+          break;
+        case '120,000 - 180,000 RWF/month':
+          if (monthlyRate < 120000 || monthlyRate > 180000) return false;
+          break;
+        case '180,000 - 250,000 RWF/month':
+          if (monthlyRate < 180000 || monthlyRate > 250000) return false;
+          break;
+        case 'Over 250,000 RWF/month':
+          if (monthlyRate <= 250000) return false;
+          break;
+      }
+    }
+
+    // Availability filter
+    if (filters.availability && filters.availability !== 'All Availability') {
+      if (seeker.availability !== filters.availability) return false;
+    }
+
+    // Education filter
+    if (filters.education && filters.education !== 'All Education') {
+      if (seeker.education !== filters.education) return false;
     }
 
     // Skills filter
@@ -77,10 +138,10 @@ export const sortJobSeekers = (jobSeekers, sortBy) => {
       return sorted.sort((a, b) => a.name.localeCompare(b.name));
     
     case 'Lowest Rate':
-      return sorted.sort((a, b) => a.hourlyRate - b.hourlyRate);
+      return sorted.sort((a, b) => (a.dailyRate || 0) - (b.dailyRate || 0));
     
     case 'Highest Rate':
-      return sorted.sort((a, b) => b.hourlyRate - a.hourlyRate);
+      return sorted.sort((a, b) => (b.dailyRate || 0) - (a.dailyRate || 0));
     
     default:
       return sorted;
@@ -93,7 +154,26 @@ export const formatExperience = (years) => {
   return `${years} years`;
 };
 
-// Format hourly rate
+// Format daily rate
+export const formatDailyRate = (rate) => {
+  if (!rate || isNaN(rate)) return 'Rate not specified';
+  return `${rate.toLocaleString()} RWF/day`;
+};
+
+// Format monthly rate
+export const formatMonthlyRate = (rate) => {
+  if (!rate || isNaN(rate)) return 'Rate not specified';
+  return `${rate.toLocaleString()} RWF/month`;
+};
+
+// Format rate display (shows both daily and monthly)
+export const formatRateDisplay = (dailyRate, monthlyRate) => {
+  const daily = dailyRate && !isNaN(dailyRate) ? dailyRate.toLocaleString() : 'Not specified';
+  const monthly = monthlyRate && !isNaN(monthlyRate) ? monthlyRate.toLocaleString() : 'Not specified';
+  return `${daily} RWF/day • ${monthly} RWF/month`;
+};
+
+// Format hourly rate (for backward compatibility)
 export const formatHourlyRate = (rate) => {
   return `$${rate}/hr`;
 };

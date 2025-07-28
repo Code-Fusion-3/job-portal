@@ -1,13 +1,22 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Briefcase, Eye, Heart, Star, Mail, Phone, Globe, Calendar, BookOpen, Award, UserPlus } from 'lucide-react';
+import { 
+  MapPin, 
+  Briefcase, 
+  Star, 
+  Calendar, 
+  BookOpen, 
+  Award, 
+  Globe, 
+  Heart, 
+  Eye 
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card from '../ui/Card';
-import Avatar from '../ui/Avatar';
-import Badge from '../ui/Badge';
-import Rating from '../ui/Rating';
 import Button from '../ui/Button';
-import { formatExperience, formatHourlyRate, truncateText } from '../../utils/helpers';
+import Badge from '../ui/Badge';
+import Avatar from '../ui/Avatar';
+import { truncateText, formatExperience, formatDailyRate, formatMonthlyRate } from '../../utils/helpers';
 
 const JobSeekerCard = ({ 
   seeker, 
@@ -27,6 +36,14 @@ const JobSeekerCard = ({
     return null;
   }
 
+  // Debug logging
+  console.log('JobSeekerCard rendering:', { 
+    id: seeker.id, 
+    name: seeker.name, 
+    dailyRate: seeker.dailyRate,
+    monthlyRate: seeker.monthlyRate 
+  });
+
   // Ensure required fields exist with fallbacks
   const {
     name = 'Unknown',
@@ -35,9 +52,8 @@ const JobSeekerCard = ({
     experience = 0,
     skills = [],
     avatar = null,
-    rating = 0,
-    reviews = 0,
-    hourlyRate = 0,
+    dailyRate = 0,
+    monthlyRate = 0,
     availability = 'Unknown',
     languages = ['English'],
     education = 'Not specified',
@@ -59,10 +75,6 @@ const JobSeekerCard = ({
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900 text-lg">{name}</h3>
             <p className="text-sm text-gray-600">{title}</p>
-            <div className="flex items-center mt-1">
-              <Rating value={rating} size="sm" readonly />
-              <span className="text-xs text-gray-500 ml-2">({reviews})</span>
-            </div>
           </div>
         </div>
 
@@ -77,7 +89,7 @@ const JobSeekerCard = ({
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <Star className="w-4 h-4 mr-2" />
-            {formatHourlyRate(hourlyRate)}
+            {formatDailyRate(dailyRate)}
           </div>
         </div>
 
@@ -98,23 +110,14 @@ const JobSeekerCard = ({
 
         {showActions && (
           <div className="space-y-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full group"
-              onClick={() => onViewProfile?.(seeker)}
-            >
-              <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              {t('jobSeekers.actions.viewProfile', 'View Profile')}
-            </Button>
-            <Link to={`/employer-request/${seeker.id}`}>
+            <Link to={`/view-profile/${seeker.id}`}>
               <Button
-                variant="primary"
+                variant="outline"
                 size="sm"
                 className="w-full group"
               >
-                <UserPlus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                {t('jobSeekers.actions.requestCandidate', 'Request Candidate')}
+                <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                {t('jobSeekers.actions.viewProfile', 'View Profile')}
               </Button>
             </Link>
           </div>
@@ -139,10 +142,6 @@ const JobSeekerCard = ({
             <div>
               <h3 className="font-semibold text-gray-900 text-xl">{name}</h3>
               <p className="text-gray-600">{title}</p>
-              <div className="flex items-center mt-1">
-                <Rating value={rating} size="sm" readonly />
-                <span className="text-sm text-gray-500 ml-2">({reviews} reviews)</span>
-              </div>
             </div>
           </div>
           
@@ -177,7 +176,7 @@ const JobSeekerCard = ({
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <Star className="w-4 h-4 mr-3" />
-              {formatHourlyRate(hourlyRate)}
+              {formatDailyRate(dailyRate)}
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <Calendar className="w-4 h-4 mr-3" />
@@ -233,16 +232,6 @@ const JobSeekerCard = ({
               <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               {t('jobSeekers.actions.viewProfile', 'View Profile')}
             </Button>
-            <Link to={`/employer-request/${seeker.id}`} className="flex-1">
-              <Button
-                variant="primary"
-                size="sm"
-                className="w-full group"
-              >
-                <UserPlus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                {t('jobSeekers.actions.requestCandidate', 'Request Candidate')}
-              </Button>
-            </Link>
           </div>
         )}
       </div>

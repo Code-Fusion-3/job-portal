@@ -13,7 +13,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import JobSeekerCard from '../components/sections/JobSeekerCard';
 import Badge from '../components/ui/Badge';
-import { jobSeekersData, filterOptions } from '../data/mockData';
+import { jobSeekersData, filterOptions, skillsData } from '../data/mockData';
 import { filterJobSeekers, sortJobSeekers } from '../utils/helpers';
 import useDebounce from '../hooks/useDebounce';
 
@@ -23,7 +23,12 @@ const JobSeekers = () => {
   const [filteredSeekers, setFilteredSeekers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedExperience, setSelectedExperience] = useState('');
+  const [selectedDailyRateRange, setSelectedDailyRateRange] = useState('');
+  const [selectedMonthlyRateRange, setSelectedMonthlyRateRange] = useState('');
+  const [selectedAvailability, setSelectedAvailability] = useState('');
+  const [selectedEducation, setSelectedEducation] = useState('');
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [sortBy, setSortBy] = useState('Most Recent');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -52,14 +57,19 @@ const JobSeekers = () => {
     const filters = {
       searchTerm: debouncedSearchTerm,
       location: selectedLocation,
+      category: selectedCategory,
       experience: selectedExperience,
+      dailyRateRange: selectedDailyRateRange,
+      monthlyRateRange: selectedMonthlyRateRange,
+      availability: selectedAvailability,
+      education: selectedEducation,
       skills: selectedSkills
     };
 
     let filtered = filterJobSeekers(jobSeekers, filters);
     filtered = sortJobSeekers(filtered, sortBy);
     setFilteredSeekers(filtered);
-  }, [jobSeekers, debouncedSearchTerm, selectedLocation, selectedExperience, selectedSkills, sortBy]);
+  }, [jobSeekers, debouncedSearchTerm, selectedLocation, selectedCategory, selectedExperience, selectedDailyRateRange, selectedMonthlyRateRange, selectedAvailability, selectedEducation, selectedSkills, sortBy]);
 
   const toggleSkill = (skill) => {
     setSelectedSkills(prev => 
@@ -72,7 +82,12 @@ const JobSeekers = () => {
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedLocation('');
+    setSelectedCategory('');
     setSelectedExperience('');
+    setSelectedDailyRateRange('');
+    setSelectedMonthlyRateRange('');
+    setSelectedAvailability('');
+    setSelectedEducation('');
     setSelectedSkills([]);
     setSortBy('Most Recent');
   };
@@ -114,7 +129,7 @@ const JobSeekers = () => {
               {t('jobSeekers.pageTitle', 'All Job Seekers')}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {t('jobSeekers.pageSubtitle', 'Discover talented professionals ready to contribute to your organization')}
+              {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
             </p>
           </motion.div>
         </div>
@@ -178,7 +193,7 @@ const JobSeekers = () => {
                 transition={{ duration: 0.3 }}
                 className="border-t pt-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Location Filter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -192,6 +207,24 @@ const JobSeekers = () => {
                       {filterOptions.locations.map(location => (
                         <option key={location} value={location === 'All Locations' ? '' : location}>
                           {location}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('jobSeekers.filters.category', 'Category')}
+                    </label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    >
+                      {filterOptions.categories.map(category => (
+                        <option key={category} value={category === 'All Categories' ? '' : category}>
+                          {category}
                         </option>
                       ))}
                     </select>
@@ -215,6 +248,78 @@ const JobSeekers = () => {
                     </select>
                   </div>
 
+                  {/* Daily Rate Range Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('jobSeekers.filters.dailyRate', 'Daily Rate')}
+                    </label>
+                    <select
+                      value={selectedDailyRateRange}
+                      onChange={(e) => setSelectedDailyRateRange(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    >
+                      {filterOptions.dailyRateRange.map(rate => (
+                        <option key={rate} value={rate === 'All Rates' ? '' : rate}>
+                          {rate}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Monthly Rate Range Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('jobSeekers.filters.monthlyRate', 'Monthly Rate')}
+                    </label>
+                    <select
+                      value={selectedMonthlyRateRange}
+                      onChange={(e) => setSelectedMonthlyRateRange(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    >
+                      {filterOptions.monthlyRateRange.map(rate => (
+                        <option key={rate} value={rate === 'All Monthly Rates' ? '' : rate}>
+                          {rate}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Availability Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('jobSeekers.filters.availability', 'Availability')}
+                    </label>
+                    <select
+                      value={selectedAvailability}
+                      onChange={(e) => setSelectedAvailability(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    >
+                      {filterOptions.availability.map(availability => (
+                        <option key={availability} value={availability === 'All Availability' ? '' : availability}>
+                          {availability}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Education Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('jobSeekers.filters.education', 'Education')}
+                    </label>
+                    <select
+                      value={selectedEducation}
+                      onChange={(e) => setSelectedEducation(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    >
+                      {filterOptions.education.map(education => (
+                        <option key={education} value={education === 'All Education' ? '' : education}>
+                          {education}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Sort By */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -232,7 +337,7 @@ const JobSeekers = () => {
                   </div>
 
                   {/* Skills Filter */}
-                  <div>
+                  <div className="lg:col-span-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t('jobSeekers.filters.skills', 'Skills')}
                     </label>
