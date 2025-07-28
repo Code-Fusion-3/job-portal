@@ -169,21 +169,6 @@ const Hero = () => {
         ease: 'power2.out'
       },
       '-=0.3'
-    )
-    .fromTo('.hero-tour',
-      {
-        opacity: 0,
-        y: 30,
-        scale: 0.9
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: 'power2.out'
-      },
-      '-=0.2'
     );
 
     // Parallax effect for Three.js background
@@ -237,23 +222,6 @@ const Hero = () => {
                   {t('hero.cta.secondary')}
                 </Button>
               </Link>
-            </div>
-
-            {/* Interactive Element - 360° Tour */}
-            <div className="hero-tour flex justify-center pt-8">
-              <motion.a
-                href="#tour"
-                className="inline-flex items-center gap-2 text-white text-opacity-80 hover:text-opacity-100 transition-all duration-200 group"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="w-8 h-8 border-2 border-white border-opacity-50 rounded-full flex items-center justify-center group-hover:border-opacity-100 transition-all duration-200">
-                  <span className="w-2 h-2 bg-white rounded-full group-hover:scale-150 transition-transform duration-200" />
-                </span>
-                <span className="text-sm font-medium tracking-wide">
-                  {t('hero.tour')}
-                </span>
-              </motion.a>
             </div>
           </div>
         </div>

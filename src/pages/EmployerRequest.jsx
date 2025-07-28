@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import BackButton from '../components/ui/BackButton';
 import EmployerRequestForm from '../components/forms/EmployerRequestForm';
 import { jobSeekersData } from '../data/mockData';
 
@@ -46,13 +47,11 @@ const EmployerRequest = () => {
                 {t('employerRequest.success.message', 'Your request has been sent to our admin team. We\'ll review it and get back to you within 24 hours.')}
               </p>
               <div className="space-y-4">
-                <Link
-                  to="/job-seekers"
-                  className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors duration-200"
-                >
-                  <ArrowLeft className="w-5 h-5 mr-2" />
-                  {t('employerRequest.success.backToJobSeekers', 'Back to Job Seekers')}
-                </Link>
+                <BackButton 
+                  to={`/view-profile/${id}`}
+                  text={t('employerRequest.success.backToProfile', 'Back to Profile')}
+                  className="inline-block"
+                />
               </div>
             </motion.div>
           </div>
@@ -68,14 +67,11 @@ const EmployerRequest = () => {
       <div className="pt-16 pb-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
-          <nav className="mb-8">
-            <Link
-              to="/job-seekers"
-              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t('employerRequest.backToJobSeekers', 'Back to Job Seekers')}
-            </Link>
+          <nav className="mt-8 mb-8">
+            <BackButton 
+              to={`/view-profile/${id}`}
+              text={t('employerRequest.backToProfile', 'Back to Profile')}
+            />
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

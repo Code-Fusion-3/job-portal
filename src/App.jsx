@@ -16,6 +16,8 @@ import Register from './pages/Register';
 import EmployerRequest from './pages/EmployerRequest';
 import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
+import ViewProfile from './pages/ViewProfile';
+import UpdateProfile from './pages/UpdateProfile';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
@@ -257,6 +259,12 @@ function App() {
               <Route path="/dashboard/admin" element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/view-profile/:id" element={<ViewProfile />} />
+              <Route path="/update-profile" element={
+                <ProtectedRoute requiredRole="jobseeker">
+                  <UpdateProfile />
                 </ProtectedRoute>
               } />
             </Routes>
