@@ -5,7 +5,6 @@ import {
   MessageSquare, 
   Briefcase, 
   AlertCircle,
-  CheckCircle,
   Home,
   BarChart3,
   Shield,
@@ -28,7 +27,6 @@ import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
 import JobSeekersPage from './JobSeekersPage';
 import EmployerRequestsPage from './EmployerRequestsPage';
-import PlacementsPage from './PlacementsPage';
 import ReportsPage from './ReportsPage';
 import SettingsPage from './SettingsPage';
 import { jobSeekersData } from '../../data/mockData';
@@ -95,6 +93,10 @@ const AdminDashboard = () => {
     console.log('Filter clicked');
   };
 
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   // Mock data for lower-skilled worker platform
   const stats = [
     {
@@ -116,16 +118,6 @@ const AdminDashboard = () => {
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
       description: 'Employer requests to review'
-    },
-    {
-      title: 'Successful Placements',
-      value: '234',
-      change: '+12',
-      changeType: 'increase',
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      description: 'This month'
     },
     {
       title: 'Active Categories',
@@ -219,7 +211,6 @@ const AdminDashboard = () => {
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'jobseekers', label: 'Job Seekers', icon: Users },
     { id: 'requests', label: 'Employer Requests', icon: MessageSquare },
-    { id: 'placements', label: 'Placements', icon: CheckCircle },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Shield }
   ];
@@ -254,6 +245,7 @@ const AdminDashboard = () => {
           navigationItems={navigationItems}
           onSearch={handleSearch}
           onFilter={handleFilter}
+          onSidebarToggle={handleSidebarToggle}
         />
 
         {/* Dashboard Content */}
@@ -273,10 +265,14 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Recent Employer Requests */}
-                <Card className="p-6">
+                <Card className="rounded-lg shadow-md p-4 md:p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">Recent Employer Requests</h2>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
                       View All
                     </Button>
                   </div>
@@ -296,10 +292,14 @@ const AdminDashboard = () => {
                 </Card>
 
                 {/* Recent Job Seekers */}
-                <Card className="p-6">
+                <Card className="rounded-lg shadow-md p-4 md:p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">Recent Job Seekers</h2>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
                       View All
                     </Button>
                   </div>
@@ -316,29 +316,6 @@ const AdminDashboard = () => {
                   </div>
                 </Card>
               </div>
-
-              {/* Quick Actions */}
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Button variant="outline" className="h-16 flex-col">
-                    <AlertCircle className="w-6 h-6 mb-2" />
-                    <span>Review Requests</span>
-                  </Button>
-                  <Button variant="outline" className="h-16 flex-col">
-                    <Users className="w-6 h-6 mb-2" />
-                    <span>Manage Job Seekers</span>
-                  </Button>
-                  <Button variant="outline" className="h-16 flex-col">
-                    <CheckCircle className="w-6 h-6 mb-2" />
-                    <span>Track Placements</span>
-                  </Button>
-                  <Button variant="outline" className="h-16 flex-col">
-                    <BarChart3 className="w-6 h-6 mb-2" />
-                    <span>Generate Reports</span>
-                  </Button>
-                </div>
-              </Card>
             </div>
           )}
 
@@ -352,11 +329,6 @@ const AdminDashboard = () => {
             <EmployerRequestsPage />
           )}
 
-          {/* Placements Page */}
-          {activeTab === 'placements' && (
-            <PlacementsPage />
-          )}
-
           {/* Reports Page */}
           {activeTab === 'reports' && (
             <ReportsPage />
@@ -368,7 +340,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Other tabs content */}
-          {!['dashboard', 'jobseekers', 'requests', 'placements', 'reports', 'settings'].includes(activeTab) && (
+          {!['dashboard', 'jobseekers', 'requests', 'reports', 'settings'].includes(activeTab) && (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -387,7 +359,9 @@ const AdminDashboard = () => {
         isOpen={showRequestModal}
         onClose={() => setShowRequestModal(false)}
         title="Process Request"
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-full"
+        maxHeight="max-h-full"
+        padding="p-4"
       >
         {selectedRequest && (
           <>
@@ -402,6 +376,7 @@ const AdminDashboard = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       onClick={() => handleContactEmployer(selectedRequest.employerContact, 'email')}
                     >
                       <Mail className="w-4 h-4 mr-2" />
@@ -410,6 +385,7 @@ const AdminDashboard = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       onClick={() => handleContactEmployer(selectedRequest.employerContact, 'phone')}
                     >
                       <Phone className="w-4 h-4 mr-2" />
@@ -454,6 +430,7 @@ const AdminDashboard = () => {
               <Button
                 variant="outline"
                 onClick={() => setShowRequestModal(false)}
+                className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 Cancel
               </Button>
@@ -463,7 +440,7 @@ const AdminDashboard = () => {
                   <Button
                     variant="outline"
                     onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'in_progress', adminNotes)}
-                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     Mark In Progress
                   </Button>
@@ -471,7 +448,7 @@ const AdminDashboard = () => {
                   <Button
                     variant="primary"
                     onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'completed', adminNotes)}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
                     Mark Completed
                   </Button>
@@ -482,7 +459,7 @@ const AdminDashboard = () => {
                 <Button
                   variant="outline"
                   onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'in_progress', adminNotes)}
-                  className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                  className="text-orange-600 border-orange-200 hover:bg-orange-50 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   Reopen Request
                 </Button>

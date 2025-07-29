@@ -507,12 +507,6 @@ const EmployerRequestsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Employer Requests Management</h1>
-        <p className="text-gray-600">Manage and process employer requests for job seekers</p>
-      </div>
-
       {/* Statistics */}
       <StatsGrid stats={stats} />
 

@@ -169,18 +169,21 @@ const DataTable = ({
                 ))}
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
-                    {actionButtons.map((action, actionIndex) => (
-                      <Button
-                        key={actionIndex}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onRowAction?.(action.key, item)}
-                        className={action.className}
-                        title={action.title}
-                      >
-                        {action.icon}
-                      </Button>
-                    ))}
+                    {actionButtons.map((action, actionIndex) => {
+                      const IconComponent = action.icon;
+                      return (
+                        <Button
+                          key={actionIndex}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onRowAction?.(action.key, item)}
+                          className={action.className}
+                          title={action.title}
+                        >
+                          <IconComponent />
+                        </Button>
+                      );
+                    })}
                   </div>
                 </td>
               </tr>
