@@ -9,7 +9,6 @@ import {
   Download,
   Filter,
   RefreshCw,
-  CheckCircle,
   AlertCircle,
   FileText,
   PieChart,
@@ -32,34 +31,16 @@ const ReportsPage = () => {
   const mockReportData = {
     overview: {
       totalJobSeekers: 847,
-      activePlacements: 234,
       avgRating: 4.7,
       growthRate: 12.5
     },
-    placements: {
-      monthly: [45, 52, 48, 67, 58, 72, 65, 78, 82, 75, 89, 92],
-      categories: [
-        { name: 'Domestic & Household', value: 35, color: '#3B82F6' },
-        { name: 'Care Services', value: 25, color: '#EC4899' },
-        { name: 'Food & Hospitality', value: 20, color: '#F59E0B' },
-        { name: 'Maintenance & Services', value: 12, color: '#10B981' },
-        { name: 'Transportation', value: 8, color: '#8B5CF6' }
-      ]
-    },
     performance: {
-      topPerformers: [
-        { name: 'Francine Mukamana', category: 'Domestic', placements: 12, rating: 4.9 },
-        { name: 'Marie Claire Uwineza', category: 'Care', placements: 10, rating: 4.8 },
-        { name: 'Jean Pierre Ndayisaba', category: 'Transport', placements: 8, rating: 4.7 },
-        { name: 'Emmanuel Niyonshuti', category: 'Maintenance', placements: 7, rating: 4.6 },
-        { name: 'Sarah Mukamana', category: 'Food', placements: 6, rating: 4.5 }
-      ],
       topCategories: [
-        { name: 'Domestic & Household', placements: 82, growth: 15.2 },
-        { name: 'Care Services', placements: 58, growth: 12.8 },
-        { name: 'Food & Hospitality', placements: 47, growth: 8.5 },
-        { name: 'Maintenance & Services', placements: 28, growth: 18.3 },
-        { name: 'Transportation', placements: 19, growth: 22.1 }
+        { name: 'Domestic & Household', jobSeekers: 82, growth: 15.2 },
+        { name: 'Care Services', jobSeekers: 58, growth: 12.8 },
+        { name: 'Food & Hospitality', jobSeekers: 47, growth: 8.5 },
+        { name: 'Maintenance & Services', jobSeekers: 28, growth: 18.3 },
+        { name: 'Transportation', jobSeekers: 19, growth: 22.1 }
       ]
     },
     requests: [
@@ -126,29 +107,6 @@ const ReportsPage = () => {
     }, 1500);
   };
 
-  // Simple chart component for placement trend
-  const PlacementChart = ({ data }) => {
-    const maxValue = Math.max(...data);
-    const minValue = Math.min(...data);
-    
-    return (
-      <div className="h-64 flex items-end justify-between space-x-1">
-        {data.map((value, index) => {
-          const height = ((value - minValue) / (maxValue - minValue)) * 100;
-          return (
-            <div key={index} className="flex-1 flex flex-col items-center">
-              <div 
-                className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t"
-                style={{ height: `${height}%` }}
-              ></div>
-              <span className="text-xs text-gray-500 mt-2">{index + 1}</span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   // Simple pie chart component
   const PieChartComponent = ({ data }) => {
     const total = data.reduce((sum, item) => sum + item.value, 0);
@@ -203,16 +161,6 @@ const ReportsPage = () => {
       description: 'All registered job seekers'
     },
     {
-      title: 'Active Placements',
-      value: mockReportData.overview.activePlacements.toString(),
-      change: '+8',
-      changeType: 'increase',
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      description: 'Currently ongoing'
-    },
-    {
       title: 'Success Rate',
       value: '92%',
       change: '+5%',
@@ -220,7 +168,7 @@ const ReportsPage = () => {
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      description: 'Successful placements'
+      description: 'Successful matches'
     },
     {
       title: 'Average Rating',
@@ -236,32 +184,6 @@ const ReportsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-          <p className="text-gray-600">Comprehensive insights and performance metrics</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="outline"
-            onClick={handleRefreshData}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => handleExportReport('comprehensive')}
-            disabled={isLoading}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export All
-          </Button>
-        </div>
-      </div>
-
       {/* Filters */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -315,11 +237,11 @@ const ReportsPage = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Placements</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.activePlacements}</p>
+              <p className="text-sm font-medium text-gray-600">Growth Rate</p>
+              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.growthRate}%</p>
               <div className="flex items-center mt-2">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+8.2%</span>
+                <span className="text-sm text-green-600">+2.1%</span>
               </div>
             </div>
             <Activity className="w-8 h-8 text-green-600" />
@@ -343,29 +265,10 @@ const ReportsPage = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Placement Trend */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Placement Trend</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExportReport('placements')}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
-          <PlacementChart data={mockReportData.placements.monthly} />
-          <div className="mt-4 text-center text-sm text-gray-500">
-            Monthly placements
-          </div>
-        </Card>
-
         {/* Category Distribution */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Placements by Category</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Job Seekers by Category</h3>
             <Button
               variant="outline"
               size="sm"
@@ -375,18 +278,22 @@ const ReportsPage = () => {
               Export
             </Button>
           </div>
-          <PieChartComponent data={mockReportData.placements.categories} />
-          <div className="mt-4 space-y-2">
-            {mockReportData.placements.categories.map((item, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-2"
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  <span>{item.name}</span>
+          <div className="space-y-4">
+            {mockReportData.performance.topCategories.map((category, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-blue-600">{index + 1}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{category.name}</p>
+                    <p className="text-sm text-gray-500">{category.jobSeekers} job seekers</p>
+                  </div>
                 </div>
-                <span className="font-medium">{item.value}%</span>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">{category.jobSeekers} job seekers</p>
+                  <p className="text-sm text-green-600">+{category.growth}%</p>
+                </div>
               </div>
             ))}
           </div>
@@ -395,43 +302,6 @@ const ReportsPage = () => {
 
       {/* Performance Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Performers */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Top Performing Job Seekers</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExportReport('performers')}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {mockReportData.performance.topPerformers.map((performer, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-blue-600">{index + 1}</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{performer.name}</p>
-                    <p className="text-sm text-gray-500">{performer.category}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900">{performer.placements} placements</p>
-                  <div className="flex items-center mt-1">
-                    <span className="text-sm text-yellow-600">★</span>
-                    <span className="text-sm text-gray-600 ml-1">{performer.rating}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
         {/* Top Categories */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
@@ -454,11 +324,11 @@ const ReportsPage = () => {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{category.name}</p>
-                    <p className="text-sm text-gray-500">{category.placements} placements</p>
+                    <p className="text-sm text-gray-500">{category.jobSeekers} job seekers</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-gray-900">{category.placements} placements</p>
+                  <p className="font-medium text-gray-900">{category.jobSeekers} job seekers</p>
                   <div className="flex items-center mt-1">
                     <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
                     <span className="text-sm text-green-600">+{category.growth}%</span>
@@ -469,37 +339,6 @@ const ReportsPage = () => {
           </div>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Report Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button
-            variant="outline"
-            className="h-16 flex-col"
-            onClick={() => handleExportReport('monthly-summary')}
-          >
-            <FileText className="w-6 h-6 mb-2" />
-            <span>Monthly Summary</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-16 flex-col"
-            onClick={() => handleExportReport('performance-analysis')}
-          >
-            <BarChart3 className="w-6 h-6 mb-2" />
-            <span>Performance Analysis</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-16 flex-col"
-            onClick={() => handleExportReport('placement-report')}
-          >
-            <CheckCircle className="w-6 h-6 mb-2" />
-            <span>Placement Report</span>
-          </Button>
-        </div>
-      </Card>
     </div>
   );
 };
