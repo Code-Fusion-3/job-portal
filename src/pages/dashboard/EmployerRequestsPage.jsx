@@ -475,31 +475,31 @@ const EmployerRequestsPage = () => {
   const actionButtons = [
     {
       key: 'view',
-      icon: <Eye className="w-4 h-4" />,
+      icon: Eye,
       title: 'View Details',
       className: 'text-blue-600 hover:bg-blue-50'
     },
     {
       key: 'contact',
-      icon: <Mail className="w-4 h-4" />,
+      icon: Mail,
       title: 'Send Email',
       className: 'text-green-600 hover:bg-green-50'
     },
     {
       key: 'call',
-      icon: <Phone className="w-4 h-4" />,
+      icon: Phone,
       title: 'Call',
       className: 'text-purple-600 hover:bg-purple-50'
     },
     {
       key: 'approve',
-      icon: <CheckCircle className="w-4 h-4" />,
+      icon: CheckCircle,
       title: 'Approve',
       className: 'text-green-600 hover:bg-green-50'
     },
     {
       key: 'reject',
-      icon: <XCircle className="w-4 h-4" />,
+      icon: XCircle,
       title: 'Reject',
       className: 'text-red-600 hover:bg-red-50'
     }
