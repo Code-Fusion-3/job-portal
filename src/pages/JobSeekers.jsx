@@ -13,6 +13,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import JobSeekerCard from '../components/sections/JobSeekerCard';
 import Badge from '../components/ui/Badge';
+import ChromeGrid from '../components/ui/chrome-grid';
 import { jobSeekersData, filterOptions, skillsData } from '../data/mockData';
 import { filterJobSeekers, sortJobSeekers } from '../utils/helpers';
 import useDebounce from '../hooks/useDebounce';
@@ -103,21 +104,25 @@ const JobSeekers = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading job seekers...</p>
+      <div className="min-h-screen relative">
+        <ChromeGrid />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-white/80">Loading job seekers...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen relative">
+      <ChromeGrid />
       <Header />
       
       {/* Page Header */}
-      <div className="bg-white shadow-sm border-b mt-16">
+      <div className="relative z-10 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -125,23 +130,23 @@ const JobSeekers = () => {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-white mb-4">
               {t('jobSeekers.pageTitle', 'All Job Seekers')}
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-white/70 max-w-3xl mx-auto">
               {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
             </p>
           </motion.div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Search and Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white rounded-xl shadow-sm border p-6 mb-8"
+          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
         >
           {/* Search Bar */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -363,7 +368,7 @@ const JobSeekers = () => {
 
         {/* Results Count */}
         <div className="flex justify-between items-center mb-6">
-          <p className="text-gray-600">
+          <p className="text-white/80">
             {filteredSeekers.length} {t('jobSeekers.results', 'results')}
           </p>
         </div>
@@ -402,13 +407,13 @@ const JobSeekers = () => {
             className="text-center py-12"
           >
             <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-white/60" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 {t('jobSeekers.noResults.title', 'No job seekers found')}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-white/70 mb-4">
                 {t('jobSeekers.noResults.message', 'Try adjusting your search criteria or filters')}
               </p>
               <Button

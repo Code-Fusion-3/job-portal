@@ -16,6 +16,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Avatar from '../ui/Avatar';
+import GlowingEffect from '../ui/GlowingEffect';
 import { truncateText, formatExperience, formatDailyRate, formatMonthlyRate } from '../../utils/helpers';
 
 const JobSeekerCard = ({ 
@@ -62,8 +63,11 @@ const JobSeekerCard = ({
   } = seeker;
 
   const compactVariant = (
-    <Card className={`job-seeker-card ${className}`} {...props}>
-      <div className="p-6">
+    <Card className={`job-seeker-card relative overflow-visible group ${className}`} {...props}>
+      <GlowingEffect 
+        className="rounded-xl"
+      />
+      <div className="p-6 relative z-10">
         <div className="flex items-center mb-4">
           <Avatar 
             src={avatar} 
@@ -127,8 +131,11 @@ const JobSeekerCard = ({
   );
 
   const detailedVariant = (
-    <Card className={`job-seeker-card ${className}`} {...props}>
-      <div className="p-6">
+    <Card className={`job-seeker-card relative overflow-visible group ${className}`} {...props}>
+      <GlowingEffect 
+        className="rounded-xl"
+      />
+      <div className="p-6 relative z-10">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center">
