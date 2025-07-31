@@ -79,20 +79,20 @@ const ReportsPage = () => {
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
     // In a real app, this would fetch new data
-    console.log('Period changed to:', period);
+    // Period changed
   };
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     // In a real app, this would filter data
-    console.log('Category changed to:', category);
+    // Category changed
   };
 
   const handleExportReport = (type) => {
     setIsLoading(true);
     // Simulate export process
     setTimeout(() => {
-      console.log(`Exporting ${type} report...`);
+      // Exporting report
       setIsLoading(false);
       alert(`${type} report exported successfully!`);
     }, 2000);
@@ -102,7 +102,7 @@ const ReportsPage = () => {
     setIsLoading(true);
     // Simulate data refresh
     setTimeout(() => {
-      console.log('Data refreshed');
+      // Data refreshed
       setIsLoading(false);
     }, 1500);
   };

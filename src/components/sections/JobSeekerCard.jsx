@@ -16,7 +16,6 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import Avatar from '../ui/Avatar';
-import GlowingEffect from '../ui/GlowingEffect';
 import { truncateText, formatExperience, formatDailyRate, formatMonthlyRate } from '../../utils/helpers';
 
 const JobSeekerCard = ({ 
@@ -37,13 +36,7 @@ const JobSeekerCard = ({
     return null;
   }
 
-  // Debug logging
-  console.log('JobSeekerCard rendering:', { 
-    id: seeker.id, 
-    name: seeker.name, 
-    dailyRate: seeker.dailyRate,
-    monthlyRate: seeker.monthlyRate 
-  });
+  // Component rendering
 
   // Ensure required fields exist with fallbacks
   const {
@@ -63,11 +56,8 @@ const JobSeekerCard = ({
   } = seeker;
 
   const compactVariant = (
-    <Card className={`job-seeker-card relative overflow-visible group ${className}`} {...props}>
-      <GlowingEffect 
-        className="rounded-xl"
-      />
-      <div className="p-6 relative z-10">
+    <Card className={`job-seeker-card ${className}`} {...props}>
+      <div className="p-6">
         <div className="flex items-center mb-4">
           <Avatar 
             src={avatar} 
@@ -131,11 +121,8 @@ const JobSeekerCard = ({
   );
 
   const detailedVariant = (
-    <Card className={`job-seeker-card relative overflow-visible group ${className}`} {...props}>
-      <GlowingEffect 
-        className="rounded-xl"
-      />
-      <div className="p-6 relative z-10">
+    <Card className={`job-seeker-card ${className}`} {...props}>
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center">
@@ -204,6 +191,10 @@ const JobSeekerCard = ({
               <Globe className="w-4 h-4 mr-3" />
               {languages.join(', ')}
             </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <Star className="w-4 h-4 mr-3" />
+              {formatMonthlyRate(monthlyRate)}
+            </div>
           </div>
         </div>
 
@@ -219,26 +210,27 @@ const JobSeekerCard = ({
           </div>
         </div>
 
-        {/* Description */}
+        {/* Bio */}
         <div className="mb-6">
           <h4 className="font-medium text-gray-900 mb-2">About</h4>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            {truncateText(bio, 200)}
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {truncateText(bio, 150)}
           </p>
         </div>
 
         {/* Actions */}
         {showActions && (
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 group"
-              onClick={() => onViewProfile?.(seeker)}
-            >
-              <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              {t('jobSeekers.actions.viewProfile', 'View Profile')}
-            </Button>
+          <div className="flex space-x-3">
+            <Link to={`/view-profile/${seeker.id}`} className="flex-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full group"
+              >
+                <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                {t('jobSeekers.actions.viewProfile', 'View Profile')}
+              </Button>
+            </Link>
           </div>
         )}
       </div>

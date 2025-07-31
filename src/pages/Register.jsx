@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, User, Phone } from 'lucide-react';
+import { ArrowRight, Mail, User, Phone, Camera, MapPin, Calendar, FileText, Briefcase } from 'lucide-react';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
 import PasswordInput from '../components/ui/PasswordInput';
@@ -10,23 +10,43 @@ import UserTypeSelector from '../components/ui/UserTypeSelector';
 import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { authService } from '../api/index.js';
 
 const Register = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
+    // Required fields
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
-    userType: 'jobseeker', // Always jobseeker now
+    
+    // Optional fields
+    contactNumber: '',
+    description: '',
+    skills: '',
+    gender: '',
+    dateOfBirth: '',
+    idNumber: '',
+    maritalStatus: '',
+    location: '',
+    city: '',
+    country: '',
+    references: '',
+    experience: '',
+    jobCategoryId: '',
+    
+    // Form controls
+    userType: 'jobseeker',
     agreeToTerms: false,
     agreeToMarketing: false
   });
   
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -46,6 +66,27 @@ const Register = () => {
     }
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, photo: 'Please select an image file' }));
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, photo: 'File size must be less than 5MB' }));
+        return;
+      }
+      
+      setPhoto(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      setErrors(prev => ({ ...prev, photo: '' }));
+    }
+  };
+
   const handleUserTypeChange = (userType) => {
     setFormData(prev => ({ ...prev, userType }));
   };
@@ -53,44 +94,31 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    // First Name validation
+    // Required fields validation
     if (!formData.firstName.trim()) {
       newErrors.firstName = t('register.errors.firstNameRequired', 'First name is required');
     } else if (formData.firstName.trim().length < 2) {
       newErrors.firstName = t('register.errors.firstNameLength', 'First name must be at least 2 characters');
     }
     
-    // Last Name validation
     if (!formData.lastName.trim()) {
       newErrors.lastName = t('register.errors.lastNameRequired', 'Last name is required');
     } else if (formData.lastName.trim().length < 2) {
       newErrors.lastName = t('register.errors.lastNameLength', 'Last name must be at least 2 characters');
     }
     
-    // Email validation
     if (!formData.email) {
       newErrors.email = t('register.errors.emailRequired', 'Email is required');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = t('register.errors.emailInvalid', 'Please enter a valid email');
     }
     
-    // Phone validation
-    if (!formData.phone) {
-      newErrors.phone = t('register.errors.phoneRequired', 'Phone number is required');
-    } else if (!/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = t('register.errors.phoneInvalid', 'Please enter a valid phone number');
-    }
-    
-    // Password validation
     if (!formData.password) {
       newErrors.password = t('register.errors.passwordRequired', 'Password is required');
-    } else if (formData.password.length < 8) {
-      newErrors.password = t('register.errors.passwordLength', 'Password must be at least 8 characters');
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = t('register.errors.passwordComplexity', 'Password must contain uppercase, lowercase, and number');
+    } else if (formData.password.length < 6) {
+      newErrors.password = t('register.errors.passwordLength', 'Password must be at least 6 characters');
     }
     
-    // Confirm Password validation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = t('register.errors.confirmPasswordRequired', 'Please confirm your password');
     } else if (formData.password !== formData.confirmPassword) {
@@ -114,13 +142,41 @@ const Register = () => {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Prepare data for API
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        contactNumber: formData.contactNumber || undefined,
+        description: formData.description || undefined,
+        skills: formData.skills || undefined,
+        gender: formData.gender || undefined,
+        dateOfBirth: formData.dateOfBirth || undefined,
+        idNumber: formData.idNumber || undefined,
+        maritalStatus: formData.maritalStatus || undefined,
+        location: formData.location || undefined,
+        city: formData.city || undefined,
+        country: formData.country || undefined,
+        references: formData.references || undefined,
+        experience: formData.experience || undefined,
+        jobCategoryId: formData.jobCategoryId || undefined,
+      };
+
+      // Remove undefined values
+      Object.keys(userData).forEach(key => {
+        if (userData[key] === undefined) {
+          delete userData[key];
+        }
+      });
+
+      const result = await authService.registerJobSeeker(userData, photo);
       
-      console.log('Registration attempt:', formData);
-      
-      // For demo purposes, always succeed
-      navigate('/login');
+      if (result.success) {
+        navigate('/login');
+      } else {
+        setErrors({ general: result.error });
+      }
       
     } catch (error) {
       console.error('Registration error:', error);
@@ -153,79 +209,265 @@ const Register = () => {
           jobseekerDesc={t('register.jobseekerDesc', 'Looking for opportunities')}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Required Fields Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-4">
+            {t('register.requiredFields', 'Required Information')}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              id="firstName"
+              name="firstName"
+              label={t('register.firstName', 'First Name')}
+              placeholder={t('register.firstNamePlaceholder', 'First name')}
+              value={formData.firstName}
+              onChange={handleInputChange}
+              error={errors.firstName}
+              icon={User}
+              required
+            />
+            <FormInput
+              id="lastName"
+              name="lastName"
+              label={t('register.lastName', 'Last Name')}
+              placeholder={t('register.lastNamePlaceholder', 'Last name')}
+              value={formData.lastName}
+              onChange={handleInputChange}
+              error={errors.lastName}
+              icon={User}
+              required
+            />
+          </div>
+
           <FormInput
-            id="firstName"
-            name="firstName"
-            label={t('register.firstName', 'First Name')}
-            placeholder={t('register.firstNamePlaceholder', 'First name')}
-            value={formData.firstName}
+            id="email"
+            name="email"
+            type="email"
+            label={t('register.email', 'Email Address')}
+            placeholder={t('register.emailPlaceholder', 'Enter your email')}
+            value={formData.email}
             onChange={handleInputChange}
-            error={errors.firstName}
-            icon={User}
+            error={errors.email}
+            icon={Mail}
             required
           />
-          <FormInput
-            id="lastName"
-            name="lastName"
-            label={t('register.lastName', 'Last Name')}
-            placeholder={t('register.lastNamePlaceholder', 'Last name')}
-            value={formData.lastName}
+
+          <PasswordInput
+            id="password"
+            name="password"
+            label={t('register.password', 'Password')}
+            placeholder={t('register.passwordPlaceholder', 'Create a password')}
+            value={formData.password}
             onChange={handleInputChange}
-            error={errors.lastName}
-            icon={User}
+            error={errors.password}
+            showStrength
+            required
+          />
+
+          <PasswordInput
+            id="confirmPassword"
+            name="confirmPassword"
+            label={t('register.confirmPassword', 'Confirm Password')}
+            placeholder={t('register.confirmPasswordPlaceholder', 'Confirm your password')}
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            error={errors.confirmPassword}
             required
           />
         </div>
 
-        <FormInput
-          id="email"
-          name="email"
-          type="email"
-          label={t('register.email', 'Email Address')}
-          placeholder={t('register.emailPlaceholder', 'Enter your email')}
-          value={formData.email}
-          onChange={handleInputChange}
-          error={errors.email}
-          icon={Mail}
-          required
-        />
+        {/* Optional Fields Section */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('register.optionalFields', 'Additional Information (Optional)')}
+          </h3>
 
-        <FormInput
-          id="phone"
-          name="phone"
-          type="tel"
-          label={t('register.phone', 'Phone Number')}
-          placeholder={t('register.phonePlaceholder', 'Enter your phone number')}
-          value={formData.phone}
-          onChange={handleInputChange}
-          error={errors.phone}
-          icon={Phone}
-          required
-        />
+          {/* Photo Upload */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('register.photo', 'Profile Photo')}
+            </label>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                  id="photo"
+                />
+                <label
+                  htmlFor="photo"
+                  className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                >
+                  {photoPreview ? (
+                    <img
+                      src={photoPreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <Camera className="w-6 h-6 text-gray-400" />
+                  )}
+                </label>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">
+                  {t('register.photoHelp', 'Upload a professional photo (max 5MB)')}
+                </p>
+                {errors.photo && (
+                  <p className="text-sm text-red-600 mt-1">{errors.photo}</p>
+                )}
+              </div>
+            </div>
+          </div>
 
-        <PasswordInput
-          id="password"
-          name="password"
-          label={t('register.password', 'Password')}
-          placeholder={t('register.passwordPlaceholder', 'Create a password')}
-          value={formData.password}
-          onChange={handleInputChange}
-          error={errors.password}
-          showStrength
-          required
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              id="contactNumber"
+              name="contactNumber"
+              type="tel"
+              label={t('register.contactNumber', 'Phone Number')}
+              placeholder={t('register.contactNumberPlaceholder', '+250 788 123 456')}
+              value={formData.contactNumber}
+              onChange={handleInputChange}
+              error={errors.contactNumber}
+              icon={Phone}
+            />
+            <FormInput
+              id="gender"
+              name="gender"
+              label={t('register.gender', 'Gender')}
+              placeholder={t('register.genderPlaceholder', 'Male, Female, Other')}
+              value={formData.gender}
+              onChange={handleInputChange}
+              error={errors.gender}
+            />
+          </div>
 
-        <PasswordInput
-          id="confirmPassword"
-          name="confirmPassword"
-          label={t('register.confirmPassword', 'Confirm Password')}
-          placeholder={t('register.confirmPasswordPlaceholder', 'Confirm your password')}
-          value={formData.confirmPassword}
-          onChange={handleInputChange}
-          error={errors.confirmPassword}
-          required
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              id="dateOfBirth"
+              name="dateOfBirth"
+              type="date"
+              label={t('register.dateOfBirth', 'Date of Birth')}
+              value={formData.dateOfBirth}
+              onChange={handleInputChange}
+              error={errors.dateOfBirth}
+              icon={Calendar}
+            />
+            <FormInput
+              id="idNumber"
+              name="idNumber"
+              label={t('register.idNumber', 'ID Number')}
+              placeholder={t('register.idNumberPlaceholder', 'National ID number')}
+              value={formData.idNumber}
+              onChange={handleInputChange}
+              error={errors.idNumber}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              id="maritalStatus"
+              name="maritalStatus"
+              label={t('register.maritalStatus', 'Marital Status')}
+              placeholder={t('register.maritalStatusPlaceholder', 'Single, Married, etc.')}
+              value={formData.maritalStatus}
+              onChange={handleInputChange}
+              error={errors.maritalStatus}
+            />
+            <FormInput
+              id="jobCategoryId"
+              name="jobCategoryId"
+              label={t('register.jobCategory', 'Job Category')}
+              placeholder={t('register.jobCategoryPlaceholder', 'Select your job category')}
+              value={formData.jobCategoryId}
+              onChange={handleInputChange}
+              error={errors.jobCategoryId}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormInput
+              id="location"
+              name="location"
+              label={t('register.location', 'Location')}
+              placeholder={t('register.locationPlaceholder', 'Kigali, Rwanda')}
+              value={formData.location}
+              onChange={handleInputChange}
+              error={errors.location}
+              icon={MapPin}
+            />
+            <FormInput
+              id="city"
+              name="city"
+              label={t('register.city', 'City')}
+              placeholder={t('register.cityPlaceholder', 'Kigali')}
+              value={formData.city}
+              onChange={handleInputChange}
+              error={errors.city}
+            />
+            <FormInput
+              id="country"
+              name="country"
+              label={t('register.country', 'Country')}
+              placeholder={t('register.countryPlaceholder', 'Rwanda')}
+              value={formData.country}
+              onChange={handleInputChange}
+              error={errors.country}
+            />
+          </div>
+
+          <FormInput
+            id="description"
+            name="description"
+            type="textarea"
+            label={t('register.description', 'Professional Description')}
+            placeholder={t('register.descriptionPlaceholder', 'Tell us about your professional background and skills...')}
+            value={formData.description}
+            onChange={handleInputChange}
+            error={errors.description}
+            icon={FileText}
+          />
+
+          <FormInput
+            id="skills"
+            name="skills"
+            type="textarea"
+            label={t('register.skills', 'Skills')}
+            placeholder={t('register.skillsPlaceholder', 'List your key skills and competencies...')}
+            value={formData.skills}
+            onChange={handleInputChange}
+            error={errors.skills}
+            icon={Briefcase}
+          />
+
+          <FormInput
+            id="experience"
+            name="experience"
+            type="textarea"
+            label={t('register.experience', 'Experience')}
+            placeholder={t('register.experiencePlaceholder', 'Describe your work experience...')}
+            value={formData.experience}
+            onChange={handleInputChange}
+            error={errors.experience}
+            icon={Briefcase}
+          />
+
+          <FormInput
+            id="references"
+            name="references"
+            type="textarea"
+            label={t('register.references', 'References')}
+            placeholder={t('register.referencesPlaceholder', 'Professional references or previous employers...')}
+            value={formData.references}
+            onChange={handleInputChange}
+            error={errors.references}
+            icon={FileText}
+          />
+        </div>
 
         <FormCheckbox
           id="agreeToTerms"

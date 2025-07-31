@@ -291,7 +291,7 @@ const JobSeekersPage = () => {
         break;
       case 'edit':
         // TODO: Implement edit functionality
-        console.log('Edit job seeker:', jobSeeker);
+        // Handle edit job seeker
         break;
       case 'delete':
         if (window.confirm(`Are you sure you want to delete ${jobSeeker.name}?`)) {
@@ -332,8 +332,7 @@ const JobSeekersPage = () => {
       setShowAddModal(false);
       
       // Show success message (you can implement a toast notification here)
-      console.log('Basic profile created successfully:', jobSeekerData.name);
-      console.log('Job seeker should complete their full profile through the Update Profile page.');
+      // Basic profile created successfully
     } catch (error) {
       console.error('Error adding job seeker:', error);
     } finally {

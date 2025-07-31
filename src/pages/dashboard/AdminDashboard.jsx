@@ -29,6 +29,7 @@ import JobSeekersPage from './JobSeekersPage';
 import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
 import SettingsPage from './SettingsPage';
+import JobCategoriesPage from './JobCategoriesPage';
 import { jobSeekersData } from '../../data/mockData';
 import { 
   getStatusColor, 
@@ -49,6 +50,8 @@ const AdminDashboard = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+
 
   // Redirect if no user
   useEffect(() => {
@@ -71,8 +74,6 @@ const AdminDashboard = () => {
 
   const handleUpdateRequestStatus = (requestId, newStatus, notes) => {
     // In a real app, this would update the database
-    console.log(`Updating request ${requestId} to status: ${newStatus}`);
-    console.log('Admin notes:', notes);
     
     // Close modal
     setShowRequestModal(false);
@@ -90,7 +91,6 @@ const AdminDashboard = () => {
 
   const handleFilter = () => {
     // Implement filter functionality
-    console.log('Filter clicked');
   };
 
   const handleSidebarToggle = () => {
@@ -211,6 +211,7 @@ const AdminDashboard = () => {
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'jobseekers', label: 'Job Seekers', icon: Users },
     { id: 'requests', label: 'Employer Requests', icon: MessageSquare },
+    { id: 'categories', label: 'Job Categories', icon: Briefcase },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Shield }
   ];
@@ -250,107 +251,118 @@ const AdminDashboard = () => {
 
         {/* Dashboard Content */}
         <div className="flex-1 overflow-auto p-6">
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                  <StatCard
-                    key={stat.title}
-                    {...stat}
-                    index={index}
-                  />
-                ))}
+          <div className="max-w-7xl mx-auto">
+
+            
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {stats.map((stat, index) => (
+                    <StatCard
+                      key={stat.title}
+                      {...stat}
+                      index={index}
+                    />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Recent Employer Requests */}
+                  <Card className="rounded-lg shadow-md p-4 md:p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-semibold text-gray-900">Recent Employer Requests</h2>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        View All
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {recentRequests.map((request) => (
+                        <RequestCard
+                          key={request.id}
+                          request={request}
+                          onContactEmployer={handleContactEmployer}
+                          onViewDetails={handleRequestAction}
+                          getStatusColor={getStatusColor}
+                          getPriorityColor={getPriorityColor}
+                        />
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Recent Job Seekers */}
+                  <Card className="rounded-lg shadow-md p-4 md:p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-semibold text-gray-900">Recent Job Seekers</h2>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        View All
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {recentJobSeekers.map((jobSeeker) => (
+                        <JobSeekerCard
+                          key={jobSeeker.id}
+                          jobSeeker={jobSeeker}
+                          onViewDetails={(seeker) => {
+                            // Handle view job seeker details
+                          }}
+                          getCategoryColor={getCategoryColor}
+                        />
+                      ))}
+                    </div>
+                  </Card>
+                </div>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Recent Employer Requests */}
-                <Card className="rounded-lg shadow-md p-4 md:p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Recent Employer Requests</h2>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      View All
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {recentRequests.map((request) => (
-                      <RequestCard
-                        key={request.id}
-                        request={request}
-                        onContactEmployer={handleContactEmployer}
-                        onViewDetails={handleRequestAction}
-                        getStatusColor={getStatusColor}
-                        getPriorityColor={getPriorityColor}
-                      />
-                    ))}
-                  </div>
-                </Card>
+            {/* Job Seekers Page */}
+            {activeTab === 'jobseekers' && (
+              <JobSeekersPage />
+            )}
 
-                {/* Recent Job Seekers */}
-                <Card className="rounded-lg shadow-md p-4 md:p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Recent Job Seekers</h2>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      View All
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {recentJobSeekers.map((jobSeeker) => (
-                      <JobSeekerCard
-                        key={jobSeeker.id}
-                        jobSeeker={jobSeeker}
-                        onViewDetails={(seeker) => console.log('View job seeker:', seeker)}
-                        getCategoryColor={getCategoryColor}
-                      />
-                    ))}
-                  </div>
-                </Card>
+            {/* Employer Requests Page */}
+            {activeTab === 'requests' && (
+              <EmployerRequestsPage />
+            )}
+
+            {/* Job Categories Page */}
+            {activeTab === 'categories' && (
+              <JobCategoriesPage />
+            )}
+
+            {/* Reports Page */}
+            {activeTab === 'reports' && (
+              <ReportsPage />
+            )}
+
+            {/* Settings Page */}
+            {activeTab === 'settings' && (
+              <SettingsPage />
+            )}
+
+            {/* Other tabs content */}
+            {!['dashboard', 'jobseekers', 'requests', 'categories', 'reports', 'settings'].includes(activeTab) && (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {navigationItems.find(item => item.id === activeTab)?.label} Coming Soon
+                  </h3>
+                  <p className="text-gray-600">This feature is under development.</p>
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Job Seekers Page */}
-          {activeTab === 'jobseekers' && (
-            <JobSeekersPage />
-          )}
-
-          {/* Employer Requests Page */}
-          {activeTab === 'requests' && (
-            <EmployerRequestsPage />
-          )}
-
-          {/* Reports Page */}
-          {activeTab === 'reports' && (
-            <ReportsPage />
-          )}
-
-          {/* Settings Page */}
-          {activeTab === 'settings' && (
-            <SettingsPage />
-          )}
-
-          {/* Other tabs content */}
-          {!['dashboard', 'jobseekers', 'requests', 'reports', 'settings'].includes(activeTab) && (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {navigationItems.find(item => item.id === activeTab)?.label} Coming Soon
-                </h3>
-                <p className="text-gray-600">This feature is under development.</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

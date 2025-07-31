@@ -22,7 +22,7 @@ import NotFound from './pages/NotFound';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
-console.log('App: Starting full application');
+  // Starting full application
 
 // Error Boundary Component
 const ErrorBoundary = ({ children }) => {
@@ -90,21 +90,21 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  console.log('HomePage: Component starting to render');
+      // Component starting to render
 
   let containerRef = null;
   
   try {
     const scrollAnimations = useScrollAnimations();
     containerRef = scrollAnimations.containerRef;
-    console.log('HomePage: Scroll animations hook initialized');
+    // Scroll animations hook initialized
   } catch (error) {
     console.error('HomePage: Error initializing scroll animations:', error);
   }
 
   // Smooth scrolling for anchor links
   useEffect(() => {
-    console.log('HomePage: Setting up smooth scrolling');
+    // Setting up smooth scrolling
     
     try {
       const handleAnchorClick = (e) => {
@@ -129,12 +129,12 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    console.log('HomePage: Component mounted, setting loading to false');
+    // Component mounted, setting loading to false
     setIsLoading(false);
   }, []);
 
   if (isLoading) {
-    console.log('HomePage: Showing loading spinner');
+    // Showing loading spinner
     return <LoadingSpinner />;
   }
 
@@ -150,7 +150,7 @@ const HomePage = () => {
     );
   }
 
-  console.log('HomePage: Rendering main content');
+      // Rendering main content
   
   try {
     return (
@@ -189,10 +189,10 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
   const [appError, setAppError] = useState(null);
 
-  console.log('App: Component starting to render');
+      // Component starting to render
 
   useEffect(() => {
-    console.log('App: Initializing application');
+    // Initializing application
     
     try {
       // Check if required dependencies are available
@@ -205,7 +205,7 @@ function App() {
         throw new Error('Location object not available');
       }
 
-      console.log('App: All dependencies available, setting ready state');
+              // All dependencies available, setting ready state
       setIsAppReady(true);
       
     } catch (error) {
@@ -235,11 +235,11 @@ function App() {
   }
 
   if (!isAppReady) {
-    console.log('App: Application not ready, showing loading');
+    // Application not ready, showing loading
     return <LoadingSpinner />;
   }
 
-  console.log('App: Application ready, rendering router');
+      // Application ready, rendering router
 
   try {
     return (

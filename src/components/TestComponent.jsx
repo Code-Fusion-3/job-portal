@@ -1,7 +1,7 @@
 import React from 'react';
 
 const TestComponent = () => {
-  console.log('TestComponent: Rendering test component');
+  // Rendering test component
   
   return (
     <div style={{
