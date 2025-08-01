@@ -19,15 +19,10 @@ export const authApi = {
   // Job Seeker Registration
   registerJobSeeker: async (userData, photo = null) => {
     try {
-      console.log('🔍 AuthClient: Starting registration request');
-      console.log('🔍 AuthClient: User data:', userData);
-      console.log('🔍 AuthClient: Photo:', photo);
-      
       let data = userData;
       let headers = {};
 
       if (photo) {
-        console.log('🔍 AuthClient: Creating FormData for photo upload');
         const formData = new FormData();
         Object.keys(userData).forEach(key => {
           if (userData[key] !== null && userData[key] !== undefined) {
@@ -37,23 +32,11 @@ export const authApi = {
         formData.append('photo', photo);
         data = formData;
         headers = { 'Content-Type': 'multipart/form-data' };
-        console.log('🔍 AuthClient: FormData created:', formData);
       }
 
-      console.log('🔍 AuthClient: Making POST request to /register');
-      console.log('🔍 AuthClient: Request data:', data);
-      console.log('🔍 AuthClient: Request headers:', headers);
-      
       const response = await authClient.post('/register', data, { headers });
-      
-      console.log('✅ AuthClient: Registration response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ AuthClient: Registration request failed');
-      console.error('❌ AuthClient: Error:', error);
-      console.error('❌ AuthClient: Error response:', error.response);
-      console.error('❌ AuthClient: Error status:', error.response?.status);
-      console.error('❌ AuthClient: Error data:', error.response?.data);
       throw error;
     }
   },

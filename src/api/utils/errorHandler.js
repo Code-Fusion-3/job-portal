@@ -95,7 +95,26 @@ export class APIError extends Error {
   }
 
   get userMessage() {
-    return ERROR_MESSAGES[this.type]?.message || this.message;
+    // If we have a specific error message from the backend, use it
+    if (this.data?.error) {
+      return this.data.error;
+    }
+    
+    // If we have validation details, format them nicely
+    if (this.data?.details && Array.isArray(this.data.details)) {
+      const fieldErrors = this.data.details
+        .map(detail => `${detail.field}: ${detail.message}`)
+        .join(', ');
+      return fieldErrors;
+    }
+    
+    // If we have a direct message from the backend, use it
+    if (this.message && this.message !== 'An unexpected error occurred. Please try again.') {
+      return this.message;
+    }
+    
+    // Fall back to generic message
+    return ERROR_MESSAGES[this.type]?.message || 'An unexpected error occurred. Please try again.';
   }
 
   get userTitle() {

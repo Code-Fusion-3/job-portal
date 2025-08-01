@@ -45,15 +45,6 @@ const API_CONFIG = {
   LOG_RESPONSES: import.meta.env.DEV,
 };
 
-// Debug logging
-console.log('🔍 API Config:', {
-  BASE_URL: API_CONFIG.BASE_URL,
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  VITE_DEV_API_URL: import.meta.env.VITE_DEV_API_URL,
-  DEV: import.meta.env.DEV,
-  PROD: import.meta.env.PROD
-});
-
 // Environment-specific overrides
 if (import.meta.env.DEV) {
   API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || API_CONFIG.BASE_URL;
