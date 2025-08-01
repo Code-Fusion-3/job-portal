@@ -55,30 +55,30 @@ Complete API integration for the Job Portal frontend with modern, professional a
   - [x] Implement token refresh
   - [x] Implement password reset
 
-- [ ] **Create job seeker service**
-  - [ ] Create `src/api/services/jobSeekerService.js`
-  - [ ] Implement get all job seekers (admin)
-  - [ ] Implement create job seeker (admin)
-  - [ ] Implement update job seeker (admin)
-  - [ ] Implement delete job seeker (admin)
-  - [ ] Implement get public job seekers (anonymized)
+- [x] **Create job seeker service**
+  - [x] Create `src/api/services/jobSeekerService.js`
+  - [x] Implement get all job seekers (admin)
+  - [x] Implement create job seeker (admin)
+  - [x] Implement update job seeker (admin)
+  - [x] Implement delete job seeker (admin)
+  - [x] Implement get public job seekers (anonymized)
 
-- [ ] **Create category service**
-  - [ ] Update `src/api/services/categoryService.js`
-  - [ ] Implement get all categories (public)
-  - [ ] Implement get all categories (admin)
-  - [ ] Implement create category (admin)
-  - [ ] Implement update category (admin)
-  - [ ] Implement delete category (admin)
+- [x] **Create category service**
+  - [x] Update `src/api/services/categoryService.js`
+  - [x] Implement get all categories (public)
+  - [x] Implement get all categories (admin)
+  - [x] Implement create category (admin)
+  - [x] Implement update category (admin)
+  - [x] Implement delete category (admin)
 
 ### 2.2 Advanced Services
-- [ ] **Create employer request service**
-  - [ ] Create `src/api/services/requestService.js`
-  - [ ] Implement submit employer request (public)
-  - [ ] Implement get all requests (admin)
-  - [ ] Implement get specific request (admin)
-  - [ ] Implement reply to request (admin)
-  - [ ] Implement select job seeker for request (admin)
+- [x] **Create employer request service**
+  - [x] Create `src/api/services/requestService.js`
+  - [x] Implement submit employer request (public)
+  - [x] Implement get all requests (admin)
+  - [x] Implement get specific request (admin)
+  - [x] Implement reply to request (admin)
+  - [x] Implement select job seeker for request (admin)
 
 - [ ] **Create messaging service**
   - [ ] Create `src/api/services/messagingService.js`
@@ -95,11 +95,11 @@ Complete API integration for the Job Portal frontend with modern, professional a
   - [ ] Implement get available filters
   - [ ] Implement advanced job seeker search
 
-- [ ] **Create admin service**
-  - [ ] Create `src/api/services/adminService.js`
-  - [ ] Implement get dashboard statistics
-  - [ ] Implement get analytics
-  - [ ] Implement get system settings
+- [x] **Create admin service**
+  - [x] Create `src/api/services/adminService.js`
+  - [x] Implement get dashboard statistics
+  - [x] Implement get analytics
+  - [x] Implement get system settings
 
 ---
 
@@ -378,8 +378,8 @@ Complete API integration for the Job Portal frontend with modern, professional a
 - [x] Authentication System Overhaul
 
 ### Week 2 Progress
-- [ ] Core Services
-- [ ] Advanced Services
+- [x] Core Services
+- [x] Advanced Services
 
 ### Week 3 Progress
 - [ ] Custom API Hooks

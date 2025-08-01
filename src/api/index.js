@@ -3,37 +3,26 @@
  * Central export point for all API-related modules
  */
 
-// Configuration
-export { default as API_CONFIG } from './config/apiConfig.js';
-export { ENDPOINTS, buildUrl, buildQueryString } from './config/endpoints.js';
-export { requestInterceptor, responseInterceptor, errorInterceptor } from './config/interceptors.js';
+// Export all API configurations
+export { default as API_CONFIG, getAuthToken, getRefreshToken, setAuthTokens, clearAuthTokens, isTokenExpired, getAuthHeaders } from './config/apiConfig.js';
+export * from './config/endpoints.js';
+export * from './config/interceptors.js';
 
-// Error Handling
-export { 
-  ERROR_TYPES, 
-  ERROR_SEVERITY, 
-  APIError, 
-  classifyError, 
-  logError, 
-  handleError, 
-  retryRequest, 
-  useErrorHandler 
-} from './utils/errorHandler.js';
-
-// Clients
-export { default as api, apiClient } from './client/apiClient.js';
+// Export API clients
+export { default as apiClient } from './client/apiClient.js';
 export { default as authApi } from './client/authClient.js';
-export { default as uploadApi } from './client/uploadClient.js';
+export { default as uploadClient } from './client/uploadClient.js';
 
-// Services
-export { default as authService } from './services/authService.js';
+// Export services
+export { authService } from './services/authService.js';
+export { jobSeekerService } from './services/jobSeekerService.js';
+export { categoryService } from './services/categoryService.js';
+export { requestService } from './services/requestService.js';
+export { adminService } from './services/adminService.js';
 
-// Re-export commonly used functions
-export { 
-  getAuthToken, 
-  getRefreshToken, 
-  setAuthTokens, 
-  clearAuthTokens, 
-  isTokenExpired, 
-  getAuthHeaders 
-} from './config/apiConfig.js'; 
+// Export utilities
+export * from './utils/errorHandler.js';
+export { default as jobSeekerUtils } from './utils/jobSeekerUtils.js';
+export { default as categoryUtils } from './utils/categoryUtils.js';
+export { default as requestUtils } from './utils/requestUtils.js';
+export { default as adminUtils } from './utils/adminUtils.js'; 
