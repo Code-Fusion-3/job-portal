@@ -1,77 +1,41 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi, API_CONFIG, getAuthToken, isTokenExpired, handleError } from '../api/index.js';
+import { authApi, userService, API_CONFIG, getAuthToken, isTokenExpired, clearAuthTokens, handleError } from '../api/index.js';
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
+export { AuthContext };
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Check for existing session on app load
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setError(null);
+        
         // Check if we have a valid token
         const token = getAuthToken();
         if (token && !isTokenExpired()) {
-          // Try to get user info from token or stored data
-          const storedUser = localStorage.getItem('jobPortalUser');
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
+          // Fetch user data from backend
+          const result = await userService.getCurrentUser();
+          if (result.success) {
+            setUser(result.data);
           } else {
-            // TODO: Call API to get user info
-            // For now, we'll use mock data
-            setUser({
-              id: 'jobseeker-1',
-              email: 'user@example.com',
-              role: 'jobseeker',
-              name: 'John Doe',
-              avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-              profile: {
-                title: 'Housemaid',
-                category: 'domestic',
-                subcategory: 'Housemaid',
-                experience: 3,
-                location: 'Kigali, Rwanda',
-                dailyRate: 5000,
-                monthlyRate: 120000,
-                availability: 'Available',
-                education: 'Secondary School',
-                languages: ['Kinyarwanda', 'English'],
-                skills: ['House Cleaning', 'Laundry', 'Cooking', 'Childcare'],
-                bio: 'Experienced housemaid with 3 years of experience in household management. Skilled in cleaning, cooking, and childcare. Reliable and trustworthy.',
-                contact: {
-                  email: 'user@example.com',
-                  phone: '+250 789 123 456',
-                  linkedin: null
-                },
-                certifications: [],
-                references: []
-              }
-            });
+            // Token is invalid or user not found
+            console.warn('Token validation failed:', result.error);
+            await logout();
           }
         } else {
-          // Clear invalid tokens
-          localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenKey);
-          localStorage.removeItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey);
-          localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey);
-          localStorage.removeItem('jobPortalUser');
+          // No valid token, clear any stale data
+          clearAuthTokens();
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
+        setError('Failed to verify authentication status');
         // Clear all auth data on error
-        localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenKey);
-        localStorage.removeItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey);
-        localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey);
-        localStorage.removeItem('jobPortalUser');
+        clearAuthTokens();
       } finally {
         setLoading(false);
       }
@@ -82,8 +46,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role) => {
     setLoading(true);
+    setError(null);
     
     try {
+      console.log('🔐 Attempting login for:', email, 'role:', role);
+      
       let loginResult;
       
       if (role === 'admin') {
@@ -92,31 +59,37 @@ export const AuthProvider = ({ children }) => {
         loginResult = await authApi.loginJobSeeker({ email, password });
       }
 
-      // Create user object from API response
-      const user = {
-        id: loginResult.user?.id || `user-${Date.now()}`,
-        email: email,
-        role: role,
-        name: loginResult.user?.name || email.split('@')[0],
-        avatar: loginResult.user?.avatar || null,
-        ...loginResult.user, // Include any additional user data from API
-      };
+      console.log('✅ Login successful:', loginResult);
 
-      // Store user in localStorage
-      localStorage.setItem('jobPortalUser', JSON.stringify(user));
-      setUser(user);
+      // Login successful, now fetch user data from backend
+      const userResult = await userService.getCurrentUser();
+      console.log('👤 User fetch result:', userResult);
       
-      return { success: true, user };
+      if (userResult.success) {
+        setUser(userResult.data);
+        return { success: true, user: userResult.data };
+      } else {
+        // Login succeeded but couldn't fetch user data
+        console.warn('⚠️ Login succeeded but user fetch failed:', userResult.error);
+        setError(userResult.error || 'Failed to fetch user profile');
+        return { 
+          success: false, 
+          error: userResult.error || 'Failed to fetch user profile',
+          errorType: userResult.errorType 
+        };
+      }
     } catch (error) {
+      console.error('❌ Login error:', error);
       const apiError = handleError(error, { 
         context: 'login', 
         email, 
         role 
       });
       
+      setError(apiError.userMessage);
       return { 
         success: false, 
-        error: apiError.userMessage || 'Login failed',
+        error: apiError.userMessage,
         errorType: apiError.type 
       };
     } finally {
@@ -133,44 +106,43 @@ export const AuthProvider = ({ children }) => {
       // Continue with logout even if API call fails
     } finally {
       // Clear all auth data
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenKey);
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey);
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey);
-      localStorage.removeItem('jobPortalUser');
+      clearAuthTokens();
       setUser(null);
+      setError(null);
     }
   };
 
   const register = async (userData, photo = null) => {
     setLoading(true);
+    setError(null);
     
     try {
       const registerResult = await authApi.registerJobSeeker(userData, photo);
       
-      // Create user object from API response
-      const user = {
-        id: registerResult.user?.id || `user-${Date.now()}`,
-        email: userData.email,
-        role: 'jobseeker',
-        name: userData.firstName + ' ' + userData.lastName,
-        avatar: registerResult.user?.avatar || null,
-        ...registerResult.user, // Include any additional user data from API
-      };
-
-      // Store user in localStorage
-      localStorage.setItem('jobPortalUser', JSON.stringify(user));
-      setUser(user);
-      
-      return { success: true, user };
+      // Registration successful, now fetch user data from backend
+      const userResult = await userService.getCurrentUser();
+      if (userResult.success) {
+        setUser(userResult.data);
+        return { success: true, user: userResult.data };
+      } else {
+        // Registration succeeded but couldn't fetch user data
+        setError(userResult.error || 'Failed to fetch user profile');
+        return { 
+          success: false, 
+          error: userResult.error || 'Failed to fetch user profile',
+          errorType: userResult.errorType 
+        };
+      }
     } catch (error) {
       const apiError = handleError(error, { 
         context: 'register', 
         email: userData.email 
       });
       
+      setError(apiError.userMessage);
       return { 
         success: false, 
-        error: apiError.userMessage || 'Registration failed',
+        error: apiError.userMessage,
         errorType: apiError.type 
       };
     } finally {
@@ -178,10 +150,64 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateUser = (updates) => {
-    const updatedUser = { ...user, ...updates };
-    localStorage.setItem('jobPortalUser', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const updateProfile = async (profileData, photo = null) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await userService.updateProfile(profileData, photo);
+      if (result.success) {
+        // Update local user state with new data
+        setUser(result.data);
+        return { success: true, user: result.data };
+      } else {
+        setError(result.error);
+        return { 
+          success: false, 
+          error: result.error,
+          errorType: result.errorType 
+        };
+      }
+    } catch (error) {
+      const apiError = handleError(error, { context: 'update_profile' });
+      setError(apiError.userMessage);
+      return { 
+        success: false, 
+        error: apiError.userMessage,
+        errorType: apiError.type 
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changePassword = async (passwordData) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await userService.changePassword(passwordData);
+      if (result.success) {
+        return { success: true, data: result.data };
+      } else {
+        setError(result.error);
+        return { 
+          success: false, 
+          error: result.error,
+          errorType: result.errorType 
+        };
+      }
+    } catch (error) {
+      const apiError = handleError(error, { context: 'change_password' });
+      setError(apiError.userMessage);
+      return { 
+        success: false, 
+        error: apiError.userMessage,
+        errorType: apiError.type 
+      };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const refreshToken = async () => {
@@ -192,7 +218,32 @@ export const AuthProvider = ({ children }) => {
       const apiError = handleError(error, { context: 'refresh_token' });
       return { 
         success: false, 
-        error: apiError.userMessage || 'Token refresh failed',
+        error: apiError.userMessage,
+        errorType: apiError.type 
+      };
+    }
+  };
+
+  const refreshUserData = async () => {
+    try {
+      const result = await userService.getCurrentUser();
+      if (result.success) {
+        setUser(result.data);
+        return { success: true, user: result.data };
+      } else {
+        setError(result.error);
+        return { 
+          success: false, 
+          error: result.error,
+          errorType: result.errorType 
+        };
+      }
+    } catch (error) {
+      const apiError = handleError(error, { context: 'refresh_user_data' });
+      setError(apiError.userMessage);
+      return { 
+        success: false, 
+        error: apiError.userMessage,
         errorType: apiError.type 
       };
     }
@@ -201,14 +252,18 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
+    error,
     login,
     logout,
     register,
+    updateProfile,
+    changePassword,
     refreshToken,
-    updateUser,
+    refreshUserData,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
-    isJobSeeker: user?.role === 'jobseeker'
+    isJobSeeker: user?.role === 'jobseeker',
+    clearError: () => setError(null)
   };
 
   return (

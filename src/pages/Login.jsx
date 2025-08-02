@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Mail, User, Shield } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight } from 'lucide-react';
+import { useAuth } from '../api/hooks/useAuth.js';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
 import PasswordInput from '../components/ui/PasswordInput';
@@ -9,7 +11,6 @@ import FormCheckbox from '../components/ui/FormCheckbox';
 import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
-import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const { t } = useTranslation();

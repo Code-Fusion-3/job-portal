@@ -1,7 +1,62 @@
-import { motion } from 'framer-motion';
+import React from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import * as LucideIcons from 'lucide-react';
-import { statsData, valuesData } from '../../data/mockData';
+import Card from '../ui/Card';
+
+// Static data moved from mockData.js
+const statsData = [
+  { 
+    id: 1,
+    label: 'Active Workers', 
+    number: '500+',
+    icon: '👥'
+  },
+  { 
+    id: 2,
+    label: 'Happy Clients', 
+    number: '1000+',
+    icon: '😊'
+  },
+  { 
+    id: 3,
+    label: 'Cities Covered', 
+    number: '10+',
+    icon: '🏙️'
+  },
+  { 
+    id: 4,
+    label: 'Years Experience', 
+    number: '5+',
+    icon: '⭐'
+  }
+];
+
+const valuesData = [
+  {
+    id: 1,
+    title: 'Reliability',
+    description: 'We ensure all workers are dependable and trustworthy.',
+    icon: '🤝'
+  },
+  {
+    id: 2,
+    title: 'Quality',
+    description: 'High standards for all services and worker qualifications.',
+    icon: '✨'
+  },
+  {
+    id: 3,
+    title: 'Transparency',
+    description: 'Clear pricing and honest communication throughout.',
+    icon: '🔍'
+  },
+  {
+    id: 4,
+    title: 'Innovation',
+    description: 'Continuously improving our platform and services.',
+    icon: '🚀'
+  }
+];
 
 const AboutUs = () => {
   const { t } = useTranslation();
@@ -30,8 +85,8 @@ const AboutUs = () => {
   };
 
   const renderIcon = (iconName) => {
-    const IconComponent = LucideIcons[iconName];
-    return IconComponent ? <IconComponent className="w-8 h-8" /> : null;
+    // Since we're using emoji icons, just return the emoji as text
+    return <span className="text-2xl">{iconName}</span>;
   };
 
   return (

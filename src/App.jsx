@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -20,6 +20,7 @@ import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
 import NotFound from './pages/NotFound';
 import TestServices from './pages/TestServices';
+import TestLogin from './pages/TestLogin';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
@@ -270,6 +271,7 @@ function App() {
                 </ProtectedRoute>
               } />
               <Route path="/test-services" element={<TestServices />} />
+              <Route path="/test-login" element={<TestLogin />} />
               {/* Catch-all route for 404 errors */}
               <Route path="*" element={<NotFound />} />
             </Routes>

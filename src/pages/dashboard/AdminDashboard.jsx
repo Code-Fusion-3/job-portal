@@ -1,21 +1,35 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
-  MessageSquare, 
   Briefcase, 
-  AlertCircle,
-  Home,
-  BarChart3,
-  Shield,
-  Filter,
+  MessageSquare, 
+  BarChart3, 
+  Settings,
+  LogOut,
+  Bell,
   Search,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  ArrowRight,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  Home,
+  Shield,
   Mail,
-  Phone,
-  Eye
+  Phone
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../api/hooks/useAuth.js';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -30,7 +44,6 @@ import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
 import SettingsPage from './SettingsPage';
 import JobCategoriesPage from './JobCategoriesPage';
-import { jobSeekersData } from '../../data/mockData';
 import { 
   getStatusColor, 
   getPriorityColor, 
@@ -194,18 +207,44 @@ const AdminDashboard = () => {
     }
   ];
 
-  const recentJobSeekers = jobSeekersData.slice(0, 5).map(seeker => ({
-    id: seeker.id,
-    name: seeker.name,
-    title: seeker.title,
-    location: seeker.location,
-    experience: seeker.experience,
-    status: 'active',
-    avatar: seeker.avatar,
-    dailyRate: seeker.dailyRate,
-    monthlyRate: seeker.monthlyRate,
-    category: seeker.category
-  }));
+  const recentJobSeekers = [
+    {
+      id: 1,
+      name: 'Francine Mukamana',
+      title: 'Housemaid',
+      location: 'Kigali, Rwanda',
+      experience: '2 years',
+      status: 'active',
+      avatar: 'https://via.placeholder.com/50',
+      dailyRate: 5000,
+      monthlyRate: 120000,
+      category: 'Domestic'
+    },
+    {
+      id: 2,
+      name: 'Jean Pierre Ndayisaba',
+      title: 'Driver',
+      location: 'Kigali, Rwanda',
+      experience: '5 years',
+      status: 'inactive',
+      avatar: 'https://via.placeholder.com/50',
+      dailyRate: 6000,
+      monthlyRate: 150000,
+      category: 'Transport'
+    },
+    {
+      id: 3,
+      name: 'Marie Claire Uwineza',
+      title: 'Babysitter',
+      location: 'Kigali, Rwanda',
+      experience: '1 year',
+      status: 'active',
+      avatar: 'https://via.placeholder.com/50',
+      dailyRate: 4000,
+      monthlyRate: 100000,
+      category: 'Care'
+    }
+  ];
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -225,33 +264,38 @@ const AdminDashboard = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sticky Sidebar */}
-      <AdminSidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        navigationItems={navigationItems}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        user={user}
-        onLogout={handleLogout}
-      />
+  // Debug logging
+  console.log('🔍 AdminDashboard render:', { user, activeTab, sidebarOpen });
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Sticky Header */}
-        <AdminHeader
-          activeTab={activeTab}
+  try {
+    return (
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Sticky Sidebar */}
+        <AdminSidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
           navigationItems={navigationItems}
-          onSearch={handleSearch}
-          onFilter={handleFilter}
-          onSidebarToggle={handleSidebarToggle}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          user={user}
+          onLogout={handleLogout}
         />
 
-        {/* Dashboard Content */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-7xl mx-auto">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Sticky Header */}
+          <AdminHeader
+            activeTab={activeTab}
+            navigationItems={navigationItems}
+            onSearch={handleSearch}
+            onFilter={handleFilter}
+            onSidebarToggle={handleSidebarToggle}
+          />
+
+          {/* Dashboard Content */}
+          <div className="flex-1 overflow-auto p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-green-600 font-bold mb-4">✅ AdminDashboard is rendering!</div>
 
             
             {activeTab === 'dashboard' && (
@@ -482,6 +526,25 @@ const AdminDashboard = () => {
       </Modal>
     </div>
   );
+  } catch (error) {
+    console.error('❌ AdminDashboard render error:', error);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Dashboard Error</h1>
+          <p className="text-gray-600 mb-4">
+            There was an error loading the admin dashboard. Please check the console for details.
+          </p>
+          <details className="text-sm text-gray-500">
+            <summary className="cursor-pointer">Error details</summary>
+            <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+              {error.toString()}
+            </pre>
+          </details>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default AdminDashboard; 

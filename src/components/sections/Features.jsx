@@ -1,7 +1,47 @@
-import { motion } from 'framer-motion';
+import React from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import * as LucideIcons from 'lucide-react';
-import { featuresData } from '../../data/mockData';
+import Card from '../ui/Card';
+
+// Static data moved from mockData.js
+const featuresData = [
+  {
+    id: 1,
+    title: 'Find Skilled Workers',
+    description: 'Connect with reliable, experienced workers for your home and business needs.',
+    icon: '👥',
+    borderColor: 'border-blue-200',
+    bgColor: 'bg-blue-50',
+    iconColor: 'bg-blue-100'
+  },
+  {
+    id: 2,
+    title: 'Verified Profiles',
+    description: 'All workers are verified with background checks and references.',
+    icon: '✅',
+    borderColor: 'border-green-200',
+    bgColor: 'bg-green-50',
+    iconColor: 'bg-green-100'
+  },
+  {
+    id: 3,
+    title: 'Secure Payments',
+    description: 'Safe and secure payment processing for all transactions.',
+    icon: '🔒',
+    borderColor: 'border-purple-200',
+    bgColor: 'bg-purple-50',
+    iconColor: 'bg-purple-100'
+  },
+  {
+    id: 4,
+    title: '24/7 Support',
+    description: 'Round-the-clock customer support to help you find the right worker.',
+    icon: '🛟',
+    borderColor: 'border-orange-200',
+    bgColor: 'bg-orange-50',
+    iconColor: 'bg-orange-100'
+  }
+];
 
 const Features = () => {
   const { t } = useTranslation();
@@ -30,8 +70,8 @@ const Features = () => {
   };
 
   const renderIcon = (iconName) => {
-    const IconComponent = LucideIcons[iconName];
-    return IconComponent ? <IconComponent className="w-8 h-8" /> : null;
+    // Since we're using emoji icons, just return the emoji as text
+    return <span className="text-2xl">{iconName}</span>;
   };
 
   return (

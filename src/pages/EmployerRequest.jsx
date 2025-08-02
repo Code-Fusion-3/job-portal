@@ -1,21 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
+import { motion } from 'motion/react';
+import { CheckCircle, User } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BackButton from '../components/ui/BackButton';
 import EmployerRequestForm from '../components/forms/EmployerRequestForm';
-import { jobSeekersData } from '../data/mockData';
+import { jobSeekerService } from '../api/index.js';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Card from '../components/ui/Card';
 
 const EmployerRequest = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const [requestSent, setRequestSent] = useState(false);
+  const [jobSeeker, setJobSeeker] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Find the job seeker by ID (in real app, this would be an API call)
-  const jobSeeker = jobSeekersData.find(seeker => seeker.id === id) || jobSeekersData[0];
+  useEffect(() => {
+    const fetchJobSeeker = async () => {
+      try {
+        setLoading(true);
+        const seeker = await jobSeekerService.getJobSeekerById(id);
+        setJobSeeker(seeker);
+      } catch (err) {
+        setError(err);
+        console.error('Error fetching job seeker:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobSeeker();
+  }, [id]);
 
   const handleSuccess = () => {
     setRequestSent(true);
@@ -25,6 +44,14 @@ const EmployerRequest = () => {
     console.error('Request failed:', error);
     // Handle error (show notification, etc.)
   };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <div className="text-center py-8">{t('employerRequest.error.message', 'Failed to load job seeker profile.')}</div>;
+  }
 
   if (requestSent) {
     return (
@@ -77,48 +104,70 @@ const EmployerRequest = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Job Seeker Info */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm border p-6 sticky top-24">
+              <Card className="p-6 sticky top-24">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
                   {t('employerRequest.candidateInfo', 'Candidate Information')}
                 </h2>
                 
                 <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{jobSeeker.name}</h3>
-                    <p className="text-gray-600">{jobSeeker.title}</p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                      {jobSeeker?.profile?.photo ? (
+                        <img 
+                          src={jobSeeker.profile.photo} 
+                          alt={jobSeeker.profile.firstName} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">
+                        {jobSeeker?.profile?.firstName} {jobSeeker?.profile?.lastName}
+                      </h3>
+                      <p className="text-gray-600">
+                        {jobSeeker?.profile?.jobCategoryId === 1 ? 'Software Developer' :
+                         jobSeeker?.profile?.jobCategoryId === 2 ? 'Housemaid' :
+                         jobSeeker?.profile?.jobCategoryId === 3 ? 'Gardener' :
+                         jobSeeker?.profile?.jobCategoryId === 4 ? 'Driver' :
+                         jobSeeker?.profile?.jobCategoryId === 5 ? 'Cook' :
+                         jobSeeker?.profile?.jobCategoryId === 6 ? 'Security Guard' : 'Job Seeker'}
+                      </p>
+                    </div>
                   </div>
                   
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">
                       {t('employerRequest.experience', 'Experience')}
                     </h4>
-                    <p className="text-gray-600">{jobSeeker.experience} years</p>
+                    <p className="text-gray-600">{jobSeeker?.profile?.experience || 'Not specified'}</p>
                   </div>
                   
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">
                       {t('employerRequest.location', 'Location')}
                     </h4>
-                    <p className="text-gray-600">{jobSeeker.location}</p>
+                    <p className="text-gray-600">{jobSeeker?.profile?.location || 'Not specified'}</p>
                   </div>
                   
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      {t('employerRequest.skills', 'Key Skills')}
+                      {t('employerRequest.skills', 'Skills')}
                     </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {jobSeeker.skills.slice(0, 5).map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+                    <p className="text-gray-600">{jobSeeker?.profile?.skills || 'Not specified'}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      {t('employerRequest.contact', 'Contact')}
+                    </h4>
+                    <p className="text-gray-600">{jobSeeker?.profile?.contactNumber || 'Not specified'}</p>
                   </div>
                 </div>
-              </div>
+              </Card>
             </div>
 
             {/* Request Form */}

@@ -1,9 +1,41 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
+import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { contactInfo } from '../../data/mockData';
+
+// Static data moved from mockData.js
+const contactInfo = [
+  {
+    id: 1,
+    title: 'Email',
+    value: 'info@jobportal.com',
+    description: 'Send us an email anytime',
+    icon: 'Mail'
+  },
+  {
+    id: 2,
+    title: 'Phone',
+    value: '+250 789 123 456',
+    description: 'Call us during business hours',
+    icon: 'Phone'
+  },
+  {
+    id: 3,
+    title: 'Address',
+    value: 'Kigali, Rwanda',
+    description: 'Visit our office',
+    icon: 'MapPin'
+  },
+  {
+    id: 4,
+    title: 'Business Hours',
+    value: 'Monday - Friday: 8:00 AM - 6:00 PM',
+    description: 'We\'re here to help',
+    icon: 'Clock'
+  }
+];
 
 const ContactUs = () => {
   const { t } = useTranslation();
@@ -62,7 +94,7 @@ const ContactUs = () => {
   };
 
   const renderIcon = (iconName) => {
-    const icons = { Mail, Phone, MapPin };
+    const icons = { Mail, Phone, MapPin, Clock };
     const IconComponent = icons[iconName];
     return IconComponent ? <IconComponent className="w-6 h-6" /> : null;
   };

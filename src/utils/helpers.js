@@ -6,114 +6,73 @@ export const filterJobSeekers = (jobSeekers, filters) => {
     // Search term filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
+      const fullName = `${seeker.firstName || ''} ${seeker.lastName || ''}`.toLowerCase();
+      const categoryName = seeker.jobCategory?.name_en?.toLowerCase() || '';
+      const skills = seeker.skills?.toLowerCase() || '';
+      const experience = seeker.experience?.toLowerCase() || '';
+      const location = seeker.location?.toLowerCase() || '';
+      
       const matchesSearch = 
-        seeker.name.toLowerCase().includes(searchLower) ||
-        seeker.title.toLowerCase().includes(searchLower) ||
-        seeker.skills.some(skill => skill.toLowerCase().includes(searchLower)) ||
-        seeker.bio.toLowerCase().includes(searchLower);
+        fullName.includes(searchLower) ||
+        categoryName.includes(searchLower) ||
+        skills.includes(searchLower) ||
+        experience.includes(searchLower) ||
+        location.includes(searchLower);
       
       if (!matchesSearch) return false;
     }
 
     // Location filter
     if (filters.location && filters.location !== 'All Locations') {
-      if (seeker.location !== filters.location) return false;
+      if (seeker.location !== filters.location && seeker.city !== filters.location) return false;
     }
 
     // Category filter
     if (filters.category && filters.category !== 'All Categories') {
-      if (seeker.category !== filters.category.toLowerCase()) return false;
+      const categoryName = seeker.jobCategory?.name_en || '';
+      if (categoryName.toLowerCase() !== filters.category.toLowerCase()) return false;
     }
 
-    // Experience filter
+    // Experience filter - simplified since experience is now a string
     if (filters.experience && filters.experience !== 'All Experience') {
-      const experienceRange = filters.experience;
-      const seekerExp = seeker.experience;
+      const experienceText = seeker.experience?.toLowerCase() || '';
+      const filterText = filters.experience.toLowerCase();
       
-      switch (experienceRange) {
-        case '0-1 years':
-          if (seekerExp > 1) return false;
-          break;
-        case '1-3 years':
-          if (seekerExp < 1 || seekerExp > 3) return false;
-          break;
-        case '3-5 years':
-          if (seekerExp < 3 || seekerExp > 5) return false;
-          break;
-        case '5-10 years':
-          if (seekerExp < 5 || seekerExp > 10) return false;
-          break;
-        case '10+ years':
-          if (seekerExp < 10) return false;
-          break;
+      // Simple text matching for experience
+      if (!experienceText.includes(filterText.replace('all experience', '').trim())) {
+        return false;
       }
-    }
-
-    // Daily Rate Range filter
-    if (filters.dailyRateRange && filters.dailyRateRange !== 'All Rates') {
-      const dailyRate = seeker.dailyRate || 0;
-      
-      switch (filters.dailyRateRange) {
-        case 'Under 3,000 RWF/day':
-          if (dailyRate >= 3000) return false;
-          break;
-        case '3,000 - 5,000 RWF/day':
-          if (dailyRate < 3000 || dailyRate > 5000) return false;
-          break;
-        case '5,000 - 7,000 RWF/day':
-          if (dailyRate < 5000 || dailyRate > 7000) return false;
-          break;
-        case '7,000 - 10,000 RWF/day':
-          if (dailyRate < 7000 || dailyRate > 10000) return false;
-          break;
-        case 'Over 10,000 RWF/day':
-          if (dailyRate <= 10000) return false;
-          break;
-      }
-    }
-
-    // Monthly Rate Range filter
-    if (filters.monthlyRateRange && filters.monthlyRateRange !== 'All Monthly Rates') {
-      const monthlyRate = seeker.monthlyRate || 0;
-      
-      switch (filters.monthlyRateRange) {
-        case 'Under 80,000 RWF/month':
-          if (monthlyRate >= 80000) return false;
-          break;
-        case '80,000 - 120,000 RWF/month':
-          if (monthlyRate < 80000 || monthlyRate > 120000) return false;
-          break;
-        case '120,000 - 180,000 RWF/month':
-          if (monthlyRate < 120000 || monthlyRate > 180000) return false;
-          break;
-        case '180,000 - 250,000 RWF/month':
-          if (monthlyRate < 180000 || monthlyRate > 250000) return false;
-          break;
-        case 'Over 250,000 RWF/month':
-          if (monthlyRate <= 250000) return false;
-          break;
-      }
-    }
-
-    // Availability filter
-    if (filters.availability && filters.availability !== 'All Availability') {
-      if (seeker.availability !== filters.availability) return false;
-    }
-
-    // Education filter
-    if (filters.education && filters.education !== 'All Education') {
-      if (seeker.education !== filters.education) return false;
     }
 
     // Skills filter
     if (filters.skills && filters.skills.length > 0) {
+      const seekerSkills = seeker.skills?.toLowerCase() || '';
       const hasMatchingSkill = filters.skills.some(skill => 
-        seeker.skills.some(seekerSkill => 
-          seekerSkill.toLowerCase().includes(skill.toLowerCase())
-        )
+        seekerSkills.includes(skill.toLowerCase())
       );
       if (!hasMatchingSkill) return false;
     }
+
+    // For now, skip rate filters since the new API doesn't provide rate information
+    // Daily Rate Range filter - disabled
+    // if (filters.dailyRateRange && filters.dailyRateRange !== 'All Rates') {
+    //   // Rate filtering disabled for now
+    // }
+
+    // Monthly Rate Range filter - disabled  
+    // if (filters.monthlyRateRange && filters.monthlyRateRange !== 'All Monthly Rates') {
+    //   // Rate filtering disabled for now
+    // }
+
+    // Availability filter - disabled since not in new API
+    // if (filters.availability && filters.availability !== 'All Availability') {
+    //   // Availability filtering disabled for now
+    // }
+
+    // Education filter - disabled since not in new API
+    // if (filters.education && filters.education !== 'All Education') {
+    //   // Education filtering disabled for now
+    // }
 
     return true;
   });
@@ -125,20 +84,27 @@ export const sortJobSeekers = (jobSeekers, sortBy) => {
   
   switch (sortBy) {
     case 'Most Recent':
-      // Assuming we have a createdAt field, for now sort by ID
-      return sorted.sort((a, b) => b.id - a.id);
+      // Sort by memberSince date
+      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
     
     case 'Highest Rated':
-      return sorted.sort((a, b) => b.rating - a.rating);
+      // Rating not available in new API, fallback to memberSince
+      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
     
     case 'Most Experienced':
-      return sorted.sort((a, b) => b.experience - a.experience);
+      // Experience is now a string, sort by memberSince as fallback
+      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
     
     case 'Name A-Z':
-      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      return sorted.sort((a, b) => {
+        const nameA = `${a.firstName || ''} ${a.lastName || ''}`.trim();
+        const nameB = `${b.firstName || ''} ${b.lastName || ''}`.trim();
+        return nameA.localeCompare(nameB);
+      });
     
     case 'Lowest Rate':
-      return sorted.sort((a, b) => (a.dailyRate || 0) - (b.dailyRate || 0));
+      // Rate not available in new API, fallback to memberSince
+      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
     
     case 'Highest Rate':
       return sorted.sort((a, b) => (b.dailyRate || 0) - (a.dailyRate || 0));

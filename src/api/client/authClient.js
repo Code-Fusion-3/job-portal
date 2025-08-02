@@ -3,7 +3,7 @@
  */
 
 import axios from 'axios';
-import API_CONFIG from '../config/apiConfig.js';
+import API_CONFIG, { setAuthTokens, clearAuthTokens } from '../config/apiConfig.js';
 
 const authClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -46,10 +46,14 @@ export const authApi = {
     try {
       const response = await authClient.post('/login', credentials);
       
-      if (response.data.accessToken) {
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenKey, response.data.accessToken);
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey, response.data.refreshToken);
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey, response.data.expiresAt);
+      if (response.data.token) {
+        // Backend returns 'token' instead of 'accessToken'
+        // No refreshToken or expiresAt in the response
+        setAuthTokens(
+          response.data.token,
+          null, // No refresh token
+          null  // No expiry time
+        );
       }
 
       return response.data;
@@ -63,10 +67,14 @@ export const authApi = {
     try {
       const response = await authClient.post('/login', credentials);
       
-      if (response.data.accessToken) {
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenKey, response.data.accessToken);
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey, response.data.refreshToken);
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey, response.data.expiresAt);
+      if (response.data.token) {
+        // Backend returns 'token' instead of 'accessToken'
+        // No refreshToken or expiresAt in the response
+        setAuthTokens(
+          response.data.token,
+          null, // No refresh token
+          null  // No expiry time
+        );
       }
 
       return response.data;
@@ -87,16 +95,16 @@ export const authApi = {
       const response = await authClient.post('/security/refresh', { refreshToken });
       
       if (response.data.accessToken) {
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenKey, response.data.accessToken);
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey, response.data.refreshToken);
-        localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey, response.data.expiresAt);
+        setAuthTokens(
+          response.data.accessToken,
+          response.data.refreshToken,
+          response.data.expiresAt
+        );
       }
 
       return response.data;
     } catch (error) {
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenKey);
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey);
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey);
+      clearAuthTokens();
       throw error;
     }
   },
@@ -105,9 +113,7 @@ export const authApi = {
   logout: async () => {
     try {
       // Clear local tokens
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenKey);
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey);
-      localStorage.removeItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey);
+      clearAuthTokens();
       
       // Optionally call logout endpoint if available
       // const response = await authClient.post('/auth/logout');

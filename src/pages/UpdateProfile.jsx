@@ -1,38 +1,82 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, 
-  Briefcase, 
+  Mail, 
+  Phone, 
   MapPin, 
-  Star, 
-  Save, 
-  ArrowLeft,
-  CheckCircle,
-  AlertCircle,
+  Briefcase, 
+  GraduationCap,
+  Languages,
+  Save,
   Upload,
-  X
+  AlertCircle,
+  CheckCircle,
+  ArrowLeft
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../api/hooks/useAuth.js';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import FormInput from '../components/ui/FormInput';
-import PasswordInput from '../components/ui/PasswordInput';
-import FormCheckbox from '../components/ui/FormCheckbox';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { 
-  filterOptions, 
-  skillsData, 
-  educationLevels, 
-  availabilityOptions,
-  languageLevels 
-} from '../data/mockData';
+
+// Static data moved from mockData.js
+const skillsData = [
+  // Domestic Skills
+  "House Cleaning", "Laundry", "Ironing", "Cooking", "Meal Preparation", "Kitchen Management",
+  "Childcare", "Elderly Care", "Pet Care", "First Aid", "Safety", "Educational Activities",
+  
+  // Maintenance Skills
+  "Gardening", "Landscaping", "Plant Care", "Basic Repairs", "Plumbing", "Electrical",
+  "Carpentry", "Painting", "Security Monitoring", "Access Control", "Patrol",
+  
+  // Transportation Skills
+  "Safe Driving", "Vehicle Maintenance", "Route Planning", "GPS Navigation",
+  "Defensive Driving", "Passenger Safety",
+  
+  // Hospitality Skills
+  "Food Service", "Table Setting", "Order Taking", "Cash Handling", "Customer Service",
+  "Bartending", "Food Delivery",
+  
+  // Sales Skills
+  "Sales", "Inventory Management", "Negotiation", "Product Knowledge", "Market Knowledge",
+  
+  // Language Skills
+  "Kinyarwanda", "English", "French", "Swahili", "Basic Communication", "Translation"
+];
+
+const educationLevels = [
+  { id: 'none', name: 'No Formal Education', description: 'Learned through experience' },
+  { id: 'primary', name: 'Primary School', description: 'Basic education completed' },
+  { id: 'secondary', name: 'Secondary School', description: 'High school education' },
+  { id: 'vocational', name: 'Vocational Training', description: 'Trade or skill training' },
+  { id: 'bachelor', name: 'Bachelor\'s Degree', description: 'University degree' },
+  { id: 'master', name: 'Master\'s Degree', description: 'Advanced university degree' },
+  { id: 'phd', name: 'PhD/Doctorate', description: 'Highest academic degree' }
+];
+
+const availabilityOptions = [
+  { id: 'fulltime', name: 'Full Time', description: 'Available for full-time work' },
+  { id: 'parttime', name: 'Part Time', description: 'Available for part-time work' },
+  { id: 'flexible', name: 'Flexible', description: 'Flexible schedule available' },
+  { id: 'weekends', name: 'Weekends Only', description: 'Available on weekends' },
+  { id: 'evenings', name: 'Evenings Only', description: 'Available in evenings' },
+  { id: 'oncall', name: 'On Call', description: 'Available when needed' }
+];
+
+const languageLevels = [
+  { id: 'basic', name: 'Basic', description: 'Can understand and speak basic phrases' },
+  { id: 'conversational', name: 'Conversational', description: 'Can hold basic conversations' },
+  { id: 'fluent', name: 'Fluent', description: 'Can speak and understand well' },
+  { id: 'native', name: 'Native', description: 'Native speaker level' }
+];
 
 const UpdateProfile = () => {
   const { t } = useTranslation();
-  const { user, updateUser } = useAuth();
+  const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -41,26 +85,22 @@ const UpdateProfile = () => {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    title: '',
-    category: '',
-    subcategory: '',
+    firstName: '',
+    lastName: '',
+    description: '',
+    skills: '',
+    gender: '',
+    dateOfBirth: '',
+    idNumber: '',
+    contactNumber: '',
+    maritalStatus: '',
     location: '',
+    city: '',
+    country: '',
+    references: '',
     experience: '',
-    dailyRate: '',
     monthlyRate: '',
-    availability: '',
-    education: '',
-    languages: [],
-    skills: [],
-    bio: '',
-    contact: {
-      email: '',
-      phone: '',
-      linkedin: ''
-    },
-    certifications: [],
-    references: []
+    jobCategoryId: 1
   });
 
   // Profile completion tracking
@@ -70,49 +110,62 @@ const UpdateProfile = () => {
   // Load user data on component mount
   useEffect(() => {
     if (user) {
+      // Helper function to get full name from backend data
+      const getFullName = () => {
+        if (user.profile?.firstName && user.profile?.lastName) {
+          return `${user.profile.firstName} ${user.profile.lastName}`;
+        }
+        return user.profile?.firstName || user.profile?.lastName || '';
+      };
+
+      // Helper function to convert skills string to array
+      const getSkillsArray = () => {
+        if (user.profile?.skills) {
+          return user.profile.skills.split(',').map(skill => skill.trim());
+        }
+        return [];
+      };
+
       setFormData({
-        name: user.name || '',
-        title: user.profile?.title || '',
-        category: user.profile?.category || '',
-        subcategory: user.profile?.subcategory || '',
+        firstName: user.profile?.firstName || '',
+        lastName: user.profile?.lastName || '',
+        description: user.profile?.description || '',
+        skills: user.profile?.skills || '',
+        gender: user.profile?.gender || '',
+        dateOfBirth: user.profile?.dateOfBirth ? user.profile.dateOfBirth.split('T')[0] : '',
+        idNumber: user.profile?.idNumber || '',
+        contactNumber: user.profile?.contactNumber || '',
+        maritalStatus: user.profile?.maritalStatus || '',
         location: user.profile?.location || '',
+        city: user.profile?.city || '',
+        country: user.profile?.country || '',
+        references: user.profile?.references || '',
         experience: user.profile?.experience || '',
-        dailyRate: user.profile?.dailyRate || '',
         monthlyRate: user.profile?.monthlyRate || '',
-        availability: user.profile?.availability || '',
-        education: user.profile?.education || '',
-        languages: user.profile?.languages || [],
-        skills: user.profile?.skills || [],
-        bio: user.profile?.bio || '',
-        contact: {
-          email: user.profile?.contact?.email || '',
-          phone: user.profile?.contact?.phone || '',
-          linkedin: user.profile?.contact?.linkedin || ''
-        },
-        certifications: user.profile?.certifications || [],
-        references: user.profile?.references || []
+        jobCategoryId: user.profile?.jobCategoryId || 1
       });
-      setImagePreview(user.avatar);
+      setImagePreview(user.profile?.photo);
     }
   }, [user]);
 
   // Calculate profile completion score
   useEffect(() => {
     const requiredFields = [
-      { field: 'name', weight: 10 },
-      { field: 'title', weight: 10 },
-      { field: 'category', weight: 8 },
-      { field: 'location', weight: 8 },
-      { field: 'experience', weight: 8 },
-      { field: 'dailyRate', weight: 8 },
-      { field: 'monthlyRate', weight: 8 },
-      { field: 'availability', weight: 6 },
-      { field: 'education', weight: 6 },
-      { field: 'languages', weight: 5 },
+      { field: 'firstName', weight: 10 },
+      { field: 'lastName', weight: 5 },
+      { field: 'description', weight: 10 },
       { field: 'skills', weight: 10 },
-      { field: 'bio', weight: 8 },
-      { field: 'contact.email', weight: 5 },
-      { field: 'contact.phone', weight: 5 }
+      { field: 'gender', weight: 5 },
+      { field: 'dateOfBirth', weight: 5 },
+      { field: 'idNumber', weight: 5 },
+      { field: 'contactNumber', weight: 10 },
+      { field: 'maritalStatus', weight: 5 },
+      { field: 'location', weight: 10 },
+      { field: 'city', weight: 8 },
+      { field: 'country', weight: 8 },
+      { field: 'experience', weight: 10 },
+      { field: 'monthlyRate', weight: 10 },
+      { field: 'jobCategoryId', weight: 10 }
     ];
 
     let completed = 0;
@@ -154,20 +207,21 @@ const UpdateProfile = () => {
 
   const getFieldLabel = (field) => {
     const labels = {
-      name: 'Full Name',
-      title: 'Job Title',
-      category: 'Work Category',
-      location: 'Location',
-      experience: 'Experience',
-      dailyRate: 'Daily Rate',
-      monthlyRate: 'Monthly Rate',
-      availability: 'Availability',
-      education: 'Education',
-      languages: 'Languages',
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      description: 'Bio/Description',
       skills: 'Skills',
-      bio: 'Bio/Description',
-      'contact.email': 'Email',
-      'contact.phone': 'Phone'
+      gender: 'Gender',
+      dateOfBirth: 'Date of Birth',
+      idNumber: 'ID Number',
+      contactNumber: 'Phone Number',
+      maritalStatus: 'Marital Status',
+      location: 'Location',
+      city: 'City',
+      country: 'Country',
+      experience: 'Experience',
+      monthlyRate: 'Monthly Rate',
+      jobCategoryId: 'Job Category'
     };
     return labels[field] || field;
   };
@@ -225,25 +279,15 @@ const UpdateProfile = () => {
     setSaving(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update user profile
-      const updatedProfile = {
-        ...user,
-        name: formData.name,
-        avatar: imagePreview,
-        profile: {
-          ...user.profile,
-          ...formData
-        }
-      };
-
-      updateUser(updatedProfile);
-      
-      // Show success message and redirect
-      alert('Profile updated successfully!');
-      navigate('/dashboard/jobseeker');
+      // Use the updateProfile function from auth context
+      const result = await updateProfile(formData, profileImage);
+      if (result.success) {
+        // Show success message and redirect
+        alert('Profile updated successfully!');
+        navigate('/dashboard/jobseeker');
+      } else {
+        alert(result.error || 'Error updating profile. Please try again.');
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Error updating profile. Please try again.');
@@ -400,40 +444,103 @@ const UpdateProfile = () => {
               </div>
 
               <FormInput
-                label="Full Name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                label="First Name"
+                value={formData.firstName}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
                 required
-                placeholder="Enter your full name"
+                placeholder="Enter your first name"
               />
 
               <FormInput
-                label="Job Title"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                label="Last Name"
+                value={formData.lastName}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                placeholder="Enter your last name"
+              />
+
+              <FormInput
+                label="Bio/Description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                rows={4}
+                className="md:col-span-2"
+                placeholder="Tell potential employers about your experience, skills, and what makes you a great worker..."
                 required
-                placeholder="e.g., Housemaid, Gardener, Driver"
+              />
+
+              <FormInput
+                label="Skills"
+                value={formData.skills}
+                onChange={(e) => handleInputChange('skills', e.target.value)}
+                placeholder="Enter your skills separated by commas (e.g., cooking, cleaning, childcare)"
+                className="md:col-span-2"
               />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Work Category
+                  Gender
                 </label>
                 <select
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  value={formData.gender}
+                  onChange={(e) => handleInputChange('gender', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                   required
                 >
-                  <option value="">Select Category</option>
-                  {filterOptions.categories.slice(1).map(category => (
-                    <option key={category} value={category.toLowerCase()}>
-                      {category}
-                    </option>
-                  ))}
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
 
+              <FormInput
+                label="Date of Birth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                placeholder="YYYY-MM-DD"
+              />
+
+              <FormInput
+                label="ID Number"
+                value={formData.idNumber}
+                onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                placeholder="Enter your ID number"
+              />
+
+              <FormInput
+                label="Contact Number"
+                value={formData.contactNumber}
+                onChange={(e) => handleInputChange('contactNumber', e.target.value)}
+                required
+                placeholder="+250 789 123 456"
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Marital Status
+                </label>
+                <select
+                  value={formData.maritalStatus}
+                  onChange={(e) => handleInputChange('maritalStatus', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                  required
+                >
+                  <option value="">Select Marital Status</option>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Widowed">Widowed</option>
+                </select>
+              </div>
+            </div>
+          </Card>
+
+          {/* Location and References */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Location & References</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
                 label="Location"
                 value={formData.location}
@@ -442,58 +549,28 @@ const UpdateProfile = () => {
                 placeholder="e.g., Kigali, Rwanda"
               />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Experience (Years)
-                </label>
-                <select
-                  value={formData.experience}
-                  onChange={(e) => handleInputChange('experience', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  required
-                >
-                  <option value="">Select Experience</option>
-                  {filterOptions.experience.slice(1).map(exp => (
-                    <option key={exp} value={exp}>
-                      {exp}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Education Level
-                </label>
-                <select
-                  value={formData.education}
-                  onChange={(e) => handleInputChange('education', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  required
-                >
-                  <option value="">Select Education</option>
-                  {filterOptions.education.slice(1).map(education => (
-                    <option key={education} value={education}>
-                      {education}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </Card>
-
-          {/* Rates and Availability */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Rates & Availability</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
-                label="Daily Rate (RWF)"
-                type="number"
-                value={formData.dailyRate}
-                onChange={(e) => handleInputChange('dailyRate', e.target.value)}
+                label="City"
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
                 required
-                placeholder="e.g., 5000"
+                placeholder="e.g., Kigali"
+              />
+
+              <FormInput
+                label="Country"
+                value={formData.country}
+                onChange={(e) => handleInputChange('country', e.target.value)}
+                required
+                placeholder="e.g., Rwanda"
+              />
+
+              <FormInput
+                label="Experience (Years)"
+                value={formData.experience}
+                onChange={(e) => handleInputChange('experience', e.target.value)}
+                required
+                placeholder="e.g., 2"
               />
 
               <FormInput
@@ -501,116 +578,66 @@ const UpdateProfile = () => {
                 type="number"
                 value={formData.monthlyRate}
                 onChange={(e) => handleInputChange('monthlyRate', e.target.value)}
-                required
                 placeholder="e.g., 120000"
               />
 
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Availability
+                  Work Category
                 </label>
                 <select
-                  value={formData.availability}
-                  onChange={(e) => handleInputChange('availability', e.target.value)}
+                  value={formData.jobCategoryId}
+                  onChange={(e) => handleInputChange('jobCategoryId', parseInt(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                   required
                 >
-                  <option value="">Select Availability</option>
-                  {filterOptions.availability.slice(1).map(availability => (
-                    <option key={availability} value={availability}>
-                      {availability}
-                    </option>
-                  ))}
+                  <option value="">Select Work Category</option>
+                  <option value={1}>Software Developer</option>
+                  <option value={2}>Housemaid</option>
+                  <option value={3}>Gardener</option>
+                  <option value={4}>Driver</option>
+                  <option value={5}>Cook</option>
+                  <option value={6}>Security Guard</option>
                 </select>
               </div>
-            </div>
-          </Card>
 
-          {/* Skills */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Skills & Languages</h3>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Skills ({formData.skills.length} selected)
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  References
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {skillsData.map(skill => (
-                    <Badge
-                      key={skill}
-                      variant={formData.skills.includes(skill) ? 'primary' : 'outline'}
-                      size="sm"
-                      className="cursor-pointer"
-                      onClick={() => handleSkillToggle(skill)}
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Languages ({formData.languages.length} selected)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {['Kinyarwanda', 'English', 'French', 'Swahili'].map(language => (
-                    <Badge
-                      key={language}
-                      variant={formData.languages.includes(language) ? 'primary' : 'outline'}
-                      size="sm"
-                      className="cursor-pointer"
-                      onClick={() => handleLanguageToggle(language)}
-                    >
-                      {language}
-                    </Badge>
-                  ))}
-                </div>
+                <textarea
+                  value={formData.references}
+                  onChange={(e) => handleInputChange('references', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                  placeholder="List any previous employers or references"
+                />
               </div>
             </div>
           </Card>
 
-          {/* Bio */}
+          {/* Job Category */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">About You</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Job Category</h3>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bio/Description
+                Work Category
               </label>
-              <textarea
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                rows={4}
+              <select
+                value={formData.jobCategoryId}
+                onChange={(e) => handleInputChange('jobCategoryId', parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                placeholder="Tell potential employers about your experience, skills, and what makes you a great worker..."
                 required
-              />
-            </div>
-          </Card>
-
-          {/* Contact Information */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Contact Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormInput
-                label="Email"
-                type="email"
-                value={formData.contact.email}
-                onChange={(e) => handleInputChange('contact.email', e.target.value)}
-                required
-                placeholder="your.email@example.com"
-              />
-
-              <FormInput
-                label="Phone Number"
-                value={formData.contact.phone}
-                onChange={(e) => handleInputChange('contact.phone', e.target.value)}
-                required
-                placeholder="+250 789 123 456"
-              />
+              >
+                <option value="">Select Work Category</option>
+                <option value={1}>Software Developer</option>
+                <option value={2}>Housemaid</option>
+                <option value={3}>Gardener</option>
+                <option value={4}>Driver</option>
+                <option value={5}>Cook</option>
+                <option value={6}>Security Guard</option>
+              </select>
             </div>
           </Card>
 

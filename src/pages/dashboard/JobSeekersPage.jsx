@@ -1,38 +1,100 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { 
-  Users, 
   Search, 
   Filter, 
-  Eye, 
+  Plus, 
   Edit, 
   Trash2, 
+  Eye, 
   MoreHorizontal,
-  Plus
+  Users,
+  UserPlus,
+  UserCheck,
+  UserX,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Star,
+  Clock,
+  GraduationCap,
+  Languages,
+  Award
 } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { jobSeekerService } from '../../api/index.js';
+import { useAuth } from '../../api/hooks/useAuth.js';
 import Button from '../../components/ui/Button';
-import DataTable from '../../components/ui/DataTable';
-import SearchFilter from '../../components/ui/SearchFilter';
-import StatsGrid from '../../components/ui/StatsGrid';
-import Modal from '../../components/ui/Modal';
-import Avatar from '../../components/ui/Avatar';
+import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import DataTable from '../../components/ui/DataTable';
+import SearchFilter from '../../components/ui/SearchFilter';
 import AddJobSeekerForm from '../../components/forms/AddJobSeekerForm';
-import { 
-  jobSeekersData, 
-  jobCategories, 
-  skillsData, 
-  educationLevels, 
-  availabilityOptions 
-} from '../../data/mockData';
-import { 
-  getStatusColor, 
-  getCategoryColor, 
-  formatCurrency, 
-  formatDate 
-} from '../../utils/adminHelpers';
+import { formatCurrency } from '../../utils/adminHelpers';
+
+// Static data moved from mockData.js
+const educationLevels = [
+  { id: 'none', name: 'No Formal Education', description: 'Learned through experience' },
+  { id: 'primary', name: 'Primary School', description: 'Basic education completed' },
+  { id: 'secondary', name: 'Secondary School', description: 'High school education' },
+  { id: 'vocational', name: 'Vocational Training', description: 'Trade or skill training' },
+  { id: 'bachelor', name: 'Bachelor\'s Degree', description: 'University degree' },
+  { id: 'master', name: 'Master\'s Degree', description: 'Advanced university degree' },
+  { id: 'phd', name: 'PhD/Doctorate', description: 'Highest academic degree' }
+];
+
+const availabilityOptions = [
+  { id: 'fulltime', name: 'Full Time', description: 'Available for full-time work' },
+  { id: 'parttime', name: 'Part Time', description: 'Available for part-time work' },
+  { id: 'flexible', name: 'Flexible', description: 'Flexible schedule available' },
+  { id: 'weekends', name: 'Weekends Only', description: 'Available on weekends' },
+  { id: 'evenings', name: 'Evenings Only', description: 'Available in evenings' },
+  { id: 'oncall', name: 'On Call', description: 'Available when needed' }
+];
+
+const skillsData = [
+  // Domestic Skills
+  "House Cleaning", "Laundry", "Ironing", "Cooking", "Meal Preparation", "Kitchen Management",
+  "Childcare", "Elderly Care", "Pet Care", "First Aid", "Safety", "Educational Activities",
+  
+  // Maintenance Skills
+  "Gardening", "Landscaping", "Plant Care", "Basic Repairs", "Plumbing", "Electrical",
+  "Carpentry", "Painting", "Security Monitoring", "Access Control", "Patrol",
+  
+  // Transportation Skills
+  "Safe Driving", "Vehicle Maintenance", "Route Planning", "GPS Navigation",
+  "Defensive Driving", "Passenger Safety",
+  
+  // Hospitality Skills
+  "Food Service", "Table Setting", "Order Taking", "Cash Handling", "Customer Service",
+  "Bartending", "Food Delivery",
+  
+  // Sales Skills
+  "Sales", "Inventory Management", "Negotiation", "Product Knowledge", "Market Knowledge",
+  
+  // Language Skills
+  "Kinyarwanda", "English", "French", "Swahili", "Basic Communication", "Translation"
+];
+
+const languageLevels = [
+  { id: 'basic', name: 'Basic', description: 'Can understand and speak basic phrases' },
+  { id: 'conversational', name: 'Conversational', description: 'Can hold basic conversations' },
+  { id: 'fluent', name: 'Fluent', description: 'Can speak and understand well' },
+  { id: 'native', name: 'Native', description: 'Native speaker level' }
+];
+
+// Job categories for the form
+const jobCategories = [
+  { id: 1, name: 'Software Developer' },
+  { id: 2, name: 'Housemaid' },
+  { id: 3, name: 'Gardener' },
+  { id: 4, name: 'Driver' },
+  { id: 5, name: 'Cook' },
+  { id: 6, name: 'Security Guard' }
+];
 
 const JobSeekersPage = () => {
   const { t } = useTranslation();
@@ -55,14 +117,17 @@ const JobSeekersPage = () => {
 
   // Load job seekers data
   useEffect(() => {
-    const loadJobSeekers = () => {
+    const loadJobSeekers = async () => {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setJobSeekers(jobSeekersData);
-        setFilteredJobSeekers(jobSeekersData);
+      try {
+        const data = await jobSeekerService.getAll();
+        setJobSeekers(data);
+        setFilteredJobSeekers(data);
+      } catch (error) {
+        console.error('Error loading job seekers:', error);
+      } finally {
         setLoading(false);
-      }, 500);
+      }
     };
 
     loadJobSeekers();
@@ -295,7 +360,12 @@ const JobSeekersPage = () => {
         break;
       case 'delete':
         if (window.confirm(`Are you sure you want to delete ${jobSeeker.name}?`)) {
-          setJobSeekers(prev => prev.filter(seeker => seeker.id !== jobSeeker.id));
+          jobSeekerService.delete(jobSeeker.id).then(() => {
+            setJobSeekers(prev => prev.filter(seeker => seeker.id !== jobSeeker.id));
+            setFilteredJobSeekers(prev => prev.filter(seeker => seeker.id !== jobSeeker.id));
+          }).catch(error => {
+            console.error('Error deleting job seeker:', error);
+          });
         }
         break;
       default:
@@ -306,14 +376,24 @@ const JobSeekersPage = () => {
   // Status change handler
   const handleStatusChange = (newStatus) => {
     if (selectedJobSeeker) {
-      setJobSeekers(prev => 
-        prev.map(seeker => 
-          seeker.id === selectedJobSeeker.id 
-            ? { ...seeker, availability: newStatus }
-            : seeker
-        )
-      );
-      setSelectedJobSeeker(prev => ({ ...prev, availability: newStatus }));
+      jobSeekerService.update(selectedJobSeeker.id, { availability: newStatus }).then(() => {
+        setJobSeekers(prev => 
+          prev.map(seeker => 
+            seeker.id === selectedJobSeeker.id 
+              ? { ...seeker, availability: newStatus }
+              : seeker
+          )
+        );
+        setFilteredJobSeekers(prev => 
+          prev.map(seeker => 
+            seeker.id === selectedJobSeeker.id 
+              ? { ...seeker, availability: newStatus }
+              : seeker
+          )
+        );
+      }).catch(error => {
+        console.error('Error updating job seeker status:', error);
+      });
     }
   };
 
@@ -322,15 +402,10 @@ const JobSeekersPage = () => {
     setIsAddingJobSeeker(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Add to job seekers list
-      setJobSeekers(prev => [jobSeekerData, ...prev]);
-      
-      // Close modal
+      const newJobSeeker = await jobSeekerService.create(jobSeekerData);
+      setJobSeekers(prev => [newJobSeeker, ...prev]);
+      setFilteredJobSeekers(prev => [newJobSeeker, ...prev]);
       setShowAddModal(false);
-      
       // Show success message (you can implement a toast notification here)
       // Basic profile created successfully
     } catch (error) {

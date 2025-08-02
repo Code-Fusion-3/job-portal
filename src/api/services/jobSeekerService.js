@@ -414,6 +414,30 @@ export const jobSeekerService = {
       const apiError = handleError(error, { context: 'search_job_seekers' });
       return { success: false, error: apiError.userMessage };
     }
+  },
+
+  /**
+   * Get latest job seekers for public display
+   * GET /public/job-seekers
+   */
+  getLatestJobSeekers: async (limit = 6) => {
+    try {
+      const response = await apiClient.get(`/public/job-seekers?limit=${limit}`);
+
+      return {
+        success: true,
+        data: response.data.jobSeekers || [],
+        pagination: response.data.pagination || {}
+      };
+    } catch (error) {
+      // Handle specific backend error cases
+      if (error.response?.data?.error) {
+        return { success: false, error: error.response.data.error };
+      }
+      
+      const apiError = handleError(error, { context: 'get_latest_job_seekers' });
+      return { success: false, error: apiError.userMessage };
+    }
   }
 };
 

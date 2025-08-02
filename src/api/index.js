@@ -15,6 +15,7 @@ export { default as uploadClient } from './client/uploadClient.js';
 
 // Export services
 export { authService } from './services/authService.js';
+export { userService } from './services/userService.js';
 export { jobSeekerService } from './services/jobSeekerService.js';
 export { categoryService } from './services/categoryService.js';
 export { requestService } from './services/requestService.js';
@@ -25,4 +26,7 @@ export * from './utils/errorHandler.js';
 export { default as jobSeekerUtils } from './utils/jobSeekerUtils.js';
 export { default as categoryUtils } from './utils/categoryUtils.js';
 export { default as requestUtils } from './utils/requestUtils.js';
-export { default as adminUtils } from './utils/adminUtils.js'; 
+export { default as adminUtils } from './utils/adminUtils.js';
+
+// Export hooks
+export * from './hooks/useAuth.js'; 

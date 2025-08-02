@@ -74,9 +74,15 @@ export const getTokenExpiry = () => {
 };
 
 export const setAuthTokens = (token, refreshToken, expiry) => {
-  localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenKey, token);
-  localStorage.setItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey, refreshToken);
-  localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey, expiry);
+  if (token) {
+    localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenKey, token);
+  }
+  if (refreshToken) {
+    localStorage.setItem(API_CONFIG.AUTH_CONFIG.refreshTokenKey, refreshToken);
+  }
+  if (expiry) {
+    localStorage.setItem(API_CONFIG.AUTH_CONFIG.tokenExpiryKey, expiry);
+  }
 };
 
 export const clearAuthTokens = () => {
@@ -87,7 +93,11 @@ export const clearAuthTokens = () => {
 
 export const isTokenExpired = () => {
   const expiry = getTokenExpiry();
-  if (!expiry) return true;
+  if (!expiry) {
+    // If no expiry time is set, assume token is valid
+    // The backend will handle token validation
+    return false;
+  }
   
   // Add 5 minute buffer before expiry
   const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds

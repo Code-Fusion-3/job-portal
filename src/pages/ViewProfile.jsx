@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
@@ -24,8 +24,7 @@ import {
   Bookmark,
   BookmarkPlus
 } from 'lucide-react';
-import { jobSeekersData } from '../data/mockData';
-import { useAuth } from '../contexts/AuthContext';
+import { jobSeekerService } from '../api/index.js';
 import Button from '../components/ui/Button';
 import BackButton from '../components/ui/BackButton';
 import Card from '../components/ui/Card';
@@ -50,12 +49,9 @@ const ViewProfile = () => {
     const fetchJobSeeker = async () => {
       setLoading(true);
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const found = jobSeekersData.find(seeker => seeker.id === parseInt(id));
-        if (found) {
-          setJobSeeker(found);
+        const seeker = await jobSeekerService.getJobSeekerById(id);
+        if (seeker) {
+          setJobSeeker(seeker);
         } else {
           // Handle not found
           navigate('/job-seekers');
@@ -143,10 +139,10 @@ const ViewProfile = () => {
               <Card className="p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
                   <Avatar 
-                    src={jobSeeker.avatar} 
-                    alt={jobSeeker.name} 
+                    src={jobSeeker?.profile?.photo} 
+                    alt={`${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`} 
                     size="xl"
-                    fallback={jobSeeker.name}
+                    fallback={`${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
                     className="flex-shrink-0"
                   />
                   
@@ -154,24 +150,29 @@ const ViewProfile = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                       <div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                          {jobSeeker.name}
+                          {jobSeeker?.profile?.firstName} {jobSeeker?.profile?.lastName}
                         </h1>
                         <p className="text-xl text-gray-600 mb-3">
-                          {jobSeeker.title}
+                          {jobSeeker?.profile?.jobCategoryId === 1 ? 'Software Developer' :
+                           jobSeeker?.profile?.jobCategoryId === 2 ? 'Housemaid' :
+                           jobSeeker?.profile?.jobCategoryId === 3 ? 'Gardener' :
+                           jobSeeker?.profile?.jobCategoryId === 4 ? 'Driver' :
+                           jobSeeker?.profile?.jobCategoryId === 5 ? 'Cook' :
+                           jobSeeker?.profile?.jobCategoryId === 6 ? 'Security Guard' : 'Job Seeker'}
                         </p>
                         
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center">
                             <MapPin className="w-4 h-4 mr-1" />
-                            {jobSeeker.location}
+                            {jobSeeker?.profile?.location || 'Location not specified'}
                           </span>
                           <span className="flex items-center">
                             <Briefcase className="w-4 h-4 mr-1" />
-                            {jobSeeker.experience} years experience
+                            {jobSeeker?.profile?.experience || 'Experience not specified'}
                           </span>
                           <span className="flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
-                            {jobSeeker.availability}
+                            {jobSeeker?.profile?.availability || 'Availability not specified'}
                           </span>
                         </div>
                       </div>
@@ -212,7 +213,7 @@ const ViewProfile = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">About</h2>
                 <p className="text-gray-600 leading-relaxed">
-                  {jobSeeker.bio}
+                  {jobSeeker?.profile?.description || 'No description available'}
                 </p>
               </Card>
             </motion.div>
@@ -226,11 +227,15 @@ const ViewProfile = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Skills & Expertise</h2>
                 <div className="flex flex-wrap gap-2">
-                  {jobSeeker.skills.map((skill, index) => (
-                    <Badge key={index} variant="primary" size="md">
-                      {skill}
-                    </Badge>
-                  ))}
+                  {jobSeeker?.profile?.skills ? (
+                    jobSeeker.profile.skills.split(',').map((skill, index) => (
+                      <Badge key={index} variant="primary" size="md">
+                        {skill.trim()}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">No skills listed</p>
+                  )}
                 </div>
               </Card>
             </motion.div>

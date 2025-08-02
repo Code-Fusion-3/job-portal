@@ -1,61 +1,49 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { 
-  BarChart3, 
   TrendingUp, 
   TrendingDown, 
   Users, 
+  Briefcase, 
+  DollarSign,
   Calendar,
+  BarChart3,
+  PieChart,
   Download,
   Filter,
-  RefreshCw,
-  AlertCircle,
-  FileText,
-  PieChart,
-  Activity
+  RefreshCw
 } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { adminService } from '../../api/index.js';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
-import { jobSeekersData } from '../../data/mockData';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const ReportsPage = () => {
   const { t } = useTranslation();
-  
-  // State management
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for reports
-  const mockReportData = {
-    overview: {
-      totalJobSeekers: 847,
-      avgRating: 4.7,
-      growthRate: 12.5
-    },
-    performance: {
-      topCategories: [
-        { name: 'Domestic & Household', jobSeekers: 82, growth: 15.2 },
-        { name: 'Care Services', jobSeekers: 58, growth: 12.8 },
-        { name: 'Food & Hospitality', jobSeekers: 47, growth: 8.5 },
-        { name: 'Maintenance & Services', jobSeekers: 28, growth: 18.3 },
-        { name: 'Transportation', jobSeekers: 19, growth: 22.1 }
-      ]
-    },
-    requests: [
-      { id: 1, name: 'John Doe', category: 'Domestic', status: 'pending' },
-      { id: 2, name: 'Jane Smith', category: 'Care', status: 'in_progress' },
-      { id: 3, name: 'Peter Jones', category: 'Food', status: 'completed' },
-      { id: 4, name: 'Mary Brown', category: 'Maintenance', status: 'pending' },
-      { id: 5, name: 'David Lee', category: 'Transport', status: 'in_progress' },
-      { id: 6, name: 'Lisa Wilson', category: 'Domestic', status: 'completed' },
-      { id: 7, name: 'Michael Davis', category: 'Care', status: 'pending' },
-      { id: 8, name: 'Emily White', category: 'Food', status: 'in_progress' },
-      { id: 9, name: 'James Black', category: 'Maintenance', status: 'completed' },
-      { id: 10, name: 'Olivia Green', category: 'Transport', status: 'pending' },
-    ]
-  };
+  // Load report data
+  useEffect(() => {
+    const loadReportData = async () => {
+      try {
+        setLoading(true);
+        const data = await adminService.getAnalytics();
+        setReportData(data);
+      } catch (error) {
+        console.error('Error loading report data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReportData();
+  }, []);
 
   // Period options
   const periodOptions = [
@@ -88,24 +76,46 @@ const ReportsPage = () => {
     // Category changed
   };
 
-  const handleExportReport = (type) => {
+  const handleExportReport = async (type) => {
     setIsLoading(true);
-    // Simulate export process
-    setTimeout(() => {
-      // Exporting report
-      setIsLoading(false);
+    try {
+      await adminService.exportSystemData(type);
       alert(`${type} report exported successfully!`);
-    }, 2000);
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      alert('Error exporting report. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRefreshData = () => {
+  const handleRefreshData = async () => {
     setIsLoading(true);
-    // Simulate data refresh
-    setTimeout(() => {
-      // Data refreshed
+    try {
+      const data = await adminService.getAnalytics();
+      setReportData(data);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <LoadingSpinner size="lg" text="Loading reports..." />
+      </div>
+    );
+  }
+
+  if (!reportData) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600">No report data available.</p>
+      </div>
+    );
+  }
 
   // Simple pie chart component
   const PieChartComponent = ({ data }) => {
@@ -152,7 +162,7 @@ const ReportsPage = () => {
   const stats = [
     {
       title: 'Total Job Seekers',
-      value: mockReportData.overview.totalJobSeekers.toString(),
+      value: reportData.overview.totalJobSeekers.toString(),
       change: '+12',
       changeType: 'increase',
       icon: Users,
@@ -172,7 +182,7 @@ const ReportsPage = () => {
     },
     {
       title: 'Average Rating',
-      value: mockReportData.overview.avgRating.toString(),
+      value: reportData.overview.avgRating.toString(),
       change: '+0.2',
       changeType: 'increase',
       icon: BarChart3,
@@ -224,10 +234,10 @@ const ReportsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Job Seekers</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.totalJobSeekers}</p>
+              <p className="text-2xl font-bold text-gray-900">{reportData.overview.totalJobSeekers}</p>
               <div className="flex items-center mt-2">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+{mockReportData.overview.growthRate}%</span>
+                <span className="text-sm text-green-600">+{reportData.overview.growthRate}%</span>
               </div>
             </div>
             <Users className="w-8 h-8 text-blue-600" />
@@ -238,7 +248,7 @@ const ReportsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Growth Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.growthRate}%</p>
+              <p className="text-2xl font-bold text-gray-900">{reportData.overview.growthRate}%</p>
               <div className="flex items-center mt-2">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-sm text-green-600">+2.1%</span>
@@ -252,7 +262,7 @@ const ReportsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.avgRating}</p>
+              <p className="text-2xl font-bold text-gray-900">{reportData.overview.avgRating}</p>
               <div className="flex items-center mt-2">
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                 <span className="text-sm text-green-600">+0.2</span>
@@ -279,7 +289,7 @@ const ReportsPage = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {mockReportData.performance.topCategories.map((category, index) => (
+            {reportData.performance.topCategories.map((category, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -316,7 +326,7 @@ const ReportsPage = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {mockReportData.performance.topCategories.map((category, index) => (
+            {reportData.performance.topCategories.map((category, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
