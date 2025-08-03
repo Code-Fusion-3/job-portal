@@ -1,10 +1,46 @@
+import React from 'react';
+import { 
+  Home, 
+  Users, 
+  MessageSquare, 
+  Briefcase, 
+  BarChart3, 
+  Settings, 
+  TestTube,
+  User,
+  FileText,
+  Calendar,
+  Star,
+  MapPin,
+  Mail,
+  Phone
+} from 'lucide-react';
+
 const SidebarItem = ({ 
   item, 
   isActive, 
   isCollapsed, 
   onClick 
 }) => {
-  const Icon = item.icon;
+  // Map icon names to actual components
+  const iconMap = {
+    'Home': Home,
+    'Users': Users,
+    'MessageSquare': MessageSquare,
+    'Briefcase': Briefcase,
+    'BarChart3': BarChart3,
+    'Settings': Settings,
+    'TestTube': TestTube,
+    'User': User,
+    'FileText': FileText,
+    'Calendar': Calendar,
+    'Star': Star,
+    'MapPin': MapPin,
+    'Mail': Mail,
+    'Phone': Phone
+  };
+
+  const Icon = iconMap[item.icon] || Home; // Default to Home if icon not found
 
   return (
     <li>

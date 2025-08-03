@@ -7,8 +7,44 @@ const RequestCard = ({
   onContactEmployer, 
   onViewDetails,
   getStatusColor,
-  getPriorityColor 
+  getPriorityColor,
+  compact = false
 }) => {
+  if (compact) {
+    return (
+      <div className="flex items-center space-x-3 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-gray-900 text-sm truncate">{request.employerName}</h4>
+          <p className="text-xs text-gray-600 truncate">{request.companyName}</p>
+          <div className="flex items-center space-x-2 mt-1">
+            <Badge 
+              variant="outline" 
+              size="xs"
+              className={getStatusColor(request.status)}
+            >
+              {request.status}
+            </Badge>
+            <Badge 
+              variant="outline" 
+              size="xs"
+              className={getPriorityColor(request.priority)}
+            >
+              {request.priority}
+            </Badge>
+          </div>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => onViewDetails?.(request)}
+          title="View Details"
+        >
+          <Eye className="w-3 h-3" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
       <div className="flex items-center justify-between mb-3">

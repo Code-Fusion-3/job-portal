@@ -69,7 +69,7 @@ export const ENDPOINTS = {
 };
 
 export const buildUrl = (endpoint, baseUrl = null) => {
-  const base = baseUrl || import.meta.env.VITE_API_URL || 'https://job-portal-backend-cfk4.onrender.com';
+  const base = baseUrl || import.meta.env.VITE_API_URL || 'localhost:3000';
   return `${base}${endpoint}`;
 };
 

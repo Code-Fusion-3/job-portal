@@ -30,6 +30,10 @@ import {
   Phone
 } from 'lucide-react';
 import { useAuth } from '../../api/hooks/useAuth.js';
+import { adminService } from '../../api/services/adminService.js';
+import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
+import { useAdminRequests } from '../../api/hooks/useRequests.js';
+import { useAdminCategories } from '../../api/hooks/useCategories.js';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -44,6 +48,9 @@ import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
 import SettingsPage from './SettingsPage';
 import JobCategoriesPage from './JobCategoriesPage';
+import TestAdminIntegration from './TestAdminIntegration';
+import TestAdminDashboard from './TestAdminDashboard';
+import TestLocalBackend from './TestLocalBackend';
 import { 
   getStatusColor, 
   getPriorityColor, 
@@ -63,15 +70,81 @@ const AdminDashboard = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Custom hooks for data management
+  const {
+    jobSeekers: recentJobSeekers,
+    loading: jobSeekersLoading,
+    error: jobSeekersError,
+    fetchJobSeekers
+  } = useAdminJobSeekers({ 
+    autoFetch: false,
+    itemsPerPage: 5 
+  });
 
+  const {
+    requests: recentRequests,
+    loading: requestsLoading,
+    error: requestsError,
+    fetchRequests
+  } = useAdminRequests({ 
+    autoFetch: false 
+  });
 
-  // Redirect if no user
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+    fetchCategories
+  } = useAdminCategories({ 
+    autoFetch: false 
+  });
+
+  // Redirect if no user or not admin
   useEffect(() => {
     if (!user) {
       navigate('/login');
+    } else if (user.role !== 'admin') {
+      navigate('/');
     }
   }, [user, navigate]);
+
+  // Load dashboard data
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Load dashboard statistics
+        const statsResult = await adminService.getDashboardStats();
+        if (statsResult.success) {
+          setDashboardStats(statsResult.data);
+        } else {
+          setError(statsResult.error || 'Failed to load dashboard statistics');
+        }
+
+        // Load recent data
+        await Promise.all([
+          fetchJobSeekers(),
+          fetchRequests(),
+          fetchCategories()
+        ]);
+      } catch (error) {
+        setError('Failed to load dashboard data');
+        console.error('Dashboard loading error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user && user.role === 'admin') {
+      loadDashboardData();
+    }
+  }, [user, fetchJobSeekers, fetchRequests, fetchCategories]);
 
   // Event handlers
   const handleLogout = () => {
@@ -85,196 +158,496 @@ const AdminDashboard = () => {
     setShowRequestModal(true);
   };
 
-  const handleUpdateRequestStatus = (requestId, newStatus, notes) => {
-    // In a real app, this would update the database
-    
-    // Close modal
-    setShowRequestModal(false);
-    setSelectedRequest(null);
-    setAdminNotes('');
-    
-    // Show success message
-    alert(`Request ${newStatus === 'completed' ? 'marked as completed' : 'status updated'} successfully!`);
+  const handleUpdateRequestStatus = async (requestId, newStatus, notes) => {
+    try {
+      const result = await adminService.updateRequestStatus(requestId, {
+        status: newStatus,
+        adminNotes: notes
+      });
+      
+      if (result.success) {
+        // Refresh requests data
+        await fetchRequests();
+        
+        // Close modal
+        setShowRequestModal(false);
+        setSelectedRequest(null);
+        setAdminNotes('');
+        
+        // Show success message
+        alert(`Request ${newStatus === 'completed' ? 'marked as completed' : 'status updated'} successfully!`);
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      alert('Failed to update request status');
+      console.error('Request update error:', error);
+    }
   };
 
   const handleSearch = (value) => {
     setSearchTerm(value);
-    // Implement search functionality
   };
 
   const handleFilter = () => {
-    // Implement filter functionality
+    // Filter functionality
   };
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Mock data for lower-skilled worker platform
-  const stats = [
-    {
-      title: 'Total Job Seekers',
-      value: '847',
-      change: '+23',
-      changeType: 'increase',
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Active lower-skilled workers'
-    },
-    {
-      title: 'Pending Requests',
-      value: '23',
-      change: '+5',
-      changeType: 'increase',
-      icon: AlertCircle,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      description: 'Employer requests to review'
-    },
-    {
-      title: 'Active Categories',
-      value: '6',
-      change: '+1',
-      changeType: 'increase',
-      icon: Briefcase,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      description: 'Domestic, Care, Food, Maintenance, Sales, Transport'
-    }
-  ];
-
-  const recentRequests = [
-    {
-      id: 1,
-      employerName: 'Mrs. Uwimana',
-      companyName: 'Private Household',
-      candidateName: 'Francine Mukamana',
-      position: 'Housemaid',
-      status: 'pending',
-      priority: 'high',
-      date: '2 hours ago',
-      dailyRate: 5000,
-      monthlyRate: 120000,
-      message: 'Need reliable housemaid for daily cleaning and cooking...',
-      employerContact: {
-        email: 'uwimana@email.com',
-        phone: '+250 788 111 111'
-      },
-      adminNotes: '',
-      lastContactDate: null,
-      isCompleted: false
-    },
-    {
-      id: 2,
-      employerName: 'Mr. Ndayisaba',
-      companyName: 'Hotel Rwanda',
-      candidateName: 'Jean Pierre Ndayisaba',
-      position: 'Driver',
-      status: 'in_progress',
-      priority: 'medium',
-      date: '1 day ago',
-      dailyRate: 6000,
-      monthlyRate: 150000,
-      message: 'Looking for experienced driver for hotel transportation...',
-      employerContact: {
-        email: 'ndayisaba@hotelrwanda.com',
-        phone: '+250 788 222 222'
-      },
-      adminNotes: 'Called employer - interested in proceeding. Waiting for final confirmation.',
-      lastContactDate: '2024-01-15T14:30:00Z',
-      isCompleted: false
-    },
-    {
-      id: 3,
-      employerName: 'Mrs. Mukamana',
-      companyName: 'Private Household',
-      candidateName: 'Marie Claire Uwineza',
-      position: 'Babysitter',
-      status: 'completed',
-      priority: 'low',
-      date: '2 days ago',
-      dailyRate: 4000,
-      monthlyRate: 100000,
-      message: 'Need caring babysitter for 2 children aged 3 and 5...',
-      employerContact: {
-        email: 'mukamana@email.com',
-        phone: '+250 788 333 333'
-      },
-      adminNotes: 'Deal completed successfully. Employer hired the candidate.',
-      lastContactDate: '2024-01-14T16:45:00Z',
-      isCompleted: true
-    }
-  ];
-
-  const recentJobSeekers = [
-    {
-      id: 1,
-      name: 'Francine Mukamana',
-      title: 'Housemaid',
-      location: 'Kigali, Rwanda',
-      experience: '2 years',
-      status: 'active',
-      avatar: 'https://via.placeholder.com/50',
-      dailyRate: 5000,
-      monthlyRate: 120000,
-      category: 'Domestic'
-    },
-    {
-      id: 2,
-      name: 'Jean Pierre Ndayisaba',
-      title: 'Driver',
-      location: 'Kigali, Rwanda',
-      experience: '5 years',
-      status: 'inactive',
-      avatar: 'https://via.placeholder.com/50',
-      dailyRate: 6000,
-      monthlyRate: 150000,
-      category: 'Transport'
-    },
-    {
-      id: 3,
-      name: 'Marie Claire Uwineza',
-      title: 'Babysitter',
-      location: 'Kigali, Rwanda',
-      experience: '1 year',
-      status: 'active',
-      avatar: 'https://via.placeholder.com/50',
-      dailyRate: 4000,
-      monthlyRate: 100000,
-      category: 'Care'
-    }
-  ];
-
-  const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'jobseekers', label: 'Job Seekers', icon: Users },
-    { id: 'requests', label: 'Employer Requests', icon: MessageSquare },
-    { id: 'categories', label: 'Job Categories', icon: Briefcase },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Shield }
-  ];
-
-  // Show loading if user is not loaded
-  if (!user) {
+  // Render loading state
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading admin dashboard..." />
+        <LoadingSpinner size="lg" text="Loading Dashboard..." />
       </div>
     );
   }
 
-  // Debug logging
-  console.log('🔍 AdminDashboard render:', { user, activeTab, sidebarOpen });
-
-  try {
+  // Render error state
+  if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Sticky Sidebar */}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Dashboard Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render dashboard content
+  const renderDashboardContent = () => {
+    // Show loading state if still loading
+    if (loading) {
+      return (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div className="animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((j) => (
+                      <div key={j} className="h-12 bg-gray-200 rounded"></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Show error state if there's an error
+    if (error) {
+      return (
+        <div className="space-y-6">
+          <Card>
+            <div className="text-center py-8">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Dashboard Error</h3>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    // Get dashboard data with fallbacks
+    const stats = dashboardStats?.overview || {};
+    const trends = dashboardStats?.trends || {};
+    
+    // Extract skills from job seekers data
+    const extractSkillsFromJobSeekers = (jobSeekers) => {
+      const skillCounts = {};
+      
+      jobSeekers.forEach(jobSeeker => {
+        if (jobSeeker.profile?.skills) {
+          const skills = jobSeeker.profile.skills.split(',').map(skill => skill.trim());
+          skills.forEach(skill => {
+            if (skill && skill.length > 0) {
+              skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+            }
+          });
+        }
+      });
+      
+      // Convert to array and sort by count
+      const skillsArray = Object.entries(skillCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5); // Top 5 skills
+      
+      console.log('Skills extracted:', skillsArray);
+      return skillsArray;
+    };
+    
+    // Get skills from actual job seekers data or use fallback
+    const actualSkills = recentJobSeekers.length > 0 
+      ? extractSkillsFromJobSeekers(recentJobSeekers)
+      : [];
+    
+    // If no skills extracted, use sample data for demonstration
+    const sampleJobSeekers = [
+      {
+        id: 1,
+        profile: {
+          firstName: 'John',
+          lastName: 'Doe',
+          skills: 'JavaScript, React, Node.js',
+          location: 'Kigali, Rwanda'
+        }
+      },
+      {
+        id: 2,
+        profile: {
+          firstName: 'Jane',
+          lastName: 'Smith',
+          skills: 'Python, Django, PostgreSQL',
+          location: 'Huye, Rwanda'
+        }
+      },
+      {
+        id: 3,
+        profile: {
+          firstName: 'Bob',
+          lastName: 'Johnson',
+          skills: 'JavaScript, React, TypeScript',
+          location: 'Musanze, Rwanda'
+        }
+      }
+    ];
+    
+    const sampleSkills = extractSkillsFromJobSeekers(sampleJobSeekers);
+    
+    // Mock data for demonstration when API doesn't return data
+    const mockStats = {
+      totalJobSeekers: stats.totalJobSeekers || 9,
+      totalEmployerRequests: stats.totalEmployerRequests || 0,
+      pendingEmployerRequests: stats.pendingEmployerRequests || 0,
+      totalCategories: stats.totalCategories || 8
+    };
+
+    const mockTrends = {
+      topSkills: actualSkills.length > 0 ? actualSkills : (sampleSkills.length > 0 ? sampleSkills : (Array.isArray(trends.topSkills) ? trends.topSkills : [
+        { name: 'Housekeeping', count: 15 },
+        { name: 'Cooking', count: 12 },
+        { name: 'Childcare', count: 10 },
+        { name: 'Gardening', count: 8 },
+        { name: 'Cleaning', count: 6 }
+      ])),
+      monthlyRegistrations: Array.isArray(trends.monthlyRegistrations) ? trends.monthlyRegistrations : [
+        { month: 'Jan', count: 5 },
+        { month: 'Feb', count: 8 },
+        { month: 'Mar', count: 12 },
+        { month: 'Apr', count: 9 },
+        { month: 'May', count: 15 },
+        { month: 'Jun', count: 11 }
+      ]
+    };
+    
+    // Debug logging
+    console.log('Recent Job Seekers:', recentJobSeekers);
+    console.log('Extracted Skills:', actualSkills);
+    console.log('Sample Skills:', sampleSkills);
+    console.log('API Trends:', trends);
+    console.log('Final Top Skills:', mockTrends.topSkills);
+
+    return (
+      <div className="space-y-6">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Job Seekers"
+            value={mockStats.totalJobSeekers}
+            icon={Users}
+            change="+12%"
+            changeType="increase"
+            color="text-blue-600"
+            bgColor="bg-blue-100"
+            description="Active job seekers"
+            index={0}
+          />
+          <StatCard
+            title="Employer Requests"
+            value={mockStats.totalEmployerRequests}
+            icon={MessageSquare}
+            change="+8%"
+            changeType="increase"
+            color="text-green-600"
+            bgColor="bg-green-100"
+            description="Total requests"
+            index={1}
+          />
+          <StatCard
+            title="Pending Requests"
+            value={mockStats.pendingEmployerRequests}
+            icon={AlertCircle}
+            change="-5%"
+            changeType="decrease"
+            color="text-yellow-600"
+            bgColor="bg-yellow-100"
+            description="Awaiting review"
+            index={2}
+          />
+          <StatCard
+            title="Categories"
+            value={mockStats.totalCategories}
+            icon={Briefcase}
+            change="+3%"
+            changeType="increase"
+            color="text-purple-600"
+            bgColor="bg-purple-100"
+            description="Job categories"
+            index={3}
+          />
+        </div>
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Job Seekers */}
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Recent Job Seekers</h3>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab('job-seekers')}>
+                View All
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {jobSeekersLoading ? (
+                <LoadingSpinner size="sm" text="Loading job seekers..." />
+              ) : recentJobSeekers.length > 0 ? (
+                recentJobSeekers.slice(0, 3).map((jobSeeker) => {
+                  // Map API response to expected format
+                  const mappedJobSeeker = {
+                    id: jobSeeker.id,
+                    name: jobSeeker.profile ? `${jobSeeker.profile.firstName} ${jobSeeker.profile.lastName}` : jobSeeker.email,
+                    title: jobSeeker.profile?.skills ? jobSeeker.profile.skills.split(',')[0] : 'Job Seeker',
+                    category: jobSeeker.profile?.skills ? jobSeeker.profile.skills.split(',')[0] : 'General',
+                    location: jobSeeker.profile?.location || 'Location not specified',
+                    experience: jobSeeker.profile?.experience || 0,
+                    avatar: jobSeeker.profile?.avatar || null,
+                    email: jobSeeker.email,
+                    role: jobSeeker.role,
+                    createdAt: jobSeeker.createdAt,
+                    // Additional profile data
+                    skills: jobSeeker.profile?.skills || '',
+                    gender: jobSeeker.profile?.gender || '',
+                    contactNumber: jobSeeker.profile?.contactNumber || '',
+                    // Mock rates for demonstration
+                    dailyRate: 15000,
+                    monthlyRate: 300000
+                  };
+                  
+                  return (
+                    <JobSeekerCard
+                      key={jobSeeker.id}
+                      jobSeeker={mappedJobSeeker}
+                      compact={true}
+                      getCategoryColor={getCategoryColor}
+                    />
+                  );
+                })
+              ) : (
+                <div className="space-y-3">
+                  {/* Mock job seekers for demonstration */}
+                  {[
+                    {
+                      id: 1,
+                      name: 'Alice Johnson',
+                      title: 'Housekeeper',
+                      category: 'domestic',
+                      location: 'Kigali',
+                      experience: 3,
+                      avatar: null
+                    },
+                    {
+                      id: 2,
+                      name: 'Bob Smith',
+                      title: 'Chef',
+                      category: 'food',
+                      location: 'Huye',
+                      experience: 5,
+                      avatar: null
+                    },
+                    {
+                      id: 3,
+                      name: 'Carol Davis',
+                      title: 'Nanny',
+                      category: 'care',
+                      location: 'Musanze',
+                      experience: 2,
+                      avatar: null
+                    }
+                  ].map((jobSeeker) => (
+                    <JobSeekerCard
+                      key={jobSeeker.id}
+                      jobSeeker={jobSeeker}
+                      compact={true}
+                      getCategoryColor={getCategoryColor}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Recent Requests */}
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Recent Requests</h3>
+              <Button variant="outline" size="sm" onClick={() => setActiveTab('requests')}>
+                View All
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {requestsLoading ? (
+                <LoadingSpinner size="sm" text="Loading requests..." />
+              ) : recentRequests.length > 0 ? (
+                recentRequests.slice(0, 3).map((request) => (
+                  <RequestCard
+                    key={request.id}
+                    request={request}
+                    onAction={handleRequestAction}
+                    compact={true}
+                    getStatusColor={getStatusColor}
+                    getPriorityColor={getPriorityColor}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-4xl mb-2">📝</div>
+                  <p className="text-gray-500">No recent requests</p>
+                  <p className="text-sm text-gray-400 mt-1">New employer requests will appear here</p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* Charts and Analytics */}
+        <Card>
+          <h3 className="text-lg font-semibold mb-4">Analytics Overview</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Monthly Registrations Chart */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-600 mb-2">Monthly Registrations</h4>
+              <div className="h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-blue-600 text-2xl font-bold mb-1">
+                    {Array.isArray(mockTrends.monthlyRegistrations) 
+                      ? mockTrends.monthlyRegistrations.reduce((sum, item) => sum + (item.count || 0), 0)
+                      : 0
+                    }
+                  </div>
+                  <div className="text-blue-600 text-sm">Total Registrations</div>
+                  <div className="text-blue-500 text-xs mt-1">
+                    {Array.isArray(mockTrends.monthlyRegistrations) 
+                      ? mockTrends.monthlyRegistrations.length 
+                      : 0
+                    } months tracked
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Skills */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-600 mb-2">Top Skills</h4>
+              <div className="space-y-2">
+                {Array.isArray(mockTrends.topSkills) ? mockTrends.topSkills.map((skill, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="text-sm font-medium text-gray-600">{skill.name || 'Unknown'}</span>
+                    <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded-full">
+                      {skill.count || 0}
+                    </span>
+                  </div>
+                )) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>No skills data available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  };
+
+  // Render tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return renderDashboardContent();
+      case 'job-seekers':
+        return <JobSeekersPage />;
+      case 'requests':
+        return <EmployerRequestsPage />;
+      case 'categories':
+        return <JobCategoriesPage />;
+      case 'reports':
+        return <ReportsPage />;
+      case 'settings':
+        return <SettingsPage />;
+      case 'test':
+        return <TestAdminIntegration />;
+      case 'test-dashboard':
+        return <TestAdminDashboard />;
+      case 'test-backend':
+        return <TestLocalBackend />;
+      default:
+        return renderDashboardContent();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <AdminHeader
+        user={user}
+        onLogout={handleLogout}
+        onSearch={handleSearch}
+        onFilter={handleFilter}
+        onSidebarToggle={handleSidebarToggle}
+        searchTerm={searchTerm}
+      />
+
+      <div className="flex">
+        {/* Sidebar */}
         <AdminSidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
-          navigationItems={navigationItems}
+          navigationItems={[
+            { id: 'dashboard', label: 'Dashboard', icon: 'Home' },
+            { id: 'job-seekers', label: 'Job Seekers', icon: 'Users' },
+            { id: 'requests', label: 'Employer Requests', icon: 'MessageSquare' },
+            { id: 'categories', label: 'Categories', icon: 'Briefcase' },
+            { id: 'reports', label: 'Reports', icon: 'BarChart3' },
+            { id: 'settings', label: 'Settings', icon: 'Settings' },
+            { id: 'test', label: 'Integration Test', icon: 'TestTube' },
+            { id: 'test-backend', label: 'Backend Test', icon: 'Server' }
+          ]}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           user={user}
@@ -282,269 +655,75 @@ const AdminDashboard = () => {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Sticky Header */}
-          <AdminHeader
-            activeTab={activeTab}
-            navigationItems={navigationItems}
-            onSearch={handleSearch}
-            onFilter={handleFilter}
-            onSidebarToggle={handleSidebarToggle}
-          />
-
-          {/* Dashboard Content */}
-          <div className="flex-1 overflow-auto p-6">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-green-600 font-bold mb-4">✅ AdminDashboard is rendering!</div>
-
-            
-            {activeTab === 'dashboard' && (
-              <div className="space-y-6">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {stats.map((stat, index) => (
-                    <StatCard
-                      key={stat.title}
-                      {...stat}
-                      index={index}
-                    />
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Recent Employer Requests */}
-                  <Card className="rounded-lg shadow-md p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-semibold text-gray-900">Recent Employer Requests</h2>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        View All
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {recentRequests.map((request) => (
-                        <RequestCard
-                          key={request.id}
-                          request={request}
-                          onContactEmployer={handleContactEmployer}
-                          onViewDetails={handleRequestAction}
-                          getStatusColor={getStatusColor}
-                          getPriorityColor={getPriorityColor}
-                        />
-                      ))}
-                    </div>
-                  </Card>
-
-                  {/* Recent Job Seekers */}
-                  <Card className="rounded-lg shadow-md p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-semibold text-gray-900">Recent Job Seekers</h2>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        View All
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {recentJobSeekers.map((jobSeeker) => (
-                        <JobSeekerCard
-                          key={jobSeeker.id}
-                          jobSeeker={jobSeeker}
-                          onViewDetails={(seeker) => {
-                            // Handle view job seeker details
-                          }}
-                          getCategoryColor={getCategoryColor}
-                        />
-                      ))}
-                    </div>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {/* Job Seekers Page */}
-            {activeTab === 'jobseekers' && (
-              <JobSeekersPage />
-            )}
-
-            {/* Employer Requests Page */}
-            {activeTab === 'requests' && (
-              <EmployerRequestsPage />
-            )}
-
-            {/* Job Categories Page */}
-            {activeTab === 'categories' && (
-              <JobCategoriesPage />
-            )}
-
-            {/* Reports Page */}
-            {activeTab === 'reports' && (
-              <ReportsPage />
-            )}
-
-            {/* Settings Page */}
-            {activeTab === 'settings' && (
-              <SettingsPage />
-            )}
-
-            {/* Other tabs content */}
-            {!['dashboard', 'jobseekers', 'requests', 'categories', 'reports', 'settings'].includes(activeTab) && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {navigationItems.find(item => item.id === activeTab)?.label} Coming Soon
-                  </h3>
-                  <p className="text-gray-600">This feature is under development.</p>
-                </div>
-              </div>
-            )}
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+          <div className="p-6">
+            {renderTabContent()}
           </div>
         </div>
       </div>
 
-      {/* Request Processing Modal */}
-      <Modal
-        isOpen={showRequestModal}
-        onClose={() => setShowRequestModal(false)}
-        title="Process Request"
-        maxWidth="max-w-full"
-        maxHeight="max-h-full"
-        padding="p-4"
-      >
-        {selectedRequest && (
-          <>
-            {/* Request Details */}
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Employer Information</h3>
-                  <p className="text-sm text-gray-600">{selectedRequest.employerName}</p>
-                  <p className="text-sm text-gray-600">{selectedRequest.companyName}</p>
-                  <div className="flex items-center space-x-4 mt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      onClick={() => handleContactEmployer(selectedRequest.employerContact, 'email')}
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Email
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      onClick={() => handleContactEmployer(selectedRequest.employerContact, 'phone')}
-                    >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call
-                    </Button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Candidate Information</h3>
-                  <p className="text-sm text-gray-600">{selectedRequest.candidateName}</p>
-                  <p className="text-sm text-gray-600">{selectedRequest.position}</p>
-                  <p className="text-sm text-gray-600">
-                    Daily Rate: {selectedRequest.dailyRate.toLocaleString()} RWF
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Monthly Rate: {selectedRequest.monthlyRate.toLocaleString()} RWF
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Employer Message</h3>
-                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                  {selectedRequest.message}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Admin Notes</h3>
-                <textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Add notes about your contact with the employer..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-                  rows="4"
-                />
-              </div>
+      {/* Request Modal */}
+      {showRequestModal && selectedRequest && (
+        <Modal
+          isOpen={showRequestModal}
+          onClose={() => setShowRequestModal(false)}
+          title="Update Request Status"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={selectedRequest.status}
+                onChange={(e) => setSelectedRequest({
+                  ...selectedRequest,
+                  status: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end space-x-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Admin Notes
+              </label>
+              <textarea
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Add notes about this request..."
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
               <Button
                 variant="outline"
                 onClick={() => setShowRequestModal(false)}
-                className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 Cancel
               </Button>
-              
-              {selectedRequest.status !== 'completed' && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'in_progress', adminNotes)}
-                    className="text-blue-600 border-blue-200 hover:bg-blue-50 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    Mark In Progress
-                  </Button>
-                  
-                  <Button
-                    variant="primary"
-                    onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'completed', adminNotes)}
-                    className="bg-green-600 hover:bg-green-700 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    Mark Completed
-                  </Button>
-                </>
-              )}
-              
-              {selectedRequest.status === 'completed' && (
-                <Button
-                  variant="outline"
-                  onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'in_progress', adminNotes)}
-                  className="text-orange-600 border-orange-200 hover:bg-orange-50 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                  Reopen Request
-                </Button>
-              )}
+              <Button
+                onClick={() => handleUpdateRequestStatus(
+                  selectedRequest.id,
+                  selectedRequest.status,
+                  adminNotes
+                )}
+              >
+                Update Status
+              </Button>
             </div>
-          </>
-        )}
-      </Modal>
+          </div>
+        </Modal>
+      )}
     </div>
   );
-  } catch (error) {
-    console.error('❌ AdminDashboard render error:', error);
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Dashboard Error</h1>
-          <p className="text-gray-600 mb-4">
-            There was an error loading the admin dashboard. Please check the console for details.
-          </p>
-          <details className="text-sm text-gray-500">
-            <summary className="cursor-pointer">Error details</summary>
-            <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
-              {error.toString()}
-            </pre>
-          </details>
-        </div>
-      </div>
-    );
-  }
 };
 
 export default AdminDashboard; 
