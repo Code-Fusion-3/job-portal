@@ -12,11 +12,13 @@ const RequestCard = ({
 }) => {
   if (compact) {
     return (
-      <div className="flex items-center space-x-3 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-gray-900 text-sm truncate">{request.employerName}</h4>
-          <p className="text-xs text-gray-600 truncate">{request.companyName}</p>
-          <div className="flex items-center space-x-2 mt-1">
+      <div className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-gray-900 text-sm truncate">{request.employerName}</h4>
+            <p className="text-xs text-gray-600 truncate">{request.companyName}</p>
+          </div>
+          <div className="flex items-center space-x-2">
             <Badge 
               variant="outline" 
               size="xs"
@@ -31,16 +33,41 @@ const RequestCard = ({
             >
               {request.priority}
             </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onViewDetails?.(request)}
+              title="View Details"
+            >
+              <Eye className="w-3 h-3" />
+            </Button>
           </div>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onViewDetails?.(request)}
-          title="View Details"
-        >
-          <Eye className="w-3 h-3" />
-        </Button>
+        
+        {/* Candidate Information in Compact Mode */}
+        <div className="mt-2">
+          {request.hasSelectedCandidate ? (
+            <div className="flex items-center space-x-2">
+              <span className="text-green-600 text-xs font-medium">✓ Selected:</span>
+              <span className="text-sm font-medium text-gray-900">{request.candidateName}</span>
+              <span className="text-xs text-gray-600">for {request.position}</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <span className="text-orange-600 text-xs font-medium">⏳ Requesting:</span>
+              <span className="text-sm font-medium text-gray-900">{request.candidateName}</span>
+              <span className="text-xs text-gray-600">for {request.position}</span>
+            </div>
+          )}
+          
+          {/* Show selected candidate skills if available */}
+          {request.hasSelectedCandidate && request.selectedCandidate?.profile?.skills && (
+            <div className="mt-1">
+              <span className="text-xs text-gray-500">Skills: </span>
+              <span className="text-xs text-gray-700">{request.selectedCandidate.profile.skills}</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -71,8 +98,52 @@ const RequestCard = ({
       </div>
       
       <p className="text-sm text-gray-600 mb-3">
-        Requesting: <span className="font-medium">{request.candidateName}</span> for {request.position}
+        {request.hasSelectedCandidate ? (
+          <>
+            <span className="text-green-600 font-medium">✓ Selected:</span> <span className="font-medium">{request.candidateName}</span> for {request.position}
+          </>
+        ) : (
+          <>
+            <span className="text-orange-600 font-medium">⏳ Requesting:</span> <span className="font-medium">{request.candidateName}</span> for {request.position}
+          </>
+        )}
       </p>
+      
+      {/* Selected Candidate Information */}
+      {request.hasSelectedCandidate && request.selectedCandidate && (
+        <div className="bg-green-50 p-3 rounded-lg mb-3">
+          <h4 className="text-sm font-medium text-green-900 mb-2">Selected Candidate:</h4>
+          <div className="space-y-1 text-sm">
+            <p className="text-green-800">
+              <span className="font-medium">Name:</span> {request.selectedCandidate.profile?.firstName} {request.selectedCandidate.profile?.lastName}
+            </p>
+            <p className="text-green-800">
+              <span className="font-medium">Skills:</span> {request.selectedCandidate.profile?.skills}
+            </p>
+            {request.selectedCandidate.profile?.experience && (
+              <p className="text-green-800">
+                <span className="font-medium">Experience:</span> {request.selectedCandidate.profile.experience}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Requested Candidate Information (if different from selected) */}
+      {request.requestedCandidate && request.selectedCandidate && 
+       request.requestedCandidate.id !== request.selectedCandidate.id && (
+        <div className="bg-blue-50 p-3 rounded-lg mb-3">
+          <h4 className="text-sm font-medium text-blue-900 mb-2">Originally Requested:</h4>
+          <div className="space-y-1 text-sm">
+            <p className="text-blue-800">
+              <span className="font-medium">Name:</span> {request.requestedCandidate.profile?.firstName} {request.requestedCandidate.profile?.lastName}
+            </p>
+            <p className="text-blue-800">
+              <span className="font-medium">Skills:</span> {request.requestedCandidate.profile?.skills}
+            </p>
+          </div>
+        </div>
+      )}
       
       <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
         <span>Daily Rate: {request.dailyRate.toLocaleString()} RWF</span>

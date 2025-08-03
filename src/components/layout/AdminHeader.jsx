@@ -1,4 +1,4 @@
-import { Search, Filter, Menu, Bell, User } from 'lucide-react';
+import { Search, Filter, Menu, Bell, User, RefreshCw } from 'lucide-react';
 import Button from '../ui/Button';
 
 const AdminHeader = ({
@@ -7,7 +7,8 @@ const AdminHeader = ({
   onSearch,
   onFilter,
   onSidebarToggle,
-  searchTerm = ''
+  searchTerm = '',
+  onRefresh
 }) => {
   // Navigation items for tab labels
   const navigationItems = [
@@ -60,6 +61,18 @@ const AdminHeader = ({
 
         {/* Right side - User menu and notifications */}
         <div className="flex items-center space-x-3">
+          {/* Refresh button */}
+          {onRefresh && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onRefresh}
+              title="Refresh data"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          )}
+
           {/* Notifications */}
           <Button variant="ghost" size="sm">
             <Bell className="w-5 h-5" />
