@@ -88,7 +88,7 @@ const EmployerRequestForm = ({
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      console.log('Employer request:', formData);
+  
       
       // For demo purposes, always succeed
       onSuccess();

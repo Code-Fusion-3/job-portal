@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      console.log('🔐 Attempting login for:', email, 'role:', role);
+  
       
       let loginResult;
       
@@ -59,11 +59,11 @@ export const AuthProvider = ({ children }) => {
         loginResult = await authApi.loginJobSeeker({ email, password });
       }
 
-      console.log('✅ Login successful:', loginResult);
+      
 
       // Login successful, now fetch user data from backend
       const userResult = await userService.getCurrentUser();
-      console.log('👤 User fetch result:', userResult);
+      
       
       if (userResult.success) {
         setUser(userResult.data);

@@ -48,9 +48,7 @@ import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
 import SettingsPage from './SettingsPage';
 import JobCategoriesPage from './JobCategoriesPage';
-import TestAdminIntegration from './TestAdminIntegration';
-import TestAdminDashboard from './TestAdminDashboard';
-import TestLocalBackend from './TestLocalBackend';
+
 import { 
   getStatusColor, 
   getPriorityColor, 
@@ -175,30 +173,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Debug function to check authentication and data
-  const debugAuthAndData = () => {
-    console.log('=== Debug Info ===');
-    console.log('User:', user);
-    console.log('Recent requests count:', recentRequests?.length || 0);
-    console.log('Recent job seekers count:', recentJobSeekers?.length || 0);
-    console.log('Loading states:', { requestsLoading, jobSeekersLoading, categoriesLoading });
-    console.log('Error states:', { requestsError, jobSeekersError });
-    
-    // Test API call directly
-    fetch('http://localhost:3000/employer/requests', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('job_portal_token')}`,
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Direct API response:', data);
-    })
-    .catch(error => {
-      console.error('Direct API error:', error);
-    });
-  };
+
 
   // Event handlers
   const handleLogout = () => {
@@ -725,12 +700,7 @@ const AdminDashboard = () => {
         return <ReportsPage />;
       case 'settings':
         return <SettingsPage />;
-      case 'test':
-        return <TestAdminIntegration />;
-      case 'test-dashboard':
-        return <TestAdminDashboard />;
-      case 'test-backend':
-        return <TestLocalBackend />;
+
       default:
         return renderDashboardContent();
     }
@@ -760,9 +730,7 @@ const AdminDashboard = () => {
             { id: 'requests', label: 'Employer Requests', icon: 'MessageSquare' },
             { id: 'categories', label: 'Categories', icon: 'Briefcase' },
             { id: 'reports', label: 'Reports', icon: 'BarChart3' },
-            { id: 'settings', label: 'Settings', icon: 'Settings' },
-            { id: 'test', label: 'Integration Test', icon: 'TestTube' },
-            { id: 'test-backend', label: 'Backend Test', icon: 'Server' }
+            { id: 'settings', label: 'Settings', icon: 'Settings' }
           ]}
           activeTab={activeTab}
           setActiveTab={setActiveTab}

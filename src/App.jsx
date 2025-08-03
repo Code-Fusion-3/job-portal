@@ -19,8 +19,6 @@ import AdminDashboard from './pages/dashboard/AdminDashboard';
 import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
 import NotFound from './pages/NotFound';
-import TestServices from './pages/TestServices';
-import TestLogin from './pages/TestLogin';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
@@ -270,8 +268,7 @@ function App() {
                   <UpdateProfile />
                 </ProtectedRoute>
               } />
-              <Route path="/test-services" element={<TestServices />} />
-              <Route path="/test-login" element={<TestLogin />} />
+         
               {/* Catch-all route for 404 errors */}
               <Route path="*" element={<NotFound />} />
             </Routes>
