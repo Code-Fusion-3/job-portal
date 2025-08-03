@@ -7,6 +7,7 @@ import App from './App.jsx'
 // Starting application initialization
 
 try {
+
   // Check if root element exists
   const rootElement = document.getElementById('root');
   if (!rootElement) {

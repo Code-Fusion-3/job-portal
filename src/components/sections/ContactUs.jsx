@@ -39,6 +39,16 @@ const contactInfo = [
 
 const ContactUs = () => {
   const { t } = useTranslation();
+
+  // Error handling for translation
+  const safeTranslate = (key, fallback) => {
+    try {
+      return t(key, fallback);
+    } catch (error) {
+      console.error(`Translation error for key: ${key}`, error);
+      return fallback;
+    }
+  };
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -110,12 +120,20 @@ const ContactUs = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            {t('contact.title', 'Contact Us')}
+            {safeTranslate('contact.title', 'Contact Us')}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t('contact.subtitle', 'Get in touch with us. We\'d love to hear from you and answer any questions you might have.')}
+            {safeTranslate('contact.subtitle', 'Get in touch with us. We\'d love to hear from you and answer any questions you might have.')}
           </p>
         </motion.div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                {t('contact.info.title', 'Get in Touch')}
+              </h3>
+              <p className="text-gray-600 mb-8">
+                {t('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
+              </p>
+            </div>
 
         <motion.div
           variants={containerVariants}
@@ -126,14 +144,6 @@ const ContactUs = () => {
         >
           {/* Contact Information */}
           <motion.div variants={itemVariants} className="space-y-8">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('contact.info.title', 'Get in Touch')}
-              </h3>
-              <p className="text-gray-600 mb-8">
-                {t('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
-              </p>
-            </div>
 
             <div className="space-y-6">
               {contactInfo.map((info) => (

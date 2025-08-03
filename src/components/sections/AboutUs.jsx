@@ -61,6 +61,16 @@ const valuesData = [
 const AboutUs = () => {
   const { t } = useTranslation();
 
+  // Error handling for translation
+  const safeTranslate = (key, fallback) => {
+    try {
+      return t(key, fallback);
+    } catch (error) {
+      console.error(`Translation error for key: ${key}`, error);
+      return fallback;
+    }
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -100,10 +110,10 @@ const AboutUs = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold mb-4">
-            {t('about.title', 'About Us')}
+            {safeTranslate('about.title', 'About Us')}
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            {t('about.subtitle', 'Connecting talent with opportunity across Rwanda through innovative technology and personalized service.')}
+            {safeTranslate('about.subtitle', 'Connecting talent with opportunity across Rwanda through innovative technology and personalized service.')}
           </p>
         </motion.div>
 

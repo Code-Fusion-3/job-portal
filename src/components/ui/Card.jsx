@@ -9,7 +9,7 @@ const Card = forwardRef(({
   animation = true,
   ...props 
 }, ref) => {
-  const baseClasses = 'bg-white rounded-xl shadow-lg transition-all duration-300 overflow-hidden';
+  const baseClasses = 'bg-white rounded-xl shadow-lg transition-all duration-300 overflow-hidden flex flex-col';
   
   const variants = {
     default: 'hover:shadow-xl',

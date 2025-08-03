@@ -251,4 +251,21 @@ export const getTimeAgo = (date) => {
   if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
   if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
   return `${Math.floor(diffInSeconds / 31536000)}y ago`;
+};
+
+// Mask names consistently: first letter + two asterisks
+export const maskName = (name) => {
+  if (!name || typeof name !== 'string') return '***';
+  
+  const trimmedName = name.trim();
+  if (trimmedName.length === 0) return '***';
+  
+  const firstLetter = trimmedName.charAt(0);
+  return `${firstLetter}**`;
+};
+
+// Handle experience display with fallback to "Entry Level"
+export const formatExperienceDisplay = (experience) => {
+  if (!experience || experience.trim() === '') return 'Entry Level';
+  return experience.trim();
 }; 

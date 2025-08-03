@@ -19,8 +19,9 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import ChromeGrid from '../components/ui/chrome-grid';
-import { filterJobSeekers, sortJobSeekers } from '../utils/helpers';
+import jobseekerBackground from '../assets/jobseekerBackground.png';
+import { filterJobSeekers, sortJobSeekers, maskName, formatExperienceDisplay } from '../utils/helpers';
+import defaultProfileImage from '../assets/defaultProfileImage.jpeg';
 import useDebounce from '../hooks/useDebounce';
 
 // Static data moved from mockData.js
@@ -197,10 +198,23 @@ const JobSeekers = () => {
     // Implement favorite functionality
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative">
-        <ChromeGrid />
+        <div 
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${jobseekerBackground})` }}
+        />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <LoadingSpinner />
@@ -213,7 +227,10 @@ const JobSeekers = () => {
 
   return (
     <div className="min-h-screen relative">
-      <ChromeGrid />
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${jobseekerBackground})` }}
+      />
       {/* Header is removed as per new_code, assuming it's handled elsewhere or not needed */}
       
       {/* Page Header */}
@@ -515,57 +532,75 @@ const JobSeekers = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <Card
-                    className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-6 bg-white"
-                  >
-                    <div className="flex-shrink-0">
-                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Briefcase className="w-8 h-8 text-blue-600" />
+                  <Card className="h-[380px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 overflow-hidden group">
+                    <div className="h-full flex flex-col">
+                      {/* Header Section */}
+                      <div className="p-6 pb-4">
+                        <div className="flex items-start justify-between mb-4">
+                                                     <div className="flex items-center">
+                             <div className="w-14 h-14 rounded-xl overflow-hidden mr-4 shadow-lg">
+                               <img 
+                                 src={defaultProfileImage} 
+                                 alt="Profile" 
+                                 className="w-full h-full object-cover opacity-10"
+                               />
+                             </div>
+                            <div className="flex-1">
+                                                         <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                             {maskName(seeker.firstName)} {maskName(seeker.lastName)}
+                           </h3>
+                              <div className="flex items-center gap-2">
+                                <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
+                                  {seeker.jobCategory?.name_en || 'No Category'}
+                                </span>
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              </div>
+                            </div>
+                          </div>
+                                                     <button
+                             onClick={() => handleViewProfile(seeker)}
+                             className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                           >
+                             <Eye className="w-4 h-4" />
+                             View Profile
+                           </button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-grow">
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">
-                        {seeker.firstName} {seeker.lastName}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-2">
-                        {seeker.jobCategory?.name_en || 'No Category'}
-                      </p>
-                      {seeker.location && (
-                        <div className="flex items-center text-gray-500 text-sm mb-2">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {seeker.location}, {seeker.city}, {seeker.country}
-                        </div>
-                      )}
-                      {seeker.experience && (
-                        <div className="flex items-center text-gray-500 text-sm mb-2">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {seeker.experience}
-                        </div>
-                      )}
-                      {seeker.skills && (
-                        <div className="flex items-center text-gray-500 text-sm">
-                          <Users className="w-4 h-4 mr-1" />
-                          {seeker.skills}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-center gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => handleViewProfile(seeker)}
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Profile
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleFavorite(seeker.id)}
-                        className="flex items-center gap-2"
-                      >
-                        <Star className="w-4 h-4" />
-                        Favorite
-                      </Button>
+
+                      {/* Content Section */}
+                      <div className="px-6 flex-1 space-y-4">
+                        {seeker.location && (
+                          <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                            <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+                            <span className="font-medium">{seeker.location}, {seeker.city}</span>
+                          </div>
+                        )}
+
+                                                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
+                           <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience</span>
+                           <p className="text-sm text-gray-700 font-medium">{formatExperienceDisplay(seeker.experience)}</p>
+                         </div>
+
+                        {seeker.skills && (
+                          <div>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                              {seeker.skills.split(',').slice(0, 4).map((skill, index) => (
+                                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+                                  {skill.trim()}
+                                </span>
+                              ))}
+                              {seeker.skills.split(',').length > 4 && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
+                                  +{seeker.skills.split(',').length - 4} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+
                     </div>
                   </Card>
                 </motion.div>

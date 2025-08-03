@@ -23,7 +23,7 @@ const TestLocalBackend = () => {
     
     try {
       // Test basic GET request
-      const response = await fetch('http://localhost:3000/api/health', {
+      const response = await fetch('https://job-portal-backend-cfk4.onrender.com/api/health', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ const TestLocalBackend = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:3000/api/job-seekers', {
+      const response = await fetch('https://job-portal-backend-cfk4.onrender.com/api/job-seekers', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ const TestLocalBackend = () => {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h3 className="font-semibold text-blue-900 mb-2">API Configuration</h3>
             <div className="text-sm text-blue-800 space-y-1">
-              <p><strong>Base URL:</strong> http://localhost:3000</p>
+              <p><strong>Base URL:</strong> https://job-portal-backend-cfk4.onrender.com</p>
               <p><strong>Environment:</strong> Development</p>
               <p><strong>Debug Mode:</strong> Enabled</p>
               <p><strong>Timeout:</strong> 10 seconds</p>

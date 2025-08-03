@@ -7,8 +7,8 @@ import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
 import LatestJobSeekers from './components/sections/LatestJobSeekers';
-import AboutUs from './components/sections/AboutUs';
-import ContactUs from './components/sections/ContactUs';
+import Statistics from './components/sections/Statistics';
+
 import Footer from './components/layout/Footer';
 import JobSeekers from './pages/JobSeekers';
 import Login from './pages/Login';
@@ -18,6 +18,8 @@ import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
+import AboutUsPage from './pages/AboutUs';
+import ContactUsPage from './pages/ContactUs';
 import NotFound from './pages/NotFound';
 import TestServices from './pages/TestServices';
 import TestLogin from './pages/TestLogin';
@@ -104,31 +106,7 @@ const HomePage = () => {
     console.error('HomePage: Error initializing scroll animations:', error);
   }
 
-  // Smooth scrolling for anchor links
-  useEffect(() => {
-    // Setting up smooth scrolling
-    
-    try {
-      const handleAnchorClick = (e) => {
-        const href = e.target.getAttribute('href');
-        if (href && href.startsWith('#')) {
-          e.preventDefault();
-          const element = document.querySelector(href);
-          if (element) {
-            element.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-            });
-          }
-        }
-      };
 
-      document.addEventListener('click', handleAnchorClick);
-      return () => document.removeEventListener('click', handleAnchorClick);
-    } catch (error) {
-      console.error('HomePage: Error setting up smooth scrolling:', error);
-    }
-  }, []);
 
   useEffect(() => {
     // Component mounted, setting loading to false
@@ -168,8 +146,7 @@ const HomePage = () => {
           <Hero />
           <Features />
           <LatestJobSeekers />
-          <AboutUs />
-          <ContactUs />
+          <Statistics />
         </main>
         <Footer />
       </motion.div>
@@ -254,6 +231,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/employer-request/:id" element={<EmployerRequest />} />
+              <Route path="/about" element={<AboutUsPage />} />
+              <Route path="/contact" element={<ContactUsPage />} />
               <Route path="/dashboard/jobseeker" element={
                 <ProtectedRoute requiredRole="jobseeker">
                   <JobSeekerDashboard />
