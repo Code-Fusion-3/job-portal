@@ -415,7 +415,7 @@ const AdminDashboard = () => {
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Job Seekers */}
-          <Card title="Recent Job Seekers" subtitle="Latest registered candidates">
+          <Card title="Latest Job Seekers" subtitle="Most recently registered candidates (showing latest 5)">
             {jobSeekersLoading ? (
               <LoadingSpinner size="md" text="Loading job seekers..." />
             ) : (dashboardStatsData.recentActivity?.recentJobSeekers || recentJobSeekers || []).length > 0 ? (
@@ -450,7 +450,7 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Recent Requests */}
-          <Card title="Recent Requests" subtitle="Latest employer requests">
+          <Card title="Latest Employer Requests" subtitle="Most recent job requests with candidate details (showing latest 5)">
             <div className="mb-3">
               <div className="flex gap-1">
                 <button
@@ -574,7 +574,7 @@ const AdminDashboard = () => {
         {/* Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Skills */}
-          <Card title="Top Skills" subtitle="Most requested skills">
+          <Card title="Most Requested Skills" subtitle="Skills most frequently requested by employers (showing top 10)">
             {(dashboardStatsData.trends?.topSkills || topSkills || []).length > 0 ? (
               <div className="space-y-2">
                 {(dashboardStatsData.trends?.topSkills || topSkills || []).map((skill, index) => (
@@ -593,7 +593,7 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Monthly Registrations Chart */}
-          <Card title="Monthly Registrations" subtitle="Job seeker registration trends">
+          <Card title="Monthly Job Seeker Registrations" subtitle="New candidate registration trends by month (showing last 6 months)">
             {dashboardStatsData.trends?.monthlyRegistrations ? (
               <div className="space-y-2">
                 {Object.entries(dashboardStatsData.trends.monthlyRegistrations).map(([month, count]) => (
