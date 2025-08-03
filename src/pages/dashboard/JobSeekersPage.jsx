@@ -453,28 +453,28 @@ const JobSeekersPage = () => {
 
       {/* Job Seeker Details Modal */}
       {showDetailsModal && selectedJobSeeker && (
-        <Modal
-          isOpen={showDetailsModal}
-          onClose={() => setShowDetailsModal(false)}
-          title="Job Seeker Details"
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Job Seeker Details"
           size="lg"
-        >
+      >
           <div className="space-y-6">
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+                <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
                 <p className="mt-1">{selectedJobSeeker.firstName} {selectedJobSeeker.lastName}</p>
               </div>
-              <div>
+                <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <p className="mt-1">{selectedJobSeeker.email}</p>
-              </div>
-              <div>
+                </div>
+                <div>
                 <label className="block text-sm font-medium text-gray-700">Phone</label>
                 <p className="mt-1">{selectedJobSeeker.phone || 'Not provided'}</p>
-              </div>
-              <div>
+                </div>
+                <div>
                 <label className="block text-sm font-medium text-gray-700">Location</label>
                 <p className="mt-1">{selectedJobSeeker.location || 'Not specified'}</p>
               </div>
@@ -493,17 +493,17 @@ const JobSeekersPage = () => {
             </div>
 
             {/* Additional Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
                 <label className="block text-sm font-medium text-gray-700">Daily Rate</label>
                 <p className="mt-1">{formatCurrency(selectedJobSeeker.dailyRate || 0)}</p>
-              </div>
-              <div>
+                </div>
+                <div>
                 <label className="block text-sm font-medium text-gray-700">Availability</label>
                 <p className="mt-1">{selectedJobSeeker.availability || 'Not specified'}</p>
               </div>
             </div>
-          </div>
+                    </div>
         </Modal>
       )}
 

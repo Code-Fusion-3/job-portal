@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
@@ -245,34 +246,36 @@ function App() {
     return (
       <ErrorBoundary>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/job-seekers" element={<JobSeekers />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/employer-request/:id" element={<EmployerRequest />} />
-              <Route path="/dashboard/jobseeker" element={
-                <ProtectedRoute requiredRole="jobseeker">
-                  <JobSeekerDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/view-profile/:id" element={<ViewProfile />} />
-              <Route path="/update-profile" element={
-                <ProtectedRoute requiredRole="jobseeker">
-                  <UpdateProfile />
-                </ProtectedRoute>
-              } />
-         
-              {/* Catch-all route for 404 errors */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Router>
+          <LiveUpdateProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/job-seekers" element={<JobSeekers />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/employer-request/:id" element={<EmployerRequest />} />
+                <Route path="/dashboard/jobseeker" element={
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <JobSeekerDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/view-profile/:id" element={<ViewProfile />} />
+                <Route path="/update-profile" element={
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <UpdateProfile />
+                  </ProtectedRoute>
+                } />
+           
+                {/* Catch-all route for 404 errors */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </LiveUpdateProvider>
         </AuthProvider>
       </ErrorBoundary>
     );

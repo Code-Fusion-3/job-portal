@@ -34,6 +34,8 @@ import { adminService } from '../../api/services/adminService.js';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAdminRequests } from '../../api/hooks/useRequests.js';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
+import { useLiveUpdates } from '../../contexts/LiveUpdateContext';
+import LiveStatusIndicator from '../../components/ui/LiveStatusIndicator';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -60,6 +62,15 @@ const AdminDashboard = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Live updates
+  const { 
+    liveData, 
+    lastUpdate, 
+    isConnected, 
+    manualRefresh,
+    addNotification 
+  } = useLiveUpdates();
   
   // State management
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -102,78 +113,73 @@ const AdminDashboard = () => {
     autoFetch: false 
   });
 
-  // Redirect if no user or not admin
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    } else if (user.role !== 'admin') {
-      navigate('/');
-    }
-  }, [user, navigate]);
-
   // Load dashboard data
-  useEffect(() => {
-    const loadDashboardData = async () => {
+  const loadDashboardData = async () => {
+    try {
       setLoading(true);
       setError(null);
-      
-      try {
-        // Load dashboard statistics
-        const statsResult = await adminService.getDashboardStats();
-        if (statsResult.success) {
-          setDashboardStats(statsResult.data);
-        } else {
-          setError(statsResult.error || 'Failed to load dashboard statistics');
-        }
 
-        // Load recent data
-        await Promise.all([
-          fetchJobSeekers(),
-          fetchRequests(),
-          fetchCategories()
-        ]);
-      } catch (error) {
-        setError('Failed to load dashboard data');
-        console.error('Dashboard loading error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user && user.role === 'admin') {
-      loadDashboardData();
-    }
-  }, [user, fetchJobSeekers, fetchRequests, fetchCategories]);
-
-  // Refresh data function
-  const refreshDashboardData = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Load dashboard statistics
+      // Fetch dashboard statistics
       const statsResult = await adminService.getDashboardStats();
       if (statsResult.success) {
+        console.log('Dashboard stats loaded:', statsResult.data);
         setDashboardStats(statsResult.data);
       } else {
-        setError(statsResult.error || 'Failed to load dashboard statistics');
+        console.error('Failed to load dashboard stats:', statsResult.error);
+        setError('Failed to load dashboard statistics');
       }
 
-      // Load recent data
+      // Fetch recent data
       await Promise.all([
         fetchJobSeekers(),
         fetchRequests(),
         fetchCategories()
       ]);
+
     } catch (error) {
-      setError('Failed to refresh dashboard data');
-      console.error('Dashboard refresh error:', error);
+      setError('Failed to load dashboard data');
+      console.error('Dashboard load error:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  // Refresh dashboard data
+  const refreshDashboardData = async () => {
+    try {
+      setLoading(true);
+      await loadDashboardData();
+      addNotification({
+        message: 'Dashboard refreshed successfully',
+        type: 'success',
+        duration: 3000
+      });
+    } catch (error) {
+      setError('Failed to refresh dashboard data');
+      addNotification({
+        message: 'Failed to refresh dashboard',
+        type: 'error',
+        duration: 5000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Handle live data updates
+  useEffect(() => {
+    if (liveData.dashboard) {
+      setDashboardStats(liveData.dashboard);
+    }
+    if (liveData.requests) {
+      // Update requests if live data is available
+      // This would need to be integrated with the useAdminRequests hook
+    }
+    if (liveData.jobSeekers) {
+      // Update job seekers if live data is available
+      // This would need to be integrated with the useAdminJobSeekers hook
+    }
+  }, [liveData]);
 
   // Event handlers
   const handleLogout = () => {
@@ -204,12 +210,24 @@ const AdminDashboard = () => {
         setAdminNotes('');
         
         // Show success message
-        alert(`Request ${newStatus === 'completed' ? 'marked as completed' : 'status updated'} successfully!`);
+        addNotification({
+          message: `Request ${newStatus === 'completed' ? 'marked as completed' : 'status updated'} successfully!`,
+          type: 'success',
+          duration: 5000
+        });
       } else {
-        alert(`Error: ${result.error}`);
+        addNotification({
+          message: `Error: ${result.error}`,
+          type: 'error',
+          duration: 5000
+        });
       }
     } catch (error) {
-      alert('Failed to update request status');
+      addNotification({
+        message: 'Failed to update request status',
+        type: 'error',
+        duration: 5000
+      });
       console.error('Request update error:', error);
     }
   };
@@ -225,6 +243,11 @@ const AdminDashboard = () => {
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  // Load data on component mount
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
   // Render loading state
   if (loading) {
@@ -242,7 +265,7 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Dashboard Error</h1>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>
+          <Button onClick={loadDashboardData} className="w-full">
             Retry
           </Button>
         </div>
@@ -252,148 +275,93 @@ const AdminDashboard = () => {
 
   // Render dashboard content
   const renderDashboardContent = () => {
-    // Show loading state if still loading
-    if (loading) {
-      return (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[1, 2].map((i) => (
-              <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <div className="animate-pulse">
-                  <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((j) => (
-                      <div key={j} className="h-12 bg-gray-200 rounded"></div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
+    const stats = dashboardStats || {};
+    const dashboardStatsData = stats.data || stats; // Handle both nested and direct response
 
-    // Show error state if there's an error
-    if (error) {
-      return (
-        <div className="space-y-6">
-          <Card>
-            <div className="text-center py-8">
-              <div className="text-red-500 text-6xl mb-4">⚠️</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Dashboard Error</h3>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()}>
-                Retry
-              </Button>
-            </div>
-          </Card>
-        </div>
-      );
-    }
+    // Debug logging
+    console.log('Dashboard stats:', dashboardStats);
+    console.log('Dashboard stats data:', dashboardStatsData);
+    console.log('Recent job seekers:', dashboardStatsData.recentActivity?.recentJobSeekers);
+    console.log('Recent requests:', dashboardStatsData.recentActivity?.recentEmployerRequests);
 
-    // Get dashboard data with fallbacks
-    const stats = dashboardStats?.overview || {};
-    const trends = dashboardStats?.trends || {};
-    
-    // Extract skills from job seekers data
+    // Extract skills from job seekers for top skills calculation
     const extractSkillsFromJobSeekers = (jobSeekers) => {
-      const skillCounts = {};
+      if (!Array.isArray(jobSeekers)) return [];
       
+      const skillCounts = {};
       jobSeekers.forEach(jobSeeker => {
         if (jobSeeker.profile?.skills) {
           const skills = jobSeeker.profile.skills.split(',').map(skill => skill.trim());
           skills.forEach(skill => {
-            if (skill && skill.length > 0) {
-              skillCounts[skill] = (skillCounts[skill] || 0) + 1;
-            }
+            skillCounts[skill] = (skillCounts[skill] || 0) + 1;
           });
         }
       });
       
-      // Convert to array and sort by count
-      const skillsArray = Object.entries(skillCounts)
+      return Object.entries(skillCounts)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 5); // Top 5 skills
-      
-      return skillsArray;
+        .slice(0, 5);
     };
-    
-    // Get skills from actual job seekers data
-    const actualSkills = recentJobSeekers.length > 0 
-      ? extractSkillsFromJobSeekers(recentJobSeekers)
-      : [];
-    
-    // Calculate dynamic trends based on data
+
+    // Calculate trends
     const calculateTrend = (currentValue, previousValue = 0) => {
       if (previousValue === 0) {
         return currentValue > 0 ? { change: '+100%', changeType: 'increase' } : { change: '0%', changeType: 'neutral' };
       }
-      
       const percentageChange = ((currentValue - previousValue) / previousValue) * 100;
       const change = percentageChange >= 0 ? `+${Math.round(percentageChange)}%` : `${Math.round(percentageChange)}%`;
       const changeType = percentageChange > 0 ? 'increase' : percentageChange < 0 ? 'decrease' : 'neutral';
-      
       return { change, changeType };
     };
-    
-    // Calculate trends based on recent activity (last 7 days vs previous 7 days)
+
     const getRecentTrend = (data, days = 7) => {
       const now = new Date();
       const weekAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
       const twoWeeksAgo = new Date(now.getTime() - days * 2 * 24 * 60 * 60 * 1000);
-      
+
       const recentCount = data.filter(item => new Date(item.createdAt) >= weekAgo).length;
       const previousCount = data.filter(item => {
         const date = new Date(item.createdAt);
         return date >= twoWeeksAgo && date < weekAgo;
       }).length;
-      
+
       return calculateTrend(recentCount, previousCount);
     };
-    
-    // Calculate trends for each metric
-    const jobSeekersTrend = getRecentTrend(recentJobSeekers);
-    const requestsTrend = getRecentTrend(recentRequests);
+
+    // Calculate trends for dashboard cards
+    const jobSeekersTrend = getRecentTrend(recentJobSeekers || []);
+    const requestsTrend = getRecentTrend(recentRequests || []);
     const pendingTrend = calculateTrend(
-      recentRequests.filter(r => r.status === 'pending').length,
-      Math.max(1, Math.floor(recentRequests.filter(r => r.status === 'pending').length * 0.8))
+      (recentRequests || []).filter(r => r.status === 'pending').length,
+      Math.max(1, Math.floor((recentRequests || []).filter(r => r.status === 'pending').length * 0.8))
+    );
+    const categoriesTrend = calculateTrend(
+      dashboardStatsData.overview?.totalCategories || dashboardStatsData.totalCategories || 0,
+      Math.max(1, Math.floor((dashboardStatsData.overview?.totalCategories || dashboardStatsData.totalCategories || 0) * 0.9))
     );
 
-    
-    // Use real data 
-    const dashboardStatsData = {
-      totalJobSeekers: stats.totalJobSeekers || recentJobSeekers.length || 0,
-      totalEmployerRequests: stats.totalEmployerRequests || recentRequests.length || 0,
-      pendingEmployerRequests: stats.pendingEmployerRequests || recentRequests.filter(r => r.status === 'pending').length || 0,
-      totalCategories: stats.totalCategories || 0
-    };
-
-    const trendsData = {
-      topSkills: actualSkills.length > 0 ? actualSkills : (Array.isArray(trends.topSkills) ? trends.topSkills : []),
-      monthlyRegistrations: Array.isArray(trends.monthlyRegistrations) ? trends.monthlyRegistrations : []
-    };
-    
-   
+    // Extract top skills
+    const topSkills = extractSkillsFromJobSeekers(recentJobSeekers || []);
 
     return (
       <div className="space-y-6">
+        {/* Live Status Indicator */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <LiveStatusIndicator
+            isConnected={isConnected}
+            lastUpdate={lastUpdate}
+            onRefresh={manualRefresh}
+            className="text-xs"
+          />
+        </div>
+
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Total Job Seekers"
-            value={dashboardStatsData.totalJobSeekers}
+            value={dashboardStatsData.overview?.totalJobSeekers || dashboardStatsData.totalJobSeekers || 0}
             icon={Users}
             change={jobSeekersTrend.change}
             changeType={jobSeekersTrend.changeType}
@@ -403,9 +371,10 @@ const AdminDashboard = () => {
             index={0}
             trendPeriod="7 days"
           />
+          
           <StatCard
             title="Employer Requests"
-            value={dashboardStatsData.totalEmployerRequests}
+            value={dashboardStatsData.overview?.totalEmployerRequests || dashboardStatsData.totalEmployerRequests || 0}
             icon={MessageSquare}
             change={requestsTrend.change}
             changeType={requestsTrend.changeType}
@@ -415,22 +384,26 @@ const AdminDashboard = () => {
             index={1}
             trendPeriod="7 days"
           />
+          
           <StatCard
             title="Pending Requests"
-            value={dashboardStatsData.pendingEmployerRequests}
-            icon={AlertCircle}
+            value={dashboardStatsData.overview?.pendingEmployerRequests || dashboardStatsData.pendingEmployerRequests || 0}
+            icon={Clock}
             change={pendingTrend.change}
             changeType={pendingTrend.changeType}
-            color="text-yellow-600"
-            bgColor="bg-yellow-100"
+            color="text-orange-600"
+            bgColor="bg-orange-100"
             description="Awaiting review"
             index={2}
             trendPeriod="7 days"
           />
+          
           <StatCard
             title="Categories"
-            value={dashboardStatsData.totalCategories}
+            value={dashboardStatsData.overview?.totalCategories || dashboardStatsData.totalCategories || 0}
             icon={Briefcase}
+            change={categoriesTrend.change}
+            changeType={categoriesTrend.changeType}
             color="text-purple-600"
             bgColor="bg-purple-100"
             description="Job categories"
@@ -440,247 +413,204 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Job Seekers */}
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Recent Job Seekers</h3>
-                <p className="text-sm text-gray-500 mt-1">Latest registered candidates</p>
+          <Card title="Recent Job Seekers" subtitle="Latest registered candidates">
+            {jobSeekersLoading ? (
+              <LoadingSpinner size="md" text="Loading job seekers..." />
+            ) : (dashboardStatsData.recentActivity?.recentJobSeekers || recentJobSeekers || []).length > 0 ? (
+              <div className="space-y-3">
+                {(dashboardStatsData.recentActivity?.recentJobSeekers || recentJobSeekers || [])
+                  .slice(0, 5) // Limit to 5 to prevent duplicates
+                  .map((jobSeeker, index) => (
+                  <JobSeekerCard
+                    key={jobSeeker.id || index}
+                    jobSeeker={{
+                      id: jobSeeker.id,
+                      name: jobSeeker.name,
+                      title: 'Job Seeker',
+                      category: jobSeeker.skills?.split(',')[0] || 'General', // Use first skill as category
+                      avatar: jobSeeker.avatar,
+                      location: 'Unknown',
+                      dailyRate: jobSeeker.dailyRate,
+                      monthlyRate: jobSeeker.monthlyRate
+                    }}
+                    onViewDetails={handleRequestAction}
+                    getCategoryColor={getCategoryColor}
+                    compact={true}
+                  />
+                ))}
               </div>
-              <Button variant="outline" size="sm" onClick={() => setActiveTab('job-seekers')}>
-                View All
-              </Button>
-            </div>
-            <div className="space-y-3">
-              {jobSeekersLoading ? (
-                <LoadingSpinner size="sm" text="Loading job seekers..." />
-              ) : recentJobSeekers.length > 0 ? (
-                recentJobSeekers.slice(0, 3).map((jobSeeker) => {
-                  // Map API response to expected format
-                  const mappedJobSeeker = {
-                    id: jobSeeker.id,
-                    name: jobSeeker.profile ? `${jobSeeker.profile.firstName} ${jobSeeker.profile.lastName}` : jobSeeker.email,
-                    title: jobSeeker.profile?.skills ? jobSeeker.profile.skills.split(',')[0] : 'Job Seeker',
-                    category: jobSeeker.profile?.skills ? jobSeeker.profile.skills.split(',')[0] : 'General',
-                    location: jobSeeker.profile?.location || 'Location not specified',
-                    experience: jobSeeker.profile?.experience || 0,
-                    avatar: jobSeeker.profile?.avatar || null,
-                    email: jobSeeker.email,
-                    role: jobSeeker.role,
-                    createdAt: jobSeeker.createdAt,
-                    // Additional profile data
-                    skills: jobSeeker.profile?.skills || '',
-                    gender: jobSeeker.profile?.gender || '',
-                    contactNumber: jobSeeker.profile?.contactNumber || '',
-                    // Mock rates for demonstration
-                    dailyRate: 15000,
-                    monthlyRate: 300000
-                  };
-                  
-                  return (
-                    <JobSeekerCard
-                      key={jobSeeker.id}
-                      jobSeeker={mappedJobSeeker}
-                      compact={true}
-                      getCategoryColor={getCategoryColor}
-                    />
-                  );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 text-4xl mb-2">👥</div>
-                  <p className="text-gray-500">No job seekers found</p>
-                  <p className="text-sm text-gray-400 mt-1">Job seekers will appear here when they register</p>
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No recent job seekers</p>
+              </div>
+            )}
           </Card>
 
           {/* Recent Requests */}
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Recent Employer Requests</h3>
-                <p className="text-sm text-gray-500 mt-1">Latest job requests from employers</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setActiveTab('requests')}>
-                View All
-              </Button>
-            </div>
-            
-            {/* Status Filter */}
-            <div className="mb-4">
-              <div className="flex items-center space-x-2 bg-gray-50 rounded-lg border border-gray-200 p-2">
-                <span className="text-xs text-gray-500 mr-2">Filter:</span>
+          <Card title="Recent Requests" subtitle="Latest employer requests">
+            <div className="mb-3">
+              <div className="flex gap-1">
                 <button
                   onClick={() => setRequestStatusFilter('all')}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
                     requestStatusFilter === 'all'
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                   }`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setRequestStatusFilter('pending')}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
                     requestStatusFilter === 'pending'
-                      ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                      ? 'bg-orange-100 text-orange-800 border-orange-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                   }`}
                 >
                   Pending
                 </button>
                 <button
-                  onClick={() => setRequestStatusFilter('normal')}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    requestStatusFilter === 'normal'
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
+                  onClick={() => setRequestStatusFilter('in_progress')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'in_progress'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                   }`}
                 >
-                  Normal
+                  In Progress
                 </button>
-                <div className="ml-auto">
-                  <Eye className="w-4 h-4 text-blue-600" />
-                </div>
+                <button
+                  onClick={() => setRequestStatusFilter('approved')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'approved'
+                      ? 'bg-green-100 text-green-800 border-green-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Approved
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('completed')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'completed'
+                      ? 'bg-purple-100 text-purple-800 border-purple-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Completed
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('cancelled')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'cancelled'
+                      ? 'bg-red-100 text-red-800 border-red-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Cancelled
+                </button>
               </div>
             </div>
             
-            <div className="space-y-3">
-              {requestsLoading ? (
-                <LoadingSpinner size="sm" text="Loading requests..." />
-              ) : recentRequests.length > 0 ? (
-                recentRequests
-                  .filter(request => {
-                    if (requestStatusFilter === 'all') return true;
-                    return request.status === requestStatusFilter;
-                  })
-                  .slice(0, 3)
-                  .map((request) => {
-                    // Map API response to expected format
-                    const mappedRequest = {
-                      id: request.id,
-                      employerName: request.name,
-                      companyName: request.email.split('@')[1] || 'Company',
-                      // Use selectedUser (the candidate that was selected) instead of requestedCandidate
-                      candidateName: request.selectedUser?.profile 
-                        ? `${request.selectedUser.profile.firstName} ${request.selectedUser.profile.lastName}`
-                        : request.requestedCandidate?.profile 
-                          ? `${request.requestedCandidate.profile.firstName} ${request.requestedCandidate.profile.lastName}`
-                          : 'Candidate',
-                      position: request.selectedUser?.profile?.skills?.split(',')[0] 
-                        || request.requestedCandidate?.profile?.skills?.split(',')[0] 
-                        || 'Position',
-                      status: request.status,
-                      priority: request.priority,
-                      dailyRate: 15000, // Default rate
-                      monthlyRate: 300000, // Default rate
-                      date: new Date(request.createdAt).toLocaleDateString(),
-                      message: request.message,
-                      employerContact: {
-                        email: request.email,
-                        phone: request.phoneNumber
-                      },
-                      adminNotes: request.messages?.find(m => m.fromAdmin)?.content || '',
-                      lastContactDate: request.updatedAt,
-                      // Additional candidate information
-                      selectedCandidate: request.selectedUser,
-                      requestedCandidate: request.requestedCandidate,
-                      hasSelectedCandidate: !!request.selectedUser
-                    };
-                    
+            {requestsLoading ? (
+              <LoadingSpinner size="md" text="Loading requests..." />
+            ) : (dashboardStatsData.recentActivity?.recentEmployerRequests || recentRequests || []).length > 0 ? (
+              <div className="space-y-3">
+                {(() => {
+                  const allRequests = (dashboardStatsData.recentActivity?.recentEmployerRequests || recentRequests || []);
+                  
+                  const filteredRequests = allRequests
+                    .filter(request => {
+                      if (requestStatusFilter === 'all') return true;
+                      // Handle different status formats
+                      const requestStatus = request.status?.toLowerCase() || 'pending';
+                      const filterStatus = requestStatusFilter.toLowerCase();
+                      return requestStatus === filterStatus;
+                    })
+                    .slice(0, 5);
 
-                    
+                  if (filteredRequests.length === 0 && requestStatusFilter !== 'all') {
                     return (
-                      <RequestCard
-                        key={request.id}
-                        request={mappedRequest}
-                        onAction={handleRequestAction}
-                        compact={true}
-                        getStatusColor={getStatusColor}
-                        getPriorityColor={getPriorityColor}
-                      />
+                      <div className="text-center py-6 text-gray-500">
+                        <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm">No {requestStatusFilter} requests found</p>
+                      </div>
                     );
-                  })
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 text-4xl mb-2">📝</div>
-                  <p className="text-gray-500">No recent requests</p>
-                  <p className="text-sm text-gray-400 mt-1">New employer requests will appear here</p>
-                </div>
-              )}
-            </div>
+                  }
+
+                  return filteredRequests.map((request, index) => (
+                    <RequestCard
+                      key={request.id || index}
+                      request={{
+                        ...request,
+                        companyName: request.companyName || 'Individual Employer', // Better default
+                        status: request.status || 'pending',
+                        priority: request.priority || 'normal',
+                        selectedUser: request.selectedUser || null,
+                        requestedCandidate: request.requestedCandidate || null
+                      }}
+                      onContactEmployer={handleContactEmployer}
+                      onViewDetails={handleRequestAction}
+                      getStatusColor={getStatusColor}
+                      getPriorityColor={getPriorityColor}
+                      compact={true}
+                    />
+                  ));
+                })()}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No recent requests</p>
+              </div>
+            )}
           </Card>
         </div>
 
-        {/* Charts and Analytics */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Analytics Overview</h3>
-              <p className="text-sm text-gray-500 mt-1">Key metrics and insights</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Monthly Registrations Chart */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-700">Monthly Registrations</h4>
-                <span className="text-xs text-gray-500">Job seeker registrations</span>
+        {/* Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top Skills */}
+          <Card title="Top Skills" subtitle="Most requested skills">
+            {(dashboardStatsData.trends?.topSkills || topSkills || []).length > 0 ? (
+              <div className="space-y-2">
+                {(dashboardStatsData.trends?.topSkills || topSkills || []).map((skill, index) => (
+                  <div key={skill.skill || skill.name || index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="font-medium text-gray-900">{skill.skill || skill.name}</span>
+                    <span className="text-sm text-gray-500">{skill.count} requests</span>
+                  </div>
+                ))}
               </div>
-              {trendsData.monthlyRegistrations.length > 0 ? (
-                <div className="h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-blue-600 text-2xl font-bold mb-1">
-                      {trendsData.monthlyRegistrations.reduce((sum, item) => sum + (item.count || 0), 0)}
-                    </div>
-                    <div className="text-blue-600 text-sm">Total Registrations</div>
-                    <div className="text-blue-500 text-xs mt-1">
-                      {trendsData.monthlyRegistrations.length} months tracked
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-32 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-gray-400 text-4xl mb-2">📊</div>
-                    <p className="text-gray-500 text-sm">No registration data available</p>
-                    <p className="text-xs text-gray-400 mt-1">Data will appear as users register</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <BarChart3 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No skills data available</p>
+              </div>
+            )}
+          </Card>
 
-            {/* Top Skills */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-700">Top Skills</h4>
-                <span className="text-xs text-gray-500">Most popular skills</span>
+          {/* Monthly Registrations Chart */}
+          <Card title="Monthly Registrations" subtitle="Job seeker registration trends">
+            {dashboardStatsData.trends?.monthlyRegistrations ? (
+              <div className="space-y-2">
+                {Object.entries(dashboardStatsData.trends.monthlyRegistrations).map(([month, count]) => (
+                  <div key={month} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="font-medium text-gray-900">{month}</span>
+                    <span className="text-sm text-gray-500">{count} registrations</span>
+                  </div>
+                ))}
               </div>
-              {trendsData.topSkills.length > 0 ? (
-                <div className="space-y-2">
-                  {trendsData.topSkills.map((skill, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-100">
-                      <span className="text-sm font-medium text-gray-900">{skill.name}</span>
-                      <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded-full border border-gray-200">
-                        {skill.count}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 text-4xl mb-2">💼</div>
-                  <p className="text-gray-500 text-sm">No skills data available</p>
-                  <p className="text-xs text-gray-400 mt-1">Skills will appear when job seekers register</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <BarChart3 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No registration data available</p>
+              </div>
+            )}
+          </Card>
+        </div>
       </div>
     );
   };
@@ -700,13 +630,12 @@ const AdminDashboard = () => {
         return <ReportsPage />;
       case 'settings':
         return <SettingsPage />;
-
       default:
         return renderDashboardContent();
     }
   };
 
-    return (
+  return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <AdminHeader
@@ -788,8 +717,8 @@ const AdminDashboard = () => {
 
             <div className="flex justify-end space-x-3">
               <Button
-                variant="outline"
                 onClick={() => setShowRequestModal(false)}
+                variant="outline"
               >
                 Cancel
               </Button>
@@ -799,6 +728,7 @@ const AdminDashboard = () => {
                   selectedRequest.status,
                   adminNotes
                 )}
+                className="bg-red-600 hover:bg-red-700"
               >
                 Update Status
               </Button>

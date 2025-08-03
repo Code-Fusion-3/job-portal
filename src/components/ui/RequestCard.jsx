@@ -1,6 +1,7 @@
 import { Mail, Phone, Eye } from 'lucide-react';
 import Badge from './Badge';
 import Button from './Button';
+import { getStatusLabel } from '../../utils/adminHelpers';
 
 const RequestCard = ({ 
   request, 
@@ -10,28 +11,53 @@ const RequestCard = ({
   getPriorityColor,
   compact = false
 }) => {
+  // Add null check for request
+  if (!request) {
+    return (
+      <div className="p-4 text-center text-gray-500">
+        No request data available
+      </div>
+    );
+  }
+
+  // Map API response properties to component expectations
+  const employerName = request.name || request.employerName || 'Unknown Employer';
+  const companyName = request.companyName || 'Unknown Company';
+  const status = request.status || 'pending';
+  const priority = request.priority || 'normal';
+  const message = request.message || 'No message provided';
+  const email = request.email || '';
+  const phoneNumber = request.phoneNumber || '';
+  const createdAt = request.createdAt || new Date().toISOString();
+  const hasSelectedCandidate = request.selectedUser || request.hasSelectedCandidate;
+  const candidateName = request.selectedUser?.profile ? 
+    `${request.selectedUser.profile.firstName} ${request.selectedUser.profile.lastName}` : 
+    request.candidateName || 'No candidate selected';
+  const position = request.position || 'General position';
+  const selectedCandidate = request.selectedUser || request.selectedCandidate;
+
   if (compact) {
     return (
       <div className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-gray-900 text-sm truncate">{request.employerName}</h4>
-            <p className="text-xs text-gray-600 truncate">{request.companyName}</p>
+            <h4 className="font-medium text-gray-900 text-sm truncate">{employerName}</h4>
+            <p className="text-xs text-gray-600 truncate">{companyName}</p>
           </div>
           <div className="flex items-center space-x-2">
             <Badge 
               variant="outline" 
               size="xs"
-              className={getStatusColor(request.status)}
+              className={getStatusColor ? getStatusColor(status) : 'bg-gray-100 text-gray-800'}
             >
-              {request.status}
+              {getStatusLabel(status)}
             </Badge>
             <Badge 
               variant="outline" 
               size="xs"
-              className={getPriorityColor(request.priority)}
+              className={getPriorityColor ? getPriorityColor(priority) : 'bg-gray-100 text-gray-800'}
             >
-              {request.priority}
+              {priority}
             </Badge>
             <Button 
               variant="ghost" 
@@ -46,25 +72,25 @@ const RequestCard = ({
         
         {/* Candidate Information in Compact Mode */}
         <div className="mt-2">
-          {request.hasSelectedCandidate ? (
+          {hasSelectedCandidate ? (
             <div className="flex items-center space-x-2">
               <span className="text-green-600 text-xs font-medium">✓ Selected:</span>
-              <span className="text-sm font-medium text-gray-900">{request.candidateName}</span>
-              <span className="text-xs text-gray-600">for {request.position}</span>
+              <span className="text-sm font-medium text-gray-900">{candidateName}</span>
+              <span className="text-xs text-gray-600">for {position}</span>
             </div>
           ) : (
             <div className="flex items-center space-x-2">
               <span className="text-orange-600 text-xs font-medium">⏳ Requesting:</span>
-              <span className="text-sm font-medium text-gray-900">{request.candidateName}</span>
-              <span className="text-xs text-gray-600">for {request.position}</span>
+              <span className="text-sm font-medium text-gray-900">{candidateName}</span>
+              <span className="text-xs text-gray-600">for {position}</span>
             </div>
           )}
           
           {/* Show selected candidate skills if available */}
-          {request.hasSelectedCandidate && request.selectedCandidate?.profile?.skills && (
+          {hasSelectedCandidate && selectedCandidate?.profile?.skills && (
             <div className="mt-1">
               <span className="text-xs text-gray-500">Skills: </span>
-              <span className="text-xs text-gray-700">{request.selectedCandidate.profile.skills}</span>
+              <span className="text-xs text-gray-700">{selectedCandidate.profile.skills}</span>
             </div>
           )}
         </div>
@@ -76,137 +102,93 @@ const RequestCard = ({
     <div className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="font-medium text-gray-900">{request.employerName}</h3>
-          <p className="text-sm text-gray-600">{request.companyName}</p>
+          <h3 className="font-medium text-gray-900">{employerName}</h3>
+          <p className="text-sm text-gray-600">{companyName}</p>
         </div>
         <div className="flex items-center space-x-2">
           <Badge 
             variant="outline" 
             size="sm"
-            className={getStatusColor(request.status)}
+            className={getStatusColor ? getStatusColor(status) : 'bg-gray-100 text-gray-800'}
           >
-            {request.status}
+            {getStatusLabel(status)}
           </Badge>
           <Badge 
             variant="outline" 
             size="sm"
-            className={getPriorityColor(request.priority)}
+            className={getPriorityColor ? getPriorityColor(priority) : 'bg-gray-100 text-gray-800'}
           >
-            {request.priority}
+            {priority}
           </Badge>
         </div>
       </div>
       
       <p className="text-sm text-gray-600 mb-3">
-        {request.hasSelectedCandidate ? (
-          <>
-            <span className="text-green-600 font-medium">✓ Selected:</span> <span className="font-medium">{request.candidateName}</span> for {request.position}
-          </>
-        ) : (
-          <>
-            <span className="text-orange-600 font-medium">⏳ Requesting:</span> <span className="font-medium">{request.candidateName}</span> for {request.position}
-          </>
-        )}
+        {message}
       </p>
       
-      {/* Selected Candidate Information */}
-      {request.hasSelectedCandidate && request.selectedCandidate && (
-        <div className="bg-green-50 p-3 rounded-lg mb-3">
-          <h4 className="text-sm font-medium text-green-900 mb-2">Selected Candidate:</h4>
-          <div className="space-y-1 text-sm">
-            <p className="text-green-800">
-              <span className="font-medium">Name:</span> {request.selectedCandidate.profile?.firstName} {request.selectedCandidate.profile?.lastName}
-            </p>
-            <p className="text-green-800">
-              <span className="font-medium">Skills:</span> {request.selectedCandidate.profile?.skills}
-            </p>
-            {request.selectedCandidate.profile?.experience && (
-              <p className="text-green-800">
-                <span className="font-medium">Experience:</span> {request.selectedCandidate.profile.experience}
-              </p>
+      <div className="flex items-center space-x-4 mb-3">
+        {email && (
+          <div className="flex items-center space-x-1 text-sm text-gray-600">
+            <Mail className="w-4 h-4" />
+            <span>{email}</span>
+          </div>
+        )}
+        {phoneNumber && (
+          <div className="flex items-center space-x-1 text-sm text-gray-600">
+            <Phone className="w-4 h-4" />
+            <span>{phoneNumber}</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Candidate Information */}
+      <div className="border-t pt-3">
+        <h4 className="font-medium text-gray-900 mb-2">Candidate Information</h4>
+        {hasSelectedCandidate ? (
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-green-600 text-sm font-medium">✓ Selected Candidate:</span>
+              <span className="text-sm font-medium text-gray-900">{candidateName}</span>
+            </div>
+            {selectedCandidate?.profile?.skills && (
+              <div>
+                <span className="text-xs text-gray-500">Skills: </span>
+                <span className="text-sm text-gray-700">{selectedCandidate.profile.skills}</span>
+              </div>
+            )}
+            {selectedCandidate?.profile?.experience && (
+              <div>
+                <span className="text-xs text-gray-500">Experience: </span>
+                <span className="text-sm text-gray-700">{selectedCandidate.profile.experience}</span>
+              </div>
             )}
           </div>
-        </div>
-      )}
-      
-      {/* Requested Candidate Information (if different from selected) */}
-      {request.requestedCandidate && request.selectedCandidate && 
-       request.requestedCandidate.id !== request.selectedCandidate.id && (
-        <div className="bg-blue-50 p-3 rounded-lg mb-3">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Originally Requested:</h4>
-          <div className="space-y-1 text-sm">
-            <p className="text-blue-800">
-              <span className="font-medium">Name:</span> {request.requestedCandidate.profile?.firstName} {request.requestedCandidate.profile?.lastName}
-            </p>
-            <p className="text-blue-800">
-              <span className="font-medium">Skills:</span> {request.requestedCandidate.profile?.skills}
-            </p>
+        ) : (
+          <div className="text-sm text-gray-500">
+            No candidate selected yet
           </div>
-        </div>
-      )}
-      
-      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-        <span>Daily Rate: {request.dailyRate.toLocaleString()} RWF</span>
-        <span>Monthly Rate: {request.monthlyRate.toLocaleString()} RWF</span>
+        )}
       </div>
       
-      {/* Employer Contact Information */}
-      <div className="bg-gray-50 p-3 rounded-lg mb-3">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Employer Contact:</h4>
-        <div className="flex items-center space-x-4 text-sm">
-          <div className="flex items-center space-x-1">
-            <Mail className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600">{request.employerContact.email}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Phone className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-600">{request.employerContact.phone}</span>
-          </div>
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-xs text-gray-500">
+          Created: {new Date(createdAt).toLocaleDateString()}
         </div>
-      </div>
-
-      {/* Admin Notes (if any) */}
-      {request.adminNotes && (
-        <div className="bg-blue-50 p-3 rounded-lg mb-3">
-          <h4 className="text-sm font-medium text-blue-900 mb-1">Admin Notes:</h4>
-          <p className="text-sm text-blue-800">{request.adminNotes}</p>
-          {request.lastContactDate && (
-            <p className="text-xs text-blue-600 mt-1">
-              Last contact: {new Date(request.lastContactDate).toLocaleString()}
-            </p>
+        <div className="flex items-center space-x-2">
+          {onContactEmployer && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onContactEmployer(request)}
+            >
+              Contact Employer
+            </Button>
           )}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">{request.date}</span>
-        <div className="flex space-x-2">
-          {/* Contact Buttons */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-blue-600 hover:bg-blue-50"
-            onClick={() => onContactEmployer(request.employerContact, 'email')}
-            title="Send Email"
-          >
-            <Mail className="w-4 h-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-green-600 hover:bg-green-50"
-            onClick={() => onContactEmployer(request.employerContact, 'phone')}
-            title="Call Phone"
-          >
-            <Phone className="w-4 h-4" />
-          </Button>
-          
-          {/* View Details Button */}
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => onViewDetails(request)}
-            title="View Details & Process"
+            onClick={() => onViewDetails?.(request)}
           >
             <Eye className="w-4 h-4" />
           </Button>

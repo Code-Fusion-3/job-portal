@@ -187,7 +187,7 @@ export const useScrollAnimations = () => {
         const target = parseInt(element.getAttribute('data-target') || '0');
         const duration = 2;
         
-        gsap.fromTo(element,
+        gsap.fromTo(element, 
           { textContent: 0 },
           {
             textContent: target,
@@ -303,8 +303,8 @@ export const useScrollAnimations = () => {
 
     // Cleanup function
     return () => {
-      if (ScrollTrigger) {
-        ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+        if (ScrollTrigger) {
+          ScrollTrigger.getAll().forEach(trigger => trigger.kill());
       }
     };
   }, []);
