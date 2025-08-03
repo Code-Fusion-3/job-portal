@@ -29,12 +29,27 @@ const RequestCard = ({
   const email = request.email || '';
   const phoneNumber = request.phoneNumber || '';
   const createdAt = request.createdAt || new Date().toISOString();
+  
+  // Handle candidate data - check for both selected and requested candidates
   const hasSelectedCandidate = request.selectedUser || request.hasSelectedCandidate;
-  const candidateName = request.selectedUser?.profile ? 
-    `${request.selectedUser.profile.firstName} ${request.selectedUser.profile.lastName}` : 
-    request.candidateName || 'No candidate selected';
+  const requestedCandidate = request.requestedCandidate;
+  const selectedCandidate = request.selectedUser;
+  
+  // Determine candidate name and info
+  let candidateName = 'No candidate selected';
+  let candidateInfo = null;
+  
+  if (hasSelectedCandidate && selectedCandidate?.profile) {
+    // Has selected candidate
+    candidateName = `${selectedCandidate.profile.firstName} ${selectedCandidate.profile.lastName}`;
+    candidateInfo = selectedCandidate;
+  } else if (requestedCandidate?.profile) {
+    // Has requested candidate but not selected
+    candidateName = `${requestedCandidate.profile.firstName} ${requestedCandidate.profile.lastName}`;
+    candidateInfo = requestedCandidate;
+  }
+  
   const position = request.position || 'General position';
-  const selectedCandidate = request.selectedUser || request.selectedCandidate;
 
   if (compact) {
     return (
@@ -86,15 +101,15 @@ const RequestCard = ({
             </div>
           )}
           
-          {/* Show selected candidate skills if available */}
-          {hasSelectedCandidate && selectedCandidate?.profile?.skills && (
+          {/* Show candidate skills if available */}
+          {candidateInfo?.profile?.skills && (
             <div className="mt-1">
               <span className="text-xs text-gray-500">Skills: </span>
-              <span className="text-xs text-gray-700">{selectedCandidate.profile.skills}</span>
+              <span className="text-xs text-gray-700">{candidateInfo.profile.skills}</span>
             </div>
           )}
         </div>
-      </div>
+      </div> 
     );
   }
 
@@ -151,16 +166,16 @@ const RequestCard = ({
               <span className="text-green-600 text-sm font-medium">✓ Selected Candidate:</span>
               <span className="text-sm font-medium text-gray-900">{candidateName}</span>
             </div>
-            {selectedCandidate?.profile?.skills && (
+            {candidateInfo?.profile?.skills && (
               <div>
                 <span className="text-xs text-gray-500">Skills: </span>
-                <span className="text-sm text-gray-700">{selectedCandidate.profile.skills}</span>
+                <span className="text-sm text-gray-700">{candidateInfo.profile.skills}</span>
               </div>
             )}
-            {selectedCandidate?.profile?.experience && (
+            {candidateInfo?.profile?.experience && (
               <div>
                 <span className="text-xs text-gray-500">Experience: </span>
-                <span className="text-sm text-gray-700">{selectedCandidate.profile.experience}</span>
+                <span className="text-sm text-gray-700">{candidateInfo.profile.experience}</span>
               </div>
             )}
           </div>

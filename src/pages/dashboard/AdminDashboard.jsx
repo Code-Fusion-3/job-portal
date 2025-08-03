@@ -518,10 +518,10 @@ const AdminDashboard = () => {
             
             {requestsLoading ? (
               <LoadingSpinner size="md" text="Loading requests..." />
-            ) : (dashboardStatsData.recentActivity?.recentEmployerRequests || recentRequests || []).length > 0 ? (
+            ) : (recentRequests || []).length > 0 ? (
               <div className="space-y-3">
                 {(() => {
-                  const allRequests = (dashboardStatsData.recentActivity?.recentEmployerRequests || recentRequests || []);
+                  const allRequests = (recentRequests || []);
                   
                   const filteredRequests = allRequests
                     .filter(request => {
