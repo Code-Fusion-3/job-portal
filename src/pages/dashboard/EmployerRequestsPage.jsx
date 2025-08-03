@@ -13,36 +13,62 @@ import {
   User,
   Building
 } from 'lucide-react';
+import { useAdminRequests } from '../../api/hooks/useRequests.js';
+import { useAuth } from '../../api/hooks/useAuth.js';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
-import SearchFilter from '../../components/ui/SearchFilter';
 import StatsGrid from '../../components/ui/StatsGrid';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import Pagination from '../../components/ui/Pagination';
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
 
 const EmployerRequestsPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   
+  // Use the custom hook for requests management
+  const {
+    requests,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    searchTerm,
+    filters,
+    sortBy,
+    sortOrder,
+    fetchRequests,
+    replyToRequest,
+    selectJobSeekerForRequest,
+    setSearchTerm,
+    setFilters,
+    setSortBy,
+    setSortOrder,
+    goToPage,
+    nextPage,
+    prevPage,
+    hasNextPage,
+    hasPrevPage,
+    pageInfo
+  } = useAdminRequests({
+    autoFetch: true,
+    itemsPerPage: 10
+  });
+
   // State management
-  const [requests, setRequests] = useState([]);
-  const [filteredRequests, setFilteredRequests] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
+  const [replyMessage, setReplyMessage] = useState('');
 
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-
-  // Mock data for employer requests
+  // Mock data for employer requests (temporary until full integration)
   const mockRequests = [
     {
       id: 1,
@@ -151,72 +177,7 @@ const EmployerRequestsPage = () => {
     }
   ];
 
-  // Load requests data
-  useEffect(() => {
-    setRequests(mockRequests);
-    setFilteredRequests(mockRequests);
-  }, []);
 
-  // Filter and search logic
-  useEffect(() => {
-    let filtered = requests;
-
-    // Search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(request =>
-        request.employerName.toLowerCase().includes(searchLower) ||
-        request.candidateName.toLowerCase().includes(searchLower) ||
-        request.position.toLowerCase().includes(searchLower) ||
-        request.companyName.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Status filter
-    if (statusFilter) {
-      filtered = filtered.filter(request => request.status === statusFilter);
-    }
-
-    // Priority filter
-    if (priorityFilter) {
-      filtered = filtered.filter(request => request.priority === priorityFilter);
-    }
-
-    // Category filter
-    if (categoryFilter) {
-      filtered = filtered.filter(request => request.category === categoryFilter);
-    }
-
-    // Date filter
-    if (dateFilter) {
-      const today = new Date();
-      const filterDate = new Date(request.date);
-      
-      switch (dateFilter) {
-        case 'today':
-          filtered = filtered.filter(request => 
-            new Date(request.date).toDateString() === today.toDateString()
-          );
-          break;
-        case 'week':
-          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          filtered = filtered.filter(request => 
-            new Date(request.date) >= weekAgo
-          );
-          break;
-        case 'month':
-          const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          filtered = filtered.filter(request => 
-            new Date(request.date) >= monthAgo
-          );
-          break;
-        default:
-          break;
-      }
-    }
-
-    setFilteredRequests(filtered);
-  }, [requests, searchTerm, statusFilter, priorityFilter, categoryFilter, dateFilter]);
 
   // Statistics calculation
   const stats = [
@@ -341,56 +302,7 @@ const EmployerRequestsPage = () => {
     }
   ];
 
-  // Filter options
-  const filters = [
-    {
-      key: 'status',
-      label: 'Status',
-      placeholder: 'All Status',
-      value: statusFilter,
-      options: [
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'rejected', label: 'Rejected' }
-      ]
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      placeholder: 'All Priority',
-      value: priorityFilter,
-      options: [
-        { value: 'high', label: 'High' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'low', label: 'Low' }
-      ]
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      placeholder: 'All Categories',
-      value: categoryFilter,
-      options: [
-        { value: 'domestic', label: 'Domestic & Household' },
-        { value: 'care', label: 'Care Services' },
-        { value: 'food', label: 'Food & Hospitality' },
-        { value: 'maintenance', label: 'Maintenance & Services' },
-        { value: 'transport', label: 'Transportation' }
-      ]
-    },
-    {
-      key: 'date',
-      label: 'Date',
-      placeholder: 'All Time',
-      value: dateFilter,
-      options: [
-        { value: 'today', label: 'Today' },
-        { value: 'week', label: 'This Week' },
-        { value: 'month', label: 'This Month' }
-      ]
-    }
-  ];
+
 
   // Event handlers
   const handleSearchChange = (value) => {
@@ -398,30 +310,7 @@ const EmployerRequestsPage = () => {
   };
 
   const handleFilterChange = (key, value) => {
-    switch (key) {
-      case 'status':
-        setStatusFilter(value);
-        break;
-      case 'priority':
-        setPriorityFilter(value);
-        break;
-      case 'category':
-        setCategoryFilter(value);
-        break;
-      case 'date':
-        setDateFilter(value);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('');
-    setPriorityFilter('');
-    setCategoryFilter('');
-    setDateFilter('');
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleRowAction = (action, request) => {
@@ -511,13 +400,32 @@ const EmployerRequestsPage = () => {
       <StatsGrid stats={stats} />
 
       {/* Search and Filters */}
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
-        placeholder="Search requests by employer, candidate, or position..."
+      <Pagination
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems,
+          searchTerm,
+          filters,
+          sortBy,
+          sortOrder,
+          setSearchTerm,
+          setFilters,
+          setSortBy,
+          setSortOrder,
+          goToPage,
+          nextPage,
+          prevPage,
+          hasNextPage,
+          hasPrevPage,
+          pageInfo
+        }}
+        onSearch={handleSearchChange}
+        onFilter={handleFilterChange}
+        searchPlaceholder="Search requests by employer, candidate, or position..."
+        showSearch={true}
+        showFilters={true}
+        showSort={true}
       />
 
       {/* Requests Table */}
@@ -525,7 +433,7 @@ const EmployerRequestsPage = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Employer Requests ({filteredRequests.length})
+              Employer Requests ({requests.length})
             </h2>
             <div className="flex items-center space-x-3">
               <Button variant="outline" size="sm">
@@ -540,11 +448,10 @@ const EmployerRequestsPage = () => {
         
         <DataTable
           columns={columns}
-          data={filteredRequests}
+          data={requests}
           onRowAction={handleRowAction}
           actionButtons={actionButtons}
-          pagination={true}
-          itemsPerPage={10}
+          pagination={false}
           className="rounded-none"
         />
       </Card>

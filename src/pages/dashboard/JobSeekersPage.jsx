@@ -22,9 +22,10 @@ import {
   Clock,
   GraduationCap,
   Languages,
-  Award
+  Award,
+  AlertCircle
 } from 'lucide-react';
-import { jobSeekerService } from '../../api/index.js';
+import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -33,9 +34,11 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DataTable from '../../components/ui/DataTable';
 import SearchFilter from '../../components/ui/SearchFilter';
 import AddJobSeekerForm from '../../components/forms/AddJobSeekerForm';
+import Pagination from '../../components/ui/Pagination';
 import { formatCurrency } from '../../utils/adminHelpers';
+import Modal from '../../components/ui/Modal';
 
-// Static data moved from mockData.js
+// Static data for form options
 const educationLevels = [
   { id: 'none', name: 'No Formal Education', description: 'Learned through experience' },
   { id: 'primary', name: 'Primary School', description: 'Basic education completed' },
@@ -98,256 +101,71 @@ const jobCategories = [
 
 const JobSeekersPage = () => {
   const { t } = useTranslation();
-  const [jobSeekers, setJobSeekers] = useState([]);
-  const [filteredJobSeekers, setFilteredJobSeekers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    category: '',
-    dailyRateRange: '',
-    monthlyRateRange: '',
-    availability: '',
-    education: '',
-    skills: []
-  });
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const { user } = useAuth();
+  
+  // State management
+  const [showAddForm, setShowAddForm] = useState(false);
   const [selectedJobSeeker, setSelectedJobSeeker] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isAddingJobSeeker, setIsAddingJobSeeker] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  // Load job seekers data
-  useEffect(() => {
-    const loadJobSeekers = async () => {
-      setLoading(true);
-      try {
-        const data = await jobSeekerService.getAll();
-        setJobSeekers(data);
-        setFilteredJobSeekers(data);
-      } catch (error) {
-        console.error('Error loading job seekers:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use the custom hook for job seekers management
+  const {
+    jobSeekers,
+    allJobSeekers,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    searchTerm,
+    filters,
+    sortBy,
+    sortOrder,
+    fetchJobSeekers,
+    createJobSeeker,
+    updateJobSeeker,
+    deleteJobSeeker,
+    setSearchTerm,
+    setFilters,
+    setSortBy,
+    setSortOrder,
+    goToPage,
+    nextPage,
+    prevPage,
+    hasNextPage,
+    hasPrevPage,
+    pageInfo
+  } = useAdminJobSeekers({
+    autoFetch: true,
+    itemsPerPage: 10
+  });
 
-    loadJobSeekers();
-  }, []);
-
-  // Apply filters and search
-  useEffect(() => {
-    let filtered = [...jobSeekers];
-
-    // Search
-    if (searchTerm) {
-      filtered = filtered.filter(seeker =>
-        seeker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        seeker.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        seeker.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    // Category filter
-    if (filters.category) {
-      filtered = filtered.filter(seeker => seeker.category === filters.category);
-    }
-
-    // Daily rate filter
-    if (filters.dailyRateRange) {
-      const [min, max] = filters.dailyRateRange.split('-').map(Number);
-      filtered = filtered.filter(seeker => 
-        seeker.dailyRate >= min && seeker.dailyRate <= max
-      );
-    }
-
-    // Monthly rate filter
-    if (filters.monthlyRateRange) {
-      const [min, max] = filters.monthlyRateRange.split('-').map(Number);
-      filtered = filtered.filter(seeker => 
-        seeker.monthlyRate >= min && seeker.monthlyRate <= max
-      );
-    }
-
-    // Availability filter
-    if (filters.availability) {
-      filtered = filtered.filter(seeker => seeker.availability === filters.availability);
-    }
-
-    // Education filter
-    if (filters.education) {
-      filtered = filtered.filter(seeker => seeker.education === filters.education);
-    }
-
-    // Skills filter
-    if (filters.skills.length > 0) {
-      filtered = filtered.filter(seeker =>
-        filters.skills.some(skill => seeker.skills.includes(skill))
-      );
-    }
-
-    setFilteredJobSeekers(filtered);
-  }, [jobSeekers, searchTerm, filters]);
-
-  // Stats data
-  const stats = [
-    {
-      title: 'Total Job Seekers',
-      value: jobSeekers.length.toString(),
-      change: '+12',
-      changeType: 'increase',
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Active profiles'
-    },
-    {
-      title: 'New This Month',
-      value: '8',
-      change: '+3',
-      changeType: 'increase',
-      icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      description: 'Recent registrations'
-    },
-    {
-      title: 'Available Now',
-      value: jobSeekers.filter(seeker => seeker.availability === 'Available').length.toString(),
-      change: '+2',
-      changeType: 'increase',
-      icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      description: 'Ready to work'
-    },
-    {
-      title: 'Average Daily Rate',
-      value: `${Math.round(jobSeekers.reduce((sum, seeker) => sum + (seeker.dailyRate || 0), 0) / Math.max(jobSeekers.length, 1)).toLocaleString()} RWF`,
-      change: '+500',
-      changeType: 'increase',
-      icon: Users,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      description: 'Market rate'
-    }
-  ];
-
-  // Table columns
-  const columns = [
-    {
-      key: 'avatar',
-      label: '',
-      render: (seeker) => (
-        <Avatar 
-          src={seeker.avatar} 
-          alt={seeker.name} 
-          size="sm"
-          fallback={seeker.name}
-        />
-      )
-    },
-    {
-      key: 'name',
-      label: 'Name',
-      sortable: true
-    },
-    {
-      key: 'title',
-      label: 'Title',
-      render: (seeker) => (
-        <div>
-          <p className="font-medium text-gray-900">{seeker.title}</p>
-          <Badge 
-            variant="outline" 
-            className={getCategoryColor(seeker.category)}
-          >
-            {seeker.category}
-          </Badge>
-        </div>
-      )
-    },
-    {
-      key: 'location',
-      label: 'Location',
-      sortable: true
-    },
-    {
-      key: 'experience',
-      label: 'Experience',
-      render: (seeker) => `${seeker.experience} years`,
-      sortable: true
-    },
-    {
-      key: 'dailyRate',
-      label: 'Daily Rate',
-      render: (seeker) => {
-        if (!seeker.dailyRate || isNaN(seeker.dailyRate)) {
-          return 'Rate not specified';
-        }
-        return formatCurrency(seeker.dailyRate);
-      },
-      sortable: true
-    },
-    {
-      key: 'availability',
-      label: 'Status',
-      render: (seeker) => (
-        <Badge 
-          variant={seeker.availability === 'Available' ? 'success' : 'warning'}
-        >
-          {seeker.availability}
-        </Badge>
-      )
-    }
-  ];
-
-  // Action buttons for each row
-  const actionButtons = [
-    {
-      key: 'view',
-      label: 'View Details',
-      icon: Eye,
-      variant: 'ghost'
-    },
-    {
-      key: 'edit',
-      label: 'Edit',
-      icon: Edit,
-      variant: 'ghost'
-    },
-    {
-      key: 'delete',
-      label: 'Delete',
-      icon: Trash2,
-      variant: 'ghost',
-      className: 'text-red-600 hover:text-red-800'
-    }
-  ];
-
-  // Search and filter handlers
+  // Handle search change
   const handleSearchChange = (value) => {
     setSearchTerm(value);
   };
 
+  // Handle filter change
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  // Handle clear filters
   const handleClearFilters = () => {
     setFilters({
-      category: '',
-      dailyRateRange: '',
-      monthlyRateRange: '',
-      availability: '',
-      education: '',
-      skills: []
+      gender: '',
+      location: '',
+      skills: '',
+      experienceLevel: '',
+      availability: ''
     });
     setSearchTerm('');
   };
 
-  // Row action handler
+  // Handle row actions
   const handleRowAction = (action, jobSeeker) => {
     switch (action) {
       case 'view':
@@ -355,67 +173,188 @@ const JobSeekersPage = () => {
         setShowDetailsModal(true);
         break;
       case 'edit':
-        // TODO: Implement edit functionality
-        // Handle edit job seeker
+        setSelectedJobSeeker(jobSeeker);
+        setShowEditModal(true);
         break;
       case 'delete':
-        if (window.confirm(`Are you sure you want to delete ${jobSeeker.name}?`)) {
-          jobSeekerService.delete(jobSeeker.id).then(() => {
-            setJobSeekers(prev => prev.filter(seeker => seeker.id !== jobSeeker.id));
-            setFilteredJobSeekers(prev => prev.filter(seeker => seeker.id !== jobSeeker.id));
-          }).catch(error => {
-            console.error('Error deleting job seeker:', error);
-          });
-        }
+        setSelectedJobSeeker(jobSeeker);
+        setShowDeleteModal(true);
         break;
       default:
         break;
     }
   };
 
-  // Status change handler
+  // Handle status change
   const handleStatusChange = (newStatus) => {
-    if (selectedJobSeeker) {
-      jobSeekerService.update(selectedJobSeeker.id, { availability: newStatus }).then(() => {
-        setJobSeekers(prev => 
-          prev.map(seeker => 
-            seeker.id === selectedJobSeeker.id 
-              ? { ...seeker, availability: newStatus }
-              : seeker
-          )
-        );
-        setFilteredJobSeekers(prev => 
-          prev.map(seeker => 
-            seeker.id === selectedJobSeeker.id 
-              ? { ...seeker, availability: newStatus }
-              : seeker
-          )
-        );
-      }).catch(error => {
-        console.error('Error updating job seeker status:', error);
-      });
+    setStatusFilter(newStatus);
+    // You can add status-based filtering here
+  };
+
+  // Handle add job seeker
+  const handleAddJobSeeker = async (jobSeekerData) => {
+    try {
+      const result = await createJobSeeker(jobSeekerData);
+      if (result.success) {
+        setShowAddForm(false);
+        alert('Job seeker created successfully!');
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      alert('Failed to create job seeker');
+      console.error('Create job seeker error:', error);
     }
   };
 
-  // Add job seeker handler
-  const handleAddJobSeeker = async (jobSeekerData) => {
-    setIsAddingJobSeeker(true);
+  // Handle update job seeker
+  const handleUpdateJobSeeker = async (jobSeekerData) => {
+    if (!selectedJobSeeker) return;
     
     try {
-      const newJobSeeker = await jobSeekerService.create(jobSeekerData);
-      setJobSeekers(prev => [newJobSeeker, ...prev]);
-      setFilteredJobSeekers(prev => [newJobSeeker, ...prev]);
-      setShowAddModal(false);
-      // Show success message (you can implement a toast notification here)
-      // Basic profile created successfully
+      const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData);
+      if (result.success) {
+        setShowEditModal(false);
+        setSelectedJobSeeker(null);
+        alert('Job seeker updated successfully!');
+      } else {
+        alert(`Error: ${result.error}`);
+      }
     } catch (error) {
-      console.error('Error adding job seeker:', error);
-    } finally {
-      setIsAddingJobSeeker(false);
+      alert('Failed to update job seeker');
+      console.error('Update job seeker error:', error);
     }
   };
 
-  if (loading) {
+  // Handle delete job seeker
+  const handleDeleteJobSeeker = async () => {
+    if (!selectedJobSeeker) return;
+    
+    try {
+      const result = await deleteJobSeeker(selectedJobSeeker.id);
+      if (result.success) {
+        setShowDeleteModal(false);
+        setSelectedJobSeeker(null);
+        alert('Job seeker deleted successfully!');
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      alert('Failed to delete job seeker');
+      console.error('Delete job seeker error:', error);
+    }
+  };
+
+  // Table columns configuration
+  const columns = [
+    {
+      key: 'name',
+      label: 'Name',
+      render: (jobSeeker) => (
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+            <Users className="w-5 h-5 text-gray-600" />
+          </div>
+          <div>
+            <div className="font-medium">{jobSeeker.firstName} {jobSeeker.lastName}</div>
+            <div className="text-sm text-gray-500">{jobSeeker.email}</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'location',
+      label: 'Location',
+      render: (jobSeeker) => (
+        <div className="flex items-center space-x-1">
+          <MapPin className="w-4 h-4 text-gray-400" />
+          <span>{jobSeeker.location || 'Not specified'}</span>
+        </div>
+      )
+    },
+    {
+      key: 'skills',
+      label: 'Skills',
+      render: (jobSeeker) => (
+        <div className="flex flex-wrap gap-1">
+          {jobSeeker.skills?.slice(0, 3).map((skill, index) => (
+            <Badge key={index} variant="secondary" size="sm">
+              {skill}
+            </Badge>
+          ))}
+          {jobSeeker.skills?.length > 3 && (
+            <Badge variant="outline" size="sm">
+              +{jobSeeker.skills.length - 3} more
+            </Badge>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'dailyRate',
+      label: 'Daily Rate',
+      render: (jobSeeker) => (
+        <div className="flex items-center space-x-1">
+          <DollarSign className="w-4 h-4 text-green-500" />
+          <span>{formatCurrency(jobSeeker.dailyRate || 0)}</span>
+        </div>
+      )
+    },
+    {
+      key: 'availability',
+      label: 'Availability',
+      render: (jobSeeker) => (
+        <Badge 
+          variant={jobSeeker.availability === 'Immediate' ? 'success' : 'warning'}
+          size="sm"
+        >
+          {jobSeeker.availability || 'Not specified'}
+        </Badge>
+      )
+    },
+    {
+      key: 'createdAt',
+      label: 'Registered',
+      render: (jobSeeker) => (
+        <div className="flex items-center space-x-1">
+          <Calendar className="w-4 h-4 text-gray-400" />
+          <span>{new Date(jobSeeker.createdAt).toLocaleDateString()}</span>
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (jobSeeker) => (
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleRowAction('view', jobSeeker)}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleRowAction('edit', jobSeeker)}
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleRowAction('delete', jobSeeker)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      )
+    }
+  ];
+
+  // Render loading state
+  if (loading && jobSeekers.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" text="Loading job seekers..." />
@@ -423,235 +362,180 @@ const JobSeekersPage = () => {
     );
   }
 
+  // Render error state
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="w-5 h-5 text-red-500" />
+          <span className="text-red-700">Error: {error}</span>
+        </div>
+        <Button 
+          onClick={fetchJobSeekers}
+          className="mt-2"
+          variant="outline"
+          size="sm"
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
-      <StatsGrid stats={stats} />
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Job Seekers Management</h1>
+          <p className="text-gray-600">
+            Manage all registered job seekers ({totalItems} total)
+          </p>
+        </div>
+        <Button onClick={() => setShowAddForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Job Seeker
+        </Button>
+      </div>
 
       {/* Search and Filters */}
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        filters={[
-          {
-            key: 'category',
-            value: filters.category,
-            placeholder: 'Category',
-            options: jobCategories.map(cat => ({ value: cat.id, label: cat.name }))
-          },
-          {
-            key: 'dailyRateRange',
-            value: filters.dailyRateRange,
-            placeholder: 'Daily Rate',
-            options: [
-              { value: '0-3000', label: '0 - 3,000 RWF' },
-              { value: '3000-5000', label: '3,000 - 5,000 RWF' },
-              { value: '5000-8000', label: '5,000 - 8,000 RWF' },
-              { value: '8000+', label: '8,000+ RWF' }
-            ]
-          },
-          {
-            key: 'monthlyRateRange',
-            value: filters.monthlyRateRange,
-            placeholder: 'Monthly Rate',
-            options: [
-              { value: '0-80000', label: '0 - 80,000 RWF' },
-              { value: '80000-120000', label: '80,000 - 120,000 RWF' },
-              { value: '120000-180000', label: '120,000 - 180,000 RWF' },
-              { value: '180000+', label: '180,000+ RWF' }
-            ]
-          },
-          {
-            key: 'availability',
-            value: filters.availability,
-            placeholder: 'Availability',
-            options: availabilityOptions.map(opt => ({ value: opt.id, label: opt.name }))
-          },
-          {
-            key: 'education',
-            value: filters.education,
-            placeholder: 'Education',
-            options: educationLevels.map(level => ({ value: level.id, label: level.name }))
-          }
-        ]}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
+      <Pagination
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems,
+          searchTerm,
+          filters,
+          sortBy,
+          sortOrder,
+          setSearchTerm,
+          setFilters,
+          setSortBy,
+          setSortOrder,
+          goToPage,
+          nextPage,
+          prevPage,
+          hasNextPage,
+          hasPrevPage,
+          pageInfo
+        }}
+        onSearch={handleSearchChange}
+        onFilter={handleFilterChange}
+        searchPlaceholder="Search job seekers..."
+        showSearch={true}
+        showFilters={true}
+        showSort={true}
       />
 
       {/* Job Seekers Table */}
-      <Card className="rounded-lg shadow-md">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Job Seekers ({filteredJobSeekers.length})
-            </h2>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm">
-                Export Data
-              </Button>
-              <Button 
-                variant="primary" 
-                size="sm"
-                onClick={() => setShowAddModal(true)}
-                className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Job Seeker
-              </Button>
-            </div>
-          </div>
-        </div>
-        
+      <Card>
         <DataTable
+          data={jobSeekers}
           columns={columns}
-          data={filteredJobSeekers}
-          onRowAction={handleRowAction}
-          actionButtons={actionButtons}
-          pagination={true}
-          itemsPerPage={10}
-          className="rounded-none"
+          loading={loading}
+          emptyMessage="No job seekers found"
         />
       </Card>
 
+      {/* Add Job Seeker Modal */}
+      {showAddForm && (
+        <AddJobSeekerForm
+          isOpen={showAddForm}
+          onClose={() => setShowAddForm(false)}
+          onSubmit={handleAddJobSeeker}
+          educationLevels={educationLevels}
+          availabilityOptions={availabilityOptions}
+          skillsData={skillsData}
+          languageLevels={languageLevels}
+          jobCategories={jobCategories}
+        />
+      )}
+
       {/* Job Seeker Details Modal */}
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        title="Job Seeker Details"
-        maxWidth="max-w-4xl"
-      >
-        {selectedJobSeeker && (
+      {showDetailsModal && selectedJobSeeker && (
+        <Modal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          title="Job Seeker Details"
+          size="lg"
+        >
           <div className="space-y-6">
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-center space-x-4">
-                <Avatar 
-                  src={selectedJobSeeker.avatar} 
-                  alt={selectedJobSeeker.name} 
-                  size="xl"
-                  fallback={selectedJobSeeker.name}
-                />
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{selectedJobSeeker.name}</h3>
-                  <p className="text-gray-600">{selectedJobSeeker.title}</p>
-                  <Badge 
-                    variant="outline" 
-                    className={getCategoryColor(selectedJobSeeker.category)}
-                  >
-                    {selectedJobSeeker.category}
-                  </Badge>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <p className="mt-1">{selectedJobSeeker.firstName} {selectedJobSeeker.lastName}</p>
               </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Location:</span>
-                  <p className="text-gray-900">{selectedJobSeeker.location}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Experience:</span>
-                  <p className="text-gray-900">{selectedJobSeeker.experience} years</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Daily Rate:</span>
-                  <p className="text-gray-900">{selectedJobSeeker.dailyRate ? selectedJobSeeker.dailyRate.toLocaleString() : 'Not specified'} RWF</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Monthly Rate:</span>
-                  <p className="text-gray-900">{selectedJobSeeker.monthlyRate ? selectedJobSeeker.monthlyRate.toLocaleString() : 'Not specified'} RWF</p>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <p className="mt-1">{selectedJobSeeker.email}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <p className="mt-1">{selectedJobSeeker.phone || 'Not provided'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Location</label>
+                <p className="mt-1">{selectedJobSeeker.location || 'Not specified'}</p>
               </div>
             </div>
 
             {/* Skills */}
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Skills</h4>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Skills</label>
               <div className="flex flex-wrap gap-2">
-                {selectedJobSeeker.skills.map((skill, index) => (
-                  <Badge key={index} variant="primary" size="sm">
+                {selectedJobSeeker.skills?.map((skill, index) => (
+                  <Badge key={index} variant="secondary">
                     {skill}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            {/* Bio */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">Bio</h4>
-              <p className="text-gray-700">{selectedJobSeeker.bio}</p>
-            </div>
-
-            {/* Contact Information */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">Contact Information</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Email:</span>
-                  <p className="text-gray-900">{selectedJobSeeker.contact.email}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Phone:</span>
-                  <p className="text-gray-900">{selectedJobSeeker.contact.phone}</p>
-                </div>
-                {selectedJobSeeker.contact.linkedin && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">LinkedIn:</span>
-                    <p className="text-gray-900">{selectedJobSeeker.contact.linkedin}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* References */}
-            {selectedJobSeeker.references && selectedJobSeeker.references.length > 0 && (
+            {/* Additional Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">References</h4>
-                <div className="space-y-3">
-                  {selectedJobSeeker.references.map((reference, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <p className="font-medium text-gray-900">{reference.name}</p>
-                      <p className="text-sm text-gray-600">{reference.phone}</p>
-                      <p className="text-sm text-gray-500">{reference.relationship}</p>
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-sm font-medium text-gray-700">Daily Rate</label>
+                <p className="mt-1">{formatCurrency(selectedJobSeeker.dailyRate || 0)}</p>
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Availability</label>
+                <p className="mt-1">{selectedJobSeeker.availability || 'Not specified'}</p>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedJobSeeker && (
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          title="Delete Job Seeker"
+        >
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to delete {selectedJobSeeker.firstName} {selectedJobSeeker.lastName}?
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
               <Button
                 variant="outline"
-                onClick={() => setShowDetailsModal(false)}
-                className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                onClick={() => setShowDeleteModal(false)}
               >
-                Close
+                Cancel
               </Button>
               <Button
-                variant="primary"
-                onClick={() => handleRowAction('edit', selectedJobSeeker)}
-                className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                variant="danger"
+                onClick={handleDeleteJobSeeker}
               >
-                Edit Profile
+                Delete
               </Button>
             </div>
           </div>
-        )}
-      </Modal>
-
-      {/* Add Job Seeker Modal */}
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Add New Job Seeker"
-        maxWidth="max-w-md"
-      >
-        <AddJobSeekerForm
-          onSubmit={handleAddJobSeeker}
-          onCancel={() => setShowAddModal(false)}
-          isLoading={isAddingJobSeeker}
-        />
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 };

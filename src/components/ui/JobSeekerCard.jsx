@@ -6,8 +6,76 @@ import Button from './Button';
 const JobSeekerCard = ({ 
   jobSeeker, 
   onViewDetails,
-  getCategoryColor 
+  getCategoryColor,
+  compact = false
 }) => {
+  // Default category color function if not provided
+  const defaultGetCategoryColor = (category) => {
+    const colors = {
+      // Skills-based categories
+      'JavaScript': 'bg-blue-100 text-blue-800',
+      'React': 'bg-cyan-100 text-cyan-800',
+      'Python': 'bg-green-100 text-green-800',
+      'Java': 'bg-orange-100 text-orange-800',
+      'Cooking': 'bg-red-100 text-red-800',
+      'Housekeeping': 'bg-purple-100 text-purple-800',
+      'Childcare': 'bg-pink-100 text-pink-800',
+      'Gardening': 'bg-emerald-100 text-emerald-800',
+      'Cleaning': 'bg-gray-100 text-gray-800',
+      'Driving': 'bg-indigo-100 text-indigo-800',
+      'Teaching': 'bg-yellow-100 text-yellow-800',
+      'Nursing': 'bg-rose-100 text-rose-800',
+      'Construction': 'bg-amber-100 text-amber-800',
+      'Agriculture': 'bg-lime-100 text-lime-800',
+      'Technology': 'bg-blue-100 text-blue-800',
+      'Healthcare': 'bg-green-100 text-green-800',
+      'Education': 'bg-purple-100 text-purple-800',
+      'Manufacturing': 'bg-red-100 text-red-800',
+      'Services': 'bg-gray-100 text-gray-800',
+      'General': 'bg-gray-100 text-gray-800',
+      'Job Seeker': 'bg-gray-100 text-gray-800',
+      'default': 'bg-gray-100 text-gray-800'
+    };
+    return colors[category] || colors.default;
+  };
+
+  const categoryColor = (getCategoryColor || defaultGetCategoryColor)(jobSeeker.category);
+
+  if (compact) {
+    return (
+      <div className="flex items-center space-x-3 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <Avatar 
+          src={jobSeeker.avatar} 
+          alt={jobSeeker.name} 
+          size="sm"
+          fallback={jobSeeker.name}
+        />
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-gray-900 text-sm truncate">{jobSeeker.name}</h4>
+          <p className="text-xs text-gray-600 truncate">{jobSeeker.title}</p>
+          <div className="flex items-center space-x-2 mt-1">
+            <Badge 
+              variant="outline" 
+              size="xs"
+              className={categoryColor}
+            >
+              {jobSeeker.category}
+            </Badge>
+            <span className="text-xs text-gray-500">{jobSeeker.location}</span>
+          </div>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => onViewDetails?.(jobSeeker)}
+          title="View Details"
+        >
+          <Eye className="w-3 h-3" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
       <Avatar 
@@ -25,20 +93,20 @@ const JobSeekerCard = ({
           <Badge 
             variant="outline" 
             size="sm"
-            className={getCategoryColor(jobSeeker.category)}
+            className={categoryColor}
           >
             {jobSeeker.category}
           </Badge>
         </div>
         <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-          <span>Daily: {jobSeeker.dailyRate.toLocaleString()} RWF</span>
-          <span>Monthly: {jobSeeker.monthlyRate.toLocaleString()} RWF</span>
+          <span>Daily: {jobSeeker.dailyRate?.toLocaleString() || '0'} RWF</span>
+          <span>Monthly: {jobSeeker.monthlyRate?.toLocaleString() || '0'} RWF</span>
         </div>
       </div>
       <Button 
         variant="ghost" 
         size="sm"
-        onClick={() => onViewDetails(jobSeeker)}
+        onClick={() => onViewDetails?.(jobSeeker)}
         title="View Details"
       >
         <Eye className="w-4 h-4" />

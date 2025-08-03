@@ -5,8 +5,8 @@
 
 // Environment-based API configuration
 const API_CONFIG = {
-  // Base URLs
-  BASE_URL: import.meta.env.VITE_API_URL || 'https://job-portal-backend-cfk4.onrender.com',
+  // Base URLs - Updated for local backend
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   
   // Timeouts (in milliseconds)
   TIMEOUT: 30000, // 30 seconds
@@ -47,14 +47,10 @@ const API_CONFIG = {
 
 // Environment-specific overrides
 if (import.meta.env.DEV) {
-  API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || API_CONFIG.BASE_URL;
+  API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000';
   API_CONFIG.TIMEOUT = 10000; // Shorter timeout for development
-}
-
-// Production overrides
-if (import.meta.env.PROD) {
-  API_CONFIG.LOG_REQUESTS = false;
-  API_CONFIG.LOG_RESPONSES = false;
+  API_CONFIG.LOG_REQUESTS = true;
+  API_CONFIG.LOG_RESPONSES = true;
 }
 
 export default API_CONFIG;
