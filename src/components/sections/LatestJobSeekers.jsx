@@ -5,8 +5,8 @@ import { MapPin, Calendar, Eye } from 'lucide-react';
 import { jobSeekerService } from '../../api/services/jobSeekerService.js';
 import Card from '../ui/Card';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import ProfileImage from '../ui/ProfileImage';
 import { maskName, formatExperienceDisplay } from '../../utils/helpers';
-import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 
 const LatestJobSeekers = () => {
   const { t } = useTranslation();
@@ -167,11 +167,13 @@ const LatestJobSeekers = () => {
                   <div className="p-6 pb-4">
                     <div className="flex items-start justify-between mb-4">
                                              <div className="flex items-center">
-                         <div className="w-14 h-14 rounded-xl overflow-hidden mr-4 shadow-lg">
-                           <img 
-                             src={defaultProfileImage} 
-                             alt="Profile" 
-                             className="w-full h-full object-cover"
+                         <div className="mr-4">
+                           <ProfileImage 
+                             size="lg"
+                             variant="rounded"
+                             showBorder={true}
+                             borderColor="border-blue-200"
+                             showShadow={true}
                            />
                          </div>
                         <div className="flex-1">

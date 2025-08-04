@@ -19,9 +19,11 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import ProfileImage from '../components/ui/ProfileImage';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
 import { filterJobSeekers, sortJobSeekers, maskName, formatExperienceDisplay } from '../utils/helpers';
-import defaultProfileImage from '../assets/defaultProfileImage.jpeg';
 import useDebounce from '../hooks/useDebounce';
 
 // Static data moved from mockData.js
@@ -231,10 +233,11 @@ const JobSeekers = () => {
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${jobseekerBackground})` }}
       />
-      {/* Header is removed as per new_code, assuming it's handled elsewhere or not needed */}
+      
+      <Header />
       
       {/* Page Header */}
-      <div className="relative z-10 mt-16">
+      <div className="relative z-10 mt-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -252,7 +255,7 @@ const JobSeekers = () => {
         </div>
       </div>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Search and Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -261,7 +264,7 @@ const JobSeekers = () => {
           className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
         >
           {/* Search Bar */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -473,45 +476,6 @@ const JobSeekers = () => {
           )}
         </motion.div>
 
-        {/* Results Count */}
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-white/80">
-            {filteredSeekers.length} {t('jobSeekers.results', 'results')}
-          </p>
-        </div>
-
-        {/* Debug Section - Temporary */}
-        <div className="mb-6 p-4 bg-white/10 rounded-lg">
-          <h3 className="text-white font-bold mb-2">Debug Info:</h3>
-          <p className="text-white/80 text-sm">Total Job Seekers: {jobSeekers.length}</p>
-          <p className="text-white/80 text-sm">Filtered Job Seekers: {filteredSeekers.length}</p>
-          <p className="text-white/80 text-sm">Loading: {loading ? 'Yes' : 'No'}</p>
-          {filteredSeekers.length > 0 && (
-            <div className="mt-2">
-              <p className="text-white/80 text-sm">First Job Seeker Data:</p>
-              <pre className="text-white/60 text-xs bg-black/20 p-2 rounded mt-1 overflow-auto">
-                {JSON.stringify(filteredSeekers[0], null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
-
-        {/* Debug Section - Temporary */}
-        <div className="mb-6 p-4 bg-white/10 rounded-lg">
-          <h3 className="text-white font-bold mb-2">Debug Info:</h3>
-          <p className="text-white/80 text-sm">Total Job Seekers: {jobSeekers.length}</p>
-          <p className="text-white/80 text-sm">Filtered Job Seekers: {filteredSeekers.length}</p>
-          <p className="text-white/80 text-sm">Loading: {loading ? 'Yes' : 'No'}</p>
-          {filteredSeekers.length > 0 && (
-            <div className="mt-2">
-              <p className="text-white/80 text-sm">First Job Seeker Data:</p>
-              <pre className="text-white/60 text-xs bg-black/20 p-2 rounded mt-1 overflow-auto">
-                {JSON.stringify(filteredSeekers[0], null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
-
         {/* Job Seekers Grid/List */}
         {filteredSeekers.length > 0 ? (
           <motion.div
@@ -538,11 +502,13 @@ const JobSeekers = () => {
                       <div className="p-6 pb-4">
                         <div className="flex items-start justify-between mb-4">
                                                      <div className="flex items-center">
-                             <div className="w-14 h-14 rounded-xl overflow-hidden mr-4 shadow-lg">
-                               <img 
-                                 src={defaultProfileImage} 
-                                 alt="Profile" 
-                                 className="w-full h-full object-cover opacity-10"
+                             <div className="mr-4">
+                               <ProfileImage 
+                                 size="lg"
+                                 variant="rounded"
+                                 showBorder={true}
+                                 borderColor="border-blue-200"
+                                 showShadow={true}
                                />
                              </div>
                             <div className="flex-1">
@@ -636,7 +602,9 @@ const JobSeekers = () => {
         )}
       </main>
       
-      {/* Footer is removed as per new_code, assuming it's handled elsewhere or not needed */}
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 };

@@ -15,8 +15,8 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 
+import ProfileImage from '../ui/ProfileImage';
 import { truncateText, formatExperience, maskName, formatExperienceDisplay } from '../../utils/helpers';
-import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 
 const JobSeekerCard = ({ 
   seeker, 
@@ -59,11 +59,13 @@ const JobSeekerCard = ({
         <div className="p-6 pb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center">
-              <div className="w-14 h-14 rounded-xl overflow-hidden mr-4 shadow-lg">
-                <img 
-                  src={defaultProfileImage} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
+              <div className="mr-4">
+                <ProfileImage 
+                  size="lg"
+                  variant="rounded"
+                  showBorder={true}
+                  borderColor="border-blue-200"
+                  showShadow={true}
                 />
               </div>
               <div className="flex-1">
@@ -130,11 +132,13 @@ const JobSeekerCard = ({
         <div className="p-6 pb-4">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center">
-              <div className="w-16 h-16 rounded-xl overflow-hidden mr-4 shadow-lg">
-                <img 
-                  src={defaultProfileImage} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
+              <div className="mr-4">
+                <ProfileImage 
+                  size="xl"
+                  variant="rounded"
+                  showBorder={true}
+                  borderColor="border-blue-200"
+                  showShadow={true}
                 />
               </div>
               <div>

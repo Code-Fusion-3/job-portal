@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Full Image Blur</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background-color: #f0f0f0;
+    }
+
+    .blurred-image {
+      filter: blur(18px); /* You can adjust the blur amount */
+      width: 600px;      /* Adjust as needed */
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Full Image Blurred with CSS</h2>
+
+  <img 
+    class="blurred-image" 
+    src="https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=900&q=60" 
+    alt="Blurred person">
+
+</body>
+</html>
