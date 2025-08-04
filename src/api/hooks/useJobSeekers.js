@@ -36,16 +36,16 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      console.log('🔍 Fetching job seekers...');
+      // console.log('🔍 Fetching job seekers...');
       
       const result = includePrivate 
         ? await jobSeekerService.getAllJobSeekers()
         : await jobSeekerService.getPublicJobSeekers();
       
-      console.log('📊 API Response:', result);
+      // console.log('📊 API Response:', result);
       
       if (result.success) {
-        console.log('✅ Job seekers data:', result.data);
+        // console.log('✅ Job seekers data:', result.data);
         setJobSeekers(result.data || []);
       } else {
         console.error('❌ API Error:', result.error);
@@ -65,7 +65,7 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      console.log('➕ Creating job seeker:', jobSeekerData);
+      // console.log('➕ Creating job seeker:', jobSeekerData);
       const result = await jobSeekerService.createJobSeeker(jobSeekerData);
       if (result.success) {
         console.log('✅ Job seeker created:', result.data);
@@ -93,10 +93,10 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      console.log('✏️ Updating job seeker:', id, updateData);
+      // console.log('✏️ Updating job seeker:', id, updateData);
       const result = await jobSeekerService.updateJobSeeker(id, updateData);
       if (result.success) {
-        console.log('✅ Job seeker updated:', result.data);
+        // console.log('✅ Job seeker updated:', result.data);
         // Update the local state with proper data merging
         setJobSeekers(prev => 
           prev.map(seeker => {
@@ -128,7 +128,7 @@ export const useJobSeekers = (options = {}) => {
                 });
               }
               
-              console.log('🔄 Updated seeker data:', updatedSeeker);
+              // console.log('🔄 Updated seeker data:', updatedSeeker);
               return updatedSeeker;
             }
             return seeker;
@@ -159,7 +159,7 @@ export const useJobSeekers = (options = {}) => {
       console.log('🗑️ Deleting job seeker:', id);
       const result = await jobSeekerService.deleteJobSeeker(id);
       if (result.success) {
-        console.log('✅ Job seeker deleted');
+        // console.log('✅ Job seeker deleted');
         // Remove from local state
         setJobSeekers(prev => prev.filter(seeker => seeker.id !== id));
         return { success: true };
@@ -180,15 +180,15 @@ export const useJobSeekers = (options = {}) => {
 
   // Filter and search logic
   const filteredJobSeekers = useMemo(() => {
-    console.log('🔍 Filtering job seekers...');
-    console.log('📊 Raw job seekers:', jobSeekers);
+    // console.log('🔍 Filtering job seekers...');
+    // console.log('📊 Raw job seekers:', jobSeekers);
     
     let filtered = [...jobSeekers];
 
     // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      console.log('🔎 Searching for:', term);
+      // console.log('🔎 Searching for:', term);
       filtered = filtered.filter(seeker => {
         const firstName = seeker.profile?.firstName || seeker.firstName || '';
         const lastName = seeker.profile?.lastName || seeker.lastName || '';
@@ -202,7 +202,7 @@ export const useJobSeekers = (options = {}) => {
                skills.toLowerCase().includes(term) ||
                location.toLowerCase().includes(term);
       });
-      console.log('🔍 Search results:', filtered.length);
+      // console.log('🔍 Search results:', filtered.length);
     }
 
     // Apply filters
@@ -240,7 +240,7 @@ export const useJobSeekers = (options = {}) => {
       }
     });
 
-    console.log('✅ Filtered job seekers:', filtered);
+    // console.log('✅ Filtered job seekers:', filtered);
     return filtered;
   }, [jobSeekers, searchTerm, filters, sortBy, sortOrder]);
 
@@ -251,14 +251,14 @@ export const useJobSeekers = (options = {}) => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedJobSeekers = filteredJobSeekers.slice(startIndex, endIndex);
 
-  console.log('📄 Pagination:', {
-    currentPage,
-    totalPages,
-    totalItems,
-    startIndex,
-    endIndex,
-    paginatedJobSeekers: paginatedJobSeekers.length
-  });
+  // console.log('📄 Pagination:', {
+  //   currentPage,
+  //   totalPages,
+  //   totalItems,
+  //   startIndex,
+  //   endIndex,
+  //   paginatedJobSeekers: paginatedJobSeekers.length
+  // });
 
   // Pagination controls
   const goToPage = useCallback((page) => {

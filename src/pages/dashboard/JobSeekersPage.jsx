@@ -121,7 +121,6 @@ const JobSeekersPage = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log('📊 Job categories from backend:', data);
           // Handle the correct data structure with categories array
           const categories = data.categories || data || [];
           setJobCategories(categories);
@@ -172,29 +171,12 @@ const JobSeekersPage = () => {
 
   // Debug logging
   useEffect(() => {
-    console.log('🎯 JobSeekersPage - Current state:', {
-      user,
-      isAuthenticated,
-      authLoading,
-      jobSeekers,
-      allJobSeekers,
-      loading,
-      error,
-      totalItems,
-      currentPage,
-      totalPages
-    });
+    // Removed excessive logging
   }, [user, isAuthenticated, authLoading, jobSeekers, allJobSeekers, loading, error, totalItems, currentPage, totalPages]);
 
   // Check authentication
   useEffect(() => {
     if (!authLoading) {
-      console.log('🔐 Authentication status:', {
-        isAuthenticated,
-        user,
-        userRole: user?.role
-      });
-      
       if (!isAuthenticated) {
         console.log('❌ User not authenticated');
       } else if (user?.role !== 'admin') {
@@ -229,19 +211,16 @@ const JobSeekersPage = () => {
 
   // Handle search change
   const handleSearchChange = (value) => {
-    console.log('🔍 Search changed:', value);
     setSearchTerm(value);
   };
 
   // Handle filter change
   const handleFilterChange = (key, value) => {
-    console.log('🎯 Filter changed:', key, value);
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   // Handle clear filters
   const handleClearFilters = () => {
-    console.log('🧹 Clearing filters');
     setFilters({
       gender: '',
       location: '',
@@ -254,39 +233,32 @@ const JobSeekersPage = () => {
 
   // Handle row actions
   const handleRowAction = (action, jobSeeker) => {
-    console.log('⚡ Row action:', action, jobSeeker);
     switch (action) {
       case 'view':
-        console.log('👁️ Opening view modal for:', jobSeeker);
         setSelectedJobSeeker(jobSeeker);
         setShowDetailsModal(true);
         break;
       case 'edit':
-        console.log('✏️ Opening edit modal for:', jobSeeker);
         setSelectedJobSeeker(jobSeeker);
         setShowEditModal(true);
         break;
       case 'delete':
-        console.log('🗑️ Opening delete modal for:', jobSeeker);
         setSelectedJobSeeker(jobSeeker);
         setShowDeleteModal(true);
         break;
       default:
-        console.log('❓ Unknown action:', action);
         break;
     }
   };
 
   // Handle status change
   const handleStatusChange = (newStatus) => {
-    console.log('📊 Status changed:', newStatus);
     setStatusFilter(newStatus);
     // You can add status-based filtering here
   };
 
   // Handle add job seeker
   const handleAddJobSeeker = async (jobSeekerData) => {
-    console.log('➕ Adding job seeker:', jobSeekerData);
     try {
       const result = await createJobSeeker(jobSeekerData);
       if (result.success) {
@@ -308,7 +280,6 @@ const JobSeekersPage = () => {
   const handleUpdateJobSeeker = async (jobSeekerData) => {
     if (!selectedJobSeeker) return;
     
-    console.log('✏️ Updating job seeker:', selectedJobSeeker.id, jobSeekerData);
     try {
       const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData);
       if (result.success) {
@@ -331,7 +302,6 @@ const JobSeekersPage = () => {
   const handleDeleteJobSeeker = async () => {
     if (!selectedJobSeeker) return;
     
-    console.log('🗑️ Deleting job seeker:', selectedJobSeeker.id);
     try {
       const result = await deleteJobSeeker(selectedJobSeeker.id);
       if (result.success) {
@@ -403,15 +373,12 @@ const JobSeekersPage = () => {
       key: 'name',
       label: 'Name',
       render: (jobSeeker) => {
-        console.log('👤 Rendering name for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
         // Properly access nested profile data
         const firstName = jobSeeker.profile?.firstName || jobSeeker.firstName || 'Unknown';
         const lastName = jobSeeker.profile?.lastName || jobSeeker.lastName || '';
         const email = jobSeeker.email || 'No email';
-        
-        console.log('👤 Name data:', { firstName, lastName, email });
         
         return (
           <div className="flex items-center space-x-3">
@@ -432,13 +399,10 @@ const JobSeekersPage = () => {
       key: 'location',
       label: 'Location',
       render: (jobSeeker) => {
-        console.log('📍 Rendering location for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
         // Properly access nested profile data
         const location = jobSeeker.profile?.location || jobSeeker.location || 'Not specified';
-        
-        console.log('📍 Location data:', location);
         
         return (
           <div className="flex items-center space-x-1">
@@ -452,14 +416,11 @@ const JobSeekersPage = () => {
       key: 'skills',
       label: 'Skills',
       render: (jobSeeker) => {
-        console.log('🛠️ Rendering skills for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
         // Properly access nested profile data
         const skills = jobSeeker.profile?.skills || jobSeeker.skills || '';
         const skillsArray = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim()).filter(s => s);
-        
-        console.log('🛠️ Skills data:', { skills, skillsArray });
         
         return (
           <div className="flex flex-wrap gap-1">
@@ -481,13 +442,10 @@ const JobSeekersPage = () => {
       key: 'contactNumber',
       label: 'Contact',
       render: (jobSeeker) => {
-        console.log('📞 Rendering contact for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
         // Properly access nested profile data
         const contactNumber = jobSeeker.profile?.contactNumber || jobSeeker.contactNumber || 'Not provided';
-        
-        console.log('📞 Contact data:', contactNumber);
         
         return (
           <div className="flex items-center space-x-1">
@@ -501,13 +459,10 @@ const JobSeekersPage = () => {
       key: 'gender',
       label: 'Gender',
       render: (jobSeeker) => {
-        console.log('👥 Rendering gender for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
         // Properly access nested profile data
         const gender = jobSeeker.profile?.gender || jobSeeker.gender || 'Not specified';
-        
-        console.log('👥 Gender data:', gender);
         
         return (
           <Badge 
@@ -523,11 +478,9 @@ const JobSeekersPage = () => {
       key: 'createdAt',
       label: 'Registered',
       render: (jobSeeker) => {
-        console.log('📅 Rendering date for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
         const date = jobSeeker.createdAt;
-        console.log('📅 Date data:', date);
         
         return (
           <div className="flex items-center space-x-1">
@@ -541,7 +494,6 @@ const JobSeekersPage = () => {
       key: 'actions',
       label: 'Actions',
       render: (jobSeeker) => {
-        console.log('⚡ Rendering actions for job seeker:', jobSeeker);
         if (!jobSeeker) return <div className="text-gray-500">No actions</div>;
         
         return (
@@ -602,17 +554,10 @@ const JobSeekersPage = () => {
     );
   }
 
-  console.log('🎯 JobSeekersPage - Rendering with data:', {
-    jobSeekers,
-    totalItems,
-    loading,
-    error
-  });
-
   // Debug: Log the first job seeker to see the structure
   if (jobSeekers.length > 0) {
-    console.log('🔍 First job seeker data:', jobSeekers[0]);
-    console.log('🔍 First job seeker profile:', jobSeekers[0]?.profile);
+    // console.log('🔍 First job seeker data:', jobSeekers[0]);
+    // console.log('🔍 First job seeker profile:', jobSeekers[0]?.profile);
   }
 
   return (
@@ -703,14 +648,6 @@ const JobSeekersPage = () => {
       {/* Add Job Seeker Modal */}
       {showAddForm && (
         <>
-          {(() => {
-            console.log('🔍 Add Modal Debug:', {
-              showAddForm,
-              jobCategories,
-              isEdit: false
-            });
-            return null;
-          })()}
           <AddJobSeekerForm
             isOpen={showAddForm}
             onClose={() => setShowAddForm(false)}
@@ -728,15 +665,6 @@ const JobSeekersPage = () => {
       {/* Edit Job Seeker Modal */}
       {showEditModal && selectedJobSeeker && (
         <>
-          {(() => {
-            console.log('🔍 Edit Modal - selectedJobSeeker:', selectedJobSeeker);
-            console.log('🔍 Edit Modal - selectedJobSeeker.profile:', selectedJobSeeker.profile);
-            console.log('🔍 Edit Modal - firstName:', selectedJobSeeker.profile?.firstName, typeof selectedJobSeeker.profile?.firstName);
-            console.log('🔍 Edit Modal - lastName:', selectedJobSeeker.profile?.lastName, typeof selectedJobSeeker.profile?.lastName);
-            console.log('🔍 Edit Modal - skills:', selectedJobSeeker.profile?.skills, typeof selectedJobSeeker.profile?.skills);
-            console.log('🔍 Edit Modal - country:', selectedJobSeeker.profile?.country, typeof selectedJobSeeker.profile?.country);
-            return null;
-          })()}
           <AddJobSeekerForm
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}
@@ -747,56 +675,31 @@ const JobSeekersPage = () => {
             languageLevels={languageLevels}
             jobCategories={jobCategories}
             initialData={{
-              firstName: typeof selectedJobSeeker.profile?.firstName === 'string' ? selectedJobSeeker.profile.firstName : 
-                        typeof selectedJobSeeker.firstName === 'string' ? selectedJobSeeker.firstName : '',
-              lastName: typeof selectedJobSeeker.profile?.lastName === 'string' ? selectedJobSeeker.profile.lastName : 
-                       typeof selectedJobSeeker.lastName === 'string' ? selectedJobSeeker.lastName : '',
-              email: typeof selectedJobSeeker.email === 'string' ? selectedJobSeeker.email : '',
-              contactNumber: typeof selectedJobSeeker.profile?.contactNumber === 'string' ? selectedJobSeeker.profile.contactNumber : 
-                            typeof selectedJobSeeker.contactNumber === 'string' ? selectedJobSeeker.contactNumber : '',
-              description: typeof selectedJobSeeker.profile?.description === 'string' ? selectedJobSeeker.profile.description : 
-                          typeof selectedJobSeeker.description === 'string' ? selectedJobSeeker.description : '',
-              skills: typeof selectedJobSeeker.profile?.skills === 'string' ? selectedJobSeeker.profile.skills : 
-                     typeof selectedJobSeeker.skills === 'string' ? selectedJobSeeker.skills : '',
-              gender: typeof selectedJobSeeker.profile?.gender === 'string' ? selectedJobSeeker.profile.gender : 
-                     typeof selectedJobSeeker.gender === 'string' ? selectedJobSeeker.gender : '',
+              firstName: selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || '',
+              lastName: selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || '',
+              email: selectedJobSeeker.email || '',
+              contactNumber: selectedJobSeeker.profile?.contactNumber || selectedJobSeeker.contactNumber || '',
+              description: selectedJobSeeker.profile?.description || selectedJobSeeker.description || '',
+              skills: selectedJobSeeker.profile?.skills || selectedJobSeeker.skills || '',
+              gender: selectedJobSeeker.profile?.gender || selectedJobSeeker.gender || '',
               dateOfBirth: selectedJobSeeker.profile?.dateOfBirth ? 
                 new Date(selectedJobSeeker.profile.dateOfBirth).toISOString().split('T')[0] : '',
-              idNumber: typeof selectedJobSeeker.profile?.idNumber === 'string' ? selectedJobSeeker.profile.idNumber : '',
-              maritalStatus: typeof selectedJobSeeker.profile?.maritalStatus === 'string' ? selectedJobSeeker.profile.maritalStatus : '',
-              location: typeof selectedJobSeeker.profile?.location === 'string' ? selectedJobSeeker.profile.location : 
-                       typeof selectedJobSeeker.location === 'string' ? selectedJobSeeker.location : '',
-              city: typeof selectedJobSeeker.profile?.city === 'string' ? selectedJobSeeker.profile.city : '',
-              country: typeof selectedJobSeeker.profile?.country === 'string' ? selectedJobSeeker.profile.country : 'Rwanda',
-              references: typeof selectedJobSeeker.profile?.references === 'string' ? selectedJobSeeker.profile.references : '',
-              experience: typeof selectedJobSeeker.profile?.experience === 'string' ? selectedJobSeeker.profile.experience : 
-                         typeof selectedJobSeeker.experience === 'string' ? selectedJobSeeker.experience : '',
+              idNumber: selectedJobSeeker.profile?.idNumber || '',
+              maritalStatus: selectedJobSeeker.profile?.maritalStatus || '',
+              location: selectedJobSeeker.profile?.location || selectedJobSeeker.location || '',
+              city: selectedJobSeeker.profile?.city || '',
+              country: selectedJobSeeker.profile?.country || 'Rwanda',
+              references: selectedJobSeeker.profile?.references || '',
+              experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
               monthlyRate: selectedJobSeeker.profile?.monthlyRate ? selectedJobSeeker.profile.monthlyRate.toString() : '',
               jobCategoryId: selectedJobSeeker.profile?.jobCategoryId ? selectedJobSeeker.profile.jobCategoryId.toString() : '',
-              jobCategoryName: typeof selectedJobSeeker.profile?.jobCategory?.name_en === 'string' ? selectedJobSeeker.profile.jobCategory.name_en : ''
+              jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || ''
             }}
             isEdit={true}
           />
         </>
       )}
       
-      {(() => {
-        console.log('🔍 Edit Modal Debug:', {
-          showEditModal,
-          jobCategories,
-          selectedJobSeeker: selectedJobSeeker ? {
-            id: selectedJobSeeker.id,
-            email: selectedJobSeeker.email,
-            profile: selectedJobSeeker.profile,
-            jobCategory: selectedJobSeeker.profile?.jobCategory,
-            jobCategoryId: selectedJobSeeker.profile?.jobCategoryId,
-            jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en
-          } : null,
-          initialDataJobCategoryId: selectedJobSeeker?.profile?.jobCategoryId
-        });
-        return null;
-      })()}
-
       {/* Job Seeker Details Modal */}
       {showDetailsModal && selectedJobSeeker && (
         <Modal
@@ -805,11 +708,6 @@ const JobSeekersPage = () => {
           title="Job Seeker Details"
           size="lg"
         >
-          {(() => {
-            console.log('🔍 Modal - selectedJobSeeker:', selectedJobSeeker);
-            console.log('🔍 Modal - selectedJobSeeker.profile:', selectedJobSeeker.profile);
-            return null;
-          })()}
           
           <div className="space-y-6">
             {/* Basic Information */}
