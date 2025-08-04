@@ -45,7 +45,48 @@ const AddJobSeekerForm = ({
   // Reset form when modal opens/closes or initialData changes
   useEffect(() => {
     if (isOpen) {
-      setFormData({
+      console.log('🔍 Form initialization - isEdit:', isEdit);
+      console.log('🔍 Form initialization - initialData:', initialData);
+      
+      // For edit mode, use the provided initialData
+      // For add mode, use empty values
+      const defaultData = isEdit ? initialData : {};
+      
+      console.log('🔍 Form initialization - defaultData:', defaultData);
+      
+      const newFormData = {
+        firstName: defaultData.firstName || '',
+        lastName: defaultData.lastName || '',
+        email: defaultData.email || '',
+        contactNumber: defaultData.contactNumber || '',
+        description: defaultData.description || '',
+        skills: defaultData.skills || '',
+        gender: defaultData.gender || '',
+        dateOfBirth: defaultData.dateOfBirth || '',
+        idNumber: defaultData.idNumber || '',
+        maritalStatus: defaultData.maritalStatus || '',
+        location: defaultData.location || '',
+        city: defaultData.city || '',
+        country: defaultData.country || 'Rwanda',
+        references: defaultData.references || '',
+        experience: defaultData.experience || '',
+        monthlyRate: defaultData.monthlyRate || '',
+        jobCategoryId: defaultData.jobCategoryId || ''
+      };
+      
+      console.log('🔍 Form initialization - newFormData:', newFormData);
+      
+      setFormData(newFormData);
+      setErrors({});
+    }
+  }, [isOpen, isEdit]); // Removed initialData from dependencies to prevent re-initialization
+
+  // Handle initialData changes for edit mode only
+  useEffect(() => {
+    if (isOpen && isEdit && initialData) {
+      console.log('🔍 Edit mode - updating form with initialData:', initialData);
+      setFormData(prev => ({
+        ...prev,
         firstName: initialData.firstName || '',
         lastName: initialData.lastName || '',
         email: initialData.email || '',
@@ -63,10 +104,9 @@ const AddJobSeekerForm = ({
         experience: initialData.experience || '',
         monthlyRate: initialData.monthlyRate || '',
         jobCategoryId: initialData.jobCategoryId || ''
-      });
-      setErrors({});
+      }));
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, isEdit, initialData]);
 
   // Get the selected job category name for display
   const getSelectedJobCategoryName = () => {
@@ -77,26 +117,44 @@ const AddJobSeekerForm = ({
 
   // Handle input changes
   const handleInputChange = (e) => {
-    // Extract data from event object
-    const { name, value, type, checked } = e.target;
+    console.log('🔍 handleInputChange called:', e);
+    
+    // Handle both event objects and direct values
+    let fieldName, fieldValue;
+    
+    if (e && e.target) {
+      // Event object
+      const { name, value, type, checked } = e.target;
+      fieldName = name;
+      fieldValue = type === 'checkbox' ? checked : value;
+    } else {
+      // Direct value (fallback)
+      console.warn('Received non-event object:', e);
+      return;
+    }
+    
+    console.log('🔍 Processing field:', fieldName, 'with value:', fieldValue);
     
     // Ensure we're working with strings for text inputs
-    let fieldValue = value;
     if (typeof fieldValue === 'object' && fieldValue !== null) {
-      console.warn(`Field ${name} received object instead of string:`, fieldValue);
+      console.warn(`Field ${fieldName} received object instead of string:`, fieldValue);
       fieldValue = '';
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : fieldValue
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [fieldName]: fieldValue
+      };
+      console.log('🔍 Updated formData:', newData);
+      return newData;
+    });
     
     // Clear error when user starts typing
-    if (errors[name]) {
+    if (errors[fieldName]) {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        [fieldName]: ''
       }));
     }
   };
@@ -130,6 +188,9 @@ const AddJobSeekerForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log('🔍 Form submission - isEdit:', isEdit);
+    console.log('🔍 Form submission - formData:', formData);
+
     if (validateForm()) {
       setIsLoading(true);
       
@@ -154,6 +215,8 @@ const AddJobSeekerForm = ({
           monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : null,
           jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId) : null
         };
+
+        console.log('🔍 Form submission - jobSeekerData:', jobSeekerData);
 
         await onSubmit(jobSeekerData);
         
@@ -219,6 +282,20 @@ const AddJobSeekerForm = ({
       size="lg"
     >
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Debug Test Input */}
+      <div className="bg-yellow-100 p-2 rounded">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Debug Test</label>
+        <input
+          type="text"
+          value={formData.firstName}
+          onChange={handleInputChange}
+          name="firstName"
+          className="w-full p-2 border rounded"
+          placeholder="Test typing here"
+        />
+        <p className="text-xs text-gray-600">Current value: {formData.firstName}</p>
+      </div>
+      
       {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormInput

@@ -702,16 +702,27 @@ const JobSeekersPage = () => {
 
       {/* Add Job Seeker Modal */}
       {showAddForm && (
-        <AddJobSeekerForm
-          isOpen={showAddForm}
-          onClose={() => setShowAddForm(false)}
-          onSubmit={handleAddJobSeeker}
-          educationLevels={educationLevels}
-          availabilityOptions={availabilityOptions}
-          skillsData={skillsData}
-          languageLevels={languageLevels}
-          jobCategories={jobCategories}
-        />
+        <>
+          {(() => {
+            console.log('🔍 Add Modal Debug:', {
+              showAddForm,
+              jobCategories,
+              isEdit: false
+            });
+            return null;
+          })()}
+          <AddJobSeekerForm
+            isOpen={showAddForm}
+            onClose={() => setShowAddForm(false)}
+            onSubmit={handleAddJobSeeker}
+            educationLevels={educationLevels}
+            availabilityOptions={availabilityOptions}
+            skillsData={skillsData}
+            languageLevels={languageLevels}
+            jobCategories={jobCategories}
+            isEdit={false}
+          />
+        </>
       )}
 
       {/* Edit Job Seeker Modal */}
