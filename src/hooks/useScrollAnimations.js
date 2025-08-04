@@ -282,19 +282,45 @@ export const useScrollAnimations = () => {
   };
 
   useEffect(() => {
+    console.log('useScrollAnimations: useEffect triggered');
+
+    // Wait for GSAP to be available and DOM to be ready
     const checkGSAPAndInit = () => {
-      if (gsap && ScrollTrigger) {
-        // Initialize all animations
-        initStaggerAnimation();
-        initTextReveal();
-        initFloatingStats();
-        initParallaxEffect();
-        initCounterAnimation();
-        initWaveAnimation();
-        initFeaturesAnimation();
-      } else {
-        // Retry after a short delay
+      if (!gsap) {
+        console.log('useScrollAnimations: GSAP not ready yet, retrying in 100ms');
         setTimeout(checkGSAPAndInit, 100);
+        return;
+      }
+
+      // Wait for DOM to be fully loaded
+      if (document.readyState !== 'complete') {
+        console.log('useScrollAnimations: DOM not ready yet, retrying in 100ms');
+        setTimeout(checkGSAPAndInit, 100);
+        return;
+      }
+
+      console.log('useScrollAnimations: GSAP and DOM ready, initializing animations');
+      
+      try {
+        // Initialize all animations with error handling
+        setTimeout(() => {
+          try {
+            initStaggerAnimation();
+            initTextReveal();
+            initFloatingStats();
+            initParallaxEffect();
+            initCounterAnimation();
+            initWaveAnimation();
+            initFeaturesAnimation();
+            
+            console.log('useScrollAnimations: All animations initialized successfully');
+          } catch (error) {
+            console.error('useScrollAnimations: Error initializing animations:', error);
+          }
+        }, 200); // Small delay to ensure DOM is fully rendered
+        
+      } catch (error) {
+        console.error('useScrollAnimations: Error in initialization setup:', error);
       }
     };
 

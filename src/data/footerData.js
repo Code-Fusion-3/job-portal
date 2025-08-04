@@ -55,8 +55,8 @@ export const footerConfig = {
       links: [
         { nameKey: 'nav.home', href: '/', icon: null },
         { nameKey: 'nav.jobSeekers', href: '/job-seekers', icon: null },
-        { nameKey: 'nav.about', href: '#about', icon: null },
-        { nameKey: 'nav.contact', href: '#contact', icon: null },
+        { nameKey: 'nav.about', href: '/about', icon: null },
+        { nameKey: 'nav.contact', href: '/contact', icon: null },
       ],
     },
     {
