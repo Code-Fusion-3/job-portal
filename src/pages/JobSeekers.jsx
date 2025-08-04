@@ -126,10 +126,10 @@ const JobSeekers = () => {
       setLoading(true);
       try {
         const result = await jobSeekerService.getLatestJobSeekers(50); // Get more job seekers for the full page
-        console.log('JobSeekers API Response:', result);
+  
         
         if (result.success) {
-          console.log('JobSeekers Data:', result.data);
+  
           setJobSeekers(result.data || []);
           setFilteredSeekers(result.data || []);
         } else {
@@ -149,7 +149,7 @@ const JobSeekers = () => {
   // Apply filters and search
   useEffect(() => {
     // Temporarily disable filtering to debug data issues
-    console.log('JobSeekers raw data:', jobSeekers);
+
     setFilteredSeekers(jobSeekers);
     
     // TODO: Re-enable filtering once data structure is confirmed
@@ -488,7 +488,7 @@ const JobSeekers = () => {
             }
           >
             {filteredSeekers.map((seeker, index) => {
-              console.log(`Rendering seeker ${index}:`, seeker);
+      
               return (
                 <motion.div
                   key={seeker.id}

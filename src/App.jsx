@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import SessionMonitor from './components/auth/SessionMonitor';
 import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
@@ -16,13 +18,15 @@ import Register from './pages/Register';
 import EmployerRequest from './pages/EmployerRequest';
 import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
+import JobSeekersPage from './pages/dashboard/JobSeekersPage';
+import JobCategoriesPage from './pages/dashboard/JobCategoriesPage';
+import EmployerRequestsPage from './pages/dashboard/EmployerRequestsPage';
+import ReportsPage from './pages/dashboard/ReportsPage';
 import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
 import AboutUsPage from './pages/AboutUs';
 import ContactUsPage from './pages/ContactUs';
 import NotFound from './pages/NotFound';
-import TestServices from './pages/TestServices';
-import TestLogin from './pages/TestLogin';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
@@ -224,37 +228,59 @@ function App() {
     return (
       <ErrorBoundary>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/job-seekers" element={<JobSeekers />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/employer-request/:id" element={<EmployerRequest />} />
-              <Route path="/about" element={<AboutUsPage />} />
+          <LiveUpdateProvider>
+            <Router>
+              <SessionMonitor />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/job-seekers" element={<JobSeekers />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/employer-request/:id" element={<EmployerRequest />} />
+                <Route path="/about" element={<AboutUsPage />} />
               <Route path="/contact" element={<ContactUsPage />} />
               <Route path="/dashboard/jobseeker" element={
-                <ProtectedRoute requiredRole="jobseeker">
-                  <JobSeekerDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/view-profile/:id" element={<ViewProfile />} />
-              <Route path="/update-profile" element={
-                <ProtectedRoute requiredRole="jobseeker">
-                  <UpdateProfile />
-                </ProtectedRoute>
-              } />
-              <Route path="/test-services" element={<TestServices />} />
-              <Route path="/test-login" element={<TestLogin />} />
-              {/* Catch-all route for 404 errors */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Router>
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <JobSeekerDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/jobseekers" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <JobSeekersPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/job-categories" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <JobCategoriesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/employer-requests" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <EmployerRequestsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/reports" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ReportsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/view-profile/:id" element={<ViewProfile />} />
+                <Route path="/update-profile" element={
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <UpdateProfile />
+                  </ProtectedRoute>
+                } />
+           
+                {/* Catch-all route for 404 errors */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </LiveUpdateProvider>
         </AuthProvider>
       </ErrorBoundary>
     );

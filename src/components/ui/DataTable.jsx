@@ -61,8 +61,9 @@ const DataTable = ({
   const paginatedData = pagination ? sortedData.slice(startIndex, endIndex) : sortedData;
 
   const renderCell = (item, column) => {
+    
     if (column.render) {
-      return column.render(item[column.key], item);
+      return column.render(item);
     }
     
     if (column.type === 'badge') {

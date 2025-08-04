@@ -70,7 +70,7 @@ const JobSeekerDashboard = () => {
   }
 
   // Debug logging
-  console.log('🔍 JobSeekerDashboard render:', { user, profile: user?.profile });
+
 
   // Helper functions to map backend data to frontend expectations
   const getUserName = () => {

@@ -65,8 +65,40 @@ export const errorInterceptor = async (error) => {
       console.error('Token refresh failed:', refreshError);
     }
 
+    // Clear auth tokens and redirect to login
     clearAuthTokens();
-    window.location.href = '/login';
+    
+    // Check if we're already on the login page to avoid infinite redirects
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login?session=expired';
+    }
+    
+    return Promise.reject(error);
+  }
+
+  // Handle 403 Forbidden (insufficient permissions)
+  if (error.response?.status === 403) {
+    console.warn('Access forbidden - insufficient permissions');
+    // Redirect to appropriate dashboard based on user role
+    const token = getAuthToken();
+    if (token) {
+      try {
+        // Try to decode token to get user role (basic implementation)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userRole = payload.role;
+        const dashboardPath = userRole === 'admin' ? '/dashboard/admin' : '/dashboard/jobseeker';
+        
+        if (window.location.pathname !== dashboardPath) {
+          window.location.href = dashboardPath;
+        }
+      } catch (decodeError) {
+        console.error('Error decoding token:', decodeError);
+        window.location.href = '/login';
+      }
+    } else {
+      window.location.href = '/login';
+    }
+    
     return Promise.reject(error);
   }
 

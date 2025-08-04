@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-console.log('useScrollAnimations: Starting to import GSAP');
+
 
 let gsap, ScrollTrigger;
 
@@ -14,7 +14,6 @@ try {
     
     if (gsap && ScrollTrigger) {
       gsap.registerPlugin(ScrollTrigger);
-      console.log('useScrollAnimations: GSAP and ScrollTrigger registered successfully');
     }
   }).catch(error => {
     console.error('useScrollAnimations: Error importing GSAP modules:', error);
@@ -26,8 +25,6 @@ try {
 export const useScrollAnimations = () => {
   const containerRef = useRef(null);
 
-  console.log('useScrollAnimations: Hook initialized');
-
   // Stagger animation for job seeker cards
   const initStaggerAnimation = () => {
     if (!gsap) {
@@ -37,10 +34,8 @@ export const useScrollAnimations = () => {
 
     try {
       const jobSeekerCards = document.querySelectorAll('.job-seeker-card');
-      console.log('useScrollAnimations: No job seeker cards found for stagger animation');
       
       if (jobSeekerCards.length === 0) {
-        console.log('useScrollAnimations: No job seeker cards found, skipping stagger animation');
         return;
       }
 
@@ -79,10 +74,8 @@ export const useScrollAnimations = () => {
 
     try {
       const textElements = document.querySelectorAll('.text-reveal');
-      console.log('useScrollAnimations: Initializing text reveal for', textElements.length, 'elements');
       
       if (textElements.length === 0) {
-        console.log('useScrollAnimations: No text reveal elements found, skipping text reveal');
         return;
       }
 
@@ -101,8 +94,8 @@ export const useScrollAnimations = () => {
             ease: 'power2.out',
             scrollTrigger: {
               trigger: element,
-              start: 'top 85%',
-              end: 'bottom 15%',
+              start: 'top 80%',
+              end: 'bottom 20%',
               toggleActions: 'play none none reverse'
             }
           }
@@ -122,10 +115,8 @@ export const useScrollAnimations = () => {
 
     try {
       const statElements = document.querySelectorAll('.floating-stat');
-      console.log('useScrollAnimations: Initializing floating stats for', statElements.length, 'elements');
       
       if (statElements.length === 0) {
-        console.log('useScrollAnimations: No floating stat elements found, skipping floating stats');
         return;
       }
 
@@ -138,8 +129,8 @@ export const useScrollAnimations = () => {
           repeat: -1,
           scrollTrigger: {
             trigger: element,
-            start: 'top 85%',
-            end: 'bottom 15%',
+            start: 'top 90%',
+            end: 'bottom 10%',
             toggleActions: 'play none none reverse'
           }
         });
@@ -152,19 +143,19 @@ export const useScrollAnimations = () => {
   // Parallax effect for hero section
   const initParallaxEffect = () => {
     if (!gsap) {
-      console.warn('useScrollAnimations: GSAP not available, skipping parallax effect');
+      console.warn('useScrollAnimations: GSAP not available, skipping parallax');
       return;
     }
 
     try {
       const heroSection = document.querySelector('.hero-section');
+      
       if (!heroSection) {
-        console.log('useScrollAnimations: Hero section not found for parallax effect');
         return;
       }
 
       gsap.to(heroSection, {
-        yPercent: -20,
+        yPercent: -50,
         ease: 'none',
         scrollTrigger: {
           trigger: heroSection,
@@ -186,11 +177,9 @@ export const useScrollAnimations = () => {
     }
 
     try {
-      const counterElements = document.querySelectorAll('.counter');
-      console.log('useScrollAnimations: Initializing counter animation for', counterElements.length, 'elements');
+      const counterElements = document.querySelectorAll('.counter-animation');
       
       if (counterElements.length === 0) {
-        console.log('useScrollAnimations: No counter elements found, skipping counter animation');
         return;
       }
 
@@ -207,8 +196,8 @@ export const useScrollAnimations = () => {
             snap: { textContent: 1 },
             scrollTrigger: {
               trigger: element,
-              start: 'top 85%',
-              end: 'bottom 15%',
+              start: 'top 80%',
+              end: 'bottom 20%',
               toggleActions: 'play none none reverse'
             }
           }
@@ -228,25 +217,21 @@ export const useScrollAnimations = () => {
 
     try {
       const waveElements = document.querySelectorAll('.wave-animation');
-      console.log('useScrollAnimations: Initializing wave animation for', waveElements.length, 'elements');
       
       if (waveElements.length === 0) {
-        console.log('useScrollAnimations: No wave elements found, skipping wave animation');
         return;
       }
 
-      waveElements.forEach((element, index) => {
+      waveElements.forEach(element => {
         gsap.to(element, {
-          y: -20,
-          duration: 2,
-          ease: 'power2.inOut',
-          yoyo: true,
+          rotation: 360,
+          duration: 20,
+          ease: 'none',
           repeat: -1,
-          delay: index * 0.3,
           scrollTrigger: {
             trigger: element,
-            start: 'top 85%',
-            end: 'bottom 15%',
+            start: 'top 90%',
+            end: 'bottom 10%',
             toggleActions: 'play none none reverse'
           }
         });
@@ -265,18 +250,15 @@ export const useScrollAnimations = () => {
 
     try {
       const featureCards = document.querySelectorAll('.feature-card');
-      console.log('useScrollAnimations: Initializing features animation for', featureCards.length, 'cards');
       
-      // Only animate if feature cards exist
       if (featureCards.length === 0) {
-        console.log('useScrollAnimations: No feature cards found, skipping features animation');
         return;
       }
 
       gsap.fromTo(featureCards,
         {
           opacity: 0,
-          y: 60,
+          y: 50,
           scale: 0.9
         },
         {
@@ -287,9 +269,9 @@ export const useScrollAnimations = () => {
           stagger: 0.2,
           ease: 'power2.out',
           scrollTrigger: {
-            trigger: '.feature-card',
-            start: 'top 85%',
-            end: 'bottom 15%',
+            trigger: '.features-section',
+            start: 'top 80%',
+            end: 'bottom 20%',
             toggleActions: 'play none none reverse'
           }
         }
@@ -347,16 +329,11 @@ export const useScrollAnimations = () => {
 
     // Cleanup function
     return () => {
-      console.log('useScrollAnimations: Cleaning up animations');
-      try {
         if (ScrollTrigger) {
           ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-        }
-      } catch (error) {
-        console.error('useScrollAnimations: Error during cleanup:', error);
       }
     };
   }, []);
 
-  return { containerRef };
+  return containerRef;
 }; 

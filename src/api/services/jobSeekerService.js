@@ -67,6 +67,8 @@ export const jobSeekerService = {
    */
   getAllJobSeekers: async (params = {}) => {
     try {
+      console.log('🔍 getAllJobSeekers called with params:', params);
+      
       const { page = 1, limit = 10, ...otherParams } = params;
       
       const queryParams = new URLSearchParams({
@@ -75,16 +77,28 @@ export const jobSeekerService = {
         ...otherParams
       });
 
+      console.log('🔗 Making API call to:', `/profile/all?${queryParams}`);
+
       const response = await apiClient.get(`/profile/all?${queryParams}`, {
         headers: getAuthHeaders()
       });
 
-      return {
+      console.log('📊 Raw API response:', response);
+      console.log('📊 Response data:', response.data);
+
+      // Backend returns { users: [...], pagination: {...} }
+      const result = {
         success: true,
-        data: response.data.users,
-        pagination: response.data.pagination
+        data: response.data.users || [],
+        pagination: response.data.pagination || {}
       };
+      
+      console.log('✅ Processed result:', result);
+      return result;
     } catch (error) {
+      console.error('❌ getAllJobSeekers error:', error);
+      console.error('❌ Error response:', error.response);
+      
       // Handle specific backend error cases
       if (error.response?.data?.error) {
         return { success: false, error: error.response.data.error };

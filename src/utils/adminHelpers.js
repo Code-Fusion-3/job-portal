@@ -1,14 +1,30 @@
 // Utility functions for Admin Dashboard
 
 export const getStatusColor = (status) => {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case 'pending': return 'text-orange-600 bg-orange-50 border-orange-200';
     case 'in_progress': return 'text-blue-600 bg-blue-50 border-blue-200';
-    case 'completed': return 'text-green-600 bg-green-50 border-green-200';
+    case 'approved': return 'text-green-600 bg-green-50 border-green-200';
+    case 'completed': return 'text-purple-600 bg-purple-50 border-purple-200';
+    case 'cancelled': return 'text-red-600 bg-red-50 border-red-200';
     case 'rejected': return 'text-red-600 bg-red-50 border-red-200';
     case 'active': return 'text-green-600 bg-green-50 border-green-200';
     case 'inactive': return 'text-gray-600 bg-gray-50 border-gray-200';
     default: return 'text-gray-600 bg-gray-50 border-gray-200';
+  }
+};
+
+export const getStatusLabel = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'pending': return 'Pending';
+    case 'in_progress': return 'In Progress';
+    case 'approved': return 'Approved';
+    case 'completed': return 'Completed';
+    case 'cancelled': return 'Cancelled';
+    case 'rejected': return 'Rejected';
+    case 'active': return 'Active';
+    case 'inactive': return 'Inactive';
+    default: return status || 'Unknown';
   }
 };
 

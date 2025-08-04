@@ -7,6 +7,8 @@ const Card = forwardRef(({
   variant = 'default',
   hover = true,
   animation = true,
+  title,
+  subtitle,
   ...props 
 }, ref) => {
   const baseClasses = 'bg-white rounded-xl shadow-lg transition-all duration-300 overflow-hidden flex flex-col';
@@ -31,7 +33,23 @@ const Card = forwardRef(({
       whileTap={animation ? { scale: 0.98 } : {}}
       {...props}
     >
-      {children}
+      {(title || subtitle) && (
+        <div className="p-6 pb-4 border-b border-gray-100">
+          {title && (
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              {title}
+            </h3>
+          )}
+          {subtitle && (
+            <p className="text-sm text-gray-600">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
+      <div className={title || subtitle ? 'p-6 pt-4' : 'p-6'}>
+        {children}
+      </div>
     </Component>
   );
 });

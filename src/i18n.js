@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-console.log('i18n.js: Starting i18n configuration');
+
 
 const resources = {
   en: {
@@ -808,7 +808,7 @@ const resources = {
   }
 };
 
-console.log('i18n.js: Resources defined, initializing i18n');
+
 
 try {
   i18n
@@ -823,7 +823,7 @@ try {
       debug: true, // Enable debug mode to see what's happening
     })
     .then(() => {
-      console.log('i18n.js: i18n initialized successfully');
+      
     })
     .catch((error) => {
       console.error('i18n.js: Error initializing i18n:', error);
