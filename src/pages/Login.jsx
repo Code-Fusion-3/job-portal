@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../api/hooks/useAuth.js';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
@@ -27,6 +27,20 @@ const Login = () => {
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [sessionMessage, setSessionMessage] = useState('');
+
+  // Check for session expiration message
+  useEffect(() => {
+    if (location.state?.message) {
+      setSessionMessage(location.state.message);
+      // Clear the message from location state
+      navigate(location.pathname, { replace: true });
+    } else if (location.search.includes('session=expired')) {
+      setSessionMessage('Your session has expired. Please log in again.');
+      // Clear the URL parameter
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, location.search, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -105,6 +119,20 @@ const Login = () => {
         subtitle={t('login.subtitle', 'Sign in to your account to continue')}
         onSubmit={handleSubmit}
       >
+        {/* Session Expiration Message */}
+        {sessionMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6"
+          >
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              <span className="text-yellow-700">{sessionMessage}</span>
+            </div>
+          </motion.div>
+        )}
+
         {errors.general && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-red-600 text-sm">{errors.general}</p>

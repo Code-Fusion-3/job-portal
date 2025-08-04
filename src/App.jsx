@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import SessionMonitor from './components/auth/SessionMonitor';
 import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
@@ -17,6 +18,10 @@ import Register from './pages/Register';
 import EmployerRequest from './pages/EmployerRequest';
 import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
+import JobSeekersPage from './pages/dashboard/JobSeekersPage';
+import JobCategoriesPage from './pages/dashboard/JobCategoriesPage';
+import EmployerRequestsPage from './pages/dashboard/EmployerRequestsPage';
+import ReportsPage from './pages/dashboard/ReportsPage';
 import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
 import NotFound from './pages/NotFound';
@@ -248,6 +253,7 @@ function App() {
         <AuthProvider>
           <LiveUpdateProvider>
             <Router>
+              <SessionMonitor />
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/job-seekers" element={<JobSeekers />} />
@@ -262,6 +268,26 @@ function App() {
                 <Route path="/dashboard/admin" element={
                   <ProtectedRoute requiredRole="admin">
                     <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/jobseekers" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <JobSeekersPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/job-categories" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <JobCategoriesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/employer-requests" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <EmployerRequestsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/reports" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ReportsPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/view-profile/:id" element={<ViewProfile />} />

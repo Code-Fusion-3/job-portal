@@ -78,7 +78,7 @@ export const jobSeekerService = {
       });
 
       console.log('🔗 Making API call to:', `/profile/all?${queryParams}`);
-      
+
       const response = await apiClient.get(`/profile/all?${queryParams}`, {
         headers: getAuthHeaders()
       });

@@ -97,11 +97,42 @@ export const useJobSeekers = (options = {}) => {
       const result = await jobSeekerService.updateJobSeeker(id, updateData);
       if (result.success) {
         console.log('✅ Job seeker updated:', result.data);
-        // Update the local state
+        // Update the local state with proper data merging
         setJobSeekers(prev => 
-          prev.map(seeker => 
-            seeker.id === id ? { ...seeker, ...result.data } : seeker
-          )
+          prev.map(seeker => {
+            if (seeker.id === id) {
+              // Merge the updated data properly
+              const updatedSeeker = { ...seeker };
+              
+              // Update main job seeker fields
+              if (result.data.email) updatedSeeker.email = result.data.email;
+              if (result.data.createdAt) updatedSeeker.createdAt = result.data.createdAt;
+              if (result.data.updatedAt) updatedSeeker.updatedAt = result.data.updatedAt;
+              
+              // Update profile fields
+              if (result.data.profile) {
+                updatedSeeker.profile = { ...seeker.profile, ...result.data.profile };
+              } else {
+                // If profile data is at the top level, merge it into profile
+                const profileFields = ['firstName', 'lastName', 'contactNumber', 'description', 
+                                     'skills', 'gender', 'dateOfBirth', 'idNumber', 'maritalStatus',
+                                     'location', 'city', 'country', 'references', 'experience',
+                                     'monthlyRate', 'jobCategoryId', 'jobCategory'];
+                
+                if (!updatedSeeker.profile) updatedSeeker.profile = {};
+                
+                profileFields.forEach(field => {
+                  if (result.data[field] !== undefined) {
+                    updatedSeeker.profile[field] = result.data[field];
+                  }
+                });
+              }
+              
+              console.log('🔄 Updated seeker data:', updatedSeeker);
+              return updatedSeeker;
+            }
+            return seeker;
+          })
         );
         return { success: true, data: result.data };
       } else {

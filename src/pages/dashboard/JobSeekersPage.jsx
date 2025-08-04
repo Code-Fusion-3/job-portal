@@ -23,7 +23,8 @@ import {
   GraduationCap,
   Languages,
   Award,
-  AlertCircle
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
@@ -102,6 +103,10 @@ const JobSeekersPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [jobCategories, setJobCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
 
   // Fetch job categories from backend
   useEffect(() => {
@@ -200,6 +205,28 @@ const JobSeekersPage = () => {
     }
   }, [authLoading, isAuthenticated, user]);
 
+  // Auto-hide success message
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+        setSuccessMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess]);
+
+  // Auto-hide error message
+  useEffect(() => {
+    if (showError) {
+      const timer = setTimeout(() => {
+        setShowError(false);
+        setErrorMessage('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showError]);
+
   // Handle search change
   const handleSearchChange = (value) => {
     console.log('🔍 Search changed:', value);
@@ -264,12 +291,15 @@ const JobSeekersPage = () => {
       const result = await createJobSeeker(jobSeekerData);
       if (result.success) {
         setShowAddForm(false);
-        alert('Job seeker created successfully!');
+        setSuccessMessage('Job seeker created successfully!');
+        setShowSuccess(true);
       } else {
-        alert(`Error: ${result.error}`);
+        setErrorMessage(`Error: ${result.error}`);
+        setShowError(true);
       }
     } catch (error) {
-      alert('Failed to create job seeker');
+      setErrorMessage('Failed to create job seeker');
+      setShowError(true);
       console.error('Create job seeker error:', error);
     }
   };
@@ -284,12 +314,15 @@ const JobSeekersPage = () => {
       if (result.success) {
         setShowEditModal(false);
         setSelectedJobSeeker(null);
-        alert('Job seeker updated successfully!');
+        setSuccessMessage('Job seeker updated successfully!');
+        setShowSuccess(true);
       } else {
-        alert(`Error: ${result.error}`);
+        setErrorMessage(`Error: ${result.error}`);
+        setShowError(true);
       }
     } catch (error) {
-      alert('Failed to update job seeker');
+      setErrorMessage('Failed to update job seeker');
+      setShowError(true);
       console.error('Update job seeker error:', error);
     }
   };
@@ -304,12 +337,15 @@ const JobSeekersPage = () => {
       if (result.success) {
         setShowDeleteModal(false);
         setSelectedJobSeeker(null);
-        alert('Job seeker deleted successfully!');
+        setSuccessMessage('Job seeker deleted successfully!');
+        setShowSuccess(true);
       } else {
-        alert(`Error: ${result.error}`);
+        setErrorMessage(`Error: ${result.error}`);
+        setShowError(true);
       }
     } catch (error) {
-      alert('Failed to delete job seeker');
+      setErrorMessage('Failed to delete job seeker');
+      setShowError(true);
       console.error('Delete job seeker error:', error);
     }
   };
@@ -595,6 +631,36 @@ const JobSeekersPage = () => {
         </Button>
       </div>
 
+      {/* Success Notification */}
+      {showSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="bg-green-50 border border-green-200 rounded-lg p-4"
+        >
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <span className="text-green-700">{successMessage}</span>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Error Notification */}
+      {showError && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="bg-red-50 border border-red-200 rounded-lg p-4"
+        >
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <span className="text-red-700">{errorMessage}</span>
+          </div>
+        </motion.div>
+      )}
+
       {/* Search and Filters */}
       <Pagination
         pagination={{
@@ -650,38 +716,57 @@ const JobSeekersPage = () => {
 
       {/* Edit Job Seeker Modal */}
       {showEditModal && selectedJobSeeker && (
-        <AddJobSeekerForm
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          onSubmit={handleUpdateJobSeeker}
-          educationLevels={educationLevels}
-          availabilityOptions={availabilityOptions}
-          skillsData={skillsData}
-          languageLevels={languageLevels}
-          jobCategories={jobCategories}
-          initialData={{
-            firstName: selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || '',
-            lastName: selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || '',
-            email: selectedJobSeeker.email || '',
-            contactNumber: selectedJobSeeker.profile?.contactNumber || selectedJobSeeker.contactNumber || '',
-            description: selectedJobSeeker.profile?.description || selectedJobSeeker.description || '',
-            skills: selectedJobSeeker.profile?.skills || selectedJobSeeker.skills || '',
-            gender: selectedJobSeeker.profile?.gender || selectedJobSeeker.gender || '',
-            dateOfBirth: selectedJobSeeker.profile?.dateOfBirth ? 
-              new Date(selectedJobSeeker.profile.dateOfBirth).toISOString().split('T')[0] : '',
-            idNumber: selectedJobSeeker.profile?.idNumber || '',
-            maritalStatus: selectedJobSeeker.profile?.maritalStatus || '',
-            location: selectedJobSeeker.profile?.location || selectedJobSeeker.location || '',
-            city: selectedJobSeeker.profile?.city || '',
-            country: selectedJobSeeker.profile?.country || 'Rwanda',
-            references: selectedJobSeeker.profile?.references || '',
-            experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
-            monthlyRate: selectedJobSeeker.profile?.monthlyRate || '',
-            jobCategoryId: selectedJobSeeker.profile?.jobCategoryId || '',
-            jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || ''
-          }}
-          isEdit={true}
-        />
+        <>
+          {(() => {
+            console.log('🔍 Edit Modal - selectedJobSeeker:', selectedJobSeeker);
+            console.log('🔍 Edit Modal - selectedJobSeeker.profile:', selectedJobSeeker.profile);
+            console.log('🔍 Edit Modal - firstName:', selectedJobSeeker.profile?.firstName, typeof selectedJobSeeker.profile?.firstName);
+            console.log('🔍 Edit Modal - lastName:', selectedJobSeeker.profile?.lastName, typeof selectedJobSeeker.profile?.lastName);
+            console.log('🔍 Edit Modal - skills:', selectedJobSeeker.profile?.skills, typeof selectedJobSeeker.profile?.skills);
+            console.log('🔍 Edit Modal - country:', selectedJobSeeker.profile?.country, typeof selectedJobSeeker.profile?.country);
+            return null;
+          })()}
+          <AddJobSeekerForm
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onSubmit={handleUpdateJobSeeker}
+            educationLevels={educationLevels}
+            availabilityOptions={availabilityOptions}
+            skillsData={skillsData}
+            languageLevels={languageLevels}
+            jobCategories={jobCategories}
+            initialData={{
+              firstName: typeof selectedJobSeeker.profile?.firstName === 'string' ? selectedJobSeeker.profile.firstName : 
+                        typeof selectedJobSeeker.firstName === 'string' ? selectedJobSeeker.firstName : '',
+              lastName: typeof selectedJobSeeker.profile?.lastName === 'string' ? selectedJobSeeker.profile.lastName : 
+                       typeof selectedJobSeeker.lastName === 'string' ? selectedJobSeeker.lastName : '',
+              email: typeof selectedJobSeeker.email === 'string' ? selectedJobSeeker.email : '',
+              contactNumber: typeof selectedJobSeeker.profile?.contactNumber === 'string' ? selectedJobSeeker.profile.contactNumber : 
+                            typeof selectedJobSeeker.contactNumber === 'string' ? selectedJobSeeker.contactNumber : '',
+              description: typeof selectedJobSeeker.profile?.description === 'string' ? selectedJobSeeker.profile.description : 
+                          typeof selectedJobSeeker.description === 'string' ? selectedJobSeeker.description : '',
+              skills: typeof selectedJobSeeker.profile?.skills === 'string' ? selectedJobSeeker.profile.skills : 
+                     typeof selectedJobSeeker.skills === 'string' ? selectedJobSeeker.skills : '',
+              gender: typeof selectedJobSeeker.profile?.gender === 'string' ? selectedJobSeeker.profile.gender : 
+                     typeof selectedJobSeeker.gender === 'string' ? selectedJobSeeker.gender : '',
+              dateOfBirth: selectedJobSeeker.profile?.dateOfBirth ? 
+                new Date(selectedJobSeeker.profile.dateOfBirth).toISOString().split('T')[0] : '',
+              idNumber: typeof selectedJobSeeker.profile?.idNumber === 'string' ? selectedJobSeeker.profile.idNumber : '',
+              maritalStatus: typeof selectedJobSeeker.profile?.maritalStatus === 'string' ? selectedJobSeeker.profile.maritalStatus : '',
+              location: typeof selectedJobSeeker.profile?.location === 'string' ? selectedJobSeeker.profile.location : 
+                       typeof selectedJobSeeker.location === 'string' ? selectedJobSeeker.location : '',
+              city: typeof selectedJobSeeker.profile?.city === 'string' ? selectedJobSeeker.profile.city : '',
+              country: typeof selectedJobSeeker.profile?.country === 'string' ? selectedJobSeeker.profile.country : 'Rwanda',
+              references: typeof selectedJobSeeker.profile?.references === 'string' ? selectedJobSeeker.profile.references : '',
+              experience: typeof selectedJobSeeker.profile?.experience === 'string' ? selectedJobSeeker.profile.experience : 
+                         typeof selectedJobSeeker.experience === 'string' ? selectedJobSeeker.experience : '',
+              monthlyRate: selectedJobSeeker.profile?.monthlyRate ? selectedJobSeeker.profile.monthlyRate.toString() : '',
+              jobCategoryId: selectedJobSeeker.profile?.jobCategoryId ? selectedJobSeeker.profile.jobCategoryId.toString() : '',
+              jobCategoryName: typeof selectedJobSeeker.profile?.jobCategory?.name_en === 'string' ? selectedJobSeeker.profile.jobCategory.name_en : ''
+            }}
+            isEdit={true}
+          />
+        </>
       )}
       
       {(() => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi, userService, API_CONFIG, getAuthToken, isTokenExpired, clearAuthTokens, handleError } from '../api/index.js';
 
 const AuthContext = createContext();
@@ -8,6 +8,24 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sessionValid, setSessionValid] = useState(false);
+
+  // Define logout function first
+  const logout = useCallback(async () => {
+    try {
+      // Call logout API
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout API error:', error);
+      // Continue with logout even if API call fails
+    } finally {
+      // Clear all auth data
+      clearAuthTokens();
+      setUser(null);
+      setError(null);
+      setSessionValid(false);
+    }
+  }, []);
 
   // Check for existing session on app load
   useEffect(() => {
@@ -22,6 +40,7 @@ export const AuthProvider = ({ children }) => {
           const result = await userService.getCurrentUser();
           if (result.success) {
             setUser(result.data);
+            setSessionValid(true);
           } else {
             // Token is invalid or user not found
             console.warn('Token validation failed:', result.error);
@@ -30,27 +49,57 @@ export const AuthProvider = ({ children }) => {
         } else {
           // No valid token, clear any stale data
           clearAuthTokens();
+          setSessionValid(false);
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
         setError('Failed to verify authentication status');
         // Clear all auth data on error
         clearAuthTokens();
+        setSessionValid(false);
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [logout]);
+
+  // Session monitoring effect
+  useEffect(() => {
+    if (!sessionValid || !user) return;
+
+    // Add a delay before starting session monitoring to avoid interfering with login
+    const sessionCheckDelay = setTimeout(() => {
+      const sessionCheckInterval = setInterval(async () => {
+        try {
+          // Only check if we're not on login/register pages
+          if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+            return;
+          }
+          
+          const result = await userService.getCurrentUser();
+          if (!result.success) {
+            console.warn('Session check failed, logging out...');
+            await logout();
+          }
+        } catch (error) {
+          console.error('Session check error:', error);
+          // Don't logout on network errors
+        }
+      }, 120000); // Check every 2 minutes instead of every minute
+
+      return () => clearInterval(sessionCheckInterval);
+    }, 15000); // Wait 15 seconds after successful authentication
+
+    return () => clearTimeout(sessionCheckDelay);
+  }, [sessionValid, user, logout]);
 
   const login = async (email, password, role) => {
     setLoading(true);
     setError(null);
     
     try {
-  
-      
       let loginResult;
       
       if (role === 'admin') {
@@ -59,14 +108,12 @@ export const AuthProvider = ({ children }) => {
         loginResult = await authApi.loginJobSeeker({ email, password });
       }
 
-      
-
       // Login successful, now fetch user data from backend
       const userResult = await userService.getCurrentUser();
       
-      
       if (userResult.success) {
         setUser(userResult.data);
+        setSessionValid(true);
         return { success: true, user: userResult.data };
       } else {
         // Login succeeded but couldn't fetch user data
@@ -97,21 +144,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      // Call logout API
-      await authApi.logout();
-    } catch (error) {
-      console.error('Logout API error:', error);
-      // Continue with logout even if API call fails
-    } finally {
-      // Clear all auth data
-      clearAuthTokens();
-      setUser(null);
-      setError(null);
-    }
-  };
-
   const register = async (userData, photo = null) => {
     setLoading(true);
     setError(null);
@@ -123,6 +155,7 @@ export const AuthProvider = ({ children }) => {
       const userResult = await userService.getCurrentUser();
       if (userResult.success) {
         setUser(userResult.data);
+        setSessionValid(true);
         return { success: true, user: userResult.data };
       } else {
         // Registration succeeded but couldn't fetch user data
@@ -213,9 +246,13 @@ export const AuthProvider = ({ children }) => {
   const refreshToken = async () => {
     try {
       const result = await authApi.refreshToken();
+      if (result.success) {
+        setSessionValid(true);
+      }
       return { success: true, ...result };
     } catch (error) {
       const apiError = handleError(error, { context: 'refresh_token' });
+      setSessionValid(false);
       return { 
         success: false, 
         error: apiError.userMessage,
@@ -229,9 +266,11 @@ export const AuthProvider = ({ children }) => {
       const result = await userService.getCurrentUser();
       if (result.success) {
         setUser(result.data);
+        setSessionValid(true);
         return { success: true, user: result.data };
       } else {
         setError(result.error);
+        setSessionValid(false);
         return { 
           success: false, 
           error: result.error,
@@ -241,6 +280,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       const apiError = handleError(error, { context: 'refresh_user_data' });
       setError(apiError.userMessage);
+      setSessionValid(false);
       return { 
         success: false, 
         error: apiError.userMessage,
@@ -253,6 +293,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     error,
+    sessionValid,
     login,
     logout,
     register,
@@ -260,7 +301,7 @@ export const AuthProvider = ({ children }) => {
     changePassword,
     refreshToken,
     refreshUserData,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && sessionValid,
     isAdmin: user?.role === 'admin',
     isJobSeeker: user?.role === 'jobseeker',
     clearError: () => setError(null)

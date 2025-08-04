@@ -76,17 +76,27 @@ const AddJobSeekerForm = ({
   };
 
   // Handle input changes
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (e) => {
+    // Extract data from event object
+    const { name, value, type, checked } = e.target;
+    
+    // Ensure we're working with strings for text inputs
+    let fieldValue = value;
+    if (typeof fieldValue === 'object' && fieldValue !== null) {
+      console.warn(`Field ${name} received object instead of string:`, fieldValue);
+      fieldValue = '';
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: type === 'checkbox' ? checked : fieldValue
     }));
     
     // Clear error when user starts typing
-    if (errors[field]) {
+    if (errors[name]) {
       setErrors(prev => ({
         ...prev,
-        [field]: ''
+        [name]: ''
       }));
     }
   };
@@ -125,7 +135,7 @@ const AddJobSeekerForm = ({
       
       try {
         // Prepare data in the format expected by the backend
-        const jobSeekerData = {
+      const jobSeekerData = {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -208,50 +218,55 @@ const AddJobSeekerForm = ({
       title={isEdit ? "Edit Job Seeker" : "Add New Job Seeker"}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormInput
-            label="First Name"
-            type="text"
-            value={formData.firstName}
-            onChange={(value) => handleInputChange('firstName', value)}
-            error={errors.firstName}
-            required
-          />
-          <FormInput
-            label="Last Name"
-            type="text"
-            value={formData.lastName}
-            onChange={(value) => handleInputChange('lastName', value)}
-            error={errors.lastName}
-            required
-          />
-          <FormInput
+        <FormInput
+          label="First Name"
+          type="text"
+          name="firstName"
+          value={formData.firstName}
+          onChange={handleInputChange}
+          error={errors.firstName}
+          required
+        />
+        <FormInput
+          label="Last Name"
+          type="text"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleInputChange}
+          error={errors.lastName}
+          required
+        />
+        <FormInput
             label="Email"
-            type="email"
-            value={formData.email}
-            onChange={(value) => handleInputChange('email', value)}
-            error={errors.email}
-            required
-          />
-          <FormInput
-            label="Phone Number"
-            type="tel"
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          error={errors.email}
+          required
+        />
+        <FormInput
+          label="Phone Number"
+          type="tel"
+          name="contactNumber"
             value={formData.contactNumber}
-            onChange={(value) => handleInputChange('contactNumber', value)}
+            onChange={handleInputChange}
             error={errors.contactNumber}
-            required
-          />
-        </div>
+          required
+        />
+      </div>
 
         {/* Personal Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormInput
             label="Gender"
             type="select"
+            name="gender"
             value={formData.gender}
-            onChange={(value) => handleInputChange('gender', value)}
+            onChange={handleInputChange}
             options={[
               { value: '', label: 'Select Gender' },
               { value: 'Male', label: 'Male' },
@@ -262,20 +277,23 @@ const AddJobSeekerForm = ({
           <FormInput
             label="Date of Birth"
             type="date"
+            name="dateOfBirth"
             value={formData.dateOfBirth}
-            onChange={(value) => handleInputChange('dateOfBirth', value)}
+            onChange={handleInputChange}
           />
           <FormInput
             label="ID Number"
             type="text"
+            name="idNumber"
             value={formData.idNumber}
-            onChange={(value) => handleInputChange('idNumber', value)}
+            onChange={handleInputChange}
           />
           <FormInput
             label="Marital Status"
             type="select"
+            name="maritalStatus"
             value={formData.maritalStatus}
-            onChange={(value) => handleInputChange('maritalStatus', value)}
+            onChange={handleInputChange}
             options={[
               { value: '', label: 'Select Status' },
               { value: 'Single', label: 'Single' },
@@ -291,27 +309,31 @@ const AddJobSeekerForm = ({
           <FormInput
             label="Location"
             type="text"
+            name="location"
             value={formData.location}
-            onChange={(value) => handleInputChange('location', value)}
+            onChange={handleInputChange}
             placeholder="e.g., Kigali, Rwanda"
           />
           <FormInput
             label="City"
             type="text"
+            name="city"
             value={formData.city}
-            onChange={(value) => handleInputChange('city', value)}
+            onChange={handleInputChange}
           />
           <FormInput
             label="Country"
             type="text"
+            name="country"
             value={formData.country}
-            onChange={(value) => handleInputChange('country', value)}
+            onChange={handleInputChange}
           />
           <FormInput
             label="Job Category"
             type="select"
+            name="jobCategoryId"
             value={formData.jobCategoryId}
-            onChange={(e) => handleInputChange('jobCategoryId', e.target.value)}
+            onChange={handleInputChange}
             options={[
               { value: '', label: 'Select Category' },
               ...jobCategories.map(category => ({
@@ -320,17 +342,6 @@ const AddJobSeekerForm = ({
               }))
             ]}
           />
-          
-          {/* Debug job category selection */}
-          {(() => {
-            console.log('🔍 Job Category Debug:', {
-              jobCategories,
-              formDataJobCategoryId: formData.jobCategoryId,
-              selectedCategoryName: getSelectedJobCategoryName(),
-              isEdit
-            });
-            return null;
-          })()}
         </div>
 
         {/* Skills and Experience */}
@@ -338,22 +349,25 @@ const AddJobSeekerForm = ({
           <FormInput
             label="Skills"
             type="textarea"
+            name="skills"
             value={formData.skills}
-            onChange={(value) => handleInputChange('skills', value)}
+            onChange={handleInputChange}
             placeholder="e.g., JavaScript, React, Node.js"
           />
           <FormInput
             label="Experience"
             type="textarea"
+            name="experience"
             value={formData.experience}
-            onChange={(value) => handleInputChange('experience', value)}
+            onChange={handleInputChange}
             placeholder="Describe your work experience"
           />
           <FormInput
             label="Description"
             type="textarea"
+            name="description"
             value={formData.description}
-            onChange={(value) => handleInputChange('description', value)}
+            onChange={handleInputChange}
             placeholder="Brief description about yourself"
           />
         </div>
@@ -363,37 +377,39 @@ const AddJobSeekerForm = ({
           <FormInput
             label="Monthly Rate (RWF)"
             type="number"
+            name="monthlyRate"
             value={formData.monthlyRate}
-            onChange={(value) => handleInputChange('monthlyRate', value)}
+            onChange={handleInputChange}
             placeholder="Expected monthly salary"
           />
           <FormInput
             label="References"
             type="textarea"
+            name="references"
             value={formData.references}
-            onChange={(value) => handleInputChange('references', value)}
+            onChange={handleInputChange}
             placeholder="Previous employers or references"
           />
-        </div>
+      </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-4">
-          <Button
-            type="button"
-            variant="outline"
+        <Button
+          type="button"
+          variant="outline"
             onClick={handleCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-          >
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={isLoading}
+        >
             {isLoading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Job Seeker' : 'Create Job Seeker')}
-          </Button>
-        </div>
-      </form>
+        </Button>
+      </div>
+    </form>
     </Modal>
   );
 };
