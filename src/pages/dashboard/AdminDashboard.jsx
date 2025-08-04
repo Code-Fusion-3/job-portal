@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -57,6 +57,10 @@ import {
   getCategoryColor, 
   handleContactEmployer 
 } from '../../utils/adminHelpers';
+import { 
+  MonthlyRegistrationsChart, 
+  RequestStatusChart 
+} from '../../components/ui/Charts';
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -567,24 +571,15 @@ const AdminDashboard = () => {
         </div>
 
         {/* Analytics Section */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Monthly Registrations Chart */}
           <Card title="Monthly Job Seeker Registrations" subtitle="New candidate registration trends by month (showing last 6 months)">
-            {dashboardStatsData.trends?.monthlyRegistrations ? (
-              <div className="space-y-2">
-                {Object.entries(dashboardStatsData.trends.monthlyRegistrations).map(([month, count]) => (
-                  <div key={month} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="font-medium text-gray-900">{month}</span>
-                    <span className="text-sm text-gray-500">{count} registrations</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <BarChart3 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No registration data available</p>
-              </div>
-            )}
+            <MonthlyRegistrationsChart data={dashboardStatsData.trends?.monthlyRegistrations} />
+          </Card>
+
+          {/* Request Status Chart */}
+          <Card title="Request Status Distribution" subtitle="Distribution of requests by status (showing last 7 days)">
+            <RequestStatusChart data={dashboardStatsData.trends?.requestStatusDistribution} />
           </Card>
         </div>
       </div>
