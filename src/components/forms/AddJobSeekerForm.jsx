@@ -12,7 +12,7 @@ const AddJobSeekerForm = ({
   isEdit = false,
   initialData = null
 }) => {
-  // Complete form state with all job seeker profile fields
+  // Complete form state with all job seeker profile fields (removed emergency contacts)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,14 +34,54 @@ const AddJobSeekerForm = ({
     educationLevel: '',
     availability: '',
     languages: '',
-    certifications: '',
-    emergencyContact: '',
-    emergencyPhone: '',
-    emergencyRelationship: ''
+    certifications: ''
   });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Skills selection state
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [customSkill, setCustomSkill] = useState('');
+
+  // Predefined skills options
+  const predefinedSkills = [
+    // Technical Skills
+    'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'PHP', 'Ruby', 'Go', 'Rust',
+    'HTML/CSS', 'TypeScript', 'Angular', 'Vue.js', 'Django', 'Flask', 'Laravel', 'Express.js',
+    'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP',
+    
+    // Professional Skills
+    'Project Management', 'Agile/Scrum', 'Leadership', 'Team Management', 'Communication',
+    'Problem Solving', 'Critical Thinking', 'Time Management', 'Customer Service',
+    
+    // Language Skills
+    'Kinyarwanda', 'English', 'French', 'Swahili', 'German', 'Spanish', 'Chinese', 'Arabic',
+    
+    // Trade Skills
+    'Carpentry', 'Plumbing', 'Electrical Work', 'Masonry', 'Painting', 'Welding', 'Machining',
+    'Gardening', 'Landscaping', 'Cooking', 'Baking', 'Cleaning', 'Housekeeping',
+    
+    // Business Skills
+    'Accounting', 'Bookkeeping', 'Marketing', 'Sales', 'Business Development', 'Financial Analysis',
+    'Human Resources', 'Operations Management', 'Supply Chain Management',
+    
+    // Creative Skills
+    'Graphic Design', 'Web Design', 'Video Editing', 'Photography', 'Content Writing',
+    'Social Media Management', 'Digital Marketing', 'SEO', 'Copywriting',
+    
+    // Healthcare Skills
+    'Nursing', 'Medical Assistance', 'Pharmacy', 'Laboratory Work', 'Patient Care',
+    'Medical Records', 'Health Administration',
+    
+    // Education Skills
+    'Teaching', 'Tutoring', 'Curriculum Development', 'Student Assessment', 'Classroom Management',
+    'Special Education', 'ESL Teaching',
+    
+    // Other Skills
+    'Driving', 'Security', 'Event Planning', 'Tourism', 'Translation', 'Interpretation',
+    'Data Entry', 'Administrative Work', 'Reception', 'Secretarial Work'
+  ];
 
   // Simple input change handler
   const handleInputChange = (e) => {
@@ -54,26 +94,80 @@ const AddJobSeekerForm = ({
     }
   };
 
-  // Validation
+  // Skills selection handlers
+  const handleSkillSelect = (skill) => {
+    if (!selectedSkills.includes(skill)) {
+      setSelectedSkills(prev => [...prev, skill]);
+      updateSkillsField([...selectedSkills, skill]);
+    }
+  };
+
+  const handleSkillRemove = (skill) => {
+    const updatedSkills = selectedSkills.filter(s => s !== skill);
+    setSelectedSkills(updatedSkills);
+    updateSkillsField(updatedSkills);
+  };
+
+  const handleCustomSkillAdd = () => {
+    if (customSkill.trim() && !selectedSkills.includes(customSkill.trim())) {
+      const newSkills = [...selectedSkills, customSkill.trim()];
+      setSelectedSkills(newSkills);
+      setCustomSkill('');
+      updateSkillsField(newSkills);
+    }
+  };
+
+  const updateSkillsField = (skills) => {
+    setFormData(prev => ({ ...prev, skills: skills.join(', ') }));
+  };
+
+  // Comprehensive validation
   const validateForm = () => {
     const newErrors = {};
 
+    // Required fields validation
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required';
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = 'First name must be at least 2 characters';
     }
 
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Last name is required';
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = 'Last name must be at least 2 characters';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
+    // Contact number is now required
     if (!formData.contactNumber.trim()) {
       newErrors.contactNumber = 'Phone number is required';
+    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.contactNumber.trim())) {
+      newErrors.contactNumber = 'Please enter a valid phone number';
+    }
+
+    // Email validation (optional but if provided, must be valid)
+    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Date of birth validation
+    if (formData.dateOfBirth) {
+      const birthDate = new Date(formData.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 16 || age > 100) {
+        newErrors.dateOfBirth = 'Age must be between 16 and 100 years';
+      }
+    }
+
+    // Monthly rate validation
+    if (formData.monthlyRate && isNaN(parseFloat(formData.monthlyRate))) {
+      newErrors.monthlyRate = 'Please enter a valid number for monthly rate';
+    }
+
+    // Skills validation
+    if (!formData.skills.trim()) {
+      newErrors.skills = 'At least one skill is required';
     }
 
     setErrors(newErrors);
@@ -90,30 +184,27 @@ const AddJobSeekerForm = ({
       try {
         // Prepare data in the format expected by the backend
         const jobSeekerData = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          contactNumber: formData.contactNumber,
-          description: formData.description,
-          skills: formData.skills,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim() || null, // Allow null email
+          contactNumber: formData.contactNumber.trim(),
+          description: formData.description.trim(),
+          skills: formData.skills.trim(),
           gender: formData.gender,
           dateOfBirth: formData.dateOfBirth,
-          idNumber: formData.idNumber,
+          idNumber: formData.idNumber.trim(),
           maritalStatus: formData.maritalStatus,
-          location: formData.location,
-          city: formData.city,
+          location: formData.location.trim(),
+          city: formData.city.trim(),
           country: formData.country,
-          references: formData.references,
-          experience: formData.experience,
+          references: formData.references.trim(),
+          experience: formData.experience.trim(),
           monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : null,
-          jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId) : null,
+          jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId, 10) : null,
           educationLevel: formData.educationLevel,
           availability: formData.availability,
-          languages: formData.languages,
-          certifications: formData.certifications,
-          emergencyContact: formData.emergencyContact,
-          emergencyPhone: formData.emergencyPhone,
-          emergencyRelationship: formData.emergencyRelationship
+          languages: formData.languages.trim(),
+          certifications: formData.certifications.trim()
         };
 
         await onSubmit(jobSeekerData);
@@ -156,11 +247,14 @@ const AddJobSeekerForm = ({
           educationLevel: initialData.educationLevel || '',
           availability: initialData.availability || '',
           languages: initialData.languages || '',
-          certifications: initialData.certifications || '',
-          emergencyContact: initialData.emergencyContact || '',
-          emergencyPhone: initialData.emergencyPhone || '',
-          emergencyRelationship: initialData.emergencyRelationship || ''
+          certifications: initialData.certifications || ''
         });
+        
+        // Initialize selected skills from existing skills
+        if (initialData.skills) {
+          const skillsArray = initialData.skills.split(',').map(s => s.trim()).filter(s => s);
+          setSelectedSkills(skillsArray);
+        }
       } else {
         setFormData({
           firstName: '',
@@ -183,11 +277,9 @@ const AddJobSeekerForm = ({
           educationLevel: '',
           availability: '',
           languages: '',
-          certifications: '',
-          emergencyContact: '',
-          emergencyPhone: '',
-          emergencyRelationship: ''
+          certifications: ''
         });
+        setSelectedSkills([]);
       }
       setErrors({});
     }
@@ -223,7 +315,9 @@ const AddJobSeekerForm = ({
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.firstName ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter first name"
                   required
                 />
@@ -241,7 +335,9 @@ const AddJobSeekerForm = ({
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.lastName ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter last name"
                   required
                 />
@@ -252,16 +348,17 @@ const AddJobSeekerForm = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
+                  Email (Optional)
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter email"
-                  required
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter email (optional)"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -277,8 +374,10 @@ const AddJobSeekerForm = ({
                   name="contactNumber"
                   value={formData.contactNumber}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter phone number"
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.contactNumber ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="+250788123456"
                   required
                 />
                 {errors.contactNumber && (
@@ -312,8 +411,13 @@ const AddJobSeekerForm = ({
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {errors.dateOfBirth && (
+                  <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+                )}
               </div>
 
               <div>
@@ -424,9 +528,14 @@ const AddJobSeekerForm = ({
                   name="monthlyRate"
                   value={formData.monthlyRate}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.monthlyRate ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="Enter monthly rate"
                 />
+                {errors.monthlyRate && (
+                  <p className="text-red-500 text-sm mt-1">{errors.monthlyRate}</p>
+                )}
               </div>
 
               <div>
@@ -468,22 +577,78 @@ const AddJobSeekerForm = ({
               </div>
             </div>
 
-            {/* Skills and Experience */}
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Skills
-                </label>
-                <textarea
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., JavaScript, React, Node.js, Gardening, Cooking"
-                  rows="3"
-                />
-              </div>
+            {/* Professional Skills Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Skills *
+              </label>
+              <div className="space-y-4">
+                {/* Selected Skills Display */}
+                {selectedSkills.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSkills.map((skill, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                      >
+                        {skill}
+                        <button
+                          type="button"
+                          onClick={() => handleSkillRemove(skill)}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
 
+                {/* Skills Selection */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded p-3">
+                  {predefinedSkills.map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => handleSkillSelect(skill)}
+                      disabled={selectedSkills.includes(skill)}
+                      className={`text-left p-2 rounded text-sm ${
+                        selectedSkills.includes(skill)
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-200'
+                      }`}
+                    >
+                      {skill}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Skill Input */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customSkill}
+                    onChange={(e) => setCustomSkill(e.target.value)}
+                    placeholder="Add custom skill..."
+                    className="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomSkillAdd())}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCustomSkillAdd}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              {errors.skills && (
+                <p className="text-red-500 text-sm mt-1">{errors.skills}</p>
+              )}
+            </div>
+
+            {/* Experience and Description */}
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Experience
@@ -557,51 +722,6 @@ const AddJobSeekerForm = ({
                 placeholder="List your references with contact information"
                 rows="3"
               />
-            </div>
-
-            {/* Emergency Contact */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Emergency Contact Name
-                </label>
-                <input
-                  type="text"
-                  name="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="Emergency contact name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Emergency Contact Phone
-                </label>
-                <input
-                  type="tel"
-                  name="emergencyPhone"
-                  value={formData.emergencyPhone}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="Emergency contact phone"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Relationship
-                </label>
-                <input
-                  type="text"
-                  name="emergencyRelationship"
-                  value={formData.emergencyRelationship}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Spouse, Parent, Friend"
-                />
-              </div>
             </div>
 
             {/* Form Actions */}
