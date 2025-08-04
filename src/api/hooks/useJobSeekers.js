@@ -36,18 +36,24 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
+      console.log('🔍 Fetching job seekers...');
+      
       const result = includePrivate 
         ? await jobSeekerService.getAllJobSeekers()
         : await jobSeekerService.getPublicJobSeekers();
       
+      console.log('📊 API Response:', result);
+      
       if (result.success) {
+        console.log('✅ Job seekers data:', result.data);
         setJobSeekers(result.data || []);
       } else {
+        console.error('❌ API Error:', result.error);
         setError(result.error || 'Failed to fetch job seekers');
       }
     } catch (error) {
+      console.error('💥 Fetch error:', error);
       setError('An error occurred while fetching job seekers');
-      console.error('Error fetching job seekers:', error);
     } finally {
       setLoading(false);
     }
@@ -59,17 +65,21 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
+      console.log('➕ Creating job seeker:', jobSeekerData);
       const result = await jobSeekerService.createJobSeeker(jobSeekerData);
       if (result.success) {
+        console.log('✅ Job seeker created:', result.data);
         // Refresh the list after creation
         await fetchJobSeekers();
         return { success: true, data: result.data };
       } else {
+        console.error('❌ Create error:', result.error);
         setError(result.error || 'Failed to create job seeker');
         return { success: false, error: result.error };
       }
     } catch (error) {
       const errorMessage = 'An error occurred while creating job seeker';
+      console.error('💥 Create error:', error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -83,8 +93,10 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
+      console.log('✏️ Updating job seeker:', id, updateData);
       const result = await jobSeekerService.updateJobSeeker(id, updateData);
       if (result.success) {
+        console.log('✅ Job seeker updated:', result.data);
         // Update the local state
         setJobSeekers(prev => 
           prev.map(seeker => 
@@ -93,11 +105,13 @@ export const useJobSeekers = (options = {}) => {
         );
         return { success: true, data: result.data };
       } else {
+        console.error('❌ Update error:', result.error);
         setError(result.error || 'Failed to update job seeker');
         return { success: false, error: result.error };
       }
     } catch (error) {
       const errorMessage = 'An error occurred while updating job seeker';
+      console.error('💥 Update error:', error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -111,17 +125,21 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
+      console.log('🗑️ Deleting job seeker:', id);
       const result = await jobSeekerService.deleteJobSeeker(id);
       if (result.success) {
+        console.log('✅ Job seeker deleted');
         // Remove from local state
         setJobSeekers(prev => prev.filter(seeker => seeker.id !== id));
         return { success: true };
       } else {
+        console.error('❌ Delete error:', result.error);
         setError(result.error || 'Failed to delete job seeker');
         return { success: false, error: result.error };
       }
     } catch (error) {
       const errorMessage = 'An error occurred while deleting job seeker';
+      console.error('💥 Delete error:', error);
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -131,25 +149,37 @@ export const useJobSeekers = (options = {}) => {
 
   // Filter and search logic
   const filteredJobSeekers = useMemo(() => {
+    console.log('🔍 Filtering job seekers...');
+    console.log('📊 Raw job seekers:', jobSeekers);
+    
     let filtered = [...jobSeekers];
 
     // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(seeker => 
-        seeker.firstName?.toLowerCase().includes(term) ||
-        seeker.lastName?.toLowerCase().includes(term) ||
-        seeker.email?.toLowerCase().includes(term) ||
-        seeker.skills?.toLowerCase().includes(term) ||
-        seeker.location?.toLowerCase().includes(term)
-      );
+      console.log('🔎 Searching for:', term);
+      filtered = filtered.filter(seeker => {
+        const firstName = seeker.profile?.firstName || seeker.firstName || '';
+        const lastName = seeker.profile?.lastName || seeker.lastName || '';
+        const email = seeker.email || '';
+        const skills = seeker.profile?.skills || seeker.skills || '';
+        const location = seeker.profile?.location || seeker.location || '';
+        
+        return firstName.toLowerCase().includes(term) ||
+               lastName.toLowerCase().includes(term) ||
+               email.toLowerCase().includes(term) ||
+               skills.toLowerCase().includes(term) ||
+               location.toLowerCase().includes(term);
+      });
+      console.log('🔍 Search results:', filtered.length);
     }
 
     // Apply filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
+        console.log('🎯 Filtering by:', key, value);
         filtered = filtered.filter(seeker => {
-          const seekerValue = seeker[key];
+          const seekerValue = seeker.profile?.[key] || seeker[key];
           if (Array.isArray(seekerValue)) {
             return seekerValue.some(item => 
               item.toLowerCase().includes(value.toLowerCase())
@@ -162,8 +192,15 @@ export const useJobSeekers = (options = {}) => {
 
     // Apply sorting
     filtered.sort((a, b) => {
-      const aValue = a[sortBy];
-      const bValue = b[sortBy];
+      let aValue, bValue;
+      
+      if (sortBy === 'name') {
+        aValue = `${a.profile?.firstName || a.firstName || ''} ${a.profile?.lastName || a.lastName || ''}`;
+        bValue = `${b.profile?.firstName || b.firstName || ''} ${b.profile?.lastName || b.lastName || ''}`;
+      } else {
+        aValue = a[sortBy] || a.profile?.[sortBy] || '';
+        bValue = b[sortBy] || b.profile?.[sortBy] || '';
+      }
       
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
@@ -172,6 +209,7 @@ export const useJobSeekers = (options = {}) => {
       }
     });
 
+    console.log('✅ Filtered job seekers:', filtered);
     return filtered;
   }, [jobSeekers, searchTerm, filters, sortBy, sortOrder]);
 
@@ -181,6 +219,15 @@ export const useJobSeekers = (options = {}) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedJobSeekers = filteredJobSeekers.slice(startIndex, endIndex);
+
+  console.log('📄 Pagination:', {
+    currentPage,
+    totalPages,
+    totalItems,
+    startIndex,
+    endIndex,
+    paginatedJobSeekers: paginatedJobSeekers.length
+  });
 
   // Pagination controls
   const goToPage = useCallback((page) => {
@@ -215,6 +262,20 @@ export const useJobSeekers = (options = {}) => {
   useEffect(() => {
     setError(null);
   }, [searchTerm, filters]);
+
+  // Calculate page info
+  const pageInfo = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const showing = endIndex - startIndex;
+    
+    return {
+      showing,
+      from: startIndex + 1,
+      to: endIndex,
+      total: totalItems
+    };
+  }, [currentPage, totalItems, itemsPerPage]);
 
   return {
     // Data
@@ -256,7 +317,8 @@ export const useJobSeekers = (options = {}) => {
     hasNextPage: currentPage < totalPages,
     hasPrevPage: currentPage > 1,
     startIndex: startIndex + 1,
-    endIndex: Math.min(endIndex, totalItems)
+    endIndex: Math.min(endIndex, totalItems),
+    pageInfo
   };
 };
 

@@ -1,21 +1,72 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../ui/Button';
 import FormInput from '../ui/FormInput';
 import PasswordInput from '../ui/PasswordInput';
+import Modal from '../ui/Modal';
 
-const AddJobSeekerForm = ({ onSubmit, onCancel, isLoading = false }) => {
+const AddJobSeekerForm = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  educationLevels = [], 
+  availabilityOptions = [], 
+  skillsData = [], 
+  languageLevels = [], 
+  jobCategories = [],
+  initialData = {},
+  isEdit = false
+}) => {
   const { t } = useTranslation();
   
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: 'password123' // Default password
+    firstName: initialData.firstName || '',
+    lastName: initialData.lastName || '',
+    email: initialData.email || '',
+    contactNumber: initialData.contactNumber || '',
+    description: initialData.description || '',
+    skills: initialData.skills || '',
+    gender: initialData.gender || '',
+    dateOfBirth: initialData.dateOfBirth || '',
+    idNumber: initialData.idNumber || '',
+    maritalStatus: initialData.maritalStatus || '',
+    location: initialData.location || '',
+    city: initialData.city || '',
+    country: initialData.country || 'Rwanda',
+    references: initialData.references || '',
+    experience: initialData.experience || '',
+    monthlyRate: initialData.monthlyRate || '',
+    jobCategoryId: initialData.jobCategoryId || ''
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Reset form when modal opens/closes or initialData changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        firstName: initialData.firstName || '',
+        lastName: initialData.lastName || '',
+        email: initialData.email || '',
+        contactNumber: initialData.contactNumber || '',
+        description: initialData.description || '',
+        skills: initialData.skills || '',
+        gender: initialData.gender || '',
+        dateOfBirth: initialData.dateOfBirth || '',
+        idNumber: initialData.idNumber || '',
+        maritalStatus: initialData.maritalStatus || '',
+        location: initialData.location || '',
+        city: initialData.city || '',
+        country: initialData.country || 'Rwanda',
+        references: initialData.references || '',
+        experience: initialData.experience || '',
+        monthlyRate: initialData.monthlyRate || '',
+        jobCategoryId: initialData.jobCategoryId || ''
+      });
+      setErrors({});
+    }
+  }, [isOpen, initialData]);
 
   // Handle input changes
   const handleInputChange = (field, value) => {
@@ -51,140 +102,281 @@ const AddJobSeekerForm = ({ onSubmit, onCancel, isLoading = false }) => {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = 'Phone number is required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (validateForm()) {
-      const jobSeekerData = {
-        id: Date.now(), // Generate unique ID
-        name: `${formData.firstName} ${formData.lastName}`,
-        title: 'Job Seeker',
-        category: 'domestic',
-        subcategory: 'General',
-        location: 'Kigali, Rwanda',
-        experience: 0,
-        skills: [],
-        dailyRate: 0,
-        monthlyRate: 0,
-        rating: 0,
-        reviews: 0,
-        availability: 'Available',
-        languages: ['Kinyarwanda'],
-        education: 'Primary School',
-        certifications: [],
-        bio: 'Profile to be completed by job seeker.',
-        projects: [],
-        references: [],
-        avatar: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000)}?w=150&h=150&fit=crop&crop=face`,
-        contact: {
+      setIsLoading(true);
+      
+      try {
+        // Prepare data in the format expected by the backend
+        const jobSeekerData = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           email: formData.email,
-          phone: formData.phone,
-          linkedin: null
-        },
-        // Add login credentials
-        loginCredentials: {
-          email: formData.email,
-          password: formData.password
-        }
-      };
+          contactNumber: formData.contactNumber,
+          description: formData.description,
+          skills: formData.skills,
+          gender: formData.gender,
+          dateOfBirth: formData.dateOfBirth,
+          idNumber: formData.idNumber,
+          maritalStatus: formData.maritalStatus,
+          location: formData.location,
+          city: formData.city,
+          country: formData.country,
+          references: formData.references,
+          experience: formData.experience,
+          monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : null,
+          jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId) : null
+        };
 
-      onSubmit(jobSeekerData);
+        await onSubmit(jobSeekerData);
+        
+        // Reset form on success
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          contactNumber: '',
+          description: '',
+          skills: '',
+          gender: '',
+          dateOfBirth: '',
+          idNumber: '',
+          maritalStatus: '',
+          location: '',
+          city: '',
+          country: 'Rwanda',
+          references: '',
+          experience: '',
+          monthlyRate: '',
+          jobCategoryId: ''
+        });
+        setErrors({});
+        
+      } catch (error) {
+        console.error('Error creating job seeker:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
+  const handleCancel = () => {
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      contactNumber: '',
+      description: '',
+      skills: '',
+      gender: '',
+      dateOfBirth: '',
+      idNumber: '',
+      maritalStatus: '',
+      location: '',
+      city: '',
+      country: 'Rwanda',
+      references: '',
+      experience: '',
+      monthlyRate: '',
+      jobCategoryId: ''
+    });
+    setErrors({});
+    onClose();
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Basic Information */}
-      <div className="space-y-4">
-        <FormInput
-          label="First Name"
-          type="text"
-          value={formData.firstName}
-          onChange={(e) => handleInputChange('firstName', e.target.value)}
-          error={errors.firstName}
-          placeholder="Enter your first name"
-          required
-        />
+    <Modal
+      isOpen={isOpen}
+      onClose={handleCancel}
+      title={isEdit ? "Edit Job Seeker" : "Add New Job Seeker"}
+      size="lg"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="First Name"
+            type="text"
+            value={formData.firstName}
+            onChange={(value) => handleInputChange('firstName', value)}
+            error={errors.firstName}
+            required
+          />
+          <FormInput
+            label="Last Name"
+            type="text"
+            value={formData.lastName}
+            onChange={(value) => handleInputChange('lastName', value)}
+            error={errors.lastName}
+            required
+          />
+          <FormInput
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={(value) => handleInputChange('email', value)}
+            error={errors.email}
+            required
+          />
+          <FormInput
+            label="Phone Number"
+            type="tel"
+            value={formData.contactNumber}
+            onChange={(value) => handleInputChange('contactNumber', value)}
+            error={errors.contactNumber}
+            required
+          />
+        </div>
 
-        <FormInput
-          label="Last Name"
-          type="text"
-          value={formData.lastName}
-          onChange={(e) => handleInputChange('lastName', e.target.value)}
-          error={errors.lastName}
-          placeholder="Enter your last name"
-          required
-        />
+        {/* Personal Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="Gender"
+            type="select"
+            value={formData.gender}
+            onChange={(value) => handleInputChange('gender', value)}
+            options={[
+              { value: '', label: 'Select Gender' },
+              { value: 'Male', label: 'Male' },
+              { value: 'Female', label: 'Female' },
+              { value: 'Other', label: 'Other' }
+            ]}
+          />
+          <FormInput
+            label="Date of Birth"
+            type="date"
+            value={formData.dateOfBirth}
+            onChange={(value) => handleInputChange('dateOfBirth', value)}
+          />
+          <FormInput
+            label="ID Number"
+            type="text"
+            value={formData.idNumber}
+            onChange={(value) => handleInputChange('idNumber', value)}
+          />
+          <FormInput
+            label="Marital Status"
+            type="select"
+            value={formData.maritalStatus}
+            onChange={(value) => handleInputChange('maritalStatus', value)}
+            options={[
+              { value: '', label: 'Select Status' },
+              { value: 'Single', label: 'Single' },
+              { value: 'Married', label: 'Married' },
+              { value: 'Divorced', label: 'Divorced' },
+              { value: 'Widowed', label: 'Widowed' }
+            ]}
+          />
+        </div>
 
-        <FormInput
-          label="Email Address"
-          type="email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          error={errors.email}
-          placeholder="Enter your email"
-          required
-        />
+        {/* Location Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="Location"
+            type="text"
+            value={formData.location}
+            onChange={(value) => handleInputChange('location', value)}
+            placeholder="e.g., Kigali, Rwanda"
+          />
+          <FormInput
+            label="City"
+            type="text"
+            value={formData.city}
+            onChange={(value) => handleInputChange('city', value)}
+          />
+          <FormInput
+            label="Country"
+            type="text"
+            value={formData.country}
+            onChange={(value) => handleInputChange('country', value)}
+          />
+          <FormInput
+            label="Job Category"
+            type="select"
+            value={formData.jobCategoryId}
+            onChange={(value) => handleInputChange('jobCategoryId', value)}
+            options={[
+              { value: '', label: 'Select Category' },
+              ...jobCategories.map(category => ({
+                value: category.id.toString(),
+                label: category.name
+              }))
+            ]}
+          />
+        </div>
 
-        <FormInput
-          label="Phone Number"
-          type="tel"
-          value={formData.phone}
-          onChange={(e) => handleInputChange('phone', e.target.value)}
-          error={errors.phone}
-          placeholder="Enter your phone number"
-          required
-        />
+        {/* Skills and Experience */}
+        <div className="space-y-4">
+          <FormInput
+            label="Skills"
+            type="textarea"
+            value={formData.skills}
+            onChange={(value) => handleInputChange('skills', value)}
+            placeholder="e.g., JavaScript, React, Node.js"
+          />
+          <FormInput
+            label="Experience"
+            type="textarea"
+            value={formData.experience}
+            onChange={(value) => handleInputChange('experience', value)}
+            placeholder="Describe your work experience"
+          />
+          <FormInput
+            label="Description"
+            type="textarea"
+            value={formData.description}
+            onChange={(value) => handleInputChange('description', value)}
+            placeholder="Brief description about yourself"
+          />
+        </div>
 
-        <PasswordInput
-          label="Password"
-          value={formData.password}
-          onChange={(e) => handleInputChange('password', e.target.value)}
-          error={errors.password}
-          placeholder="Create a password"
-          required
-        />
-      </div>
+        {/* Additional Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="Monthly Rate (RWF)"
+            type="number"
+            value={formData.monthlyRate}
+            onChange={(value) => handleInputChange('monthlyRate', value)}
+            placeholder="Expected monthly salary"
+          />
+          <FormInput
+            label="References"
+            type="textarea"
+            value={formData.references}
+            onChange={(value) => handleInputChange('references', value)}
+            placeholder="Previous employers or references"
+          />
+        </div>
 
-      {/* Note */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          <strong>Note:</strong> This creates a basic profile with default password "password123". 
-          The job seeker can log in and complete their full profile through the "Update Profile" page.
-        </p>
-      </div>
-
-      {/* Submit Buttons */}
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Adding...' : 'Add Job Seeker'}
-        </Button>
-      </div>
-    </form>
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Job Seeker' : 'Create Job Seeker')}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 

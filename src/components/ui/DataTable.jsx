@@ -16,6 +16,9 @@ const DataTable = ({
   itemsPerPage = 10,
   className = ''
 }) => {
+  console.log('📊 DataTable received data:', data);
+  console.log('📊 DataTable received columns:', columns);
+  
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,8 +64,10 @@ const DataTable = ({
   const paginatedData = pagination ? sortedData.slice(startIndex, endIndex) : sortedData;
 
   const renderCell = (item, column) => {
+    console.log('🔍 DataTable renderCell:', { item, column: column.key });
+    
     if (column.render) {
-      return column.render(item[column.key], item);
+      return column.render(item);
     }
     
     if (column.type === 'badge') {

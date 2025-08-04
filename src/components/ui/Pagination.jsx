@@ -17,26 +17,37 @@ const Pagination = ({
   showSort = true,
   className = ""
 }) => {
+  // Add null checks and default values
+  if (!pagination) {
+    return (
+      <div className={`pagination-container ${className}`}>
+        <div className="text-center py-4 text-gray-500">
+          No pagination data available
+        </div>
+      </div>
+    );
+  }
+
   const {
-    currentPage,
-    totalPages,
-    totalItems,
-    searchTerm,
-    filters,
-    sortBy,
-    sortOrder,
-    setSearchTerm,
-    setFilters,
-    setSortBy,
-    setSortOrder,
-    goToPage,
-    nextPage,
-    prevPage,
-    goToFirstPage,
-    goToLastPage,
-    hasNextPage,
-    hasPrevPage,
-    pageInfo
+    currentPage = 1,
+    totalPages = 1,
+    totalItems = 0,
+    searchTerm = '',
+    filters = {},
+    sortBy = '',
+    sortOrder = 'asc',
+    setSearchTerm = () => {},
+    setFilters = () => {},
+    setSortBy = () => {},
+    setSortOrder = () => {},
+    goToPage = () => {},
+    nextPage = () => {},
+    prevPage = () => {},
+    goToFirstPage = () => {},
+    goToLastPage = () => {},
+    hasNextPage = false,
+    hasPrevPage = false,
+    pageInfo = { showing: 0, from: 0, to: 0 }
   } = pagination;
 
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
@@ -110,70 +121,46 @@ const Pagination = ({
           </div>
         )}
 
-        {/* Filters and Sort */}
-        <div className="flex gap-2">
-          {showFilters && (
+        {/* Sort */}
+        {showSort && (
+          <div className="flex gap-2">
             <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              onClick={() => handleSortChange('name')}
+              className={`px-3 py-2 border rounded-lg flex items-center gap-2 ${
+                sortBy === 'name' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 hover:bg-gray-50'
+              }`}
             >
-              <Filter className="w-4 h-4" />
-              Filters
+              {sortBy === 'name' && sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+              Name
             </button>
-          )}
+            <button
+              onClick={() => handleSortChange('createdAt')}
+              className={`px-3 py-2 border rounded-lg flex items-center gap-2 ${
+                sortBy === 'createdAt' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {sortBy === 'createdAt' && sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+              Date
+            </button>
+          </div>
+        )}
 
-          {showSort && (
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleSortChange('createdAt')}
-                className={`flex items-center gap-1 px-3 py-2 ${
-                  sortBy === 'createdAt' ? 'bg-red-500 text-white' : 'bg-white hover:bg-gray-50'
-                }`}
-              >
-                {sortBy === 'createdAt' && sortOrder === 'asc' ? (
-                  <SortAsc className="w-4 h-4" />
-                ) : (
-                  <SortDesc className="w-4 h-4" />
-                )}
-                Date
-              </button>
-              <button
-                onClick={() => handleSortChange('name')}
-                className={`flex items-center gap-1 px-3 py-2 ${
-                  sortBy === 'name' ? 'bg-red-500 text-white' : 'bg-white hover:bg-gray-50'
-                }`}
-              >
-                {sortBy === 'name' && sortOrder === 'asc' ? (
-                  <SortAsc className="w-4 h-4" />
-                ) : (
-                  <SortDesc className="w-4 h-4" />
-                )}
-                Name
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Filters Toggle */}
+        {showFilters && (
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+          </button>
+        )}
       </div>
 
       {/* Advanced Filters */}
-      {showAdvancedFilters && showFilters && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
-              <select
-                value={filters.gender || ''}
-                onChange={(e) => handleFilterChange('gender', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <option value="">All</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-
+      {showFilters && showAdvancedFilters && (
+        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Location
@@ -222,7 +209,7 @@ const Pagination = ({
       {/* Pagination Info */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
         <div className="text-sm text-gray-600">
-          Showing {pageInfo.showing} of {totalItems} items
+          Showing {pageInfo.showing || 0} of {totalItems} items
         </div>
 
         {/* Pagination Controls */}

@@ -101,7 +101,7 @@ const jobCategories = [
 
 const JobSeekersPage = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   
   // State management
   const [showAddForm, setShowAddForm] = useState(false);
@@ -143,18 +143,56 @@ const JobSeekersPage = () => {
     itemsPerPage: 10
   });
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🎯 JobSeekersPage - Current state:', {
+      user,
+      isAuthenticated,
+      authLoading,
+      jobSeekers,
+      allJobSeekers,
+      loading,
+      error,
+      totalItems,
+      currentPage,
+      totalPages
+    });
+  }, [user, isAuthenticated, authLoading, jobSeekers, allJobSeekers, loading, error, totalItems, currentPage, totalPages]);
+
+  // Check authentication
+  useEffect(() => {
+    if (!authLoading) {
+      console.log('🔐 Authentication status:', {
+        isAuthenticated,
+        user,
+        userRole: user?.role
+      });
+      
+      if (!isAuthenticated) {
+        console.log('❌ User not authenticated');
+      } else if (user?.role !== 'admin') {
+        console.log('❌ User is not admin, role:', user?.role);
+      } else {
+        console.log('✅ User is authenticated as admin');
+      }
+    }
+  }, [authLoading, isAuthenticated, user]);
+
   // Handle search change
   const handleSearchChange = (value) => {
+    console.log('🔍 Search changed:', value);
     setSearchTerm(value);
   };
 
   // Handle filter change
   const handleFilterChange = (key, value) => {
+    console.log('🎯 Filter changed:', key, value);
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   // Handle clear filters
   const handleClearFilters = () => {
+    console.log('🧹 Clearing filters');
     setFilters({
       gender: '',
       location: '',
@@ -167,32 +205,39 @@ const JobSeekersPage = () => {
 
   // Handle row actions
   const handleRowAction = (action, jobSeeker) => {
+    console.log('⚡ Row action:', action, jobSeeker);
     switch (action) {
       case 'view':
+        console.log('👁️ Opening view modal for:', jobSeeker);
         setSelectedJobSeeker(jobSeeker);
         setShowDetailsModal(true);
         break;
       case 'edit':
+        console.log('✏️ Opening edit modal for:', jobSeeker);
         setSelectedJobSeeker(jobSeeker);
         setShowEditModal(true);
         break;
       case 'delete':
+        console.log('🗑️ Opening delete modal for:', jobSeeker);
         setSelectedJobSeeker(jobSeeker);
         setShowDeleteModal(true);
         break;
       default:
+        console.log('❓ Unknown action:', action);
         break;
     }
   };
 
   // Handle status change
   const handleStatusChange = (newStatus) => {
+    console.log('📊 Status changed:', newStatus);
     setStatusFilter(newStatus);
     // You can add status-based filtering here
   };
 
   // Handle add job seeker
   const handleAddJobSeeker = async (jobSeekerData) => {
+    console.log('➕ Adding job seeker:', jobSeekerData);
     try {
       const result = await createJobSeeker(jobSeekerData);
       if (result.success) {
@@ -211,6 +256,7 @@ const JobSeekersPage = () => {
   const handleUpdateJobSeeker = async (jobSeekerData) => {
     if (!selectedJobSeeker) return;
     
+    console.log('✏️ Updating job seeker:', selectedJobSeeker.id, jobSeekerData);
     try {
       const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData);
       if (result.success) {
@@ -230,6 +276,7 @@ const JobSeekersPage = () => {
   const handleDeleteJobSeeker = async () => {
     if (!selectedJobSeeker) return;
     
+    console.log('🗑️ Deleting job seeker:', selectedJobSeeker.id);
     try {
       const result = await deleteJobSeeker(selectedJobSeeker.id);
       if (result.success) {
@@ -245,111 +292,226 @@ const JobSeekersPage = () => {
     }
   };
 
+  // Show authentication error if user is not authenticated
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner size="lg" text="Checking authentication..." />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="w-5 h-5 text-red-500" />
+          <span className="text-red-700">You must be logged in to access this page.</span>
+        </div>
+        <Button 
+          onClick={() => window.location.href = '/login'}
+          className="mt-2"
+          variant="outline"
+          size="sm"
+        >
+          Go to Login
+        </Button>
+      </div>
+    );
+  }
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="w-5 h-5 text-yellow-500" />
+          <span className="text-yellow-700">You must be an admin to access this page.</span>
+        </div>
+        <Button 
+          onClick={() => window.location.href = '/dashboard/jobseeker'}
+          className="mt-2"
+          variant="outline"
+          size="sm"
+        >
+          Go to Job Seeker Dashboard
+        </Button>
+      </div>
+    );
+  }
+
   // Table columns configuration
   const columns = [
     {
       key: 'name',
       label: 'Name',
-      render: (jobSeeker) => (
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <Users className="w-5 h-5 text-gray-600" />
+      render: (jobSeeker) => {
+        console.log('👤 Rendering name for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const firstName = jobSeeker.profile?.firstName || jobSeeker.firstName || 'Unknown';
+        const lastName = jobSeeker.profile?.lastName || jobSeeker.lastName || '';
+        const email = jobSeeker.email || 'No email';
+        
+        console.log('👤 Name data:', { firstName, lastName, email });
+        
+        return (
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <div className="font-medium">
+                {firstName} {lastName}
+              </div>
+              <div className="text-sm text-gray-500">{email}</div>
+            </div>
           </div>
-          <div>
-            <div className="font-medium">{jobSeeker.firstName} {jobSeeker.lastName}</div>
-            <div className="text-sm text-gray-500">{jobSeeker.email}</div>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       key: 'location',
       label: 'Location',
-      render: (jobSeeker) => (
-        <div className="flex items-center space-x-1">
-          <MapPin className="w-4 h-4 text-gray-400" />
-          <span>{jobSeeker.location || 'Not specified'}</span>
-        </div>
-      )
+      render: (jobSeeker) => {
+        console.log('📍 Rendering location for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const location = jobSeeker.profile?.location || jobSeeker.location || 'Not specified';
+        
+        console.log('📍 Location data:', location);
+        
+        return (
+          <div className="flex items-center space-x-1">
+            <MapPin className="w-4 h-4 text-gray-400" />
+            <span>{location}</span>
+          </div>
+        );
+      }
     },
     {
       key: 'skills',
       label: 'Skills',
-      render: (jobSeeker) => (
-        <div className="flex flex-wrap gap-1">
-          {jobSeeker.skills?.slice(0, 3).map((skill, index) => (
-            <Badge key={index} variant="secondary" size="sm">
-              {skill}
-            </Badge>
-          ))}
-          {jobSeeker.skills?.length > 3 && (
-            <Badge variant="outline" size="sm">
-              +{jobSeeker.skills.length - 3} more
-            </Badge>
-          )}
-        </div>
-      )
+      render: (jobSeeker) => {
+        console.log('🛠️ Rendering skills for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const skills = jobSeeker.profile?.skills || jobSeeker.skills || '';
+        const skillsArray = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim()).filter(s => s);
+        
+        console.log('🛠️ Skills data:', { skills, skillsArray });
+        
+        return (
+          <div className="flex flex-wrap gap-1">
+            {skillsArray.slice(0, 3).map((skill, index) => (
+              <Badge key={index} variant="secondary" size="sm">
+                {skill}
+              </Badge>
+            ))}
+            {skillsArray.length > 3 && (
+              <Badge variant="outline" size="sm">
+                +{skillsArray.length - 3} more
+              </Badge>
+            )}
+          </div>
+        );
+      }
     },
     {
-      key: 'dailyRate',
-      label: 'Daily Rate',
-      render: (jobSeeker) => (
-        <div className="flex items-center space-x-1">
-          <DollarSign className="w-4 h-4 text-green-500" />
-          <span>{formatCurrency(jobSeeker.dailyRate || 0)}</span>
-        </div>
-      )
+      key: 'contactNumber',
+      label: 'Contact',
+      render: (jobSeeker) => {
+        console.log('📞 Rendering contact for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const contactNumber = jobSeeker.profile?.contactNumber || jobSeeker.contactNumber || 'Not provided';
+        
+        console.log('📞 Contact data:', contactNumber);
+        
+        return (
+          <div className="flex items-center space-x-1">
+            <Phone className="w-4 h-4 text-gray-400" />
+            <span>{contactNumber}</span>
+          </div>
+        );
+      }
     },
     {
-      key: 'availability',
-      label: 'Availability',
-      render: (jobSeeker) => (
-        <Badge 
-          variant={jobSeeker.availability === 'Immediate' ? 'success' : 'warning'}
-          size="sm"
-        >
-          {jobSeeker.availability || 'Not specified'}
-        </Badge>
-      )
+      key: 'gender',
+      label: 'Gender',
+      render: (jobSeeker) => {
+        console.log('👥 Rendering gender for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const gender = jobSeeker.profile?.gender || jobSeeker.gender || 'Not specified';
+        
+        console.log('👥 Gender data:', gender);
+        
+        return (
+          <Badge 
+            variant={gender === 'Male' ? 'primary' : gender === 'Female' ? 'secondary' : 'outline'}
+            size="sm"
+          >
+            {gender}
+          </Badge>
+        );
+      }
     },
     {
       key: 'createdAt',
       label: 'Registered',
-      render: (jobSeeker) => (
-        <div className="flex items-center space-x-1">
-          <Calendar className="w-4 h-4 text-gray-400" />
-          <span>{new Date(jobSeeker.createdAt).toLocaleDateString()}</span>
-        </div>
-      )
+      render: (jobSeeker) => {
+        console.log('📅 Rendering date for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        const date = jobSeeker.createdAt;
+        console.log('📅 Date data:', date);
+        
+        return (
+          <div className="flex items-center space-x-1">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span>{date ? new Date(date).toLocaleDateString() : 'Invalid Date'}</span>
+          </div>
+        );
+      }
     },
     {
       key: 'actions',
       label: 'Actions',
-      render: (jobSeeker) => (
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleRowAction('view', jobSeeker)}
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleRowAction('edit', jobSeeker)}
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleRowAction('delete', jobSeeker)}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      )
+      render: (jobSeeker) => {
+        console.log('⚡ Rendering actions for job seeker:', jobSeeker);
+        if (!jobSeeker) return <div className="text-gray-500">No actions</div>;
+        
+        return (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRowAction('view', jobSeeker)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRowAction('edit', jobSeeker)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRowAction('delete', jobSeeker)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        );
+      }
     }
   ];
 
@@ -380,6 +542,19 @@ const JobSeekersPage = () => {
         </Button>
       </div>
     );
+  }
+
+  console.log('🎯 JobSeekersPage - Rendering with data:', {
+    jobSeekers,
+    totalItems,
+    loading,
+    error
+  });
+
+  // Debug: Log the first job seeker to see the structure
+  if (jobSeekers.length > 0) {
+    console.log('🔍 First job seeker data:', jobSeekers[0]);
+    console.log('🔍 First job seeker profile:', jobSeekers[0]?.profile);
   }
 
   return (
@@ -451,32 +626,98 @@ const JobSeekersPage = () => {
         />
       )}
 
+      {/* Edit Job Seeker Modal */}
+      {showEditModal && selectedJobSeeker && (
+        <AddJobSeekerForm
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSubmit={handleUpdateJobSeeker}
+          educationLevels={educationLevels}
+          availabilityOptions={availabilityOptions}
+          skillsData={skillsData}
+          languageLevels={languageLevels}
+          jobCategories={jobCategories}
+          initialData={{
+            firstName: selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || '',
+            lastName: selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || '',
+            email: selectedJobSeeker.email || '',
+            contactNumber: selectedJobSeeker.profile?.contactNumber || selectedJobSeeker.contactNumber || '',
+            description: selectedJobSeeker.profile?.description || selectedJobSeeker.description || '',
+            skills: selectedJobSeeker.profile?.skills || selectedJobSeeker.skills || '',
+            gender: selectedJobSeeker.profile?.gender || selectedJobSeeker.gender || '',
+            dateOfBirth: selectedJobSeeker.profile?.dateOfBirth ? 
+              new Date(selectedJobSeeker.profile.dateOfBirth).toISOString().split('T')[0] : '',
+            idNumber: selectedJobSeeker.profile?.idNumber || '',
+            maritalStatus: selectedJobSeeker.profile?.maritalStatus || '',
+            location: selectedJobSeeker.profile?.location || selectedJobSeeker.location || '',
+            city: selectedJobSeeker.profile?.city || '',
+            country: selectedJobSeeker.profile?.country || 'Rwanda',
+            references: selectedJobSeeker.profile?.references || '',
+            experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
+            monthlyRate: selectedJobSeeker.profile?.monthlyRate || '',
+            jobCategoryId: selectedJobSeeker.profile?.jobCategoryId || ''
+          }}
+          isEdit={true}
+        />
+      )}
+      
+      {(() => {
+        console.log('🔍 Edit Modal Debug:', {
+          showEditModal,
+          selectedJobSeeker: selectedJobSeeker ? {
+            id: selectedJobSeeker.id,
+            email: selectedJobSeeker.email,
+            profile: selectedJobSeeker.profile
+          } : null
+        });
+        return null;
+      })()}
+
       {/* Job Seeker Details Modal */}
       {showDetailsModal && selectedJobSeeker && (
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        title="Job Seeker Details"
+        <Modal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          title="Job Seeker Details"
           size="lg"
-      >
+        >
+          {(() => {
+            console.log('🔍 Modal - selectedJobSeeker:', selectedJobSeeker);
+            console.log('🔍 Modal - selectedJobSeeker.profile:', selectedJobSeeker.profile);
+            return null;
+          })()}
+          
           <div className="space-y-6">
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
-                <p className="mt-1">{selectedJobSeeker.firstName} {selectedJobSeeker.lastName}</p>
+                <p className="mt-1 text-gray-900">
+                  {selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || 'Unknown'} {' '}
+                  {selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || ''}
+                </p>
               </div>
-                <div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
-                <p className="mt-1">{selectedJobSeeker.email}</p>
-                </div>
-                <div>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.email || 'Not provided'}</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Phone</label>
-                <p className="mt-1">{selectedJobSeeker.phone || 'Not provided'}</p>
-                </div>
-                <div>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.contactNumber || selectedJobSeeker.contactNumber || 'Not provided'}</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Location</label>
-                <p className="mt-1">{selectedJobSeeker.location || 'Not specified'}</p>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.location || selectedJobSeeker.location || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Gender</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.gender || selectedJobSeeker.gender || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Registered</label>
+                <p className="mt-1 text-gray-900">
+                  {selectedJobSeeker.createdAt ? new Date(selectedJobSeeker.createdAt).toLocaleDateString() : 'Not available'}
+                </p>
               </div>
             </div>
 
@@ -484,26 +725,81 @@ const JobSeekersPage = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Skills</label>
               <div className="flex flex-wrap gap-2">
-                {selectedJobSeeker.skills?.map((skill, index) => (
-                  <Badge key={index} variant="secondary">
-                    {skill}
-                  </Badge>
-                ))}
+                {(selectedJobSeeker.profile?.skills || selectedJobSeeker.skills || '')
+                  .split(',')
+                  .map((skill, index) => skill.trim())
+                  .filter(skill => skill)
+                  .map((skill, index) => (
+                    <Badge key={index} variant="secondary">
+                      {skill}
+                    </Badge>
+                  ))}
               </div>
             </div>
 
             {/* Additional Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                <label className="block text-sm font-medium text-gray-700">Daily Rate</label>
-                <p className="mt-1">{formatCurrency(selectedJobSeeker.dailyRate || 0)}</p>
-                </div>
-                <div>
-                <label className="block text-sm font-medium text-gray-700">Availability</label>
-                <p className="mt-1">{selectedJobSeeker.availability || 'Not specified'}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.description || selectedJobSeeker.description || 'No description provided'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Experience</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || 'Not specified'}</p>
               </div>
             </div>
-                    </div>
+
+            {/* Additional Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">City</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.city || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Country</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.country || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Monthly Rate</label>
+                <p className="mt-1 text-gray-900">
+                  {selectedJobSeeker.profile?.monthlyRate ? 
+                    `${selectedJobSeeker.profile.monthlyRate} RWF` : 
+                    'Not specified'
+                  }
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Marital Status</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.maritalStatus || 'Not specified'}</p>
+              </div>
+            </div>
+
+            {/* References */}
+            {selectedJobSeeker.profile?.references && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">References</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile.references}</p>
+              </div>
+            )}
+
+            {/* ID Number */}
+            {selectedJobSeeker.profile?.idNumber && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">ID Number</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile.idNumber}</p>
+              </div>
+            )}
+
+            {/* Date of Birth */}
+            {selectedJobSeeker.profile?.dateOfBirth && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                <p className="mt-1 text-gray-900">
+                  {new Date(selectedJobSeeker.profile.dateOfBirth).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+          </div>
         </Modal>
       )}
 
@@ -516,7 +812,9 @@ const JobSeekersPage = () => {
         >
           <div className="space-y-4">
             <p>
-              Are you sure you want to delete {selectedJobSeeker.firstName} {selectedJobSeeker.lastName}?
+              Are you sure you want to delete{' '}
+              {selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || 'Unknown'} {' '}
+              {selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || ''}?
               This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
