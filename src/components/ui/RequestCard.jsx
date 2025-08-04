@@ -48,8 +48,6 @@ const RequestCard = ({
     candidateName = `${requestedCandidate.profile.firstName} ${requestedCandidate.profile.lastName}`;
     candidateInfo = requestedCandidate;
   }
-  
-  const position = request.position || 'General position';
 
   if (compact) {
     return (
@@ -91,13 +89,11 @@ const RequestCard = ({
             <div className="flex items-center space-x-2">
               <span className="text-green-600 text-xs font-medium">✓ Selected:</span>
               <span className="text-sm font-medium text-gray-900">{candidateName}</span>
-              <span className="text-xs text-gray-600">for {position}</span>
             </div>
           ) : (
             <div className="flex items-center space-x-2">
               <span className="text-orange-600 text-xs font-medium">⏳ Requesting:</span>
               <span className="text-sm font-medium text-gray-900">{candidateName}</span>
-              <span className="text-xs text-gray-600">for {position}</span>
             </div>
           )}
           
@@ -110,7 +106,7 @@ const RequestCard = ({
           )}
         </div>
       </div> 
-    );
+    );   
   }
 
   return (
@@ -197,16 +193,20 @@ const RequestCard = ({
               size="sm"
               onClick={() => onContactEmployer(request)}
             >
-              Contact Employer
+              <Mail className="w-4 h-4 mr-2" />
+              Contact
             </Button>
           )}
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => onViewDetails?.(request)}
-          >
-            <Eye className="w-4 h-4" />
-          </Button>
+          {onViewDetails && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onViewDetails(request)}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              View Details
+            </Button>
+          )}
         </div>
       </div>
     </div>

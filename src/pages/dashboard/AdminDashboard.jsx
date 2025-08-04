@@ -122,7 +122,7 @@ const AdminDashboard = () => {
       // Fetch dashboard statistics
       const statsResult = await adminService.getDashboardStats();
       if (statsResult.success) {
-        console.log('Dashboard stats loaded:', statsResult.data);
+        // console.log('Dashboard stats loaded:', statsResult.data);
         setDashboardStats(statsResult.data);
       } else {
         console.error('Failed to load dashboard stats:', statsResult.error);
@@ -278,12 +278,7 @@ const AdminDashboard = () => {
     const stats = dashboardStats || {};
     const dashboardStatsData = stats.data || stats; // Handle both nested and direct response
 
-    // Debug logging
-    console.log('Dashboard stats:', dashboardStats);
-    console.log('Dashboard stats data:', dashboardStatsData);
-    console.log('Recent job seekers:', dashboardStatsData.recentActivity?.recentJobSeekers);
-    console.log('Recent requests:', dashboardStatsData.recentActivity?.recentEmployerRequests);
-
+ 
     // Extract skills from job seekers for top skills calculation
     const extractSkillsFromJobSeekers = (jobSeekers) => {
       if (!Array.isArray(jobSeekers)) return [];
@@ -572,26 +567,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Analytics Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Skills */}
-          <Card title="Most Requested Skills" subtitle="Skills most frequently requested by employers (showing top 10)">
-            {(dashboardStatsData.trends?.topSkills || topSkills || []).length > 0 ? (
-              <div className="space-y-2">
-                {(dashboardStatsData.trends?.topSkills || topSkills || []).map((skill, index) => (
-                  <div key={skill.skill || skill.name || index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="font-medium text-gray-900">{skill.skill || skill.name}</span>
-                    <span className="text-sm text-gray-500">{skill.count} requests</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <BarChart3 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No skills data available</p>
-              </div>
-            )}
-          </Card>
-
+        <div className="grid grid-cols-1 gap-6">
           {/* Monthly Registrations Chart */}
           <Card title="Monthly Job Seeker Registrations" subtitle="New candidate registration trends by month (showing last 6 months)">
             {dashboardStatsData.trends?.monthlyRegistrations ? (
