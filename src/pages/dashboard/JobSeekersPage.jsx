@@ -89,16 +89,6 @@ const languageLevels = [
   { id: 'native', name: 'Native', description: 'Native speaker level' }
 ];
 
-// Job categories for the form
-const jobCategories = [
-  { id: 1, name: 'Software Developer' },
-  { id: 2, name: 'Housemaid' },
-  { id: 3, name: 'Gardener' },
-  { id: 4, name: 'Driver' },
-  { id: 5, name: 'Cook' },
-  { id: 6, name: 'Security Guard' }
-];
-
 const JobSeekersPage = () => {
   const { t } = useTranslation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -110,6 +100,38 @@ const JobSeekersPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [jobCategories, setJobCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // Fetch job categories from backend
+  useEffect(() => {
+    const fetchJobCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const response = await fetch('http://localhost:3000/categories/admin', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('job_portal_token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📊 Job categories from backend:', data);
+          // Handle the correct data structure with categories array
+          const categories = data.categories || data || [];
+          setJobCategories(categories);
+        } else {
+          console.error('Failed to fetch job categories');
+        }
+      } catch (error) {
+        console.error('Error fetching job categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchJobCategories();
+  }, []);
 
   // Use the custom hook for job seekers management
   const {
@@ -655,7 +677,8 @@ const JobSeekersPage = () => {
             references: selectedJobSeeker.profile?.references || '',
             experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
             monthlyRate: selectedJobSeeker.profile?.monthlyRate || '',
-            jobCategoryId: selectedJobSeeker.profile?.jobCategoryId || ''
+            jobCategoryId: selectedJobSeeker.profile?.jobCategoryId || '',
+            jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || ''
           }}
           isEdit={true}
         />
@@ -664,11 +687,16 @@ const JobSeekersPage = () => {
       {(() => {
         console.log('🔍 Edit Modal Debug:', {
           showEditModal,
+          jobCategories,
           selectedJobSeeker: selectedJobSeeker ? {
             id: selectedJobSeeker.id,
             email: selectedJobSeeker.email,
-            profile: selectedJobSeeker.profile
-          } : null
+            profile: selectedJobSeeker.profile,
+            jobCategory: selectedJobSeeker.profile?.jobCategory,
+            jobCategoryId: selectedJobSeeker.profile?.jobCategoryId,
+            jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en
+          } : null,
+          initialDataJobCategoryId: selectedJobSeeker?.profile?.jobCategoryId
         });
         return null;
       })()}
@@ -758,6 +786,14 @@ const JobSeekersPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700">Country</label>
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.country || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Job Category</label>
+                <p className="mt-1 text-gray-900">
+                  {selectedJobSeeker.profile?.jobCategory?.name_en || 
+                   selectedJobSeeker.profile?.jobCategoryId || 
+                   'Not specified'}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Monthly Rate</label>

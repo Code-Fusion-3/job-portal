@@ -68,6 +68,13 @@ const AddJobSeekerForm = ({
     }
   }, [isOpen, initialData]);
 
+  // Get the selected job category name for display
+  const getSelectedJobCategoryName = () => {
+    if (!formData.jobCategoryId) return '';
+    const selectedCategory = jobCategories.find(cat => cat.id.toString() === formData.jobCategoryId.toString());
+    return selectedCategory ? selectedCategory.name_en : '';
+  };
+
   // Handle input changes
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -304,15 +311,26 @@ const AddJobSeekerForm = ({
             label="Job Category"
             type="select"
             value={formData.jobCategoryId}
-            onChange={(value) => handleInputChange('jobCategoryId', value)}
+            onChange={(e) => handleInputChange('jobCategoryId', e.target.value)}
             options={[
               { value: '', label: 'Select Category' },
               ...jobCategories.map(category => ({
                 value: category.id.toString(),
-                label: category.name
+                label: category.name_en || category.name
               }))
             ]}
           />
+          
+          {/* Debug job category selection */}
+          {(() => {
+            console.log('🔍 Job Category Debug:', {
+              jobCategories,
+              formDataJobCategoryId: formData.jobCategoryId,
+              selectedCategoryName: getSelectedJobCategoryName(),
+              isEdit
+            });
+            return null;
+          })()}
         </div>
 
         {/* Skills and Experience */}

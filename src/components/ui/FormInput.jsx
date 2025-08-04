@@ -13,6 +13,7 @@ const FormInput = forwardRef(({
   icon: Icon,
   required = false,
   className = '',
+  options = [],
   ...props
 }, ref) => {
   return (
@@ -29,24 +30,48 @@ const FormInput = forwardRef(({
           <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
         )}
         
-        <input
-          ref={ref}
-          type={type}
-          id={id}
-          name={name}
-          value={value}
-          onChange={onChange}
-          className={`
-            w-full py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent 
-            transition-colors duration-200 text-gray-900 placeholder-gray-500
-            ${Icon ? 'pl-10' : 'pl-4'} 
-            pr-4
-            ${error ? 'border-red-300' : 'border-gray-300'}
-            ${className}
-          `}
-          placeholder={placeholder}
-          {...props}
-        />
+        {type === 'select' ? (
+          <select
+            ref={ref}
+            id={id}
+            name={name}
+            value={value}
+            onChange={onChange}
+            className={`
+              w-full py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent 
+              transition-colors duration-200 text-gray-900
+              ${Icon ? 'pl-10' : 'pl-4'} 
+              pr-4
+              ${error ? 'border-red-300' : 'border-gray-300'}
+            `}
+            {...props}
+          >
+            {options.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            ref={ref}
+            type={type}
+            id={id}
+            name={name}
+            value={value}
+            onChange={onChange}
+            className={`
+              w-full py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent 
+              transition-colors duration-200 text-gray-900 placeholder-gray-500
+              ${Icon ? 'pl-10' : 'pl-4'} 
+              pr-4
+              ${error ? 'border-red-300' : 'border-gray-300'}
+              ${className}
+            `}
+            placeholder={placeholder}
+            {...props}
+          />
+        )}
       </div>
       
       {error && (
