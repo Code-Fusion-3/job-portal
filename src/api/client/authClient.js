@@ -34,7 +34,7 @@ export const authApi = {
         headers = { 'Content-Type': 'multipart/form-data' };
       }
 
-      const response = await authClient.post('/register', data, { headers });
+      const response = await authClient.post('/auth/register', data, { headers });
       return response.data;
     } catch (error) {
       throw error;
@@ -44,7 +44,7 @@ export const authApi = {
   // Job Seeker Login
   loginJobSeeker: async (credentials) => {
     try {
-      const response = await authClient.post('/login', credentials);
+      const response = await authClient.post('/auth/login', credentials);
       
       if (response.data.token) {
         // Backend returns 'token' instead of 'accessToken'
@@ -65,7 +65,7 @@ export const authApi = {
   // Admin Login
   loginAdmin: async (credentials) => {
     try {
-      const response = await authClient.post('/login', credentials);
+      const response = await authClient.post('/auth/login', credentials);
       
       if (response.data.token) {
         // Backend returns 'token' instead of 'accessToken'

@@ -436,6 +436,86 @@ export const adminService = {
       const apiError = handleError(error, { context: 'get_platform_stats' });
       return { success: false, error: apiError.userMessage };
     }
+  },
+
+  // Admin Profile Management
+  async getAdminProfile() {
+    try {
+      const response = await apiClient.get('/admin/profile', {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching admin profile:', error);
+      throw error;
+    }
+  },
+
+  async updateAdminProfile(profileData) {
+    try {
+      const response = await apiClient.put('/admin/profile', profileData, {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating admin profile:', error);
+      throw error;
+    }
+  },
+
+  async changeAdminPassword(passwordData) {
+    try {
+      const response = await apiClient.put('/admin/change-password', passwordData, {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error changing admin password:', error);
+      throw error;
+    }
+  },
+
+  async updateAdminAvatar(avatarFile) {
+    try {
+      const formData = new FormData();
+      formData.append('avatar', avatarFile);
+      
+      const response = await apiClient.put('/admin/avatar', formData, {
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating admin avatar:', error);
+      throw error;
+    }
+  },
+
+  // System Settings
+  async getSystemSettings() {
+    try {
+      const response = await apiClient.get('/admin/settings', {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching system settings:', error);
+      throw error;
+    }
+  },
+
+  async updateSystemSettings(settings) {
+    try {
+      const response = await apiClient.put('/admin/settings', settings, {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating system settings:', error);
+      throw error;
+    }
   }
 };
 
