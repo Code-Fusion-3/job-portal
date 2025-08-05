@@ -1,5 +1,5 @@
 import React from 'react';
-import {
+import { 
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
@@ -7,7 +7,7 @@ import {
   LineElement,
   BarElement,
   Title,
-  Tooltip,
+  Tooltip, 
   Legend,
   ArcElement,
 } from 'chart.js';

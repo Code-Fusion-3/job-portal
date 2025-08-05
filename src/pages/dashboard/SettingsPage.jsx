@@ -107,29 +107,7 @@ const SettingsPage = () => {
 
 
 
-  // Test function to check API connectivity
-  const testAPI = async () => {
-    try {
-      console.log('🧪 Testing API connectivity...');
-      const token = localStorage.getItem('job_portal_token');
-      console.log('🔑 Token:', token ? 'Exists' : 'Missing');
-      
-      // Test a simple API call
-      const response = await fetch('http://localhost:3000/admin/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log('📡 API Response status:', response.status);
-      const data = await response.json();
-      console.log('📋 API Response data:', data);
-      
-    } catch (error) {
-      console.error('❌ API test failed:', error);
-    }
-  };
+
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -213,7 +191,7 @@ const SettingsPage = () => {
     if (!validatePassword()) return;
 
     try {
-      setIsLoading(true);
+    setIsLoading(true);
       const result = await adminService.changeAdminPassword({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
@@ -229,7 +207,7 @@ const SettingsPage = () => {
     } catch (error) {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
-      setIsLoading(false);
+    setIsLoading(false);
     }
   };
 
@@ -251,21 +229,14 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+        <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Admin Settings</h1>
           <p className="text-gray-600">Manage your profile and system settings</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={testAPI}
-          className="text-xs"
-        >
-          Test API
-        </Button>
+
       </div>
 
       {/* Message Display */}
@@ -348,12 +319,12 @@ const SettingsPage = () => {
                     )}
                   </div>
 
-                  <div>
+          <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Last Name *
                     </label>
-                    <input
-                      type="text"
+            <input
+              type="text"
                       name="lastName"
                       value={profile.lastName}
                       onChange={handleProfileChange}
@@ -364,16 +335,16 @@ const SettingsPage = () => {
                     {errors.lastName && (
                       <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
                     )}
-                  </div>
+          </div>
 
-                  <div>
+          <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address *
                     </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={profile.email}
+            <input
+              type="email"
+              name="email"
+              value={profile.email}
                       onChange={handleProfileChange}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
                         errors.email ? 'border-red-300' : 'border-gray-300'
@@ -411,9 +382,9 @@ const SettingsPage = () => {
                       name="location"
                       value={profile.location}
                       onChange={handleProfileChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    />
-                  </div>
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -424,10 +395,10 @@ const SettingsPage = () => {
                       value={profile.bio}
                       onChange={handleProfileChange}
                       rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="Tell us about yourself..."
-                    />
-                  </div>
+            />
+          </div>
                 </div>
 
                 <div className="flex justify-end mt-6">
@@ -484,12 +455,12 @@ const SettingsPage = () => {
                   )}
                 </div>
 
-                <div>
+          <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     New Password
                   </label>
                   <div className="relative">
-                    <input
+            <input
                       type={showNewPassword ? 'text' : 'password'}
                       name="newPassword"
                       value={passwordData.newPassword}
@@ -509,16 +480,16 @@ const SettingsPage = () => {
                   {errors.newPassword && (
                     <p className="mt-1 text-sm text-red-600">{errors.newPassword}</p>
                   )}
-                </div>
+          </div>
 
-                <div>
+          <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm New Password
                   </label>
                   <div className="relative">
-                    <input
+            <input
                       type={showConfirmPassword ? 'text' : 'password'}
-                      name="confirmPassword"
+              name="confirmPassword"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
                       className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
@@ -536,20 +507,20 @@ const SettingsPage = () => {
                   {errors.confirmPassword && (
                     <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
                   )}
-                </div>
+          </div>
 
-                <div className="flex justify-end">
-                  <Button
-                    variant="primary"
+          <div className="flex justify-end">
+            <Button
+              variant="primary"
                     onClick={handleChangePassword}
-                    disabled={isLoading}
-                  >
+              disabled={isLoading}
+            >
                     {isLoading ? <LoadingSpinner size="sm" /> : <Lock className="w-4 h-4 mr-2" />}
                     Change Password
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            </Button>
+          </div>
+        </div>
+      </Card>
 
            
           </motion.div>

@@ -39,10 +39,10 @@ const EmployerRequestsPage = () => {
   const { user } = useAuth();
   
   // Hooks
-  const { 
+  const {
     requests: safeData, 
-    loading, 
-    error, 
+    loading,
+    error,
     currentPage,
     totalPages,
     totalItems,
@@ -138,11 +138,11 @@ const EmployerRequestsPage = () => {
         date: backendRequest.createdAt,
         monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
         message: backendRequest.message || '',
-        employerContact: {
+      employerContact: {
           email: backendRequest.email || '',
           phone: backendRequest.phoneNumber || ''
-        },
-        adminNotes: '',
+      },
+      adminNotes: '',
         lastContactDate: backendRequest.updatedAt,
         isCompleted: backendRequest.status === 'completed',
         category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
@@ -181,7 +181,7 @@ const EmployerRequestsPage = () => {
         employerContact: { email: '', phone: '' },
         adminNotes: '',
         lastContactDate: new Date(),
-        isCompleted: false,
+      isCompleted: false,
         category: 'Error loading data',
         _backendData: backendRequest
       };
@@ -451,7 +451,7 @@ const EmployerRequestsPage = () => {
       console.log(`🔄 Updating request status: ${selectedRequest.id} -> ${newStatus}`);
       
       const result = await updateRequestStatus(selectedRequest.id, {
-        status: newStatus,
+                status: newStatus, 
         adminNotes: message
       });
       
@@ -499,8 +499,8 @@ const EmployerRequestsPage = () => {
         // Clear form and close modal
         setReplyMessage('');
         setAdminNotes('');
-        setShowActionModal(false);
-        setCurrentAction(null);
+      setShowActionModal(false);
+      setCurrentAction(null);
         
         // Refresh the requests to show updated data
         handleRefresh();
@@ -659,7 +659,7 @@ const EmployerRequestsPage = () => {
 
   // Loading state
   if (loading && transformedRequests.length === 0) {
-    return (
+  return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading employer requests..." />
       </div>
@@ -754,13 +754,13 @@ const EmployerRequestsPage = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Statistics */}
+      {/* Statistics */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <StatsGrid stats={stats} />
+      <StatsGrid stats={stats} />
         </motion.div>
 
         {/* Main Content */}
@@ -773,7 +773,7 @@ const EmployerRequestsPage = () => {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
                 Employer Requests ({safeDataForRendering.length})
-              </h2>
+            </h2>
             </div>
 
             {/* Data Table */}
@@ -788,13 +788,13 @@ const EmployerRequestsPage = () => {
                 >
                   <Filter className="w-4 h-4" />
                   {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </Button>
+              </Button>
                 
                 {loading && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
                     Loading...
-                  </div>
+            </div>
                 )}
                 
                 {showFilters && (
@@ -807,7 +807,7 @@ const EmployerRequestsPage = () => {
                         onChange={(e) => handleDateFilterChange('from', e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       />
-                    </div>
+          </div>
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-medium text-gray-700">To:</label>
                       <input
@@ -830,18 +830,18 @@ const EmployerRequestsPage = () => {
                     </Button>
                   </div>
                 )}
-              </div>
-
-              <DataTable
+        </div>
+        
+        <DataTable
                 data={safeDataForRendering}
-                columns={columns}
+          columns={columns}
                 searchTerm={searchTerm}
                 filters={tableFilters}
                 onSearchChange={handleSearchChange}
                 onFilterChange={handleFilterChange}
-                onRowAction={handleRowAction}
+          onRowAction={handleRowAction}
                 actionButtons={getActionButtons}
-                pagination={false}
+          pagination={false}
                 itemsPerPage={10}
               />
 
@@ -863,40 +863,40 @@ const EmployerRequestsPage = () => {
             </div>
 
                           {/* Server-side pagination is handled by the DataTable component */}
-          </Card>
+      </Card>
         </motion.div>
       </div>
 
       {/* Request Details Modal */}
       {showDetailsModal && selectedRequest && (
-        <Modal
-          isOpen={showDetailsModal}
-          onClose={() => setShowDetailsModal(false)}
-          title="Request Details"
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Request Details"
           size="lg"
-        >
+      >
           <div className="space-y-6">
             {/* Employer Information */}
-            <div>
+              <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Employer Information</h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Name</label>
                     <p className="text-gray-900">{selectedRequest.employerName}</p>
-                  </div>
+                </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Company</label>
                     <p className="text-gray-900">{selectedRequest.companyName}</p>
-                  </div>
+                </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Email</label>
                     <p className="text-gray-900">{selectedRequest.employerContact.email}</p>
-                  </div>
-                  <div>
+              </div>
+              <div>
                     <label className="text-sm font-medium text-gray-500">Phone</label>
                     <p className="text-gray-900">{selectedRequest.employerContact.phone}</p>
-                  </div>
+                </div>
                 </div>
               </div>
             </div>
@@ -909,15 +909,15 @@ const EmployerRequestsPage = () => {
                   <div>
                     <label className="text-sm font-medium text-gray-500">Status</label>
                     <Badge color={getStatusColor(selectedRequest.status)}>
-                      {selectedRequest.status}
-                    </Badge>
+                    {selectedRequest.status}
+                  </Badge>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Priority</label>
                     <Badge color={getPriorityColor(selectedRequest.priority)}>
-                      {selectedRequest.priority}
-                    </Badge>
-                  </div>
+                    {selectedRequest.priority}
+                  </Badge>
+                </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Request Date</label>
                     <p className="text-gray-900">
@@ -934,7 +934,7 @@ const EmployerRequestsPage = () => {
 
             {/* Candidate Information */}
             {selectedRequest.candidateName !== 'Not specified' && (
-              <div>
+            <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Candidate Information</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="space-y-4">
@@ -947,12 +947,12 @@ const EmployerRequestsPage = () => {
                         <h4 className="text-lg font-semibold text-gray-900">{selectedRequest.candidateName}</h4>
                         <p className="text-sm text-gray-600">{selectedRequest.category} • {selectedRequest.position}</p>
                         <p className="text-sm font-medium text-green-600">{selectedRequest.monthlyRate}</p>
-                      </div>
-                    </div>
+              </div>
+            </div>
 
                     {/* Basic Information */}
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
+            <div>
                         <label className="text-sm font-medium text-gray-500">Job Category</label>
                         <p className="text-gray-900">{selectedRequest.category}</p>
                       </div>
@@ -960,35 +960,35 @@ const EmployerRequestsPage = () => {
                         <label className="text-sm font-medium text-gray-500">Skills/Position</label>
                         <p className="text-gray-900">{selectedRequest.position}</p>
                       </div>
-                    </div>
+            </div>
 
                     {/* Additional Candidate Details from Backend */}
                     {selectedRequest.candidateExperience !== 'Not specified' && (
                       <>
                         {/* Experience and Education */}
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
+            <div>
                             <label className="text-sm font-medium text-gray-500">Experience Level</label>
                             <p className="text-gray-900">
                               {selectedRequest.candidateExperienceLevel}
                             </p>
                           </div>
-                          <div>
+                  <div>
                             <label className="text-sm font-medium text-gray-500">Education</label>
                             <p className="text-gray-900">
                               {selectedRequest.candidateEducation}
                             </p>
-                          </div>
-                        </div>
+                  </div>
+                </div>
 
                         {/* Location Information */}
                         <div className="grid grid-cols-3 gap-4">
-                          <div>
+                    <div>
                             <label className="text-sm font-medium text-gray-500">Location</label>
                             <p className="text-gray-900">
                               {selectedRequest.candidateLocation}
                             </p>
-                          </div>
+                    </div>
                           <div>
                             <label className="text-sm font-medium text-gray-500">City</label>
                             <p className="text-gray-900">
@@ -1058,8 +1058,8 @@ const EmployerRequestsPage = () => {
                             <p className="text-gray-900">
                               {selectedRequest.candidateDescription}
                             </p>
-                          </div>
-                        )}
+                  </div>
+                )}
 
                         {selectedRequest.candidateReferences !== 'Not specified' && (
                           <div>
@@ -1067,7 +1067,7 @@ const EmployerRequestsPage = () => {
                             <p className="text-gray-900">
                               {selectedRequest.candidateReferences}
                             </p>
-                          </div>
+              </div>
                         )}
 
                         {/* ID Number */}
@@ -1077,7 +1077,7 @@ const EmployerRequestsPage = () => {
                             <p className="text-gray-900">
                               {selectedRequest.candidateIdNumber}
                             </p>
-                          </div>
+            </div>
                         )}
                       </>
                     )}
@@ -1165,8 +1165,8 @@ const EmployerRequestsPage = () => {
                 </p>
               </div>
               <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
+              <Button
+                variant="outline"
                   onClick={() => {
                     setShowActionModal(false);
                     setReplyMessage('');
@@ -1176,7 +1176,7 @@ const EmployerRequestsPage = () => {
                   disabled={replyLoading}
                 >
                   Cancel
-                </Button>
+              </Button>
                 <Button
                   variant="primary"
                   onClick={handleReplySubmit}
@@ -1257,22 +1257,22 @@ const EmployerRequestsPage = () => {
                         </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <Button
-                          variant="outline"
+                  <Button
+                    variant="outline"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Profile Picture
-                        </Button>
-                        <Button
-                          variant="primary"
+                  </Button>
+                  <Button
+                    variant="primary"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Complete Details
-                        </Button>
+                  </Button>
                       </div>
                     </div>
                   </div>
@@ -1282,14 +1282,14 @@ const EmployerRequestsPage = () => {
                     <p>No candidate specified in this request</p>
                     <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
                   </div>
-                )}
-              </div>
+              )}
+            </div>
 
               {candidateSelectionError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                   {candidateSelectionError}
-                </div>
-              )}
+          </div>
+        )}
 
               {candidateSelectionLoading && (
                 <div className="text-sm text-gray-600 flex items-center justify-center">
@@ -1315,7 +1315,7 @@ const EmployerRequestsPage = () => {
           )}
 
           {currentAction === 'complete' && (
-            <div className="space-y-4">
+        <div className="space-y-4">
               {/* Request Information */}
               <div className="bg-orange-50 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
@@ -1383,18 +1383,18 @@ const EmployerRequestsPage = () => {
               )}
 
               <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
+            <Button
+              variant="outline"
                   onClick={() => {
                     setShowActionModal(false);
                     setCompletionNotes('');
                     setCompletionError('');
                   }}
                   disabled={completionLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
+            >
+              Cancel
+            </Button>
+            <Button
                   variant="primary"
                   onClick={handleRequestCompletion}
                   disabled={completionLoading}
@@ -1408,11 +1408,11 @@ const EmployerRequestsPage = () => {
                   ) : (
                     'Complete Request'
                   )}
-                </Button>
-              </div>
-            </div>
+            </Button>
+          </div>
+        </div>
           )}
-        </Modal>
+      </Modal>
       )}
     </div>
   );
