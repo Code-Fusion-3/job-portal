@@ -1,13 +1,10 @@
 import { Search } from 'lucide-react';
 
 const SidebarSearch = ({ 
-  isCollapsed, 
   searchValue = '', 
   onSearchChange, 
   placeholder = "Search..." 
 }) => {
-  if (isCollapsed) return null;
-
   return (
     <div className="px-4 py-3">
       <div className="relative">

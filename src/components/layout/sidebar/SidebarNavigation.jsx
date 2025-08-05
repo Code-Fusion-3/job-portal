@@ -3,7 +3,6 @@ import SidebarItem from './SidebarItem';
 const SidebarNavigation = ({ 
   navigationItems, 
   activeItem, 
-  isCollapsed, 
   onItemClick 
 }) => {
   return (
@@ -14,7 +13,6 @@ const SidebarNavigation = ({
             key={item.id}
             item={item}
             isActive={activeItem === item.id}
-            isCollapsed={isCollapsed}
             onClick={onItemClick}
           />
         ))}

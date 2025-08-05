@@ -16,7 +16,6 @@ import {
   Edit,
   Trash2,
   ArrowRight,
-  TrendingUp,
   TrendingDown,
   DollarSign,
   Calendar,
@@ -354,7 +353,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 ">
           <StatCard
             title="Total Job Seekers"
             value={dashboardStatsData.overview?.totalJobSeekers || dashboardStatsData.totalJobSeekers || 0}
@@ -567,46 +566,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Analytics Section - Charts moved to Reports Page */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card title="Analytics Overview" subtitle="View detailed charts and analytics in the Reports section">
-            <div className="text-center py-8">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Charts and analytics are now available in the Reports section</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4"
-                onClick={() => setActiveTab('reports')}
-              >
-                View Reports
-              </Button>
-            </div>
-          </Card>
 
-          <Card title="Quick Stats" subtitle="Key metrics and trends">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-blue-600">Recent Growth</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {dashboardStatsData?.trends?.recentGrowth || 0}%
-                  </p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-blue-500" />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-green-600">Active Requests</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {dashboardStatsData?.trends?.activeRequests || 0}
-                  </p>
-                </div>
-                <MessageSquare className="w-8 h-8 text-green-500" />
-              </div>
-            </div>
-          </Card>
-        </div>
       </div>
     );
   };
@@ -664,7 +624,7 @@ const AdminDashboard = () => {
         />
 
         {/* Main Content */}
-        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0' : 'ml-0'}`}>
           <div className="p-4 lg:p-6">
             {renderTabContent()}
           </div>
