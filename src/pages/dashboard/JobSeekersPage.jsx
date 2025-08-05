@@ -187,11 +187,11 @@ const JobSeekersPage = () => {
   useEffect(() => {
     if (!authLoading) {
       if (!isAuthenticated) {
-        console.log('❌ User not authenticated');
+        // console.log('❌ User not authenticated');
       } else if (user?.role !== 'admin') {
-        console.log('❌ User is not admin, role:', user?.role);
+        // console.log('❌ User is not admin, role:', user?.role);
       } else {
-        console.log('✅ User is authenticated as admin');
+        // console.log('✅ User is authenticated as admin');
       }
     }
   }, [authLoading, isAuthenticated, user]);

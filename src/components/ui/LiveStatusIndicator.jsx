@@ -44,30 +44,30 @@ const LiveStatusIndicator = ({
             ease: "easeInOut"
           }}
         >
-          {isConnected ? (
+          {/* {isConnected ? (
             <Wifi className="w-4 h-4 text-green-500" />
           ) : (
             <WifiOff className="w-4 h-4 text-red-500" />
-          )}
+          )} */}
         </motion.div>
         
-        <span className={`text-xs ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+        {/* <span className={`text-xs ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
           {isConnected ? 'Live' : 'Offline'}
-        </span>
+        </span> */}
       </div>
 
       {/* Last Update */}
-      {showLastUpdate && (
+      {/* {showLastUpdate && (
         <div className="flex items-center space-x-1 text-gray-500">
           <Clock className="w-3 h-3" />
           <span className="text-xs">
             {formatTime(lastUpdate)}
           </span>
         </div>
-      )}
+      )} */}
 
       {/* Refresh Button */}
-      {onRefresh && (
+      {/* {onRefresh && (
         <button
           onClick={onRefresh}
           className="p-1 rounded-full hover:bg-gray-100 transition-colors"
@@ -75,7 +75,7 @@ const LiveStatusIndicator = ({
         >
           <RefreshCw className="w-3 h-3 text-gray-500" />
         </button>
-      )}
+      )} */}
     </div>
   );
 };
