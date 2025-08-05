@@ -215,7 +215,7 @@ const DataTable = ({
                         onMouseLeave={() => closeDropdown(item.id || index)}
                       >
                         <div className="py-1">
-                          {actionButtons.map((action, actionIndex) => {
+                          {(typeof actionButtons === 'function' ? actionButtons(item) : actionButtons).map((action, actionIndex) => {
                             const IconComponent = action.icon;
                             return (
                               <button

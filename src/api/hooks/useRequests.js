@@ -170,6 +170,32 @@ export const useRequests = (options = {}) => {
     }
   }, [includeAdmin, fetchRequests]);
 
+  // Update request status (admin)
+  const updateRequestStatus = useCallback(async (requestId, statusData) => {
+    if (!includeAdmin) return { success: false, error: 'Unauthorized' };
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await requestService.updateRequestStatus(requestId, statusData);
+      if (result.success) {
+        // Refresh the requests list to get updated data
+        await fetchRequests();
+        return { success: true, data: result.data };
+      } else {
+        setError(result.error || 'Failed to update request status');
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMessage = 'An error occurred while updating request status';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, [includeAdmin, fetchRequests]);
+
   // Pagination functions
   const goToPage = useCallback((page) => {
     setCurrentPage(page);
@@ -281,6 +307,7 @@ export const useRequests = (options = {}) => {
     getRequestById,
     replyToRequest,
     selectJobSeekerForRequest,
+    updateRequestStatus,
     
     // Pagination actions
     goToPage,

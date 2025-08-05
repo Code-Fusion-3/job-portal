@@ -267,11 +267,11 @@ export const requestService = {
 
   /**
    * Update request status (Admin)
-   * PUT /employer/requests/{id}
+   * PUT /employer/requests/{id}/status
    */
   updateRequestStatus: async (id, statusData) => {
     try {
-      const response = await apiClient.put(`/employer/requests/${id}`, statusData, {
+      const response = await apiClient.put(`/employer/requests/${id}/status`, statusData, {
         headers: getAuthHeaders()
       });
 

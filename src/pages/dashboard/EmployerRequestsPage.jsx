@@ -14,7 +14,8 @@ import {
   Building,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  Play
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
@@ -57,7 +58,8 @@ const EmployerRequestsPage = () => {
     prevPage,
     applyFilters,
     replyToRequest,
-    selectJobSeekerForRequest
+    selectJobSeekerForRequest,
+    updateRequestStatus // Added updateRequestStatus to useRequests hook
   } = useRequests({ includeAdmin: true });
 
   const { categories, loadingCategories, fetchCategories } = useCategories();
@@ -78,6 +80,11 @@ const EmployerRequestsPage = () => {
   const [candidateSelectionError, setCandidateSelectionError] = useState('');
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
   const [candidateDetailsType, setCandidateDetailsType] = useState('picture'); // 'picture' or 'full'
+
+  // Completion state
+  const [completionLoading, setCompletionLoading] = useState(false);
+  const [completionError, setCompletionError] = useState('');
+  const [completionNotes, setCompletionNotes] = useState('');
 
   // Filter state
   const [dateFrom, setDateFrom] = useState('');
@@ -187,8 +194,8 @@ const EmployerRequestsPage = () => {
   // Debug logging
   useEffect(() => {
     if (safeData.length > 0) {
-      console.log('Raw requests from backend:', safeData);
-      console.log('Transformed requests:', transformedRequests);
+      // console.log('Raw requests from backend:', safeData);
+      // console.log('Transformed requests:', transformedRequests);
     }
   }, [safeData, transformedRequests]);
 
@@ -419,28 +426,51 @@ const EmployerRequestsPage = () => {
         setCurrentAction('select');
         setShowActionModal(true);
         break;
+      case 'start':
+        handleStatusUpdate('in_progress', 'Starting to process this request');
+        break;
+      case 'approve':
+        handleStatusUpdate('approved', 'Request approved and ready for completion');
+        break;
       case 'complete':
         setCurrentAction('complete');
         setShowActionModal(true);
+        break;
+      case 'reactivate':
+        handleStatusUpdate('pending', 'Request reactivated and back to pending status');
         break;
       default:
         console.warn('Unknown action:', action);
     }
   };
 
-  const handleStatusUpdate = (newStatus) => {
+  const handleStatusUpdate = async (newStatus, message) => {
     if (!selectedRequest) return;
     
-    // Update the request status
-    const updatedRequest = { ...selectedRequest, status: newStatus };
-    setSelectedRequest(updatedRequest);
-    
-    // Close modal
-    setShowActionModal(false);
-    setCurrentAction(null);
-    
-    // Show success message
-    alert(`Request status updated to ${newStatus}`);
+    try {
+      console.log(`🔄 Updating request status: ${selectedRequest.id} -> ${newStatus}`);
+      
+      const result = await updateRequestStatus(selectedRequest.id, {
+        status: newStatus,
+        adminNotes: message
+      });
+      
+      if (result.success) {
+        console.log('✅ Status updated successfully:', result.data);
+        
+        // Show success message
+        alert(`Request status updated to ${newStatus}. ${message || ''}`);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to update status:', result.error);
+        alert(`Failed to update status: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating status:', error);
+      alert('Network error. Please try again.');
+    }
   };
 
   const handleReplySubmit = async () => {
@@ -527,6 +557,104 @@ const EmployerRequestsPage = () => {
     setSelectedCandidate(candidate);
     setCandidateDetailsType(detailsType);
     setShowCandidateDetails(true);
+  };
+
+  const handleRequestCompletion = async () => {
+    if (!selectedRequest) return;
+    
+    setCompletionLoading(true);
+    setCompletionError('');
+
+    try {
+      console.log(`✅ Completing request: ${selectedRequest.id}`);
+      console.log(`📝 Completion notes: ${completionNotes || 'None'}`);
+      
+      const result = await updateRequestStatus(selectedRequest.id, {
+        status: 'completed',
+        adminNotes: completionNotes
+      });
+      
+      console.log('📊 Completion result:', result);
+      
+      if (result.success) {
+        console.log('✅ Request completed successfully:', result.data);
+        
+        alert(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
+        
+        // Clear form and close modal
+        setCompletionNotes('');
+        setShowActionModal(false);
+        setCurrentAction(null);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to complete request:', result.error);
+        setCompletionError(result.error || 'Failed to complete request');
+      }
+    } catch (error) {
+      console.error('❌ Error completing request:', error);
+      setCompletionError('Network error. Please try again.');
+    } finally {
+      setCompletionLoading(false);
+    }
+  };
+
+  const getActionButtons = (request) => {
+    const baseActions = [
+      // View Details - Always available
+      { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
+      
+      // Contact Group - Always available
+      { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
+      { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
+      { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' },
+    ];
+
+    // Status-based actions
+    const statusActions = [];
+    
+    switch (request.status) {
+      case 'pending':
+        statusActions.push(
+          { key: 'start', title: 'Start Processing', icon: Play, className: 'text-blue-600 hover:bg-blue-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'in_progress':
+        statusActions.push(
+          { key: 'approve', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'approved':
+        statusActions.push(
+          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'completed':
+        // No additional actions for completed requests
+        break;
+        
+      case 'cancelled':
+        statusActions.push(
+          { key: 'reactivate', title: 'Reactivate', icon: RefreshCw, className: 'text-blue-600 hover:bg-blue-50', group: 'status' }
+        );
+        break;
+        
+      default:
+        // For any other status, show all actions
+        statusActions.push(
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
+          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+        );
+    }
+
+    return [...baseActions, ...statusActions];
   };
 
   // Loading state
@@ -712,21 +840,7 @@ const EmployerRequestsPage = () => {
                 onSearchChange={handleSearchChange}
                 onFilterChange={handleFilterChange}
                 onRowAction={handleRowAction}
-                actionButtons={[
-                  // View Details - Primary action
-                  { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
-                  
-                  // Contact Group - Communication actions
-                  { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
-                  { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
-                  { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' },
-                  
-                  // Send Candidate Details
-                  { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
-                  
-                  // Completion Action
-                  { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'completion' }
-                ]}
+                actionButtons={getActionButtons}
                 pagination={false}
                 itemsPerPage={10}
               />
@@ -1202,21 +1316,98 @@ const EmployerRequestsPage = () => {
 
           {currentAction === 'complete' && (
             <div className="space-y-4">
-              <p className="text-gray-600">
-                Mark this request as completed. This will close the request.
-              </p>
+              {/* Request Information */}
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-orange-700 font-medium">Employer:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Company:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Position:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Current Status:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.status}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Completion Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Completion Notes (Optional)
+                </label>
+                <textarea
+                  value={completionNotes}
+                  onChange={(e) => setCompletionNotes(e.target.value)}
+                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Add notes about how this request was completed..."
+                  disabled={completionLoading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  These notes will be saved with the request and sent to the employer.
+                </p>
+              </div>
+
+              {/* Warning */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center mr-2">
+                    <span className="text-yellow-800 text-xs">!</span>
+                  </div>
+                  <p className="text-sm text-yellow-800">
+                    <strong>Warning:</strong> This action will permanently mark the request as completed and close it. 
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              {completionError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {completionError}
+                </div>
+              )}
+
+              {completionLoading && (
+                <div className="text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                  Completing request...
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"
-                  onClick={() => setShowActionModal(false)}
+                  onClick={() => {
+                    setShowActionModal(false);
+                    setCompletionNotes('');
+                    setCompletionError('');
+                  }}
+                  disabled={completionLoading}
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="primary"
-                  onClick={() => handleStatusUpdate('completed')}
+                  onClick={handleRequestCompletion}
+                  disabled={completionLoading}
+                  className="bg-orange-600 hover:bg-orange-700"
                 >
-                  Complete Request
+                  {completionLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Completing...
+                    </>
+                  ) : (
+                    'Complete Request'
+                  )}
                 </Button>
               </div>
             </div>
