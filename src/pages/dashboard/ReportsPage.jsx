@@ -44,9 +44,9 @@ const ReportsPage = () => {
     loadReportData();
   }, [selectedPeriod]);
 
-  const loadReportData = async () => {
-    try {
-      setLoading(true);
+    const loadReportData = async () => {
+      try {
+        setLoading(true);
       setError('');
       
       // Load both analytics and dashboard stats
@@ -66,13 +66,13 @@ const ReportsPage = () => {
       } else {
         console.error('Failed to load dashboard stats:', statsResult.error);
       }
-    } catch (error) {
-      console.error('Error loading report data:', error);
+      } catch (error) {
+        console.error('Error loading report data:', error);
       setError('Network error. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // Period options
   const periodOptions = [
@@ -297,14 +297,14 @@ const ReportsPage = () => {
           const IconComponent = stat.icon;
           return (
             <Card key={index} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
+          <div className="flex items-center justify-between">
+            <div>
                   <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                   {stat.change && (
-                    <div className="flex items-center mt-2">
+              <div className="flex items-center mt-2">
                       {stat.changeType === 'increase' ? (
-                        <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+                <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                       ) : stat.changeType === 'decrease' ? (
                         <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
                       ) : null}
@@ -315,15 +315,15 @@ const ReportsPage = () => {
                       }`}>
                         {stat.change}
                       </span>
-                    </div>
+              </div>
                   )}
                   <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-                </div>
+            </div>
                 <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
                   <IconComponent className={`w-6 h-6 ${stat.color}`} />
-                </div>
-              </div>
-            </Card>
+          </div>
+          </div>
+        </Card>
           );
         })}
       </div>
@@ -398,7 +398,7 @@ const ReportsPage = () => {
               data={reportData.categories?.top || []} 
               title="Top Job Categories"
             />
-          </div>
+                  </div>
         </Card>
 
         {/* Locations Chart */}
@@ -414,7 +414,7 @@ const ReportsPage = () => {
               <Download className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
-          </div>
+                  </div>
           <div className="h-80">
             <LocationsChart 
               data={reportData.locations || []} 
@@ -467,7 +467,7 @@ const ReportsPage = () => {
                 data={reportData.skills.slice(0, 8) || []} 
                 title="Skills Distribution"
               />
-            </div>
+      </div>
           </Card>
         )}
 

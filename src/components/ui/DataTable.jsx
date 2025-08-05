@@ -216,22 +216,22 @@ const DataTable = ({
                       >
                         <div className="py-1">
                           {(typeof actionButtons === 'function' ? actionButtons(item) : actionButtons).map((action, actionIndex) => {
-                            const IconComponent = action.icon;
-                            return (
+                      const IconComponent = action.icon;
+                      return (
                               <button
-                                key={actionIndex}
+                          key={actionIndex}
                                 onClick={() => {
                                   onRowAction?.(action.key, item);
                                   closeDropdown(item.id || index);
                                 }}
                                 className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2 ${action.className}`}
-                                title={action.title}
-                              >
+                          title={action.title}
+                        >
                                 <IconComponent className="w-4 h-4" />
                                 <span>{action.title}</span>
                               </button>
-                            );
-                          })}
+                      );
+                    })}
                         </div>
                       </div>
                     )}
