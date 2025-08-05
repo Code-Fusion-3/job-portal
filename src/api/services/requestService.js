@@ -222,9 +222,12 @@ export const requestService = {
    * Select job seeker for request (Admin)
    * POST /employer/requests/{id}/select
    */
-  selectJobSeeker: async (id, selectionData) => {
+  selectJobSeeker: async (id, jobSeekerId, detailsType = 'picture') => {
     try {
-      const response = await apiClient.post(`/employer/requests/${id}/select`, selectionData, {
+      const response = await apiClient.post(`/employer/requests/${id}/select`, {
+        selectedUserId: jobSeekerId,
+        detailsType: detailsType
+      }, {
         headers: getAuthHeaders()
       });
 

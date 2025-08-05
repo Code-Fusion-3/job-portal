@@ -18,15 +18,15 @@ export const useCategories = (options = {}) => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // Fetch categories data
+  // Fetch categories
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
       const result = includeAdmin 
-        ? await categoryService.getAllCategories()
-        : await categoryService.getPublicCategories();
+        ? await categoryService.getAllCategoriesAdmin()
+        : await categoryService.getAllCategories();
       
       if (result.success) {
         setCategories(result.data || []);

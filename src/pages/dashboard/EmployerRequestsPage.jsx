@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   MessageSquare, 
@@ -16,9 +16,11 @@ import {
   Search,
   RefreshCw
 } from 'lucide-react';
-import { useAdminRequests } from '../../api/hooks/useRequests.js';
+import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { categoryService } from '../../api/services/categoryService.js';
+import { useCategories } from '../../api/hooks/useCategories.js';
+import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import StatsGrid from '../../components/ui/StatsGrid';
@@ -35,36 +37,30 @@ const EmployerRequestsPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   
-  // Use the custom hook for requests management
-  const {
-    requests,
-    loading,
-    error,
+  // Hooks
+  const { 
+    requests: safeData, 
+    loading, 
+    error, 
     currentPage,
     totalPages,
     totalItems,
+    pageInfo,
+    hasNextPage,
+    hasPrevPage,
     searchTerm,
-    filters,
-    sortBy,
-    sortOrder,
-    fetchRequests,
-    replyToRequest,
-    selectJobSeekerForRequest,
     setSearchTerm,
+    filters,
     setFilters,
-    setSortBy,
-    setSortOrder,
     goToPage,
     nextPage,
     prevPage,
-    hasNextPage,
-    hasPrevPage,
-    pageInfo,
-    applyFilters
-  } = useAdminRequests({
-    autoFetch: true,
-    itemsPerPage: 10
-  });
+    applyFilters,
+    replyToRequest,
+    selectJobSeekerForRequest
+  } = useRequests({ includeAdmin: true });
+
+  const { categories, loadingCategories, fetchCategories } = useCategories();
 
   // State management
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -75,10 +71,15 @@ const EmployerRequestsPage = () => {
   const [replyMessage, setReplyMessage] = useState('');
   const [replyLoading, setReplyLoading] = useState(false);
   const [replyError, setReplyError] = useState('');
+  
+  // Candidate selection state
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidateSelectionLoading, setCandidateSelectionLoading] = useState(false);
+  const [candidateSelectionError, setCandidateSelectionError] = useState('');
+  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
+  const [candidateDetailsType, setCandidateDetailsType] = useState('picture'); // 'picture' or 'full'
 
   // Filter state
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -134,7 +135,7 @@ const EmployerRequestsPage = () => {
           email: backendRequest.email || '',
           phone: backendRequest.phoneNumber || ''
         },
-        adminNotes: '', // This should be stored separately
+        adminNotes: '',
         lastContactDate: backendRequest.updatedAt,
         isCompleted: backendRequest.status === 'completed',
         category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
@@ -155,46 +156,41 @@ const EmployerRequestsPage = () => {
         candidateMaritalStatus: backendRequest.requestedCandidate?.profile?.maritalStatus || 'Not specified',
         candidateIdNumber: backendRequest.requestedCandidate?.profile?.idNumber || 'Not specified',
         candidateReferences: backendRequest.requestedCandidate?.profile?.references || 'Not specified',
-        // Backend fields for reference
         _backendData: backendRequest
       };
     } catch (error) {
-      console.error('Error transforming request data:', error, backendRequest);
-      // Return a safe fallback object
+      console.error('Error transforming request data:', error);
       return {
-        id: backendRequest.id || 'unknown',
+        id: backendRequest?.id || 'unknown',
         employerName: 'Error loading data',
-        companyName: 'Unknown',
-        candidateName: 'Not specified',
-        position: 'General',
-        status: 'pending',
+        companyName: 'Error loading data',
+        candidateName: 'Error loading data',
+        position: 'Error loading data',
+        status: 'error',
         priority: 'normal',
-        date: new Date().toISOString(),
-        monthlyRate: 'Not specified',
-        message: 'Error loading request data',
-        employerContact: {
-          email: '',
-          phone: ''
-        },
+        date: new Date(),
+        monthlyRate: 'Error loading data',
+        message: 'Error loading data',
+        employerContact: { email: '', phone: '' },
         adminNotes: '',
-        lastContactDate: new Date().toISOString(),
+        lastContactDate: new Date(),
         isCompleted: false,
-        category: 'domestic',
+        category: 'Error loading data',
         _backendData: backendRequest
       };
     }
   };
 
-  // Transform all requests
-  const transformedRequests = requests.map(transformRequestData).filter(Boolean);
+  // Transform the data for display
+  const transformedRequests = safeData.map(transformRequestData).filter(Boolean);
 
   // Debug logging
   useEffect(() => {
-    if (requests.length > 0) {
-      console.log('Raw requests from backend:', requests);
+    if (safeData.length > 0) {
+      console.log('Raw requests from backend:', safeData);
       console.log('Transformed requests:', transformedRequests);
     }
-  }, [requests, transformedRequests]);
+  }, [safeData, transformedRequests]);
 
   // Create filter structure for DataTable
   const tableFilters = [
@@ -234,7 +230,7 @@ const EmployerRequestsPage = () => {
   ];
 
   // Ensure data is safe for rendering
-  const safeData = transformedRequests.map(item => ({
+  const safeDataForRendering = transformedRequests.map(item => ({
     ...item,
     employerName: item.employerName || 'Unknown',
     companyName: item.companyName || 'Private',
@@ -254,7 +250,7 @@ const EmployerRequestsPage = () => {
   const stats = [
     {
       title: 'Total Requests',
-      value: safeData.length.toString(),
+      value: safeDataForRendering.length.toString(),
       change: '+5',
       changeType: 'increase',
       icon: MessageSquare,
@@ -264,7 +260,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Pending Review',
-      value: safeData.filter(r => r.status === 'pending').length.toString(),
+      value: safeDataForRendering.filter(r => r.status === 'pending').length.toString(),
       change: '+2',
       changeType: 'increase',
       icon: Clock,
@@ -274,7 +270,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'In Progress',
-      value: safeData.filter(r => r.status === 'in_progress').length.toString(),
+      value: safeDataForRendering.filter(r => r.status === 'in_progress').length.toString(),
       change: '+1',
       changeType: 'increase',
       icon: AlertCircle,
@@ -284,7 +280,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Completed',
-      value: safeData.filter(r => r.status === 'completed').length.toString(),
+      value: safeDataForRendering.filter(r => r.status === 'completed').length.toString(),
       change: '+3',
       changeType: 'increase',
       icon: CheckCircle,
@@ -381,34 +377,6 @@ const EmployerRequestsPage = () => {
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  // Fetch categories for filtering
-  const fetchCategories = useCallback(async () => {
-    setLoadingCategories(true);
-    try {
-      const result = await categoryService.getAllCategories();
-      if (result.success) {
-        setCategories(result.data || []);
-      } else {
-        console.error('Failed to fetch categories:', result.error);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    } finally {
-      setLoadingCategories(false);
-    }
-  }, []);
-
-  // Handle date filter changes
-  const handleDateFilterChange = (type, value) => {
-    if (type === 'from') {
-      setDateFrom(value);
-      setFilters(prev => ({ ...prev, dateFrom: value }));
-    } else {
-      setDateTo(value);
-      setFilters(prev => ({ ...prev, dateTo: value }));
-    }
   };
 
   // Load categories on mount
@@ -518,23 +486,47 @@ const EmployerRequestsPage = () => {
     }
   };
 
-  const handleJobSeekerSelection = async (jobSeekerId) => {
+  const handleJobSeekerSelection = async (jobSeekerId, detailsType = 'picture') => {
     if (!selectedRequest) return;
     
+    setCandidateSelectionLoading(true);
+    setCandidateSelectionError('');
+
     try {
-      const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId);
+      console.log(`📤 Sending candidate information: ${jobSeekerId}, Details type: ${detailsType}`);
+      
+      const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId, detailsType);
       
       if (result.success) {
-        alert('Job seeker selected successfully');
+        console.log('✅ Candidate information sent successfully:', result.data);
+        
+        const successMessage = detailsType === 'picture' 
+          ? `Candidate profile picture sent to ${selectedRequest.employerName}`
+          : `Complete candidate details sent to ${selectedRequest.employerName}`;
+        
+        alert(successMessage);
         setShowActionModal(false);
         setCurrentAction(null);
+        setSelectedCandidate(null);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
       } else {
-        alert(result.error || 'Failed to select job seeker');
+        console.error('❌ Failed to send candidate information:', result.error);
+        setCandidateSelectionError(result.error || 'Failed to send candidate information');
       }
     } catch (error) {
-      console.error('Error selecting job seeker:', error);
-      alert('Error selecting job seeker');
+      console.error('❌ Error sending candidate information:', error);
+      setCandidateSelectionError('Network error. Please try again.');
+    } finally {
+      setCandidateSelectionLoading(false);
     }
+  };
+
+  const handleCandidateSelection = (candidate, detailsType) => {
+    setSelectedCandidate(candidate);
+    setCandidateDetailsType(detailsType);
+    setShowCandidateDetails(true);
   };
 
   // Loading state
@@ -563,7 +555,7 @@ const EmployerRequestsPage = () => {
   }
 
   // No data state
-  if (!loading && safeData.length === 0) {
+  if (!loading && safeDataForRendering.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -652,7 +644,7 @@ const EmployerRequestsPage = () => {
           <Card className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
-                Employer Requests ({safeData.length})
+                Employer Requests ({safeDataForRendering.length})
               </h2>
             </div>
 
@@ -713,7 +705,7 @@ const EmployerRequestsPage = () => {
               </div>
 
               <DataTable
-                data={safeData}
+                data={safeDataForRendering}
                 columns={columns}
                 searchTerm={searchTerm}
                 filters={tableFilters}
@@ -729,8 +721,8 @@ const EmployerRequestsPage = () => {
                   { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
                   { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' },
                   
-                  // Candidate Selection
-                  { key: 'select', title: 'Select Candidate', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
+                  // Send Candidate Details
+                  { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
                   
                   // Completion Action
                   { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'completion' }
@@ -991,7 +983,7 @@ const EmployerRequestsPage = () => {
           isOpen={showActionModal}
           onClose={() => setShowActionModal(false)}
           title={currentAction === 'reply' ? 'Reply to Request' : 
-                 currentAction === 'select' ? 'Select Job Seeker' : 
+                 currentAction === 'select' ? 'Send Candidate Details' : 
                  currentAction === 'complete' ? 'Complete Request' : 'Action'}
           size="md"
         >
@@ -1091,21 +1083,118 @@ const EmployerRequestsPage = () => {
 
           {currentAction === 'select' && (
             <div className="space-y-4">
-              <p className="text-gray-600">
-                Select a job seeker for this request. This will notify the employer.
-              </p>
+              {/* Employer Information */}
+              <div className="bg-green-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-green-900 mb-2">Selecting candidate for:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-green-700 font-medium">Employer:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Company:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Position:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Category:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.category}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Requested Candidate */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Send Candidate Information</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Send the requested candidate's information to the employer. Choose whether to send just a profile picture or complete details.
+                </p>
+                {selectedRequest._backendData?.requestedCandidate ? (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 text-lg">
+                            {selectedRequest.candidateName}
+                          </h5>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {selectedRequest.position} • {selectedRequest.candidateExperience}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                            <div>
+                              <span className="font-medium">Location:</span> {selectedRequest.candidateLocation}
+                            </div>
+                            <div>
+                              <span className="font-medium">Rate:</span> {selectedRequest.monthlyRate}
+                            </div>
+                            <div>
+                              <span className="font-medium">Experience Level:</span> {selectedRequest.candidateExperienceLevel}
+                            </div>
+                            <div>
+                              <span className="font-medium">Education:</span> {selectedRequest.candidateEducation}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
+                          disabled={candidateSelectionLoading}
+                        >
+                          Send Profile Picture
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
+                          disabled={candidateSelectionLoading}
+                        >
+                          Send Complete Details
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                    <p>No candidate specified in this request</p>
+                    <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
+                  </div>
+                )}
+              </div>
+
+              {candidateSelectionError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {candidateSelectionError}
+                </div>
+              )}
+
+              {candidateSelectionLoading && (
+                <div className="text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                  Sending candidate information to employer...
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"
-                  onClick={() => setShowActionModal(false)}
+                  onClick={() => {
+                    setShowActionModal(false);
+                    setSelectedCandidate(null);
+                    setCandidateSelectionError('');
+                  }}
+                  disabled={candidateSelectionLoading}
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => handleJobSeekerSelection(1)} // Placeholder ID
-                >
-                  Select Candidate
                 </Button>
               </div>
             </div>

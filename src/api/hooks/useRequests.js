@@ -145,24 +145,24 @@ export const useRequests = (options = {}) => {
   }, [includeAdmin, fetchRequests]);
 
   // Select job seeker for request (admin)
-  const selectJobSeekerForRequest = useCallback(async (requestId, jobSeekerId) => {
+  const selectJobSeekerForRequest = useCallback(async (requestId, jobSeekerId, detailsType = 'picture') => {
     if (!includeAdmin) return { success: false, error: 'Unauthorized' };
     
     setLoading(true);
     setError(null);
     
     try {
-      const result = await requestService.selectJobSeekerForRequest(requestId, jobSeekerId);
+      const result = await requestService.selectJobSeeker(requestId, jobSeekerId, detailsType);
       if (result.success) {
         // Refresh the requests list to get updated data
         await fetchRequests();
         return { success: true, data: result.data };
       } else {
-        setError(result.error || 'Failed to select job seeker');
+        setError(result.error || 'Failed to send candidate information');
         return { success: false, error: result.error };
       }
     } catch (error) {
-      const errorMessage = 'An error occurred while selecting job seeker';
+      const errorMessage = 'An error occurred while sending candidate information';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
