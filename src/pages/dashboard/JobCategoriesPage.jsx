@@ -9,107 +9,45 @@ import {
   Briefcase,
   Globe,
   Calendar,
-  Eye
+  Eye,
+  RefreshCw
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { 
-  getCategories, 
-  createCategory, 
-  updateCategory, 
-  deleteCategory 
-} from '../../services/categoryService';
+import { categoryService } from '../../api/services/categoryService';
+import { useCategories } from '../../api/hooks/useCategories';
 
 const JobCategoriesPage = () => {
   const { t } = useTranslation();
   
+  // Use the categories hook for data management
+  const { 
+    categories, 
+    loading, 
+    error, 
+    createCategory: createCategoryHook, 
+    updateCategory: updateCategoryHook, 
+    deleteCategory: deleteCategoryHook,
+    fetchCategories 
+  } = useCategories({ includeAdmin: true });
+  
   // State management
-  const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState('');
 
   // Form state
   const [formData, setFormData] = useState({
     name_en: '',
     name_rw: ''
   });
-
-  // Mock data - replace with actual API calls
-  const mockCategories = [
-    {
-      id: 1,
-      name_en: "Domestic & Household",
-      name_rw: "Umuryango & Inzu",
-      createdAt: "2024-01-01T00:00:00.000Z",
-      jobSeekersCount: 82
-    },
-    {
-      id: 2,
-      name_en: "Care Services",
-      name_rw: "Serivisi z'Uburezi",
-      createdAt: "2024-01-02T00:00:00.000Z",
-      jobSeekersCount: 58
-    },
-    {
-      id: 3,
-      name_en: "Food & Hospitality",
-      name_rw: "Ibikoresho & Ubukerarugendo",
-      createdAt: "2024-01-03T00:00:00.000Z",
-      jobSeekersCount: 47
-    },
-    {
-      id: 4,
-      name_en: "Maintenance & Services",
-      name_rw: "Gukurikirana & Serivisi",
-      createdAt: "2024-01-04T00:00:00.000Z",
-      jobSeekersCount: 28
-    },
-    {
-      id: 5,
-      name_en: "Transportation",
-      name_rw: "Ubutwara",
-      createdAt: "2024-01-05T00:00:00.000Z",
-      jobSeekersCount: 19
-    },
-    {
-      id: 6,
-      name_en: "Sales & Marketing",
-      name_rw: "Kugurisha & Kwamamaza",
-      createdAt: "2024-01-06T00:00:00.000Z",
-      jobSeekersCount: 15
-    }
-  ];
-
-  // Load categories on component mount
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
-    setIsLoading(true);
-    try {
-      // Use real API call when available, fallback to mock data
-      try {
-        const apiCategories = await getCategories();
-        setCategories(apiCategories);
-      } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
-        setCategories(mockCategories);
-      }
-    } catch (error) {
-      console.error('Error loading categories:', error);
-      setCategories(mockCategories); // Fallback to mock data
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Filter and search categories
   const filteredCategories = categories.filter(category => {
@@ -134,45 +72,42 @@ const JobCategoriesPage = () => {
     e.preventDefault();
     
     if (!formData.name_en.trim() || !formData.name_rw.trim()) {
-      alert('Please fill in both English and Kinyarwanda names');
+      setActionError('Please fill in both English and Kinyarwanda names');
       return;
     }
 
+    // Validate name length
+    if (formData.name_en.trim().length < 2) {
+      setActionError('English name must be at least 2 characters long');
+      return;
+    }
+
+    if (formData.name_rw.trim().length < 2) {
+      setActionError('Kinyarwanda name must be at least 2 characters long');
+      return;
+    }
+
+    setActionLoading(true);
+    setActionError('');
+
     try {
-      // Use real API call when available
-      try {
-        const newCategory = await createCategory({
-          name_en: formData.name_en.trim(),
-          name_rw: formData.name_rw.trim()
-        });
-        
-        // Add additional fields for UI
-        const categoryWithUI = {
-          ...newCategory,
-          jobSeekersCount: 0
-        };
-        
-        setCategories(prev => [categoryWithUI, ...prev]);
-      } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
-        // Fallback to mock creation
-        const newCategory = {
-          id: Date.now(),
-          name_en: formData.name_en.trim(),
-          name_rw: formData.name_rw.trim(),
-          createdAt: new Date().toISOString(),
-          jobSeekersCount: 0
-        };
-        setCategories(prev => [newCategory, ...prev]);
+      const result = await createCategoryHook({
+        name_en: formData.name_en.trim(),
+        name_rw: formData.name_rw.trim()
+      });
+      
+      if (result.success) {
+        setFormData({ name_en: '', name_rw: '' });
+        setShowAddModal(false);
+        alert('Job category created successfully!');
+      } else {
+        setActionError(result.error || 'Failed to create category');
       }
-      
-      setFormData({ name_en: '', name_rw: '' });
-      setShowAddModal(false);
-      
-      alert('Job category created successfully!');
     } catch (error) {
       console.error('Error creating category:', error);
-      alert('Failed to create category. Please try again.');
+      setActionError('Network error. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -181,78 +116,71 @@ const JobCategoriesPage = () => {
     e.preventDefault();
     
     if (!formData.name_en.trim() || !formData.name_rw.trim()) {
-      alert('Please fill in both English and Kinyarwanda names');
+      setActionError('Please fill in both English and Kinyarwanda names');
       return;
     }
 
+    // Validate name length
+    if (formData.name_en.trim().length < 2) {
+      setActionError('English name must be at least 2 characters long');
+      return;
+    }
+
+    if (formData.name_rw.trim().length < 2) {
+      setActionError('Kinyarwanda name must be at least 2 characters long');
+      return;
+    }
+
+    setActionLoading(true);
+    setActionError('');
+
     try {
-      // Use real API call when available
-      try {
-        const updatedCategory = await updateCategory(selectedCategory.id, {
-          name_en: formData.name_en.trim(),
-          name_rw: formData.name_rw.trim()
-        });
-        
-        // Add additional fields for UI
-        const categoryWithUI = {
-          ...updatedCategory,
-          jobSeekersCount: selectedCategory.jobSeekersCount
-        };
-        
-        setCategories(prev => 
-          prev.map(cat => 
-            cat.id === selectedCategory.id ? categoryWithUI : cat
-          )
-        );
-      } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
-        // Fallback to mock update
-        const updatedCategory = {
-          ...selectedCategory,
-          name_en: formData.name_en.trim(),
-          name_rw: formData.name_rw.trim()
-        };
-        
-        setCategories(prev => 
-          prev.map(cat => 
-            cat.id === selectedCategory.id ? updatedCategory : cat
-          )
-        );
+      const result = await updateCategoryHook(selectedCategory.id, {
+        name_en: formData.name_en.trim(),
+        name_rw: formData.name_rw.trim()
+      });
+      
+      if (result.success) {
+        setFormData({ name_en: '', name_rw: '' });
+        setSelectedCategory(null);
+        setShowEditModal(false);
+        alert('Job category updated successfully!');
+      } else {
+        setActionError(result.error || 'Failed to update category');
       }
-      
-      setFormData({ name_en: '', name_rw: '' });
-      setSelectedCategory(null);
-      setShowEditModal(false);
-      
-      alert('Job category updated successfully!');
     } catch (error) {
       console.error('Error updating category:', error);
-      alert('Failed to update category. Please try again.');
+      setActionError('Network error. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   // Handle delete category
   const handleDeleteCategory = async () => {
+    setActionLoading(true);
+    setActionError('');
+
     try {
-      // Use real API call when available
-      try {
-        await deleteCategory(selectedCategory.id);
-      } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
+      const result = await deleteCategoryHook(selectedCategory.id);
+      
+      if (result.success) {
+        setSelectedCategory(null);
+        setShowDeleteModal(false);
+        alert('Job category deleted successfully!');
+      } else {
+        setActionError(result.error || 'Failed to delete category');
+        
+        // Handle special case where category is in use
+        if (result.profilesCount) {
+          setActionError(`Cannot delete category. It is being used by ${result.profilesCount} job seekers.`);
+        }
       }
-      
-      // Update local state
-      setCategories(prev => 
-        prev.filter(cat => cat.id !== selectedCategory.id)
-      );
-      
-      setSelectedCategory(null);
-      setShowDeleteModal(false);
-      
-      alert('Job category deleted successfully!');
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Failed to delete category. Please try again.');
+      setActionError('Network error. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -263,13 +191,35 @@ const JobCategoriesPage = () => {
       name_en: category.name_en,
       name_rw: category.name_rw
     });
+    setActionError('');
     setShowEditModal(true);
   };
 
   // Open delete modal
   const openDeleteModal = (category) => {
     setSelectedCategory(category);
+    setActionError('');
     setShowDeleteModal(true);
+  };
+
+  // Close modals and clear errors
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    setFormData({ name_en: '', name_rw: '' });
+    setActionError('');
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedCategory(null);
+    setFormData({ name_en: '', name_rw: '' });
+    setActionError('');
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setSelectedCategory(null);
+    setActionError('');
   };
 
   // Format date
@@ -284,10 +234,10 @@ const JobCategoriesPage = () => {
   // Statistics
   const stats = {
     total: categories.length,
-    totalJobSeekers: categories.reduce((sum, cat) => sum + cat.jobSeekersCount, 0)
+    totalJobSeekers: categories.reduce((sum, cat) => sum + (cat._count?.profiles || 0), 0)
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" text="Loading categories..." />
@@ -303,14 +253,48 @@ const JobCategoriesPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">Job Categories</h1>
           <p className="text-gray-600">Manage job categories for the platform</p>
         </div>
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add Category
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={fetchCategories}
+            variant="outline"
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          <Button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Category
+          </Button>
+        </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <Card className="p-4 border-red-200 bg-red-50">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-red-400 rounded-full flex items-center justify-center">
+              <span className="text-red-800 text-xs">!</span>
+            </div>
+            <div>
+              <p className="text-red-800 font-medium">Error loading categories</p>
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+            <Button
+              onClick={fetchCategories}
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+            >
+              Retry
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -386,7 +370,7 @@ const JobCategoriesPage = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {category.jobSeekersCount} job seekers
+                      {category._count?.profiles || 0} job seekers
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -421,12 +405,14 @@ const JobCategoriesPage = () => {
             <div className="text-center py-12">
               <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No categories found
+                {loading ? 'Loading categories...' : 'No categories found'}
               </h3>
               <p className="text-gray-600">
-                {searchTerm 
-                  ? 'Try adjusting your search criteria.'
-                  : 'Get started by creating your first job category.'
+                {loading 
+                  ? 'Please wait while we fetch the categories.'
+                  : searchTerm 
+                    ? 'Try adjusting your search criteria.'
+                    : 'Get started by creating your first job category.'
                 }
               </p>
             </div>
@@ -437,7 +423,7 @@ const JobCategoriesPage = () => {
       {/* Add Category Modal */}
       <Modal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={closeAddModal}
         title="Add New Job Category"
       >
         <form onSubmit={handleAddCategory} className="space-y-4">
@@ -475,21 +461,24 @@ const JobCategoriesPage = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setShowAddModal(false)}
+              onClick={closeAddModal}
             >
               Cancel
             </Button>
-            <Button type="submit">
-              Create Category
+            <Button type="submit" disabled={actionLoading}>
+              {actionLoading ? 'Creating...' : 'Create Category'}
             </Button>
           </div>
+          {actionError && (
+            <p className="text-red-500 text-sm">{actionError}</p>
+          )}
         </form>
       </Modal>
 
       {/* Edit Category Modal */}
       <Modal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
+        onClose={closeEditModal}
         title="Edit Job Category"
       >
         <form onSubmit={handleEditCategory} className="space-y-4">
@@ -527,21 +516,24 @@ const JobCategoriesPage = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setShowEditModal(false)}
+              onClick={closeEditModal}
             >
               Cancel
             </Button>
-            <Button type="submit">
-              Update Category
+            <Button type="submit" disabled={actionLoading}>
+              {actionLoading ? 'Updating...' : 'Update Category'}
             </Button>
           </div>
+          {actionError && (
+            <p className="text-red-500 text-sm">{actionError}</p>
+          )}
         </form>
       </Modal>
 
       {/* Delete Category Modal */}
       <Modal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        onClose={closeDeleteModal}
         title="Delete Job Category"
       >
         <div className="space-y-4">
@@ -550,10 +542,10 @@ const JobCategoriesPage = () => {
             This action cannot be undone.
           </p>
           
-          {selectedCategory?.jobSeekersCount > 0 && (
+          {selectedCategory?._count?.profiles > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
-                ⚠️ This category has {selectedCategory.jobSeekersCount} job seekers. 
+                ⚠️ This category has {selectedCategory._count.profiles} job seekers. 
                 Deleting it may affect their profiles.
               </p>
             </div>
@@ -562,17 +554,21 @@ const JobCategoriesPage = () => {
           <div className="flex justify-end space-x-3 pt-4">
             <Button
               variant="outline"
-              onClick={() => setShowDeleteModal(false)}
+              onClick={closeDeleteModal}
             >
               Cancel
             </Button>
             <Button
               variant="danger"
               onClick={handleDeleteCategory}
+              disabled={actionLoading}
             >
-              Delete Category
+              {actionLoading ? 'Deleting...' : 'Delete Category'}
             </Button>
           </div>
+          {actionError && (
+            <p className="text-red-500 text-sm">{actionError}</p>
+          )}
         </div>
       </Modal>
     </div>

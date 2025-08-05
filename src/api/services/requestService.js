@@ -222,9 +222,12 @@ export const requestService = {
    * Select job seeker for request (Admin)
    * POST /employer/requests/{id}/select
    */
-  selectJobSeeker: async (id, selectionData) => {
+  selectJobSeeker: async (id, jobSeekerId, detailsType = 'picture') => {
     try {
-      const response = await apiClient.post(`/employer/requests/${id}/select`, selectionData, {
+      const response = await apiClient.post(`/employer/requests/${id}/select`, {
+        selectedUserId: jobSeekerId,
+        detailsType: detailsType
+      }, {
         headers: getAuthHeaders()
       });
 
@@ -264,11 +267,11 @@ export const requestService = {
 
   /**
    * Update request status (Admin)
-   * PUT /employer/requests/{id}
+   * PUT /employer/requests/{id}/status
    */
   updateRequestStatus: async (id, statusData) => {
     try {
-      const response = await apiClient.put(`/employer/requests/${id}`, statusData, {
+      const response = await apiClient.put(`/employer/requests/${id}/status`, statusData, {
         headers: getAuthHeaders()
       });
 

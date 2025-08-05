@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   MessageSquare, 
@@ -14,11 +14,14 @@ import {
   Building,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  Play
 } from 'lucide-react';
-import { useAdminRequests } from '../../api/hooks/useRequests.js';
+import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { categoryService } from '../../api/services/categoryService.js';
+import { useCategories } from '../../api/hooks/useCategories.js';
+import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import StatsGrid from '../../components/ui/StatsGrid';
@@ -35,36 +38,31 @@ const EmployerRequestsPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   
-  // Use the custom hook for requests management
+  // Hooks
   const {
-    requests,
+    requests: safeData, 
     loading,
     error,
     currentPage,
     totalPages,
     totalItems,
+    pageInfo,
+    hasNextPage,
+    hasPrevPage,
     searchTerm,
-    filters,
-    sortBy,
-    sortOrder,
-    fetchRequests,
-    replyToRequest,
-    selectJobSeekerForRequest,
     setSearchTerm,
+    filters,
     setFilters,
-    setSortBy,
-    setSortOrder,
     goToPage,
     nextPage,
     prevPage,
-    hasNextPage,
-    hasPrevPage,
-    pageInfo,
-    applyFilters
-  } = useAdminRequests({
-    autoFetch: true,
-    itemsPerPage: 10
-  });
+    applyFilters,
+    replyToRequest,
+    selectJobSeekerForRequest,
+    updateRequestStatus // Added updateRequestStatus to useRequests hook
+  } = useRequests({ includeAdmin: true });
+
+  const { categories, loadingCategories, fetchCategories } = useCategories();
 
   // State management
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -73,10 +71,22 @@ const EmployerRequestsPage = () => {
   const [currentAction, setCurrentAction] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [replyMessage, setReplyMessage] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replyError, setReplyError] = useState('');
+  
+  // Candidate selection state
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidateSelectionLoading, setCandidateSelectionLoading] = useState(false);
+  const [candidateSelectionError, setCandidateSelectionError] = useState('');
+  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
+  const [candidateDetailsType, setCandidateDetailsType] = useState('picture'); // 'picture' or 'full'
+
+  // Completion state
+  const [completionLoading, setCompletionLoading] = useState(false);
+  const [completionError, setCompletionError] = useState('');
+  const [completionNotes, setCompletionNotes] = useState('');
 
   // Filter state
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -128,54 +138,66 @@ const EmployerRequestsPage = () => {
         date: backendRequest.createdAt,
         monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
         message: backendRequest.message || '',
-        employerContact: {
+      employerContact: {
           email: backendRequest.email || '',
           phone: backendRequest.phoneNumber || ''
-        },
-        adminNotes: '', // This should be stored separately
+      },
+      adminNotes: '',
         lastContactDate: backendRequest.updatedAt,
         isCompleted: backendRequest.status === 'completed',
         category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
-        // Backend fields for reference
+        // Additional candidate fields for detailed view
+        candidateExperience: backendRequest.requestedCandidate?.profile?.experience || 'Not specified',
+        candidateExperienceLevel: backendRequest.requestedCandidate?.profile?.experienceLevel || 'Not specified',
+        candidateEducation: backendRequest.requestedCandidate?.profile?.educationLevel || 'Not specified',
+        candidateLocation: backendRequest.requestedCandidate?.profile?.location || 'Not specified',
+        candidateCity: backendRequest.requestedCandidate?.profile?.city || 'Not specified',
+        candidateCountry: backendRequest.requestedCandidate?.profile?.country || 'Not specified',
+        candidateContact: backendRequest.requestedCandidate?.profile?.contactNumber || 'Not specified',
+        candidateEmail: backendRequest.requestedCandidate?.email || 'Not specified',
+        candidateLanguages: backendRequest.requestedCandidate?.profile?.languages || 'Not specified',
+        candidateCertifications: backendRequest.requestedCandidate?.profile?.certifications || 'Not specified',
+        candidateAvailability: backendRequest.requestedCandidate?.profile?.availability || 'Not specified',
+        candidateDescription: backendRequest.requestedCandidate?.profile?.description || 'Not specified',
+        candidateGender: backendRequest.requestedCandidate?.profile?.gender || 'Not specified',
+        candidateMaritalStatus: backendRequest.requestedCandidate?.profile?.maritalStatus || 'Not specified',
+        candidateIdNumber: backendRequest.requestedCandidate?.profile?.idNumber || 'Not specified',
+        candidateReferences: backendRequest.requestedCandidate?.profile?.references || 'Not specified',
         _backendData: backendRequest
       };
     } catch (error) {
-      console.error('Error transforming request data:', error, backendRequest);
-      // Return a safe fallback object
+      console.error('Error transforming request data:', error);
       return {
-        id: backendRequest.id || 'unknown',
+        id: backendRequest?.id || 'unknown',
         employerName: 'Error loading data',
-        companyName: 'Unknown',
-        candidateName: 'Not specified',
-        position: 'General',
-        status: 'pending',
+        companyName: 'Error loading data',
+        candidateName: 'Error loading data',
+        position: 'Error loading data',
+        status: 'error',
         priority: 'normal',
-        date: new Date().toISOString(),
-        monthlyRate: 'Not specified',
-        message: 'Error loading request data',
-        employerContact: {
-          email: '',
-          phone: ''
-        },
+        date: new Date(),
+        monthlyRate: 'Error loading data',
+        message: 'Error loading data',
+        employerContact: { email: '', phone: '' },
         adminNotes: '',
-        lastContactDate: new Date().toISOString(),
-        isCompleted: false,
-        category: 'domestic',
+        lastContactDate: new Date(),
+      isCompleted: false,
+        category: 'Error loading data',
         _backendData: backendRequest
       };
     }
   };
 
-  // Transform all requests
-  const transformedRequests = requests.map(transformRequestData).filter(Boolean);
+  // Transform the data for display
+  const transformedRequests = safeData.map(transformRequestData).filter(Boolean);
 
   // Debug logging
   useEffect(() => {
-    if (requests.length > 0) {
-      console.log('Raw requests from backend:', requests);
-      console.log('Transformed requests:', transformedRequests);
+    if (safeData.length > 0) {
+      // console.log('Raw requests from backend:', safeData);
+      // console.log('Transformed requests:', transformedRequests);
     }
-  }, [requests, transformedRequests]);
+  }, [safeData, transformedRequests]);
 
   // Create filter structure for DataTable
   const tableFilters = [
@@ -215,7 +237,7 @@ const EmployerRequestsPage = () => {
   ];
 
   // Ensure data is safe for rendering
-  const safeData = transformedRequests.map(item => ({
+  const safeDataForRendering = transformedRequests.map(item => ({
     ...item,
     employerName: item.employerName || 'Unknown',
     companyName: item.companyName || 'Private',
@@ -235,7 +257,7 @@ const EmployerRequestsPage = () => {
   const stats = [
     {
       title: 'Total Requests',
-      value: safeData.length.toString(),
+      value: safeDataForRendering.length.toString(),
       change: '+5',
       changeType: 'increase',
       icon: MessageSquare,
@@ -245,7 +267,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Pending Review',
-      value: safeData.filter(r => r.status === 'pending').length.toString(),
+      value: safeDataForRendering.filter(r => r.status === 'pending').length.toString(),
       change: '+2',
       changeType: 'increase',
       icon: Clock,
@@ -255,7 +277,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'In Progress',
-      value: safeData.filter(r => r.status === 'in_progress').length.toString(),
+      value: safeDataForRendering.filter(r => r.status === 'in_progress').length.toString(),
       change: '+1',
       changeType: 'increase',
       icon: AlertCircle,
@@ -265,7 +287,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Completed',
-      value: safeData.filter(r => r.status === 'completed').length.toString(),
+      value: safeDataForRendering.filter(r => r.status === 'completed').length.toString(),
       change: '+3',
       changeType: 'increase',
       icon: CheckCircle,
@@ -364,34 +386,6 @@ const EmployerRequestsPage = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  // Fetch categories for filtering
-  const fetchCategories = useCallback(async () => {
-    setLoadingCategories(true);
-    try {
-      const result = await categoryService.getAllCategories();
-      if (result.success) {
-        setCategories(result.data || []);
-      } else {
-        console.error('Failed to fetch categories:', result.error);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    } finally {
-      setLoadingCategories(false);
-    }
-  }, []);
-
-  // Handle date filter changes
-  const handleDateFilterChange = (type, value) => {
-    if (type === 'from') {
-      setDateFrom(value);
-      setFilters(prev => ({ ...prev, dateFrom: value }));
-    } else {
-      setDateTo(value);
-      setFilters(prev => ({ ...prev, dateTo: value }));
-    }
-  };
-
   // Load categories on mount
   useEffect(() => {
     fetchCategories();
@@ -432,75 +426,240 @@ const EmployerRequestsPage = () => {
         setCurrentAction('select');
         setShowActionModal(true);
         break;
+      case 'start':
+        handleStatusUpdate('in_progress', 'Starting to process this request');
+        break;
+      case 'approve':
+        handleStatusUpdate('approved', 'Request approved and ready for completion');
+        break;
       case 'complete':
         setCurrentAction('complete');
         setShowActionModal(true);
+        break;
+      case 'reactivate':
+        handleStatusUpdate('pending', 'Request reactivated and back to pending status');
         break;
       default:
         console.warn('Unknown action:', action);
     }
   };
 
-  const handleStatusUpdate = (newStatus) => {
+  const handleStatusUpdate = async (newStatus, message) => {
     if (!selectedRequest) return;
     
-    // Update the request status
-    const updatedRequest = { ...selectedRequest, status: newStatus };
-    setSelectedRequest(updatedRequest);
-    
-    // Close modal
-    setShowActionModal(false);
-    setCurrentAction(null);
-    
-    // Show success message
-    alert(`Request status updated to ${newStatus}`);
+    try {
+      console.log(`🔄 Updating request status: ${selectedRequest.id} -> ${newStatus}`);
+      
+      const result = await updateRequestStatus(selectedRequest.id, {
+                status: newStatus, 
+        adminNotes: message
+      });
+      
+      if (result.success) {
+        console.log('✅ Status updated successfully:', result.data);
+        
+        // Show success message
+        alert(`Request status updated to ${newStatus}. ${message || ''}`);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to update status:', result.error);
+        alert(`Failed to update status: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating status:', error);
+      alert('Network error. Please try again.');
+    }
   };
 
   const handleReplySubmit = async () => {
     if (!selectedRequest || !replyMessage.trim()) return;
     
+    setReplyLoading(true);
+    setReplyError('');
+
     try {
+      console.log(`📧 Sending reply to employer: ${selectedRequest.employerName} (${selectedRequest.employerContact.email})`);
+      
       const result = await replyToRequest(selectedRequest.id, {
-        message: replyMessage,
-        adminNotes: adminNotes
+        content: replyMessage
       });
       
       if (result.success) {
-        alert('Reply sent successfully');
+        console.log('✅ Reply sent successfully:', result.data);
+        
+        // Show success message with details
+        const successMessage = result.data.emailSent 
+          ? `Reply sent successfully to ${selectedRequest.employerName} at ${selectedRequest.employerContact.email}`
+          : `Reply saved but email delivery failed. Please check the email configuration.`;
+        
+        alert(successMessage);
+        
+        // Clear form and close modal
         setReplyMessage('');
-        setShowActionModal(false);
-        setCurrentAction(null);
+        setAdminNotes('');
+      setShowActionModal(false);
+      setCurrentAction(null);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
       } else {
-        alert(result.error || 'Failed to send reply');
+        console.error('❌ Reply failed:', result.error);
+        setReplyError(result.error || 'Failed to send reply');
       }
     } catch (error) {
-      console.error('Error sending reply:', error);
-      alert('Error sending reply');
+      console.error('❌ Error sending reply:', error);
+      setReplyError('Network error. Please try again.');
+    } finally {
+      setReplyLoading(false);
     }
   };
 
-  const handleJobSeekerSelection = async (jobSeekerId) => {
+  const handleJobSeekerSelection = async (jobSeekerId, detailsType = 'picture') => {
     if (!selectedRequest) return;
     
+    setCandidateSelectionLoading(true);
+    setCandidateSelectionError('');
+
     try {
-      const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId);
+      console.log(`📤 Sending candidate information: ${jobSeekerId}, Details type: ${detailsType}`);
+      
+      const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId, detailsType);
       
       if (result.success) {
-        alert('Job seeker selected successfully');
+        console.log('✅ Candidate information sent successfully:', result.data);
+        
+        const successMessage = detailsType === 'picture' 
+          ? `Candidate profile picture sent to ${selectedRequest.employerName}`
+          : `Complete candidate details sent to ${selectedRequest.employerName}`;
+        
+        alert(successMessage);
         setShowActionModal(false);
         setCurrentAction(null);
+        setSelectedCandidate(null);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
       } else {
-        alert(result.error || 'Failed to select job seeker');
+        console.error('❌ Failed to send candidate information:', result.error);
+        setCandidateSelectionError(result.error || 'Failed to send candidate information');
       }
     } catch (error) {
-      console.error('Error selecting job seeker:', error);
-      alert('Error selecting job seeker');
+      console.error('❌ Error sending candidate information:', error);
+      setCandidateSelectionError('Network error. Please try again.');
+    } finally {
+      setCandidateSelectionLoading(false);
     }
+  };
+
+  const handleCandidateSelection = (candidate, detailsType) => {
+    setSelectedCandidate(candidate);
+    setCandidateDetailsType(detailsType);
+    setShowCandidateDetails(true);
+  };
+
+  const handleRequestCompletion = async () => {
+    if (!selectedRequest) return;
+    
+    setCompletionLoading(true);
+    setCompletionError('');
+
+    try {
+      console.log(`✅ Completing request: ${selectedRequest.id}`);
+      console.log(`📝 Completion notes: ${completionNotes || 'None'}`);
+      
+      const result = await updateRequestStatus(selectedRequest.id, {
+        status: 'completed',
+        adminNotes: completionNotes
+      });
+      
+      console.log('📊 Completion result:', result);
+      
+      if (result.success) {
+        console.log('✅ Request completed successfully:', result.data);
+        
+        alert(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
+        
+        // Clear form and close modal
+        setCompletionNotes('');
+        setShowActionModal(false);
+        setCurrentAction(null);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to complete request:', result.error);
+        setCompletionError(result.error || 'Failed to complete request');
+      }
+    } catch (error) {
+      console.error('❌ Error completing request:', error);
+      setCompletionError('Network error. Please try again.');
+    } finally {
+      setCompletionLoading(false);
+    }
+  };
+
+  const getActionButtons = (request) => {
+    const baseActions = [
+      // View Details - Always available
+      { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
+      
+      // Contact Group - Always available
+      { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
+      { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
+      { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' },
+    ];
+
+    // Status-based actions
+    const statusActions = [];
+    
+    switch (request.status) {
+      case 'pending':
+        statusActions.push(
+          { key: 'start', title: 'Start Processing', icon: Play, className: 'text-blue-600 hover:bg-blue-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'in_progress':
+        statusActions.push(
+          { key: 'approve', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'approved':
+        statusActions.push(
+          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'completed':
+        // No additional actions for completed requests
+        break;
+        
+      case 'cancelled':
+        statusActions.push(
+          { key: 'reactivate', title: 'Reactivate', icon: RefreshCw, className: 'text-blue-600 hover:bg-blue-50', group: 'status' }
+        );
+        break;
+        
+      default:
+        // For any other status, show all actions
+        statusActions.push(
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
+          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+        );
+    }
+
+    return [...baseActions, ...statusActions];
   };
 
   // Loading state
   if (loading && transformedRequests.length === 0) {
-    return (
+  return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading employer requests..." />
       </div>
@@ -524,7 +683,7 @@ const EmployerRequestsPage = () => {
   }
 
   // No data state
-  if (!loading && safeData.length === 0) {
+  if (!loading && safeDataForRendering.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -595,13 +754,13 @@ const EmployerRequestsPage = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Statistics */}
+      {/* Statistics */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <StatsGrid stats={stats} />
+      <StatsGrid stats={stats} />
         </motion.div>
 
         {/* Main Content */}
@@ -613,8 +772,8 @@ const EmployerRequestsPage = () => {
           <Card className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
-                Employer Requests ({safeData.length})
-              </h2>
+                Employer Requests ({safeDataForRendering.length})
+            </h2>
             </div>
 
             {/* Data Table */}
@@ -629,13 +788,13 @@ const EmployerRequestsPage = () => {
                 >
                   <Filter className="w-4 h-4" />
                   {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </Button>
+              </Button>
                 
                 {loading && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
                     Loading...
-                  </div>
+            </div>
                 )}
                 
                 {showFilters && (
@@ -648,7 +807,7 @@ const EmployerRequestsPage = () => {
                         onChange={(e) => handleDateFilterChange('from', e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       />
-                    </div>
+          </div>
                     <div className="flex items-center gap-2">
                       <label className="text-sm font-medium text-gray-700">To:</label>
                       <input
@@ -671,25 +830,18 @@ const EmployerRequestsPage = () => {
                     </Button>
                   </div>
                 )}
-              </div>
-
-              <DataTable
-                data={safeData}
-                columns={columns}
+        </div>
+        
+        <DataTable
+                data={safeDataForRendering}
+          columns={columns}
                 searchTerm={searchTerm}
                 filters={tableFilters}
                 onSearchChange={handleSearchChange}
                 onFilterChange={handleFilterChange}
-                onRowAction={handleRowAction}
-                actionButtons={[
-                  { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50' },
-                  { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50' },
-                  { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50' },
-                  { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50' },
-                  { key: 'select', title: 'Select Candidate', icon: User, className: 'text-indigo-600 hover:bg-indigo-50' },
-                  { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50' }
-                ]}
-                pagination={false}
+          onRowAction={handleRowAction}
+                actionButtons={getActionButtons}
+          pagination={false}
                 itemsPerPage={10}
               />
 
@@ -711,40 +863,40 @@ const EmployerRequestsPage = () => {
             </div>
 
                           {/* Server-side pagination is handled by the DataTable component */}
-          </Card>
+      </Card>
         </motion.div>
       </div>
 
       {/* Request Details Modal */}
       {showDetailsModal && selectedRequest && (
-        <Modal
-          isOpen={showDetailsModal}
-          onClose={() => setShowDetailsModal(false)}
-          title="Request Details"
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Request Details"
           size="lg"
-        >
+      >
           <div className="space-y-6">
             {/* Employer Information */}
-            <div>
+              <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Employer Information</h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Name</label>
                     <p className="text-gray-900">{selectedRequest.employerName}</p>
-                  </div>
+                </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Company</label>
                     <p className="text-gray-900">{selectedRequest.companyName}</p>
-                  </div>
+                </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Email</label>
                     <p className="text-gray-900">{selectedRequest.employerContact.email}</p>
-                  </div>
-                  <div>
+              </div>
+              <div>
                     <label className="text-sm font-medium text-gray-500">Phone</label>
                     <p className="text-gray-900">{selectedRequest.employerContact.phone}</p>
-                  </div>
+                </div>
                 </div>
               </div>
             </div>
@@ -757,15 +909,15 @@ const EmployerRequestsPage = () => {
                   <div>
                     <label className="text-sm font-medium text-gray-500">Status</label>
                     <Badge color={getStatusColor(selectedRequest.status)}>
-                      {selectedRequest.status}
-                    </Badge>
+                    {selectedRequest.status}
+                  </Badge>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Priority</label>
                     <Badge color={getPriorityColor(selectedRequest.priority)}>
-                      {selectedRequest.priority}
-                    </Badge>
-                  </div>
+                    {selectedRequest.priority}
+                  </Badge>
+                </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Request Date</label>
                     <p className="text-gray-900">
@@ -782,18 +934,155 @@ const EmployerRequestsPage = () => {
 
             {/* Candidate Information */}
             {selectedRequest.candidateName !== 'Not specified' && (
-              <div>
+            <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Candidate Information</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    {/* Profile Header with Image */}
+                    <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                        <User className="w-8 h-8 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">{selectedRequest.candidateName}</h4>
+                        <p className="text-sm text-gray-600">{selectedRequest.category} • {selectedRequest.position}</p>
+                        <p className="text-sm font-medium text-green-600">{selectedRequest.monthlyRate}</p>
+              </div>
+            </div>
+
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-2 gap-4">
+            <div>
+                        <label className="text-sm font-medium text-gray-500">Job Category</label>
+                        <p className="text-gray-900">{selectedRequest.category}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Skills/Position</label>
+                        <p className="text-gray-900">{selectedRequest.position}</p>
+                      </div>
+            </div>
+
+                    {/* Additional Candidate Details from Backend */}
+                    {selectedRequest.candidateExperience !== 'Not specified' && (
+                      <>
+                        {/* Experience and Education */}
+                        <div className="grid grid-cols-2 gap-4">
+            <div>
+                            <label className="text-sm font-medium text-gray-500">Experience Level</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateExperienceLevel}
+                            </p>
+                          </div>
+                  <div>
+                            <label className="text-sm font-medium text-gray-500">Education</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateEducation}
+                            </p>
+                  </div>
+                </div>
+
+                        {/* Location Information */}
+                        <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Name</label>
-                      <p className="text-gray-900">{selectedRequest.candidateName}</p>
+                            <label className="text-sm font-medium text-gray-500">Location</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateLocation}
+                            </p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Position</label>
-                      <p className="text-gray-900">{selectedRequest.position}</p>
-                    </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">City</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateCity}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Country</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateCountry}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Contact Number</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateContact}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Email</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateEmail}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Additional Details */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Languages</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateLanguages}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Certifications</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateCertifications}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Availability and Personal Details */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Availability</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateAvailability}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Gender</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateGender}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Description and References */}
+                        {selectedRequest.candidateDescription !== 'Not specified' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Description</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateDescription}
+                            </p>
+                  </div>
+                )}
+
+                        {selectedRequest.candidateReferences !== 'Not specified' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">References</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateReferences}
+                            </p>
+              </div>
+                        )}
+
+                        {/* ID Number */}
+                        {selectedRequest.candidateIdNumber !== 'Not specified' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">ID Number</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateIdNumber}
+                            </p>
+            </div>
+                        )}
+                      </>
+                    )}
+
+                   
                   </div>
                 </div>
               </div>
@@ -808,47 +1097,99 @@ const EmployerRequestsPage = () => {
           isOpen={showActionModal}
           onClose={() => setShowActionModal(false)}
           title={currentAction === 'reply' ? 'Reply to Request' : 
-                 currentAction === 'select' ? 'Select Job Seeker' : 
+                 currentAction === 'select' ? 'Send Candidate Details' : 
                  currentAction === 'complete' ? 'Complete Request' : 'Action'}
           size="md"
         >
           {currentAction === 'reply' && (
             <div className="space-y-4">
+              {/* Employer Information */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Replying to:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-blue-700 font-medium">Name:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Company:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Email:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.employerContact.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Phone:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.employerContact.phone}</span>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reply Message
+                  Reply Message <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Enter your reply message..."
+                  placeholder="Enter your reply message to the employer..."
+                  disabled={replyLoading}
                 />
+                {replyLoading && (
+                  <div className="mt-2 text-sm text-gray-600 flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Sending reply to employer...
+                  </div>
+                )}
+                {replyError && (
+                  <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {replyError}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Admin Notes
+                  Admin Notes (Internal)
                 </label>
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
                   className="w-full h-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Add internal notes..."
+                  placeholder="Add internal notes for your reference..."
+                  disabled={replyLoading}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  These notes are for internal use only and won't be sent to the employer.
+                </p>
               </div>
               <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowActionModal(false)}
+              <Button
+                variant="outline"
+                  onClick={() => {
+                    setShowActionModal(false);
+                    setReplyMessage('');
+                    setAdminNotes('');
+                    setReplyError('');
+                  }}
+                  disabled={replyLoading}
                 >
                   Cancel
-                </Button>
+              </Button>
                 <Button
                   variant="primary"
                   onClick={handleReplySubmit}
-                  disabled={!replyMessage.trim()}
+                  disabled={!replyMessage.trim() || replyLoading}
                 >
-                  Send Reply
+                  {replyLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reply'
+                  )}
                 </Button>
               </div>
             </div>
@@ -856,48 +1197,222 @@ const EmployerRequestsPage = () => {
 
           {currentAction === 'select' && (
             <div className="space-y-4">
-              <p className="text-gray-600">
-                Select a job seeker for this request. This will notify the employer.
-              </p>
+              {/* Employer Information */}
+              <div className="bg-green-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-green-900 mb-2">Selecting candidate for:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-green-700 font-medium">Employer:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Company:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Position:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Category:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.category}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Requested Candidate */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Send Candidate Information</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Send the requested candidate's information to the employer. Choose whether to send just a profile picture or complete details.
+                </p>
+                {selectedRequest._backendData?.requestedCandidate ? (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
+                          <User className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 text-lg">
+                            {selectedRequest.candidateName}
+                          </h5>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {selectedRequest.position} • {selectedRequest.candidateExperience}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                            <div>
+                              <span className="font-medium">Location:</span> {selectedRequest.candidateLocation}
+                            </div>
+                            <div>
+                              <span className="font-medium">Rate:</span> {selectedRequest.monthlyRate}
+                            </div>
+                            <div>
+                              <span className="font-medium">Experience Level:</span> {selectedRequest.candidateExperienceLevel}
+                            </div>
+                            <div>
+                              <span className="font-medium">Education:</span> {selectedRequest.candidateEducation}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                  <Button
+                    variant="outline"
+                          size="sm"
+                          onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
+                          disabled={candidateSelectionLoading}
+                        >
+                          Send Profile Picture
+                  </Button>
+                  <Button
+                    variant="primary"
+                          size="sm"
+                          onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
+                          disabled={candidateSelectionLoading}
+                        >
+                          Send Complete Details
+                  </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                    <p>No candidate specified in this request</p>
+                    <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
+                  </div>
+              )}
+            </div>
+
+              {candidateSelectionError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {candidateSelectionError}
+          </div>
+        )}
+
+              {candidateSelectionLoading && (
+                <div className="text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                  Sending candidate information to employer...
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"
-                  onClick={() => setShowActionModal(false)}
+                  onClick={() => {
+                    setShowActionModal(false);
+                    setSelectedCandidate(null);
+                    setCandidateSelectionError('');
+                  }}
+                  disabled={candidateSelectionLoading}
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => handleJobSeekerSelection(1)} // Placeholder ID
-                >
-                  Select Candidate
                 </Button>
               </div>
             </div>
           )}
 
           {currentAction === 'complete' && (
-            <div className="space-y-4">
-              <p className="text-gray-600">
-                Mark this request as completed. This will close the request.
-              </p>
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowActionModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => handleStatusUpdate('completed')}
-                >
-                  Complete Request
-                </Button>
+        <div className="space-y-4">
+              {/* Request Information */}
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-orange-700 font-medium">Employer:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Company:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Position:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Current Status:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.status}</span>
+                  </div>
+                </div>
               </div>
-            </div>
+
+              {/* Completion Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Completion Notes (Optional)
+                </label>
+                <textarea
+                  value={completionNotes}
+                  onChange={(e) => setCompletionNotes(e.target.value)}
+                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Add notes about how this request was completed..."
+                  disabled={completionLoading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  These notes will be saved with the request and sent to the employer.
+                </p>
+              </div>
+
+              {/* Warning */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center mr-2">
+                    <span className="text-yellow-800 text-xs">!</span>
+                  </div>
+                  <p className="text-sm text-yellow-800">
+                    <strong>Warning:</strong> This action will permanently mark the request as completed and close it. 
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              {completionError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {completionError}
+                </div>
+              )}
+
+              {completionLoading && (
+                <div className="text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                  Completing request...
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3">
+            <Button
+              variant="outline"
+                  onClick={() => {
+                    setShowActionModal(false);
+                    setCompletionNotes('');
+                    setCompletionError('');
+                  }}
+                  disabled={completionLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+                  variant="primary"
+                  onClick={handleRequestCompletion}
+                  disabled={completionLoading}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {completionLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Completing...
+                    </>
+                  ) : (
+                    'Complete Request'
+                  )}
+            </Button>
+          </div>
+        </div>
           )}
-        </Modal>
+      </Modal>
       )}
     </div>
   );

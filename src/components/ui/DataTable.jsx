@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { ChevronUp, ChevronDown, MoreHorizontal } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Button from './Button';
 import Badge from './Badge';
+import { ChevronUp, ChevronDown, Search, MoreHorizontal } from 'lucide-react';
 
 const DataTable = ({ 
   columns, 
@@ -16,11 +16,11 @@ const DataTable = ({
   itemsPerPage = 10,
   className = ''
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [openDropdowns, setOpenDropdowns] = useState({});
 
-  // Sorting logic
   const handleSort = (column) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -29,6 +29,34 @@ const DataTable = ({
       setSortDirection('asc');
     }
   };
+
+  const toggleDropdown = (rowId) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [rowId]: !prev[rowId]
+    }));
+  };
+
+  const closeDropdown = (rowId) => {
+    setOpenDropdowns(prev => ({
+      ...prev,
+      [rowId]: false
+    }));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setOpenDropdowns({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Filter and sort data
   const filteredData = data.filter(item => {
@@ -169,22 +197,44 @@ const DataTable = ({
                   </td>
                 ))}
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    {actionButtons.map((action, actionIndex) => {
-                      const IconComponent = action.icon;
-                      return (
-                        <Button
-                          key={actionIndex}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onRowAction?.(action.key, item)}
-                          className={action.className}
-                          title={action.title}
-                        >
-                          <IconComponent />
-                        </Button>
-                      );
-                    })}
+                  <div className="relative dropdown-container">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleDropdown(item.id || index)}
+                      onMouseEnter={() => toggleDropdown(item.id || index)}
+                      className="text-gray-600 hover:bg-gray-100"
+                      title="Actions"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                    
+                    {openDropdowns[item.id || index] && (
+                      <div 
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200"
+                        onMouseLeave={() => closeDropdown(item.id || index)}
+                      >
+                        <div className="py-1">
+                          {(typeof actionButtons === 'function' ? actionButtons(item) : actionButtons).map((action, actionIndex) => {
+                            const IconComponent = action.icon;
+                            return (
+                              <button
+                                key={actionIndex}
+                                onClick={() => {
+                                  onRowAction?.(action.key, item);
+                                  closeDropdown(item.id || index);
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center space-x-2 ${action.className}`}
+                                title={action.title}
+                              >
+                                <IconComponent className="w-4 h-4" />
+                                <span>{action.title}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>
