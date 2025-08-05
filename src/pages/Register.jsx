@@ -12,6 +12,27 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { authService } from '../api/index.js';
 
+// Sample job categories data - replace with API call later
+const sampleCategories = [
+ 
+  { id: '10', name: 'Customer Service' },
+  { id: '11', name: 'Human Resources' },
+  { id: '12', name: 'Finance & Accounting' },
+  { id: '13', name: 'Healthcare' },
+  { id: '14', name: 'Education' },
+  { id: '15', name: 'Legal' },
+  { id: '16', name: 'Engineering' },
+  { id: '17', name: 'Architecture' },
+  { id: '18', name: 'Construction' },
+  { id: '19', name: 'Manufacturing' },
+  { id: '20', name: 'Transportation & Logistics' },
+  { id: '21', name: 'Hospitality & Tourism' },
+  { id: '22', name: 'Agriculture' },
+  { id: '23', name: 'Media & Entertainment' },
+  { id: '24', name: 'Non-profit & NGO' },
+  { id: '25', name: 'Other' }
+];
+
 const Register = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -411,15 +432,28 @@ const Register = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormInput
-                  id="jobCategoryId"
-                  name="jobCategoryId"
-                  label={t('register.jobCategory', 'Job Category')}
-                  placeholder={t('register.jobCategoryPlaceholder', 'Select your job category')}
-                  value={formData.jobCategoryId}
-                  onChange={handleInputChange}
-                  error={errors.jobCategoryId}
-                />
+                <div>
+                  <label htmlFor="jobCategoryId" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.jobCategory', 'Job Category')}
+                  </label>
+                  <select
+                    id="jobCategoryId"
+                    name="jobCategoryId"
+                    value={formData.jobCategoryId}
+                    onChange={handleInputChange}
+                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                  >
+                    <option value="">{t('register.jobCategoryPlaceholder', 'Select your job category')}</option>
+                    {sampleCategories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.jobCategoryId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.jobCategoryId}</p>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
