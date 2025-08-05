@@ -216,7 +216,7 @@ export const jobSeekerService = {
 
       return {
         success: true,
-        data: response.data.profile,
+        data: response.data, // Return the full response data to include email
         message: response.data.message
       };
     } catch (error) {

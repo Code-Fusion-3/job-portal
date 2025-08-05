@@ -90,6 +90,14 @@ const languageLevels = [
   { id: 'native', name: 'Native', description: 'Native speaker level' }
 ];
 
+const experienceLevels = [
+  { value: 'no_experience', label: 'No Experience (0 years)', description: 'New to the workforce' },
+  { value: 'beginner', label: 'Beginner (1-2 years)', description: 'Some basic experience' },
+  { value: 'intermediate', label: 'Intermediate (3-5 years)', description: 'Moderate experience' },
+  { value: 'experienced', label: 'Experienced (6-10 years)', description: 'Significant experience' },
+  { value: 'expert', label: 'Expert (10+ years)', description: 'Extensive experience' }
+];
+
 const JobSeekersPage = () => {
   const { t } = useTranslation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -101,6 +109,7 @@ const JobSeekersPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [experienceFilter, setExperienceFilter] = useState('');
   const [jobCategories, setJobCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -463,6 +472,34 @@ const JobSeekersPage = () => {
       }
     },
     {
+      key: 'experience',
+      label: 'Experience',
+      render: (jobSeeker) => {
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const experienceLevel = jobSeeker.profile?.experienceLevel || 'Not specified';
+        
+        const getExperienceLabel = (level) => {
+          switch(level) {
+            case 'no_experience': return 'No Experience';
+            case 'beginner': return 'Beginner (1-2 years)';
+            case 'intermediate': return 'Intermediate (3-5 years)';
+            case 'experienced': return 'Experienced (6-10 years)';
+            case 'expert': return 'Expert (10+ years)';
+            default: return level;
+          }
+        };
+        
+        return (
+          <div className="flex items-center space-x-1">
+            <Star className="w-4 h-4 text-gray-400" />
+            <span className="text-sm">{getExperienceLabel(experienceLevel)}</span>
+          </div>
+        );
+      }
+    },
+    {
       key: 'contactNumber',
       label: 'Contact',
       render: (jobSeeker) => {
@@ -707,6 +744,7 @@ const JobSeekersPage = () => {
               country: selectedJobSeeker.profile?.country || 'Rwanda',
               references: selectedJobSeeker.profile?.references || '',
               experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
+              experienceLevel: selectedJobSeeker.profile?.experienceLevel || '',
               monthlyRate: selectedJobSeeker.profile?.monthlyRate ? selectedJobSeeker.profile.monthlyRate.toString() : '',
               jobCategoryId: selectedJobSeeker.profile?.jobCategoryId ? selectedJobSeeker.profile.jobCategoryId.toString() : '',
               jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || '',
@@ -715,8 +753,6 @@ const JobSeekersPage = () => {
               languages: selectedJobSeeker.profile?.languages || '',
               certifications: selectedJobSeeker.profile?.certifications || ''
             };
-            console.log('Selected job seeker:', selectedJobSeeker);
-            console.log('Initial data being passed:', initialData);
             return (
               <AddJobSeekerForm
                 isOpen={showEditModal}
@@ -801,7 +837,23 @@ const JobSeekersPage = () => {
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.description || selectedJobSeeker.description || 'No description provided'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Experience</label>
+                <label className="block text-sm font-medium text-gray-700">Experience Level</label>
+                <p className="mt-1 text-gray-900">
+                  {(() => {
+                    const level = selectedJobSeeker.profile?.experienceLevel;
+                    switch(level) {
+                      case 'no_experience': return 'No Experience (0 years)';
+                      case 'beginner': return 'Beginner (1-2 years)';
+                      case 'intermediate': return 'Intermediate (3-5 years)';
+                      case 'experienced': return 'Experienced (6-10 years)';
+                      case 'expert': return 'Expert (10+ years)';
+                      default: return 'Not specified';
+                    }
+                  })()}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Experience Details</label>
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || 'Not specified'}</p>
               </div>
             </div>

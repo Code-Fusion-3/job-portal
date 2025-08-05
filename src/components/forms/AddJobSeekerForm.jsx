@@ -29,6 +29,7 @@ const AddJobSeekerForm = ({
     country: 'Rwanda',
     references: '',
     experience: '',
+    experienceLevel: '',
     monthlyRate: '',
     jobCategoryId: '',
     educationLevel: '',
@@ -43,9 +44,46 @@ const AddJobSeekerForm = ({
   // Skills selection state
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [customSkill, setCustomSkill] = useState('');
+  const [skillSearch, setSkillSearch] = useState('');
 
-  // Predefined skills options
+  // Languages selection state
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [customLanguage, setCustomLanguage] = useState('');
+  const [languageSearch, setLanguageSearch] = useState('');
+
+  // Experience level options
+  const experienceLevels = [
+    { value: 'no_experience', label: 'No Experience (0 years)', description: 'New to the workforce' },
+    { value: 'beginner', label: 'Beginner (1-2 years)', description: 'Some basic experience' },
+    { value: 'intermediate', label: 'Intermediate (3-5 years)', description: 'Moderate experience' },
+    { value: 'experienced', label: 'Experienced (6-10 years)', description: 'Significant experience' },
+    { value: 'expert', label: 'Expert (10+ years)', description: 'Extensive experience' }
+  ];
+
+  // Predefined skills options - House maid skills first, then others
   const predefinedSkills = [
+    // House Maid & Domestic Skills (Priority)
+    'House Cleaning', 'Laundry', 'Ironing', 'Cooking', 'Meal Preparation', 'Kitchen Management',
+    'Childcare', 'Elderly Care', 'Pet Care', 'First Aid', 'Safety', 'Educational Activities',
+    'Gardening', 'Plant Care', 'Basic Repairs', 'Security Monitoring', 'Access Control',
+    
+    // Hospitality & Service Skills
+    'Food Service', 'Table Setting', 'Order Taking', 'Cash Handling', 'Customer Service',
+    'Bartending', 'Food Delivery', 'Housekeeping', 'Reception', 'Secretarial Work',
+    
+    // Trade Skills
+    'Carpentry', 'Plumbing', 'Electrical Work', 'Masonry', 'Painting', 'Welding', 'Machining',
+    'Landscaping', 'Baking', 'Cleaning',
+    
+    // Transportation Skills
+    'Safe Driving', 'Vehicle Maintenance', 'Route Planning', 'GPS Navigation',
+    'Defensive Driving', 'Passenger Safety', 'Driving',
+    
+    // Business Skills
+    'Accounting', 'Bookkeeping', 'Marketing', 'Sales', 'Business Development', 'Financial Analysis',
+    'Human Resources', 'Operations Management', 'Supply Chain Management',
+    'Inventory Management', 'Negotiation', 'Product Knowledge', 'Market Knowledge',
+    
     // Technical Skills
     'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'PHP', 'Ruby', 'Go', 'Rust',
     'HTML/CSS', 'TypeScript', 'Angular', 'Vue.js', 'Django', 'Flask', 'Laravel', 'Express.js',
@@ -54,17 +92,6 @@ const AddJobSeekerForm = ({
     // Professional Skills
     'Project Management', 'Agile/Scrum', 'Leadership', 'Team Management', 'Communication',
     'Problem Solving', 'Critical Thinking', 'Time Management', 'Customer Service',
-    
-    // Language Skills
-    'Kinyarwanda', 'English', 'French', 'Swahili', 'German', 'Spanish', 'Chinese', 'Arabic',
-    
-    // Trade Skills
-    'Carpentry', 'Plumbing', 'Electrical Work', 'Masonry', 'Painting', 'Welding', 'Machining',
-    'Gardening', 'Landscaping', 'Cooking', 'Baking', 'Cleaning', 'Housekeeping',
-    
-    // Business Skills
-    'Accounting', 'Bookkeeping', 'Marketing', 'Sales', 'Business Development', 'Financial Analysis',
-    'Human Resources', 'Operations Management', 'Supply Chain Management',
     
     // Creative Skills
     'Graphic Design', 'Web Design', 'Video Editing', 'Photography', 'Content Writing',
@@ -79,9 +106,25 @@ const AddJobSeekerForm = ({
     'Special Education', 'ESL Teaching',
     
     // Other Skills
-    'Driving', 'Security', 'Event Planning', 'Tourism', 'Translation', 'Interpretation',
-    'Data Entry', 'Administrative Work', 'Reception', 'Secretarial Work'
+    'Security', 'Event Planning', 'Tourism', 'Translation', 'Interpretation',
+    'Data Entry', 'Administrative Work'
   ];
+
+  // Filter skills based on search
+  const filteredSkills = predefinedSkills.filter(skill =>
+    skill.toLowerCase().includes(skillSearch.toLowerCase())
+  );
+
+  // Predefined languages
+  const predefinedLanguages = [
+    'Kinyarwanda', 'English', 'French', 'Swahili', 'German', 'Spanish', 'Chinese', 'Arabic',
+    'Portuguese', 'Italian', 'Dutch', 'Russian', 'Japanese', 'Korean', 'Hindi', 'Turkish'
+  ];
+
+  // Filter languages based on search
+  const filteredLanguages = predefinedLanguages.filter(language =>
+    language.toLowerCase().includes(languageSearch.toLowerCase())
+  );
 
   // Simple input change handler
   const handleInputChange = (e) => {
@@ -121,6 +164,33 @@ const AddJobSeekerForm = ({
     setFormData(prev => ({ ...prev, skills: skills.join(', ') }));
   };
 
+  // Language selection handlers
+  const handleLanguageSelect = (language) => {
+    if (!selectedLanguages.includes(language)) {
+      setSelectedLanguages(prev => [...prev, language]);
+      updateLanguagesField([...selectedLanguages, language]);
+    }
+  };
+
+  const handleLanguageRemove = (language) => {
+    const updatedLanguages = selectedLanguages.filter(l => l !== language);
+    setSelectedLanguages(updatedLanguages);
+    updateLanguagesField(updatedLanguages);
+  };
+
+  const handleCustomLanguageAdd = () => {
+    if (customLanguage.trim() && !selectedLanguages.includes(customLanguage.trim())) {
+      const newLanguages = [...selectedLanguages, customLanguage.trim()];
+      setSelectedLanguages(newLanguages);
+      setCustomLanguage('');
+      updateLanguagesField(newLanguages);
+    }
+  };
+
+  const updateLanguagesField = (languages) => {
+    setFormData(prev => ({ ...prev, languages: languages.join(', ') }));
+  };
+
   // Comprehensive validation
   const validateForm = () => {
     const newErrors = {};
@@ -143,6 +213,11 @@ const AddJobSeekerForm = ({
       newErrors.contactNumber = 'Phone number is required';
     } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.contactNumber.trim())) {
       newErrors.contactNumber = 'Please enter a valid phone number';
+    }
+
+    // Experience level is required
+    if (!formData.experienceLevel.trim()) {
+      newErrors.experienceLevel = 'Experience level is required';
     }
 
     // Email validation (optional but if provided, must be valid)
@@ -199,6 +274,7 @@ const AddJobSeekerForm = ({
           country: formData.country,
           references: formData.references.trim(),
           experience: formData.experience.trim(),
+          experienceLevel: formData.experienceLevel.trim(),
           monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : null,
           jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId, 10) : null,
           educationLevel: formData.educationLevel,
@@ -206,6 +282,10 @@ const AddJobSeekerForm = ({
           languages: formData.languages.trim(),
           certifications: formData.certifications.trim()
         };
+
+        console.log('📤 Frontend sending data:', { email: jobSeekerData.email, firstName: jobSeekerData.firstName });
+
+
 
         await onSubmit(jobSeekerData);
         onClose();
@@ -226,7 +306,6 @@ const AddJobSeekerForm = ({
   React.useEffect(() => {
     if (isOpen) {
       if (isEdit && initialData) {
-        console.log('Edit form initialData:', initialData); // Debug log
         setFormData({
           firstName: initialData.firstName || '',
           lastName: initialData.lastName || '',
@@ -243,6 +322,7 @@ const AddJobSeekerForm = ({
           country: initialData.country || 'Rwanda',
           references: initialData.references || '',
           experience: initialData.experience || '',
+          experienceLevel: initialData.experienceLevel || '',
           monthlyRate: initialData.monthlyRate || '',
           jobCategoryId: initialData.jobCategoryId || '',
           educationLevel: initialData.educationLevel || '',
@@ -255,6 +335,12 @@ const AddJobSeekerForm = ({
         if (initialData.skills) {
           const skillsArray = initialData.skills.split(',').map(s => s.trim()).filter(s => s);
           setSelectedSkills(skillsArray);
+        }
+
+        // Initialize selected languages from existing languages
+        if (initialData.languages) {
+          const languagesArray = initialData.languages.split(',').map(l => l.trim()).filter(l => l);
+          setSelectedLanguages(languagesArray);
         }
       } else {
         setFormData({
@@ -273,6 +359,7 @@ const AddJobSeekerForm = ({
           country: 'Rwanda',
           references: '',
           experience: '',
+          experienceLevel: '',
           monthlyRate: '',
           jobCategoryId: '',
           educationLevel: '',
@@ -281,6 +368,7 @@ const AddJobSeekerForm = ({
           certifications: ''
         });
         setSelectedSkills([]);
+        setSelectedLanguages([]);
       }
       setErrors({});
     }
@@ -441,7 +529,7 @@ const AddJobSeekerForm = ({
                 </label>
                 <select
                   name="maritalStatus"
-                  value={formData.maritalStatus}
+            value={formData.maritalStatus}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                 >
@@ -589,20 +677,20 @@ const AddJobSeekerForm = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Skills *
               </label>
-        <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Selected Skills Display */}
                 {selectedSkills.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1">
                     {selectedSkills.map((skill, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
                       >
                         {skill}
                         <button
                           type="button"
                           onClick={() => handleSkillRemove(skill)}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
+                          className="ml-1 text-blue-600 hover:text-blue-800"
                         >
                           ×
                         </button>
@@ -611,15 +699,26 @@ const AddJobSeekerForm = ({
                   </div>
                 )}
 
+                {/* Skills Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={skillSearch}
+                    onChange={(e) => setSkillSearch(e.target.value)}
+                    placeholder="Search skills..."
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
                 {/* Skills Selection */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-300 rounded p-3">
-                  {predefinedSkills.map((skill) => (
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
+                  {filteredSkills.map((skill) => (
                     <button
                       key={skill}
                       type="button"
                       onClick={() => handleSkillSelect(skill)}
                       disabled={selectedSkills.includes(skill)}
-                      className={`text-left p-2 rounded text-sm ${
+                      className={`text-left p-1 rounded text-xs ${
                         selectedSkills.includes(skill)
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           : 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-200'
@@ -643,7 +742,7 @@ const AddJobSeekerForm = ({
                   <button
                     type="button"
                     onClick={handleCustomSkillAdd}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                   >
                     Add
                   </button>
@@ -658,14 +757,39 @@ const AddJobSeekerForm = ({
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Experience
+                  Experience Level *
+                </label>
+                <select
+                  name="experienceLevel"
+                  value={formData.experienceLevel}
+                  onChange={handleInputChange}
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.experienceLevel ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  required
+                >
+                  <option value="">Select Experience Level</option>
+                  {experienceLevels.map(level => (
+                    <option key={level.value} value={level.value}>
+                      {level.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.experienceLevel && (
+                  <p className="text-red-500 text-sm mt-1">{errors.experienceLevel}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Experience Details (Optional)
                 </label>
                 <textarea
                   name="experience"
-            value={formData.experience}
+                  value={formData.experience}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-            placeholder="Describe your work experience"
+                  placeholder="Describe your specific work experience, previous jobs, or relevant background"
                   rows="3"
                 />
               </div>
@@ -685,22 +809,86 @@ const AddJobSeekerForm = ({
               </div>
         </div>
 
+        {/* Languages Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Languages
+          </label>
+          <div className="space-y-3">
+            {/* Selected Languages Display */}
+            {selectedLanguages.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {selectedLanguages.map((language, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
+                  >
+                    {language}
+                    <button
+                      type="button"
+                      onClick={() => handleLanguageRemove(language)}
+                      className="ml-1 text-green-600 hover:text-green-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Languages Search */}
+            <div className="relative">
+              <input
+                type="text"
+                value={languageSearch}
+                onChange={(e) => setLanguageSearch(e.target.value)}
+                placeholder="Search languages..."
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Languages Selection */}
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
+              {filteredLanguages.map((language) => (
+                <button
+                  key={language}
+                  type="button"
+                  onClick={() => handleLanguageSelect(language)}
+                  disabled={selectedLanguages.includes(language)}
+                  className={`text-left p-1 rounded text-xs ${
+                    selectedLanguages.includes(language)
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white hover:bg-green-50 text-gray-700 border border-gray-200'
+                  }`}
+                >
+                  {language}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Language Input */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customLanguage}
+                onChange={(e) => setCustomLanguage(e.target.value)}
+                placeholder="Add custom language..."
+                className="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomLanguageAdd())}
+              />
+              <button
+                type="button"
+                onClick={handleCustomLanguageAdd}
+                className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Additional Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Languages
-                </label>
-                <textarea
-                  name="languages"
-                  value={formData.languages}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Kinyarwanda (Native), English (Fluent), French (Basic)"
-                  rows="2"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Certifications
