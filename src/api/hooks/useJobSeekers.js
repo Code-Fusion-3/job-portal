@@ -97,7 +97,7 @@ export const useJobSeekers = (options = {}) => {
       const result = await jobSeekerService.updateJobSeeker(id, updateData);
       if (result.success) {
         // console.log('✅ Job seeker updated:', result.data);
-        console.log('📥 Backend response data:', result.data);
+
         
         // Update the local state with proper data merging
         setJobSeekers(prev => 
@@ -108,7 +108,6 @@ export const useJobSeekers = (options = {}) => {
               
               // Update main job seeker fields
               if (result.data.email) {
-                console.log('📧 Updating email from', seeker.email, 'to', result.data.email);
                 updatedSeeker.email = result.data.email;
               }
               if (result.data.createdAt) updatedSeeker.createdAt = result.data.createdAt;
@@ -138,7 +137,7 @@ export const useJobSeekers = (options = {}) => {
                 });
               }
               
-              console.log('🔄 Updated seeker data:', { id: updatedSeeker.id, email: updatedSeeker.email, firstName: updatedSeeker.profile?.firstName });
+
               return updatedSeeker;
             }
             return seeker;

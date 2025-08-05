@@ -73,11 +73,11 @@ const AddJobSeekerForm = ({
     
     // Trade Skills
     'Carpentry', 'Plumbing', 'Electrical Work', 'Masonry', 'Painting', 'Welding', 'Machining',
-    'Landscaping', 'Baking', 'Cleaning',
+    'Landscaping', 'Baking',
     
     // Transportation Skills
     'Safe Driving', 'Vehicle Maintenance', 'Route Planning', 'GPS Navigation',
-    'Defensive Driving', 'Passenger Safety', 'Driving',
+    'Defensive Driving', 'Passenger Safety',
     
     // Business Skills
     'Accounting', 'Bookkeeping', 'Marketing', 'Sales', 'Business Development', 'Financial Analysis',
@@ -91,7 +91,7 @@ const AddJobSeekerForm = ({
     
     // Professional Skills
     'Project Management', 'Agile/Scrum', 'Leadership', 'Team Management', 'Communication',
-    'Problem Solving', 'Critical Thinking', 'Time Management', 'Customer Service',
+    'Problem Solving', 'Critical Thinking', 'Time Management',
     
     // Creative Skills
     'Graphic Design', 'Web Design', 'Video Editing', 'Photography', 'Content Writing',
@@ -283,7 +283,7 @@ const AddJobSeekerForm = ({
           certifications: formData.certifications.trim()
         };
 
-        console.log('📤 Frontend sending data:', { email: jobSeekerData.email, firstName: jobSeekerData.firstName });
+
 
 
 
