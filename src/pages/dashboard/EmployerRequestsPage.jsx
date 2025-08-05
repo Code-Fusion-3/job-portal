@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   MessageSquare, 
@@ -11,10 +11,14 @@ import {
   Phone,
   Calendar,
   User,
-  Building
+  Building,
+  Filter,
+  Search,
+  RefreshCw
 } from 'lucide-react';
 import { useAdminRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
+import { categoryService } from '../../api/services/categoryService.js';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import StatsGrid from '../../components/ui/StatsGrid';
@@ -25,6 +29,7 @@ import Avatar from '../../components/ui/Avatar';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Pagination from '../../components/ui/Pagination';
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
+import { motion } from 'motion/react';
 
 const EmployerRequestsPage = () => {
   const { t } = useTranslation();
@@ -54,7 +59,8 @@ const EmployerRequestsPage = () => {
     prevPage,
     hasNextPage,
     hasPrevPage,
-    pageInfo
+    pageInfo,
+    applyFilters
   } = useAdminRequests({
     autoFetch: true,
     itemsPerPage: 10
@@ -68,122 +74,168 @@ const EmployerRequestsPage = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [replyMessage, setReplyMessage] = useState('');
 
-  // Mock data for employer requests (temporary until full integration)
-  const mockRequests = [
+  // Filter state
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Transform backend data to frontend format
+  const transformRequestData = (backendRequest) => {
+    if (!backendRequest) return null;
+    
+    try {
+      // Format monthly rate for display
+      const formatMonthlyRate = (rate) => {
+        if (!rate || rate === 'Not specified') return 'Not specified';
+        
+        // If it's already a number, format it
+        if (typeof rate === 'number') {
+          return new Intl.NumberFormat('en-RW', {
+            style: 'currency',
+            currency: 'RWF',
+            minimumFractionDigits: 0
+          }).format(rate);
+        }
+        
+        // If it's a string, try to parse it
+        if (typeof rate === 'string') {
+          const numRate = parseFloat(rate);
+          if (!isNaN(numRate)) {
+            return new Intl.NumberFormat('en-RW', {
+              style: 'currency',
+              currency: 'RWF',
+              minimumFractionDigits: 0
+            }).format(numRate);
+          }
+          return rate; // Return as is if it can't be parsed
+        }
+        
+        return 'Not specified';
+      };
+
+      return {
+        id: backendRequest.id,
+        employerName: backendRequest.name || 'Unknown',
+        companyName: backendRequest.companyName || 'Private',
+        candidateName: backendRequest.requestedCandidate 
+          ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
+          : 'Not specified',
+        position: backendRequest.requestedCandidate?.profile?.skills || 'General',
+        status: backendRequest.status || 'pending',
+        priority: backendRequest.priority || 'normal',
+        date: backendRequest.createdAt,
+        monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
+        message: backendRequest.message || '',
+        employerContact: {
+          email: backendRequest.email || '',
+          phone: backendRequest.phoneNumber || ''
+        },
+        adminNotes: '', // This should be stored separately
+        lastContactDate: backendRequest.updatedAt,
+        isCompleted: backendRequest.status === 'completed',
+        category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
+        // Backend fields for reference
+        _backendData: backendRequest
+      };
+    } catch (error) {
+      console.error('Error transforming request data:', error, backendRequest);
+      // Return a safe fallback object
+      return {
+        id: backendRequest.id || 'unknown',
+        employerName: 'Error loading data',
+        companyName: 'Unknown',
+        candidateName: 'Not specified',
+        position: 'General',
+        status: 'pending',
+        priority: 'normal',
+        date: new Date().toISOString(),
+        monthlyRate: 'Not specified',
+        message: 'Error loading request data',
+        employerContact: {
+          email: '',
+          phone: ''
+        },
+        adminNotes: '',
+        lastContactDate: new Date().toISOString(),
+        isCompleted: false,
+        category: 'domestic',
+        _backendData: backendRequest
+      };
+    }
+  };
+
+  // Transform all requests
+  const transformedRequests = requests.map(transformRequestData).filter(Boolean);
+
+  // Debug logging
+  useEffect(() => {
+    if (requests.length > 0) {
+      console.log('Raw requests from backend:', requests);
+      console.log('Transformed requests:', transformedRequests);
+    }
+  }, [requests, transformedRequests]);
+
+  // Create filter structure for DataTable
+  const tableFilters = [
     {
-      id: 1,
-      employerName: 'Mrs. Uwimana',
-      companyName: 'Private Household',
-      candidateName: 'Francine Mukamana',
-      position: 'Housemaid',
-      status: 'pending',
-      priority: 'high',
-      date: '2024-01-15T10:30:00Z',
-      dailyRate: 5000,
-      monthlyRate: 120000,
-      message: 'Need reliable housemaid for daily cleaning and cooking. We have a family of 4 with 2 children. Looking for someone who can start immediately.',
-      employerContact: {
-        email: 'uwimana@email.com',
-        phone: '+250 788 111 111'
-      },
-      adminNotes: '',
-      lastContactDate: null,
-      isCompleted: false,
-      category: 'domestic'
+      key: 'status',
+      value: filters.status || '',
+      placeholder: 'Filter by status',
+      options: [
+        { value: '', label: 'All Statuses' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'in_progress', label: 'In Progress' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'cancelled', label: 'Cancelled' }
+      ]
     },
     {
-      id: 2,
-      employerName: 'Mr. Ndayisaba',
-      companyName: 'Hotel Rwanda',
-      candidateName: 'Jean Pierre Ndayisaba',
-      position: 'Driver',
-      status: 'in_progress',
-      priority: 'medium',
-      date: '2024-01-14T14:20:00Z',
-      dailyRate: 6000,
-      monthlyRate: 150000,
-      message: 'Looking for experienced driver for hotel transportation. Must have clean driving record and be available for shift work.',
-      employerContact: {
-        email: 'ndayisaba@hotelrwanda.com',
-        phone: '+250 788 222 222'
-      },
-      adminNotes: 'Called employer - interested in proceeding. Waiting for final confirmation on start date.',
-      lastContactDate: '2024-01-15T14:30:00Z',
-      isCompleted: false,
-      category: 'transport'
+      key: 'priority',
+      value: filters.priority || '',
+      placeholder: 'Filter by priority',
+      options: [
+        { value: '', label: 'All Priorities' },
+        { value: 'low', label: 'Low' },
+        { value: 'normal', label: 'Normal' },
+        { value: 'high', label: 'High' },
+        { value: 'urgent', label: 'Urgent' }
+      ]
     },
     {
-      id: 3,
-      employerName: 'Mrs. Mukamana',
-      companyName: 'Private Household',
-      candidateName: 'Marie Claire Uwineza',
-      position: 'Babysitter',
-      status: 'completed',
-      priority: 'low',
-      date: '2024-01-13T09:15:00Z',
-      dailyRate: 4000,
-      monthlyRate: 100000,
-      message: 'Need caring babysitter for 2 children aged 3 and 5. Must be patient and have experience with young children.',
-      employerContact: {
-        email: 'mukamana@email.com',
-        phone: '+250 788 333 333'
-      },
-      adminNotes: 'Deal completed successfully. Employer hired the candidate. Start date: January 20, 2024.',
-      lastContactDate: '2024-01-14T16:45:00Z',
-      isCompleted: true,
-      category: 'care'
-    },
-    {
-      id: 4,
-      employerName: 'Mr. Uwimana',
-      companyName: 'Restaurant Kigali',
-      candidateName: 'Sarah Mukamana',
-      position: 'Cook',
-      status: 'pending',
-      priority: 'high',
-      date: '2024-01-15T11:45:00Z',
-      dailyRate: 7000,
-      monthlyRate: 180000,
-      message: 'Need experienced cook for our restaurant. Must know local and international cuisine. Full-time position.',
-      employerContact: {
-        email: 'uwimana@restaurant.com',
-        phone: '+250 788 444 444'
-      },
-      adminNotes: '',
-      lastContactDate: null,
-      isCompleted: false,
-      category: 'food'
-    },
-    {
-      id: 5,
-      employerName: 'Mrs. Nshuti',
-      companyName: 'Private Household',
-      candidateName: 'Emmanuel Niyonshuti',
-      position: 'Gardener',
-      status: 'in_progress',
-      priority: 'medium',
-      date: '2024-01-12T16:30:00Z',
-      dailyRate: 5500,
-      monthlyRate: 140000,
-      message: 'Looking for gardener for large property. Must have experience with landscaping and plant care.',
-      employerContact: {
-        email: 'nshuti@email.com',
-        phone: '+250 788 555 555'
-      },
-      adminNotes: 'Employer requested additional information about candidate\'s experience. Will follow up tomorrow.',
-      lastContactDate: '2024-01-15T10:20:00Z',
-      isCompleted: false,
-      category: 'maintenance'
+      key: 'category',
+      value: filters.category || '',
+      placeholder: 'Filter by category',
+      options: [
+        { value: '', label: 'All Categories' },
+        ...categories.map(cat => ({ value: cat.name_en, label: cat.name_en }))
+      ]
     }
   ];
 
-
+  // Ensure data is safe for rendering
+  const safeData = transformedRequests.map(item => ({
+    ...item,
+    employerName: item.employerName || 'Unknown',
+    companyName: item.companyName || 'Private',
+    candidateName: item.candidateName || 'Not specified',
+    position: item.position || 'General',
+    status: item.status || 'pending',
+    priority: item.priority || 'normal',
+    monthlyRate: item.monthlyRate || 'Not specified',
+    message: item.message || '',
+    employerContact: {
+      email: item.employerContact?.email || '',
+      phone: item.employerContact?.phone || ''
+    }
+  }));
 
   // Statistics calculation
   const stats = [
     {
       title: 'Total Requests',
-      value: requests.length.toString(),
+      value: safeData.length.toString(),
       change: '+5',
       changeType: 'increase',
       icon: MessageSquare,
@@ -193,7 +245,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Pending Review',
-      value: requests.filter(r => r.status === 'pending').length.toString(),
+      value: safeData.filter(r => r.status === 'pending').length.toString(),
       change: '+2',
       changeType: 'increase',
       icon: Clock,
@@ -203,7 +255,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'In Progress',
-      value: requests.filter(r => r.status === 'in_progress').length.toString(),
+      value: safeData.filter(r => r.status === 'in_progress').length.toString(),
       change: '+1',
       changeType: 'increase',
       icon: AlertCircle,
@@ -213,7 +265,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Completed',
-      value: requests.filter(r => r.status === 'completed').length.toString(),
+      value: safeData.filter(r => r.status === 'completed').length.toString(),
       change: '+3',
       changeType: 'increase',
       icon: CheckCircle,
@@ -229,7 +281,7 @@ const EmployerRequestsPage = () => {
       key: 'employerInfo',
       label: 'Employer',
       sortable: false,
-      render: (value, item) => (
+      render: (item) => (
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
             <Building className="w-5 h-5 text-gray-600" />
@@ -245,7 +297,7 @@ const EmployerRequestsPage = () => {
       key: 'candidateInfo',
       label: 'Candidate',
       sortable: false,
-      render: (value, item) => (
+      render: (item) => (
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
             <User className="w-5 h-5 text-gray-600" />
@@ -264,21 +316,22 @@ const EmployerRequestsPage = () => {
       searchable: true,
       type: 'badge',
       badgeColor: (category) => {
-        switch (category) {
+        switch (category?.toLowerCase()) {
           case 'domestic': return 'text-blue-600 bg-blue-50 border-blue-200';
           case 'care': return 'text-pink-600 bg-pink-50 border-pink-200';
           case 'food': return 'text-orange-600 bg-orange-50 border-orange-200';
           case 'maintenance': return 'text-green-600 bg-green-50 border-green-200';
           case 'transport': return 'text-indigo-600 bg-indigo-50 border-indigo-200';
+          case 'general': return 'text-gray-600 bg-gray-50 border-gray-200';
           default: return 'text-gray-600 bg-gray-50 border-gray-200';
         }
       }
     },
     {
-      key: 'dailyRate',
-      label: 'Daily Rate',
+      key: 'monthlyRate',
+      label: 'Monthly Rate',
       sortable: true,
-      type: 'currency'
+      type: 'text'
     },
     {
       key: 'status',
@@ -302,8 +355,6 @@ const EmployerRequestsPage = () => {
     }
   ];
 
-
-
   // Event handlers
   const handleSearchChange = (value) => {
     setSearchTerm(value);
@@ -312,6 +363,52 @@ const EmployerRequestsPage = () => {
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
+
+  // Fetch categories for filtering
+  const fetchCategories = useCallback(async () => {
+    setLoadingCategories(true);
+    try {
+      const result = await categoryService.getAllCategories();
+      if (result.success) {
+        setCategories(result.data || []);
+      } else {
+        console.error('Failed to fetch categories:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  }, []);
+
+  // Handle date filter changes
+  const handleDateFilterChange = (type, value) => {
+    if (type === 'from') {
+      setDateFrom(value);
+      setFilters(prev => ({ ...prev, dateFrom: value }));
+    } else {
+      setDateTo(value);
+      setFilters(prev => ({ ...prev, dateTo: value }));
+    }
+  };
+
+  // Load categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Refresh function that clears all filters and fetches fresh data
+  const handleRefresh = useCallback(() => {
+    // Clear all filters
+    setSearchTerm('');
+    setFilters({});
+    setDateFrom('');
+    setDateTo('');
+    // Reset to first page
+    goToPage(1);
+    // Apply filters to fetch fresh data
+    applyFilters();
+  }, [setSearchTerm, setFilters, goToPage, applyFilters]);
 
   const handleRowAction = (action, request) => {
     setSelectedRequest(request);
@@ -327,315 +424,481 @@ const EmployerRequestsPage = () => {
       case 'call':
         handleContactEmployer(request.employerContact, 'phone');
         break;
-      case 'approve':
-      case 'reject':
+      case 'reply':
+        setCurrentAction('reply');
+        setShowActionModal(true);
+        break;
+      case 'select':
+        setCurrentAction('select');
+        setShowActionModal(true);
+        break;
       case 'complete':
-        setCurrentAction(action);
+        setCurrentAction('complete');
         setShowActionModal(true);
         break;
       default:
-        break;
+        console.warn('Unknown action:', action);
     }
   };
 
   const handleStatusUpdate = (newStatus) => {
-    if (selectedRequest) {
-      setRequests(prev => 
-        prev.map(req => 
-          req.id === selectedRequest.id 
-            ? { 
-                ...req, 
-                status: newStatus, 
-                adminNotes: adminNotes,
-                lastContactDate: new Date().toISOString(),
-                isCompleted: newStatus === 'completed'
-              }
-            : req
-        )
-      );
-      setShowActionModal(false);
-      setSelectedRequest(null);
-      setCurrentAction(null);
-      setAdminNotes('');
+    if (!selectedRequest) return;
+    
+    // Update the request status
+    const updatedRequest = { ...selectedRequest, status: newStatus };
+    setSelectedRequest(updatedRequest);
+    
+    // Close modal
+    setShowActionModal(false);
+    setCurrentAction(null);
+    
+    // Show success message
+    alert(`Request status updated to ${newStatus}`);
+  };
+
+  const handleReplySubmit = async () => {
+    if (!selectedRequest || !replyMessage.trim()) return;
+    
+    try {
+      const result = await replyToRequest(selectedRequest.id, {
+        message: replyMessage,
+        adminNotes: adminNotes
+      });
+      
+      if (result.success) {
+        alert('Reply sent successfully');
+        setReplyMessage('');
+        setShowActionModal(false);
+        setCurrentAction(null);
+      } else {
+        alert(result.error || 'Failed to send reply');
+      }
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      alert('Error sending reply');
     }
   };
 
-  // Action buttons for table
-  const actionButtons = [
-    {
-      key: 'view',
-      icon: Eye,
-      title: 'View Details',
-      className: 'text-blue-600 hover:bg-blue-50'
-    },
-    {
-      key: 'contact',
-      icon: Mail,
-      title: 'Send Email',
-      className: 'text-green-600 hover:bg-green-50'
-    },
-    {
-      key: 'call',
-      icon: Phone,
-      title: 'Call',
-      className: 'text-purple-600 hover:bg-purple-50'
-    },
-    {
-      key: 'approve',
-      icon: CheckCircle,
-      title: 'Approve',
-      className: 'text-green-600 hover:bg-green-50'
-    },
-    {
-      key: 'reject',
-      icon: XCircle,
-      title: 'Reject',
-      className: 'text-red-600 hover:bg-red-50'
+  const handleJobSeekerSelection = async (jobSeekerId) => {
+    if (!selectedRequest) return;
+    
+    try {
+      const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId);
+      
+      if (result.success) {
+        alert('Job seeker selected successfully');
+        setShowActionModal(false);
+        setCurrentAction(null);
+      } else {
+        alert(result.error || 'Failed to select job seeker');
+      }
+    } catch (error) {
+      console.error('Error selecting job seeker:', error);
+      alert('Error selecting job seeker');
     }
-  ];
+  };
+
+  // Loading state
+  if (loading && transformedRequests.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading employer requests..." />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && transformedRequests.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Requests</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={handleRefresh} variant="primary" disabled={loading}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            {loading ? 'Retrying...' : 'Try Again'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // No data state
+  if (!loading && safeData.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">E</span>
+                </div>
+                <span className="ml-2 text-xl font-bold text-gray-900">Employer Requests</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={loading}
+                >
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">No Employer Requests</h2>
+            <p className="text-gray-600 mb-6">
+              There are currently no employer requests to display.
+            </p>
+            <Button onClick={handleRefresh} variant="primary" disabled={loading}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {loading ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Statistics */}
-      <StatsGrid stats={stats} />
-
-      {/* Search and Filters */}
-      <Pagination
-        pagination={{
-          currentPage,
-          totalPages,
-          totalItems,
-          searchTerm,
-          filters,
-          sortBy,
-          sortOrder,
-          setSearchTerm,
-          setFilters,
-          setSortBy,
-          setSortOrder,
-          goToPage,
-          nextPage,
-          prevPage,
-          hasNextPage,
-          hasPrevPage,
-          pageInfo
-        }}
-        onSearch={handleSearchChange}
-        onFilter={handleFilterChange}
-        searchPlaceholder="Search requests by employer, candidate, or position..."
-        showSearch={true}
-        showFilters={true}
-        showSort={true}
-      />
-
-      {/* Requests Table */}
-      <Card className="p-0">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Employer Requests ({requests.length})
-            </h2>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm">
-                Export Data
-              </Button>
-              <Button variant="primary" size="sm">
-                Process All
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">E</span>
+              </div>
+              <span className="ml-2 text-xl font-bold text-gray-900">Employer Requests</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={loading}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {loading ? 'Refreshing...' : 'Refresh'}
               </Button>
             </div>
           </div>
         </div>
-        
-        <DataTable
-          columns={columns}
-          data={requests}
-          onRowAction={handleRowAction}
-          actionButtons={actionButtons}
-          pagination={false}
-          className="rounded-none"
-        />
-      </Card>
+      </header>
 
-      {/* Request Details Modal */}
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        title="Request Details"
-        maxWidth="max-w-4xl"
-      >
-        {selectedRequest && (
-          <div className="space-y-6">
-            {/* Request Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Employer Information</h3>
-                <div className="space-y-2">
-                  <p><span className="font-medium">Name:</span> {selectedRequest.employerName}</p>
-                  <p><span className="font-medium">Company:</span> {selectedRequest.companyName}</p>
-                  <p><span className="font-medium">Email:</span> {selectedRequest.employerContact.email}</p>
-                  <p><span className="font-medium">Phone:</span> {selectedRequest.employerContact.phone}</p>
-                </div>
-                <div className="flex items-center space-x-3 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleContactEmployer(selectedRequest.employerContact, 'email')}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Email
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleContactEmployer(selectedRequest.employerContact, 'phone')}
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call
-                  </Button>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Candidate Information</h3>
-                <div className="space-y-2">
-                  <p><span className="font-medium">Name:</span> {selectedRequest.candidateName}</p>
-                  <p><span className="font-medium">Position:</span> {selectedRequest.position}</p>
-                  <p><span className="font-medium">Daily Rate:</span> {selectedRequest.dailyRate.toLocaleString()} RWF</p>
-                  <p><span className="font-medium">Monthly Rate:</span> {selectedRequest.monthlyRate.toLocaleString()} RWF</p>
-                </div>
-                <div className="mt-4">
-                  <Badge 
-                    variant="outline" 
-                    className={getStatusColor(selectedRequest.status)}
-                  >
-                    {selectedRequest.status}
-                  </Badge>
-                  <Badge 
-                    variant="outline" 
-                    className={getPriorityColor(selectedRequest.priority)}
-                  >
-                    {selectedRequest.priority}
-                  </Badge>
-                </div>
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Statistics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <StatsGrid stats={stats} />
+        </motion.div>
+
+        {/* Main Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Employer Requests ({safeData.length})
+              </h2>
             </div>
 
-            {/* Request Message */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Employer Message</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700">{selectedRequest.message}</p>
-              </div>
-            </div>
-
-            {/* Admin Notes */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Admin Notes</h3>
-              <textarea
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add notes about this request..."
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-                rows="4"
-              />
-            </div>
-
-            {/* Request Timeline */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Request Timeline</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">Request Submitted</p>
-                    <p className="text-xs text-gray-500">{new Date(selectedRequest.date).toLocaleString()}</p>
+            {/* Data Table */}
+            <div className="space-y-4">
+              {/* Custom Filters */}
+              <div className="flex flex-wrap gap-4 items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="w-4 h-4" />
+                  {showFilters ? 'Hide Filters' : 'Show Filters'}
+                </Button>
+                
+                {loading && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                    Loading...
                   </div>
-                </div>
-                {selectedRequest.lastContactDate && (
-                  <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <div>
-                      <p className="text-sm font-medium">Last Contact</p>
-                      <p className="text-xs text-gray-500">{new Date(selectedRequest.lastContactDate).toLocaleString()}</p>
+                )}
+                
+                {showFilters && (
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">From:</label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => handleDateFilterChange('from', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      />
                     </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">To:</label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => handleDateFilterChange('to', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDateFrom('');
+                        setDateTo('');
+                        setFilters(prev => ({ ...prev, dateFrom: '', dateTo: '' }));
+                      }}
+                    >
+                      Clear Dates
+                    </Button>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-              <Button
-                variant="outline"
-                onClick={() => setShowDetailsModal(false)}
-              >
-                Close
-              </Button>
-              {selectedRequest.status !== 'completed' && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setCurrentAction('approve');
-                      setShowActionModal(true);
-                      setShowDetailsModal(false);
-                    }}
-                    className="text-green-600 border-green-200 hover:bg-green-50"
-                  >
-                    Approve Request
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setCurrentAction('complete');
-                      setShowActionModal(true);
-                      setShowDetailsModal(false);
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Mark Completed
-                  </Button>
-                </>
+              <DataTable
+                data={safeData}
+                columns={columns}
+                searchTerm={searchTerm}
+                filters={tableFilters}
+                onSearchChange={handleSearchChange}
+                onFilterChange={handleFilterChange}
+                onRowAction={handleRowAction}
+                actionButtons={[
+                  { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50' },
+                  { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50' },
+                  { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50' },
+                  { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50' },
+                  { key: 'select', title: 'Select Candidate', icon: User, className: 'text-indigo-600 hover:bg-indigo-50' },
+                  { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50' }
+                ]}
+                pagination={false}
+                itemsPerPage={10}
+              />
+
+              {/* Server-side Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                    onNextPage={nextPage}
+                    onPrevPage={prevPage}
+                    hasNextPage={hasNextPage}
+                    hasPrevPage={hasPrevPage}
+                    pageInfo={pageInfo}
+                  />
+                </div>
               )}
             </div>
-          </div>
-        )}
-      </Modal>
 
-      {/* Action Confirmation Modal */}
-      <Modal
-        isOpen={showActionModal}
-        onClose={() => setShowActionModal(false)}
-        title={`${currentAction === 'approve' ? 'Approve' : currentAction === 'reject' ? 'Reject' : 'Complete'} Request`}
-        maxWidth="max-w-md"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-600">
-            Are you sure you want to {currentAction} the request from{' '}
-            <span className="font-medium text-gray-900">{selectedRequest?.employerName}</span>?
-          </p>
-          
-          <div className="flex items-center justify-end space-x-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowActionModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant={currentAction === 'reject' ? 'danger' : 'primary'}
-              onClick={() => {
-                const newStatus = currentAction === 'approve' ? 'in_progress' : 
-                                 currentAction === 'reject' ? 'rejected' : 'completed';
-                handleStatusUpdate(newStatus);
-              }}
-            >
-              {currentAction === 'approve' ? 'Approve' : 
-               currentAction === 'reject' ? 'Reject' : 'Complete'}
-            </Button>
+                          {/* Server-side pagination is handled by the DataTable component */}
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Request Details Modal */}
+      {showDetailsModal && selectedRequest && (
+        <Modal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          title="Request Details"
+          size="lg"
+        >
+          <div className="space-y-6">
+            {/* Employer Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Employer Information</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Name</label>
+                    <p className="text-gray-900">{selectedRequest.employerName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Company</label>
+                    <p className="text-gray-900">{selectedRequest.companyName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <p className="text-gray-900">{selectedRequest.employerContact.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Phone</label>
+                    <p className="text-gray-900">{selectedRequest.employerContact.phone}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Request Details */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Request Details</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <Badge color={getStatusColor(selectedRequest.status)}>
+                      {selectedRequest.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Priority</label>
+                    <Badge color={getPriorityColor(selectedRequest.priority)}>
+                      {selectedRequest.priority}
+                    </Badge>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Request Date</label>
+                    <p className="text-gray-900">
+                      {new Date(selectedRequest.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Message</label>
+                    <p className="text-gray-900 mt-1">{selectedRequest.message}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Candidate Information */}
+            {selectedRequest.candidateName !== 'Not specified' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Candidate Information</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Name</label>
+                      <p className="text-gray-900">{selectedRequest.candidateName}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Position</label>
+                      <p className="text-gray-900">{selectedRequest.position}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
+
+      {/* Action Modal */}
+      {showActionModal && selectedRequest && (
+        <Modal
+          isOpen={showActionModal}
+          onClose={() => setShowActionModal(false)}
+          title={currentAction === 'reply' ? 'Reply to Request' : 
+                 currentAction === 'select' ? 'Select Job Seeker' : 
+                 currentAction === 'complete' ? 'Complete Request' : 'Action'}
+          size="md"
+        >
+          {currentAction === 'reply' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reply Message
+                </label>
+                <textarea
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Enter your reply message..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Admin Notes
+                </label>
+                <textarea
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  className="w-full h-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Add internal notes..."
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowActionModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleReplySubmit}
+                  disabled={!replyMessage.trim()}
+                >
+                  Send Reply
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentAction === 'select' && (
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Select a job seeker for this request. This will notify the employer.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowActionModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => handleJobSeekerSelection(1)} // Placeholder ID
+                >
+                  Select Candidate
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentAction === 'complete' && (
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Mark this request as completed. This will close the request.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowActionModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => handleStatusUpdate('completed')}
+                >
+                  Complete Request
+                </Button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
     </div>
   );
 };

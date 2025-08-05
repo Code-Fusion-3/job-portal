@@ -9,7 +9,8 @@ import { requestService } from '../services/requestService.js';
 export const useRequests = (options = {}) => {
   const {
     autoFetch = true,
-    includeAdmin = false
+    includeAdmin = false,
+    itemsPerPage = 10
   } = options;
 
   // State management
@@ -18,8 +19,20 @@ export const useRequests = (options = {}) => {
   const [error, setError] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageInfo, setPageInfo] = useState({});
+
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({});
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+
   // Fetch requests data
-  const fetchRequests = useCallback(async () => {
+  const fetchRequests = useCallback(async (page = currentPage, search = searchTerm, filterParams = filters, sort = { field: sortBy, order: sortOrder }) => {
     if (!includeAdmin) {
       // Public users can't fetch all requests
       return;
@@ -29,9 +42,23 @@ export const useRequests = (options = {}) => {
     setError(null);
     
     try {
-      const result = await requestService.getAllRequests();
+      // Build query parameters
+      const queryParams = {
+        page,
+        limit: itemsPerPage,
+        search,
+        sortBy: sort.field,
+        sortOrder: sort.order,
+        ...filterParams
+      };
+
+      const result = await requestService.getAllRequests(queryParams);
       if (result.success) {
-        setRequests(result.data || []);
+        setRequests(result.data.requests || []);
+        setTotalPages(result.data.pagination?.totalPages || 1);
+        setTotalItems(result.data.pagination?.total || 0);
+        setCurrentPage(result.data.pagination?.page || 1);
+        setPageInfo(result.data.pagination || {});
       } else {
         setError(result.error || 'Failed to fetch requests');
       }
@@ -41,7 +68,7 @@ export const useRequests = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [includeAdmin]);
+  }, [includeAdmin, itemsPerPage, currentPage, searchTerm, filters, sortBy, sortOrder]);
 
   // Submit new request (public)
   const submitRequest = useCallback(async (requestData) => {
@@ -101,12 +128,8 @@ export const useRequests = (options = {}) => {
     try {
       const result = await requestService.replyToRequest(id, replyData);
       if (result.success) {
-        // Update the local state
-        setRequests(prev => 
-          prev.map(request => 
-            request.id === id ? { ...request, ...result.data } : request
-          )
-        );
+        // Refresh the requests list to get updated data
+        await fetchRequests();
         return { success: true, data: result.data };
       } else {
         setError(result.error || 'Failed to reply to request');
@@ -119,7 +142,7 @@ export const useRequests = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [includeAdmin]);
+  }, [includeAdmin, fetchRequests]);
 
   // Select job seeker for request (admin)
   const selectJobSeekerForRequest = useCallback(async (requestId, jobSeekerId) => {
@@ -131,12 +154,8 @@ export const useRequests = (options = {}) => {
     try {
       const result = await requestService.selectJobSeekerForRequest(requestId, jobSeekerId);
       if (result.success) {
-        // Update the local state
-        setRequests(prev => 
-          prev.map(request => 
-            request.id === requestId ? { ...request, ...result.data } : request
-          )
-        );
+        // Refresh the requests list to get updated data
+        await fetchRequests();
         return { success: true, data: result.data };
       } else {
         setError(result.error || 'Failed to select job seeker');
@@ -149,7 +168,60 @@ export const useRequests = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [includeAdmin]);
+  }, [includeAdmin, fetchRequests]);
+
+  // Pagination functions
+  const goToPage = useCallback((page) => {
+    setCurrentPage(page);
+    fetchRequests(page, searchTerm, filters, { field: sortBy, order: sortOrder });
+  }, [fetchRequests, searchTerm, filters, sortBy, sortOrder]);
+
+  const nextPage = useCallback(() => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  }, [currentPage, totalPages, goToPage]);
+
+  const prevPage = useCallback(() => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  }, [currentPage, goToPage]);
+
+  const hasNextPage = useMemo(() => currentPage < totalPages, [currentPage, totalPages]);
+  const hasPrevPage = useMemo(() => currentPage > 1, [currentPage]);
+
+  // Search and filter functions
+  const handleSearchChange = useCallback((term) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page when searching
+    // Don't call fetchRequests here - let the component handle it
+  }, []);
+
+  const handleFilterChange = useCallback((key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filtering
+    // Don't call fetchRequests here - let the component handle it
+  }, [filters]);
+
+  const handleSortChange = useCallback((field, order) => {
+    setSortBy(field);
+    setSortOrder(order);
+    // Don't call fetchRequests here - let the component handle it
+  }, []);
+
+  // Apply filters and search
+  const applyFilters = useCallback(() => {
+    fetchRequests(currentPage, searchTerm, filters, { field: sortBy, order: sortOrder });
+  }, [fetchRequests, currentPage, searchTerm, filters, sortBy, sortOrder]);
+
+  // Auto-apply filters when they change
+  useEffect(() => {
+    if (includeAdmin) {
+      applyFilters();
+    }
+  }, [applyFilters, includeAdmin]);
 
   // Request selection
   const selectRequest = useCallback((request) => {
@@ -189,12 +261,38 @@ export const useRequests = (options = {}) => {
     loading,
     error,
     
+    // Pagination
+    currentPage,
+    totalPages,
+    totalItems,
+    pageInfo,
+    hasNextPage,
+    hasPrevPage,
+    
+    // Search and filters
+    searchTerm,
+    filters,
+    sortBy,
+    sortOrder,
+    
     // Actions
     fetchRequests,
     submitRequest,
     getRequestById,
     replyToRequest,
     selectJobSeekerForRequest,
+    
+    // Pagination actions
+    goToPage,
+    nextPage,
+    prevPage,
+    
+    // Search and filter actions
+    setSearchTerm: handleSearchChange,
+    setFilters: handleFilterChange,
+    setSortBy: (field) => handleSortChange(field, sortOrder),
+    setSortOrder: (order) => handleSortChange(sortBy, order),
+    applyFilters,
     
     // Selection
     selectRequest,

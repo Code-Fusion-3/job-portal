@@ -104,7 +104,7 @@ export const requestService = {
    */
   getAllRequests: async (params = {}) => {
     try {
-      const { page = 1, limit = 10, status, priority, ...otherParams } = params;
+      const { page = 1, limit = 10, status, priority, search, sortBy, sortOrder, category, dateFrom, dateTo, ...otherParams } = params;
       
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -115,6 +115,12 @@ export const requestService = {
       // Add optional filters
       if (status) queryParams.append('status', status);
       if (priority) queryParams.append('priority', priority);
+      if (search) queryParams.append('search', search);
+      if (sortBy) queryParams.append('sortBy', sortBy);
+      if (sortOrder) queryParams.append('sortOrder', sortOrder);
+      if (category) queryParams.append('category', category);
+      if (dateFrom) queryParams.append('dateFrom', dateFrom);
+      if (dateTo) queryParams.append('dateTo', dateTo);
 
       const response = await apiClient.get(`/employer/requests?${queryParams}`, {
         headers: getAuthHeaders()
@@ -122,8 +128,15 @@ export const requestService = {
 
       return {
         success: true,
-        data: response.data.requests,
-        pagination: response.data.pagination
+        data: {
+          requests: response.data.requests || [],
+          pagination: response.data.pagination || {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 1
+          }
+        }
       };
     } catch (error) {
       // Handle specific backend error cases
