@@ -380,7 +380,7 @@ export const adminService = {
    */
   exportSystemData: async (params = {}) => {
     try {
-      const { type = 'all', format = 'json', startDate, endDate, ...otherParams } = params;
+      const { type = 'all', format = 'pdf', startDate, endDate, ...otherParams } = params;
       
       const queryParams = new URLSearchParams({
         type,
@@ -394,7 +394,7 @@ export const adminService = {
 
       const response = await apiClient.get(`/admin/export?${queryParams}`, {
         headers: getAuthHeaders(),
-        responseType: format === 'csv' ? 'blob' : 'json'
+        responseType: format === 'pdf' ? 'arraybuffer' : 'text' // Use arraybuffer for PDF
       });
 
       return {

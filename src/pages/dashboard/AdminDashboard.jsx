@@ -57,10 +57,7 @@ import {
   getCategoryColor, 
   handleContactEmployer 
 } from '../../utils/adminHelpers';
-import { 
-  MonthlyRegistrationsChart, 
-  RequestStatusChart 
-} from '../../components/ui/Charts';
+// Charts are now handled in ReportsPage
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -570,16 +567,44 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Analytics Section */}
+        {/* Analytics Section - Charts moved to Reports Page */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Monthly Registrations Chart */}
-          <Card title="Monthly Job Seeker Registrations" subtitle="New candidate registration trends by month (showing last 6 months)">
-            <MonthlyRegistrationsChart data={dashboardStatsData.trends?.monthlyRegistrations} />
+          <Card title="Analytics Overview" subtitle="View detailed charts and analytics in the Reports section">
+            <div className="text-center py-8">
+              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Charts and analytics are now available in the Reports section</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-4"
+                onClick={() => setActiveTab('reports')}
+              >
+                View Reports
+              </Button>
+            </div>
           </Card>
 
-          {/* Request Status Chart */}
-          <Card title="Request Status Distribution" subtitle="Distribution of requests by status (showing last 7 days)">
-            <RequestStatusChart data={dashboardStatsData.trends?.requestStatusDistribution} />
+          <Card title="Quick Stats" subtitle="Key metrics and trends">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-blue-600">Recent Growth</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {dashboardStatsData?.trends?.recentGrowth || 0}%
+                  </p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-blue-500" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-green-600">Active Requests</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {dashboardStatsData?.trends?.activeRequests || 0}
+                  </p>
+                </div>
+                <MessageSquare className="w-8 h-8 text-green-500" />
+              </div>
+            </div>
           </Card>
         </div>
       </div>

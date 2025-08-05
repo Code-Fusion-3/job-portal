@@ -1,204 +1,379 @@
 import React from 'react';
-import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
-// Line Chart for Monthly Registrations
-export const MonthlyRegistrationsChart = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p>No registration data available</p>
-      </div>
-    );
-  }
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
-  const chartData = Object.entries(data).map(([month, count]) => ({
-    month,
-    registrations: count
-  }));
-
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="month" 
-          stroke="#6b7280"
-          fontSize={12}
-        />
-        <YAxis 
-          stroke="#6b7280"
-          fontSize={12}
-        />
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-        />
-        <Line 
-          type="monotone" 
-          dataKey="registrations" 
-          stroke="#3b82f6" 
-          strokeWidth={3}
-          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-          activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-};
-
-// Bar Chart for Request Status Distribution
-export const RequestStatusChart = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p>No request data available</p>
-      </div>
-    );
-  }
-
-  const chartData = Object.entries(data).map(([status, count]) => ({
-    status: status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' '),
-    count
-  }));
-
-  const colors = {
-    'Pending': '#f59e0b',
-    'In Progress': '#3b82f6',
-    'Approved': '#10b981',
-    'Completed': '#8b5cf6',
-    'Cancelled': '#ef4444'
+// Growth Chart Component
+export const GrowthChart = ({ data, title = 'Growth Trend' }) => {
+  const chartData = {
+    labels: data.map(item => new Date(item.date).toLocaleDateString()),
+    datasets: [
+      {
+        label: 'Count',
+        data: data.map(item => item.count),
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+    ],
   };
 
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="status" 
-          stroke="#6b7280"
-          fontSize={12}
-        />
-        <YAxis 
-          stroke="#6b7280"
-          fontSize={12}
-        />
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-        />
-        <Bar 
-          dataKey="count" 
-          fill="#3b82f6"
-          radius={[4, 4, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: title,
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+  };
+
+  return <Line data={chartData} options={options} />;
 };
 
-// Pie Chart for Job Categories Distribution
-export const CategoriesChart = ({ data }) => {
-  if (!data || data.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p>No category data available</p>
-      </div>
-    );
-  }
+// Top Categories Chart Component
+export const CategoriesChart = ({ data, title = 'Top Categories' }) => {
+  const chartData = {
+    labels: data.map(item => item.name),
+    datasets: [
+      {
+        label: 'Job Seekers',
+        data: data.map(item => item.count),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(16, 185, 129)',
+          'rgb(245, 158, 11)',
+          'rgb(239, 68, 68)',
+          'rgb(139, 92, 246)',
+          'rgb(236, 72, 153)',
+          'rgb(34, 197, 94)',
+          'rgb(251, 146, 60)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: title,
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+  };
 
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-          outerRadius={80}
-          fill="#8884d8"
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  );
+  return <Bar data={chartData} options={options} />;
 };
 
-// Area Chart for Trends
-export const TrendsChart = ({ data, title }) => {
-  if (!data || data.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p>No trend data available</p>
-      </div>
-    );
-  }
+// Top Locations Chart Component
+export const LocationsChart = ({ data, title = 'Top Locations' }) => {
+  const chartData = {
+    labels: data.map(item => `${item.city}, ${item.country}`),
+    datasets: [
+      {
+        label: 'Job Seekers',
+        data: data.map(item => item.count),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(16, 185, 129)',
+          'rgb(245, 158, 11)',
+          'rgb(239, 68, 68)',
+          'rgb(139, 92, 246)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
 
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="name" 
-          stroke="#6b7280"
-          fontSize={12}
-        />
-        <YAxis 
-          stroke="#6b7280"
-          fontSize={12}
-        />
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-        />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke="#10b981" 
-          strokeWidth={3}
-          dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-          activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: title,
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+  };
+
+  return <Bar data={chartData} options={options} />;
+};
+
+// Skills Chart Component
+export const SkillsChart = ({ data, title = 'Top Skills in Demand' }) => {
+  const chartData = {
+    labels: data.map(item => item.skill),
+    datasets: [
+      {
+        label: 'Mentions',
+        data: data.map(item => item.count),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+          'rgba(6, 182, 212, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(16, 185, 129)',
+          'rgb(245, 158, 11)',
+          'rgb(239, 68, 68)',
+          'rgb(139, 92, 246)',
+          'rgb(236, 72, 153)',
+          'rgb(34, 197, 94)',
+          'rgb(251, 146, 60)',
+          'rgb(6, 182, 212)',
+          'rgb(168, 85, 247)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: title,
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      x: {
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+  };
+
+  return <Bar data={chartData} options={options} />;
+};
+
+// Skills Doughnut Chart Component
+export const SkillsDoughnutChart = ({ data, title = 'Skills Distribution' }) => {
+  const chartData = {
+    labels: data.map(item => item.skill),
+    datasets: [
+      {
+        data: data.map(item => item.count),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+          'rgba(6, 182, 212, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(16, 185, 129)',
+          'rgb(245, 158, 11)',
+          'rgb(239, 68, 68)',
+          'rgb(139, 92, 246)',
+          'rgb(236, 72, 153)',
+          'rgb(34, 197, 94)',
+          'rgb(251, 146, 60)',
+          'rgb(6, 182, 212)',
+          'rgb(168, 85, 247)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      title: {
+        display: true,
+        text: title,
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+      },
+    },
+  };
+
+  return <Doughnut data={chartData} options={options} />;
+};
+
+// Categories Doughnut Chart Component
+export const CategoriesDoughnutChart = ({ data, title = 'Categories Distribution' }) => {
+  const chartData = {
+    labels: data.map(item => item.name),
+    datasets: [
+      {
+        data: data.map(item => item.count),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+        ],
+        borderColor: [
+          'rgb(59, 130, 246)',
+          'rgb(16, 185, 129)',
+          'rgb(245, 158, 11)',
+          'rgb(239, 68, 68)',
+          'rgb(139, 92, 246)',
+          'rgb(236, 72, 153)',
+          'rgb(34, 197, 94)',
+          'rgb(251, 146, 60)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      title: {
+        display: true,
+        text: title,
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+      },
+    },
+  };
+
+  return <Doughnut data={chartData} options={options} />;
 }; 
