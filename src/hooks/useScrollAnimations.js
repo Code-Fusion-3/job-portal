@@ -313,7 +313,6 @@ export const useScrollAnimations = () => {
             initWaveAnimation();
             initFeaturesAnimation();
             
-            console.log('useScrollAnimations: All animations initialized successfully');
           } catch (error) {
             console.error('useScrollAnimations: Error initializing animations:', error);
           }

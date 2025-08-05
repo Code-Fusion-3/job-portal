@@ -32,7 +32,6 @@ const SessionMonitor = () => {
       return;
     }
 
-    console.log('🔐 Starting session monitoring for user:', user.email);
 
     // Temporarily disable aggressive session checking to avoid login interference
     // Only check token expiration for now

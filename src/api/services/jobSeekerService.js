@@ -67,7 +67,6 @@ export const jobSeekerService = {
    */
   getAllJobSeekers: async (params = {}) => {
     try {
-      console.log('🔍 getAllJobSeekers called with params:', params);
       
       const { page = 1, limit = 10, ...otherParams } = params;
       
@@ -77,15 +76,12 @@ export const jobSeekerService = {
         ...otherParams
       });
 
-      console.log('🔗 Making API call to:', `/profile/all?${queryParams}`);
 
       const response = await apiClient.get(`/profile/all?${queryParams}`, {
         headers: getAuthHeaders()
       });
 
-      console.log('📊 Raw API response:', response);
-      console.log('📊 Response data:', response.data);
-
+     
       // Backend returns { users: [...], pagination: {...} }
       const result = {
         success: true,
@@ -93,7 +89,6 @@ export const jobSeekerService = {
         pagination: response.data.pagination || {}
       };
       
-      console.log('✅ Processed result:', result);
       return result;
     } catch (error) {
       console.error('❌ getAllJobSeekers error:', error);
