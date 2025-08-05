@@ -39,7 +39,7 @@ const AddJobSeekerForm = ({
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Skills selection state
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [customSkill, setCustomSkill] = useState('');
@@ -177,13 +177,13 @@ const AddJobSeekerForm = ({
   // Simple submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       setIsLoading(true);
       
       try {
         // Prepare data in the format expected by the backend
-        const jobSeekerData = {
+      const jobSeekerData = {
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           email: formData.email.trim() || null, // Allow null email
@@ -226,6 +226,7 @@ const AddJobSeekerForm = ({
   React.useEffect(() => {
     if (isOpen) {
       if (isEdit && initialData) {
+        console.log('Edit form initialData:', initialData); // Debug log
         setFormData({
           firstName: initialData.firstName || '',
           lastName: initialData.lastName || '',
@@ -303,24 +304,24 @@ const AddJobSeekerForm = ({
         </div>
         
         <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   First Name *
                 </label>
                 <input
-                  type="text"
+          type="text"
                   name="firstName"
-                  value={formData.firstName}
+          value={formData.firstName}
                   onChange={handleInputChange}
                   className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
                     errors.firstName ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter first name"
-                  required
-                />
+          required
+        />
                 {errors.firstName && (
                   <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
                 )}
@@ -331,16 +332,16 @@ const AddJobSeekerForm = ({
                   Last Name *
                 </label>
                 <input
-                  type="text"
+          type="text"
                   name="lastName"
-                  value={formData.lastName}
+          value={formData.lastName}
                   onChange={handleInputChange}
                   className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
                     errors.lastName ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter last name"
-                  required
-                />
+          required
+        />
                 {errors.lastName && (
                   <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
                 )}
@@ -351,9 +352,9 @@ const AddJobSeekerForm = ({
                   Email (Optional)
                 </label>
                 <input
-                  type="email"
+          type="email"
                   name="email"
-                  value={formData.email}
+          value={formData.email}
                   onChange={handleInputChange}
                   className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
@@ -370,20 +371,20 @@ const AddJobSeekerForm = ({
                   Phone Number *
                 </label>
                 <input
-                  type="tel"
+          type="tel"
                   name="contactNumber"
-                  value={formData.contactNumber}
+            value={formData.contactNumber}
                   onChange={handleInputChange}
                   className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
                     errors.contactNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="+250788123456"
-                  required
-                />
+          required
+        />
                 {errors.contactNumber && (
                   <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>
                 )}
-              </div>
+      </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -391,7 +392,7 @@ const AddJobSeekerForm = ({
                 </label>
                 <select
                   name="gender"
-                  value={formData.gender}
+            value={formData.gender}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                 >
@@ -407,9 +408,9 @@ const AddJobSeekerForm = ({
                   Date of Birth
                 </label>
                 <input
-                  type="date"
+            type="date"
                   name="dateOfBirth"
-                  value={formData.dateOfBirth}
+            value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
                     errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
@@ -425,9 +426,9 @@ const AddJobSeekerForm = ({
                   ID Number
                 </label>
                 <input
-                  type="text"
+            type="text"
                   name="idNumber"
-                  value={formData.idNumber}
+            value={formData.idNumber}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter ID number"
@@ -451,22 +452,22 @@ const AddJobSeekerForm = ({
                   <option value="Widowed">Widowed</option>
                 </select>
               </div>
-            </div>
+        </div>
 
-            {/* Location Information */}
+        {/* Location Information */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Location
                 </label>
                 <input
-                  type="text"
+            type="text"
                   name="location"
-                  value={formData.location}
+            value={formData.location}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Kigali, Rwanda"
-                />
+            placeholder="e.g., Kigali, Rwanda"
+          />
               </div>
 
               <div>
@@ -474,9 +475,9 @@ const AddJobSeekerForm = ({
                   City
                 </label>
                 <input
-                  type="text"
+            type="text"
                   name="city"
-                  value={formData.city}
+            value={formData.city}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter city"
@@ -488,9 +489,9 @@ const AddJobSeekerForm = ({
                   Country
                 </label>
                 <input
-                  type="text"
+            type="text"
                   name="country"
-                  value={formData.country}
+            value={formData.country}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter country"
@@ -506,7 +507,7 @@ const AddJobSeekerForm = ({
                 </label>
                 <select
                   name="jobCategoryId"
-                  value={formData.jobCategoryId}
+            value={formData.jobCategoryId}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                 >
@@ -549,11 +550,16 @@ const AddJobSeekerForm = ({
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Education Level</option>
-                  {educationLevels.map(level => (
-                    <option key={level.id} value={level.id}>
-                      {level.name}
-                    </option>
-                  ))}
+                  <option value="No Formal Education">No Formal Education</option>
+                  <option value="Primary School">Primary School</option>
+                  <option value="Secondary School">Secondary School</option>
+                  <option value="High School">High School</option>
+                  <option value="Vocational Training">Vocational Training</option>
+                  <option value="Associate Degree">Associate Degree</option>
+                  <option value="Bachelor's Degree">Bachelor's Degree</option>
+                  <option value="Master's Degree">Master's Degree</option>
+                  <option value="PhD">PhD</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
 
@@ -568,21 +574,22 @@ const AddJobSeekerForm = ({
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Availability</option>
-                  {availabilityOptions.map(option => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
-                    </option>
-                  ))}
+                  <option value="Available">Available</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Freelance">Freelance</option>
+                  <option value="Not Available">Not Available</option>
+                  <option value="Open to Opportunities">Open to Opportunities</option>
                 </select>
               </div>
-            </div>
+        </div>
 
             {/* Professional Skills Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Skills *
               </label>
-              <div className="space-y-4">
+        <div className="space-y-4">
                 {/* Selected Skills Display */}
                 {selectedSkills.length > 0 && (
                   <div className="flex flex-wrap gap-2">
@@ -655,10 +662,10 @@ const AddJobSeekerForm = ({
                 </label>
                 <textarea
                   name="experience"
-                  value={formData.experience}
+            value={formData.experience}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe your work experience"
+            placeholder="Describe your work experience"
                   rows="3"
                 />
               </div>
@@ -669,17 +676,17 @@ const AddJobSeekerForm = ({
                 </label>
                 <textarea
                   name="description"
-                  value={formData.description}
+            value={formData.description}
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief description about yourself"
+            placeholder="Brief description about yourself"
                   rows="3"
-                />
+          />
               </div>
-            </div>
+        </div>
 
-            {/* Additional Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Additional Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Languages
@@ -716,30 +723,30 @@ const AddJobSeekerForm = ({
               </label>
               <textarea
                 name="references"
-                value={formData.references}
+            value={formData.references}
                 onChange={handleInputChange}
                 className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                 placeholder="List your references with contact information"
                 rows="3"
-              />
-            </div>
+          />
+      </div>
 
-            {/* Form Actions */}
+        {/* Form Actions */}
             <div className="flex justify-end space-x-3 pt-6">
               <button
-                type="button"
-                onClick={handleCancel}
+          type="button"
+            onClick={handleCancel}
                 className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
-                disabled={isLoading}
-              >
-                Cancel
+          disabled={isLoading}
+        >
+          Cancel
               </button>
               <button
-                type="submit"
+          type="submit"
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Job Seeker' : 'Create Job Seeker')}
+          disabled={isLoading}
+        >
+            {isLoading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Job Seeker' : 'Create Job Seeker')}
               </button>
             </div>
           </form>

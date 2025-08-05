@@ -439,6 +439,30 @@ const JobSeekersPage = () => {
       }
     },
     {
+      key: 'education',
+      label: 'Education',
+      render: (jobSeeker) => {
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const educationLevel = jobSeeker.profile?.educationLevel || 'Not specified';
+        const availability = jobSeeker.profile?.availability || 'Not specified';
+        
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center space-x-1">
+              <GraduationCap className="w-4 h-4 text-gray-400" />
+              <span className="text-sm">{educationLevel}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-sm">{availability}</span>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
       key: 'contactNumber',
       label: 'Contact',
       render: (jobSeeker) => {
@@ -665,16 +689,8 @@ const JobSeekersPage = () => {
       {/* Edit Job Seeker Modal */}
       {showEditModal && selectedJobSeeker && (
         <>
-          <AddJobSeekerForm
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onSubmit={handleUpdateJobSeeker}
-            educationLevels={educationLevels}
-            availabilityOptions={availabilityOptions}
-            skillsData={skillsData}
-            languageLevels={languageLevels}
-            jobCategories={jobCategories}
-            initialData={{
+          {(() => {
+            const initialData = {
               firstName: selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || '',
               lastName: selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || '',
               email: selectedJobSeeker.email || '',
@@ -693,10 +709,29 @@ const JobSeekersPage = () => {
               experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
               monthlyRate: selectedJobSeeker.profile?.monthlyRate ? selectedJobSeeker.profile.monthlyRate.toString() : '',
               jobCategoryId: selectedJobSeeker.profile?.jobCategoryId ? selectedJobSeeker.profile.jobCategoryId.toString() : '',
-              jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || ''
-            }}
-            isEdit={true}
-          />
+              jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || '',
+              educationLevel: selectedJobSeeker.profile?.educationLevel || '',
+              availability: selectedJobSeeker.profile?.availability || '',
+              languages: selectedJobSeeker.profile?.languages || '',
+              certifications: selectedJobSeeker.profile?.certifications || ''
+            };
+            console.log('Selected job seeker:', selectedJobSeeker);
+            console.log('Initial data being passed:', initialData);
+            return (
+              <AddJobSeekerForm
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSubmit={handleUpdateJobSeeker}
+                educationLevels={educationLevels}
+                availabilityOptions={availabilityOptions}
+                skillsData={skillsData}
+                languageLevels={languageLevels}
+                jobCategories={jobCategories}
+                initialData={initialData}
+                isEdit={true}
+              />
+            );
+          })()}
         </>
       )}
       
@@ -799,8 +834,28 @@ const JobSeekersPage = () => {
                 </p>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700">Education Level</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.educationLevel || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Availability</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.availability || 'Not specified'}</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Marital Status</label>
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.maritalStatus || 'Not specified'}</p>
+              </div>
+            </div>
+
+            {/* Languages and Certifications */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Languages</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.languages || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Certifications</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.certifications || 'Not specified'}</p>
               </div>
             </div>
 
