@@ -97,6 +97,8 @@ export const useJobSeekers = (options = {}) => {
       const result = await jobSeekerService.updateJobSeeker(id, updateData);
       if (result.success) {
         // console.log('✅ Job seeker updated:', result.data);
+
+        
         // Update the local state with proper data merging
         setJobSeekers(prev => 
           prev.map(seeker => {
@@ -105,13 +107,20 @@ export const useJobSeekers = (options = {}) => {
               const updatedSeeker = { ...seeker };
               
               // Update main job seeker fields
-              if (result.data.email) updatedSeeker.email = result.data.email;
+              if (result.data.email) {
+                updatedSeeker.email = result.data.email;
+              }
               if (result.data.createdAt) updatedSeeker.createdAt = result.data.createdAt;
               if (result.data.updatedAt) updatedSeeker.updatedAt = result.data.updatedAt;
               
               // Update profile fields
               if (result.data.profile) {
                 updatedSeeker.profile = { ...seeker.profile, ...result.data.profile };
+              } else if (result.data.user) {
+                // If we have user data, update profile from user.profile
+                if (result.data.user.profile) {
+                  updatedSeeker.profile = { ...seeker.profile, ...result.data.user.profile };
+                }
               } else {
                 // If profile data is at the top level, merge it into profile
                 const profileFields = ['firstName', 'lastName', 'contactNumber', 'description', 
@@ -128,7 +137,7 @@ export const useJobSeekers = (options = {}) => {
                 });
               }
               
-              // console.log('🔄 Updated seeker data:', updatedSeeker);
+
               return updatedSeeker;
             }
             return seeker;

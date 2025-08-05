@@ -30,7 +30,7 @@ export const useLiveUpdates = (options = {}) => {
 
     // Limit reconnection attempts
     if (reconnectAttempts.current >= maxReconnectAttempts) {
-      console.log('Max reconnection attempts reached, stopping WebSocket connection');
+      // console.log('Max reconnection attempts reached, stopping WebSocket connection');
       return;
     }
 
@@ -43,7 +43,7 @@ export const useLiveUpdates = (options = {}) => {
       wsRef.current = new WebSocket(websocketUrl);
       
       wsRef.current.onopen = () => {
-        console.log('WebSocket connected');
+        // console.log('ed');
         isConnected.current = true;
         reconnectAttempts.current = 0; // Reset attempts on successful connection
       };
@@ -63,7 +63,7 @@ export const useLiveUpdates = (options = {}) => {
       };
 
       wsRef.current.onclose = (event) => {
-        console.log('WebSocket disconnected', event.code, event.reason);
+        // console.log('WebSocket disconnected', event.code, event.reason);
         isConnected.current = false;
         
         // Only attempt to reconnect if not a normal closure and attempts remain
@@ -71,13 +71,13 @@ export const useLiveUpdates = (options = {}) => {
           reconnectAttempts.current += 1;
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000); // Exponential backoff, max 30s
           
-          console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
+          // console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
           }, delay);
         } else if (reconnectAttempts.current >= maxReconnectAttempts) {
-          console.log('Max reconnection attempts reached, switching to polling only');
+          // console.log('Max reconnection attempts reached, switching to polling only');
         }
       };
     } catch (error) {

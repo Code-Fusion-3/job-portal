@@ -96,7 +96,7 @@ export const errorInterceptor = async (error) => {
         window.location.href = '/login';
       }
     } else {
-      window.location.href = '/login';
+    window.location.href = '/login';
     }
     
     return Promise.reject(error);

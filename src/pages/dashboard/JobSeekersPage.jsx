@@ -90,6 +90,14 @@ const languageLevels = [
   { id: 'native', name: 'Native', description: 'Native speaker level' }
 ];
 
+const experienceLevels = [
+  { value: 'no_experience', label: 'No Experience (0 years)', description: 'New to the workforce' },
+  { value: 'beginner', label: 'Beginner (1-2 years)', description: 'Some basic experience' },
+  { value: 'intermediate', label: 'Intermediate (3-5 years)', description: 'Moderate experience' },
+  { value: 'experienced', label: 'Experienced (6-10 years)', description: 'Significant experience' },
+  { value: 'expert', label: 'Expert (10+ years)', description: 'Extensive experience' }
+];
+
 const JobSeekersPage = () => {
   const { t } = useTranslation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -101,6 +109,7 @@ const JobSeekersPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [experienceFilter, setExperienceFilter] = useState('');
   const [jobCategories, setJobCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -178,11 +187,11 @@ const JobSeekersPage = () => {
   useEffect(() => {
     if (!authLoading) {
       if (!isAuthenticated) {
-        console.log('❌ User not authenticated');
+        // console.log('❌ User not authenticated');
       } else if (user?.role !== 'admin') {
-        console.log('❌ User is not admin, role:', user?.role);
+        // console.log('❌ User is not admin, role:', user?.role);
       } else {
-        console.log('✅ User is authenticated as admin');
+        // console.log('✅ User is authenticated as admin');
       }
     }
   }, [authLoading, isAuthenticated, user]);
@@ -439,6 +448,58 @@ const JobSeekersPage = () => {
       }
     },
     {
+      key: 'education',
+      label: 'Education',
+      render: (jobSeeker) => {
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const educationLevel = jobSeeker.profile?.educationLevel || 'Not specified';
+        const availability = jobSeeker.profile?.availability || 'Not specified';
+        
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center space-x-1">
+              <GraduationCap className="w-4 h-4 text-gray-400" />
+              <span className="text-sm">{educationLevel}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-sm">{availability}</span>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'experience',
+      label: 'Experience',
+      render: (jobSeeker) => {
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Properly access nested profile data
+        const experienceLevel = jobSeeker.profile?.experienceLevel || 'Not specified';
+        
+        const getExperienceLabel = (level) => {
+          switch(level) {
+            case 'no_experience': return 'No Experience';
+            case 'beginner': return 'Beginner (1-2 years)';
+            case 'intermediate': return 'Intermediate (3-5 years)';
+            case 'experienced': return 'Experienced (6-10 years)';
+            case 'expert': return 'Expert (10+ years)';
+            default: return level;
+          }
+        };
+        
+        return (
+          <div className="flex items-center space-x-1">
+            <Star className="w-4 h-4 text-gray-400" />
+            <span className="text-sm">{getExperienceLabel(experienceLevel)}</span>
+          </div>
+        );
+      }
+    },
+    {
       key: 'contactNumber',
       label: 'Contact',
       render: (jobSeeker) => {
@@ -665,16 +726,8 @@ const JobSeekersPage = () => {
       {/* Edit Job Seeker Modal */}
       {showEditModal && selectedJobSeeker && (
         <>
-          <AddJobSeekerForm
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onSubmit={handleUpdateJobSeeker}
-            educationLevels={educationLevels}
-            availabilityOptions={availabilityOptions}
-            skillsData={skillsData}
-            languageLevels={languageLevels}
-            jobCategories={jobCategories}
-            initialData={{
+          {(() => {
+            const initialData = {
               firstName: selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || '',
               lastName: selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || '',
               email: selectedJobSeeker.email || '',
@@ -691,12 +744,30 @@ const JobSeekersPage = () => {
               country: selectedJobSeeker.profile?.country || 'Rwanda',
               references: selectedJobSeeker.profile?.references || '',
               experience: selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || '',
+              experienceLevel: selectedJobSeeker.profile?.experienceLevel || '',
               monthlyRate: selectedJobSeeker.profile?.monthlyRate ? selectedJobSeeker.profile.monthlyRate.toString() : '',
               jobCategoryId: selectedJobSeeker.profile?.jobCategoryId ? selectedJobSeeker.profile.jobCategoryId.toString() : '',
-              jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || ''
-            }}
-            isEdit={true}
-          />
+              jobCategoryName: selectedJobSeeker.profile?.jobCategory?.name_en || '',
+              educationLevel: selectedJobSeeker.profile?.educationLevel || '',
+              availability: selectedJobSeeker.profile?.availability || '',
+              languages: selectedJobSeeker.profile?.languages || '',
+              certifications: selectedJobSeeker.profile?.certifications || ''
+            };
+            return (
+              <AddJobSeekerForm
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSubmit={handleUpdateJobSeeker}
+                educationLevels={educationLevels}
+                availabilityOptions={availabilityOptions}
+                skillsData={skillsData}
+                languageLevels={languageLevels}
+                jobCategories={jobCategories}
+                initialData={initialData}
+                isEdit={true}
+              />
+            );
+          })()}
         </>
       )}
       
@@ -766,7 +837,23 @@ const JobSeekersPage = () => {
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.description || selectedJobSeeker.description || 'No description provided'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Experience</label>
+                <label className="block text-sm font-medium text-gray-700">Experience Level</label>
+                <p className="mt-1 text-gray-900">
+                  {(() => {
+                    const level = selectedJobSeeker.profile?.experienceLevel;
+                    switch(level) {
+                      case 'no_experience': return 'No Experience (0 years)';
+                      case 'beginner': return 'Beginner (1-2 years)';
+                      case 'intermediate': return 'Intermediate (3-5 years)';
+                      case 'experienced': return 'Experienced (6-10 years)';
+                      case 'expert': return 'Expert (10+ years)';
+                      default: return 'Not specified';
+                    }
+                  })()}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Experience Details</label>
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.experience || selectedJobSeeker.experience || 'Not specified'}</p>
               </div>
             </div>
@@ -799,8 +886,28 @@ const JobSeekersPage = () => {
                 </p>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700">Education Level</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.educationLevel || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Availability</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.availability || 'Not specified'}</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Marital Status</label>
                 <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.maritalStatus || 'Not specified'}</p>
+              </div>
+            </div>
+
+            {/* Languages and Certifications */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Languages</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.languages || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Certifications</label>
+                <p className="mt-1 text-gray-900">{selectedJobSeeker.profile?.certifications || 'Not specified'}</p>
               </div>
             </div>
 

@@ -820,7 +820,7 @@ try {
       interpolation: {
         escapeValue: false, // React already escapes values
       },
-      debug: true, // Enable debug mode to see what's happening
+      debug: false, // Enable debug mode to see what's happening
     })
     .then(() => {
       
