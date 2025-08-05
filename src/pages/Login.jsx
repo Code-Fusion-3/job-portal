@@ -21,7 +21,6 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'jobseeker', // Default to job seeker
     rememberMe: false
   });
   
@@ -58,12 +57,7 @@ const Login = () => {
     }
   };
 
-  const handleRoleChange = (role) => {
-    setFormData(prev => ({ ...prev, role }));
-    if (errors.role) {
-      setErrors(prev => ({ ...prev, role: '' }));
-    }
-  };
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -92,13 +86,13 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const result = await login(formData.email, formData.password, formData.role);
+      // Always login as job seeker
+      const result = await login(formData.email, formData.password, 'jobseeker');
       
       if (result.success) {
-        // Redirect to appropriate dashboard or intended page
+        // Redirect to job seeker dashboard
         const from = location.state?.from?.pathname;
-        const dashboardPath = formData.role === 'admin' ? '/dashboard/admin' : '/dashboard/jobseeker';
-        navigate(from || dashboardPath);
+        navigate(from || '/dashboard/jobseeker');
       } else {
         setErrors({ general: result.error || t('login.errors.general', 'Login failed. Please try again.') });
       }
@@ -116,7 +110,7 @@ const Login = () => {
       
       <FormLayout
         title={t('login.title', 'Welcome Back')}
-        subtitle={t('login.subtitle', 'Sign in to your account to continue')}
+        subtitle={t('login.subtitle', 'Sign in to your job seeker account')}
         onSubmit={handleSubmit}
       >
         {/* Session Expiration Message */}
@@ -138,42 +132,6 @@ const Login = () => {
             <p className="text-red-600 text-sm">{errors.general}</p>
           </div>
         )}
-
-        {/* Role Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            {t('login.role', 'I am a')}
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => handleRoleChange('jobseeker')}
-              className={`p-4 border-2 rounded-lg text-center transition-all duration-200 ${
-                formData.role === 'jobseeker'
-                  ? 'border-red-500 bg-red-50 text-red-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <User className="w-6 h-6 mx-auto mb-2" />
-              <div className="font-medium">{t('login.jobseeker', 'Job Seeker')}</div>
-              <div className="text-sm text-gray-500">{t('login.jobseekerDesc', 'Looking for opportunities')}</div>
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => handleRoleChange('admin')}
-              className={`p-4 border-2 rounded-lg text-center transition-all duration-200 ${
-                formData.role === 'admin'
-                  ? 'border-red-500 bg-red-50 text-red-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <Shield className="w-6 h-6 mx-auto mb-2" />
-              <div className="font-medium">{t('login.admin', 'Admin')}</div>
-              <div className="text-sm text-gray-500">{t('login.adminDesc', 'Manage platform')}</div>
-            </button>
-          </div>
-        </div>
 
         <FormInput
           type="email"
@@ -235,7 +193,7 @@ const Login = () => {
           )}
         </Button>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-gray-600">
             {t('login.noAccount', "Don't have an account?")}{' '}
             <Link

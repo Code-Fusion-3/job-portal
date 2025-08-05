@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, User, Phone, Camera, MapPin, Calendar, FileText, Briefcase } from 'lucide-react';
+import { ArrowRight, Mail, User, Phone, Camera, MapPin, Calendar, FileText, Briefcase, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
 import PasswordInput from '../components/ui/PasswordInput';
@@ -14,7 +15,15 @@ import { authService } from '../api/index.js';
 
 // Sample job categories data - replace with API call later
 const sampleCategories = [
- 
+  { id: '1', name: 'Software Development' },
+  { id: '2', name: 'Web Development' },
+  { id: '3', name: 'Mobile Development' },
+  { id: '4', name: 'Data Science' },
+  { id: '5', name: 'DevOps & Cloud' },
+  { id: '6', name: 'UI/UX Design' },
+  { id: '7', name: 'Project Management' },
+  { id: '8', name: 'Marketing' },
+  { id: '9', name: 'Sales' },
   { id: '10', name: 'Customer Service' },
   { id: '11', name: 'Human Resources' },
   { id: '12', name: 'Finance & Accounting' },
@@ -31,6 +40,80 @@ const sampleCategories = [
   { id: '23', name: 'Media & Entertainment' },
   { id: '24', name: 'Non-profit & NGO' },
   { id: '25', name: 'Other' }
+];
+
+// Sample education levels data - replace with API call later
+const sampleEducationLevels = [
+  { id: '1', name: 'No Formal Education' },
+  { id: '2', name: 'Primary School' },
+  { id: '3', name: 'Secondary School' },
+  { id: '4', name: 'High School' },
+  { id: '5', name: 'Vocational Training' },
+  { id: '6', name: 'Associate Degree' },
+  { id: '7', name: 'Bachelor\'s Degree' },
+  { id: '8', name: 'Master\'s Degree' },
+  { id: '9', name: 'PhD' },
+  { id: '10', name: 'Other' }
+];
+
+// Sample availability options data - replace with API call later
+const sampleAvailabilityOptions = [
+  { id: '1', name: 'Available' },
+  { id: '2', name: 'Part-time' },
+  { id: '3', name: 'Contract' },
+  { id: '4', name: 'Freelance' },
+  { id: '5', name: 'Not Available' },
+  { id: '6', name: 'Open to Opportunities' }
+];
+
+// Predefined skills options - House maid skills first, then others
+const predefinedSkills = [
+  // House Maid & Domestic Skills (Priority)
+  'House Cleaning', 'Laundry', 'Ironing', 'Cooking', 'Meal Preparation', 'Kitchen Management',
+  'Childcare', 'Elderly Care', 'Pet Care', 'First Aid', 'Safety', 'Educational Activities',
+  'Gardening', 'Plant Care', 'Basic Repairs', 'Security Monitoring', 'Access Control',
+  
+  // Hospitality & Service Skills
+  'Food Service', 'Table Setting', 'Order Taking', 'Cash Handling', 'Customer Service',
+  'Bartending', 'Food Delivery', 'Housekeeping', 'Reception', 'Secretarial Work',
+  
+  // Trade Skills
+  'Carpentry', 'Plumbing', 'Electrical Work', 'Masonry', 'Painting', 'Welding', 'Machining',
+  'Landscaping', 'Baking',
+  
+  // Transportation Skills
+  'Safe Driving', 'Vehicle Maintenance', 'Route Planning', 'GPS Navigation',
+  'Defensive Driving', 'Passenger Safety',
+  
+  // Business Skills
+  'Accounting', 'Bookkeeping', 'Marketing', 'Sales', 'Business Development', 'Financial Analysis',
+  'Human Resources', 'Operations Management', 'Supply Chain Management',
+  'Inventory Management', 'Negotiation', 'Product Knowledge', 'Market Knowledge',
+  
+  // Technical Skills
+  'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'PHP', 'Ruby', 'Go', 'Rust',
+  'HTML/CSS', 'TypeScript', 'Angular', 'Vue.js', 'Django', 'Flask', 'Laravel', 'Express.js',
+  'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP',
+  
+  // Professional Skills
+  'Project Management', 'Agile/Scrum', 'Leadership', 'Team Management', 'Communication',
+  'Problem Solving', 'Critical Thinking', 'Time Management',
+  
+  // Creative Skills
+  'Graphic Design', 'Web Design', 'Video Editing', 'Photography', 'Content Writing',
+  'Social Media Management', 'Digital Marketing', 'SEO', 'Copywriting',
+  
+  // Healthcare Skills
+  'Nursing', 'Medical Assistance', 'Pharmacy', 'Laboratory Work', 'Patient Care',
+  'Medical Records', 'Health Administration',
+  
+  // Education Skills
+  'Teaching', 'Tutoring', 'Curriculum Development', 'Student Assessment', 'Classroom Management',
+  'Special Education', 'ESL Teaching',
+  
+  // Other Skills
+  'Security', 'Event Planning', 'Tourism', 'Translation', 'Interpretation',
+  'Data Entry', 'Administrative Work'
 ];
 
 const Register = () => {
@@ -59,6 +142,9 @@ const Register = () => {
     references: '',
     experience: '',
     jobCategoryId: '',
+    educationLevelId: '',
+    availabilityId: '',
+    languages: '',
     
     // Form controls
     userType: 'jobseeker',
@@ -70,6 +156,100 @@ const Register = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Collapsible sections state
+  const [expandedSections, setExpandedSections] = useState({
+    additionalInfo: false,
+    professionalInfo: false
+  });
+
+  // Skills selection state
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [customSkill, setCustomSkill] = useState('');
+  const [skillSearch, setSkillSearch] = useState('');
+
+  // Languages selection state
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [customLanguage, setCustomLanguage] = useState('');
+  const [languageSearch, setLanguageSearch] = useState('');
+
+  // Toggle section expansion
+  const toggleSection = (sectionName) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
+
+  // Filter skills based on search
+  const filteredSkills = predefinedSkills.filter(skill =>
+    skill.toLowerCase().includes(skillSearch.toLowerCase())
+  );
+
+  // Predefined languages
+  const predefinedLanguages = [
+    'Kinyarwanda', 'English', 'French', 'Swahili', 'German', 'Spanish', 'Chinese', 'Arabic',
+    'Portuguese', 'Italian', 'Dutch', 'Russian', 'Japanese', 'Korean', 'Hindi', 'Turkish'
+  ];
+
+  // Filter languages based on search
+  const filteredLanguages = predefinedLanguages.filter(language =>
+    language.toLowerCase().includes(languageSearch.toLowerCase())
+  );
+
+  // Skills selection handlers
+  const handleSkillSelect = (skill) => {
+    if (!selectedSkills.includes(skill)) {
+      setSelectedSkills(prev => [...prev, skill]);
+      updateSkillsField([...selectedSkills, skill]);
+    }
+  };
+
+  const handleSkillRemove = (skill) => {
+    const updatedSkills = selectedSkills.filter(s => s !== skill);
+    setSelectedSkills(updatedSkills);
+    updateSkillsField(updatedSkills);
+  };
+
+  const handleCustomSkillAdd = () => {
+    if (customSkill.trim() && !selectedSkills.includes(customSkill.trim())) {
+      const newSkills = [...selectedSkills, customSkill.trim()];
+      setSelectedSkills(newSkills);
+      setCustomSkill('');
+      updateSkillsField(newSkills);
+    }
+  };
+
+  const updateSkillsField = (skills) => {
+    setFormData(prev => ({ ...prev, skills: skills.join(', ') }));
+  };
+
+  // Language selection handlers
+  const handleLanguageSelect = (language) => {
+    if (!selectedLanguages.includes(language)) {
+      setSelectedLanguages(prev => [...prev, language]);
+      updateLanguagesField([...selectedLanguages, language]);
+    }
+  };
+
+  const handleLanguageRemove = (language) => {
+    const updatedLanguages = selectedLanguages.filter(l => l !== language);
+    setSelectedLanguages(updatedLanguages);
+    updateLanguagesField(updatedLanguages);
+  };
+
+  const handleCustomLanguageAdd = () => {
+    if (customLanguage.trim() && !selectedLanguages.includes(customLanguage.trim())) {
+      const newLanguages = [...selectedLanguages, customLanguage.trim()];
+      setSelectedLanguages(newLanguages);
+      setCustomLanguage('');
+      updateLanguagesField(newLanguages);
+    }
+  };
+
+  const updateLanguagesField = (languages) => {
+    setFormData(prev => ({ ...prev, languages: languages.join(', ') }));
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -146,6 +326,11 @@ const Register = () => {
       newErrors.confirmPassword = t('register.errors.passwordMismatch', 'Passwords do not match');
     }
     
+    // Skills validation
+    if (!formData.skills.trim()) {
+      newErrors.skills = t('register.errors.skillsRequired', 'At least one skill is required');
+    }
+    
     // Terms agreement validation
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = t('register.errors.termsRequired', 'You must agree to the terms and conditions');
@@ -182,6 +367,9 @@ const Register = () => {
         references: formData.references || undefined,
         experience: formData.experience || undefined,
         jobCategoryId: formData.jobCategoryId || undefined,
+        educationLevelId: formData.educationLevelId || undefined,
+        availabilityId: formData.availabilityId || undefined,
+        languages: formData.languages || undefined,
       };
 
       // Remove undefined values
@@ -230,8 +418,6 @@ const Register = () => {
           jobseekerDesc={t('register.jobseekerDesc', 'Looking for opportunities')}
         />
 
-        {/* Main Form Content with Responsive Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Required Information */}
           <div className="space-y-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -262,8 +448,6 @@ const Register = () => {
                   icon={User}
                   required
                 />
-              </div>
-
               <FormInput
                 id="email"
                 name="email"
@@ -299,7 +483,6 @@ const Register = () => {
                 error={errors.confirmPassword}
                 required
               />
-            </div>
               {/* Photo Upload */}
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -340,16 +523,51 @@ const Register = () => {
                 </div>
               </div>
           </div>
+              </div>
+            </div>
 
-          {/* Right Column - Additional Information */}
+
+          {/* Additional Information Section - Collapsible */}
           <div className="space-y-6 pb-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 pb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {t('register.optionalFields', 'Additional Information (Optional)')}
-              </h3>
+            <motion.div 
+              className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden"
+              initial={false}
+            >
+              {/* Section Header */}
+              <button
+                type="button"
+                onClick={() => toggleSection('additionalInfo')}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
+              >
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {t('register.optionalFields', 'Additional Information (Optional)')}
+                  </h3>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    Optional
+                  </span>
+                </div>
+                <motion.div
+                  animate={{ rotate: expandedSections.additionalInfo ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                </motion.div>
+              </button>
 
+              {/* Collapsible Content */}
+              <AnimatePresence>
+                {expandedSections.additionalInfo && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 pb-8 border-t border-gray-200">
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormInput
                   id="contactNumber"
                   name="contactNumber"
@@ -370,9 +588,6 @@ const Register = () => {
                   onChange={handleInputChange}
                   error={errors.idNumber}
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Date of Birth */}
                 <FormInput
                   id="dateOfBirth"
@@ -429,9 +644,7 @@ const Register = () => {
                     <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
                   )}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Job Category */}
                 <div>
                   <label htmlFor="jobCategoryId" className="block text-sm font-medium text-gray-700 mb-2">
                     {t('register.jobCategory', 'Job Category')}
@@ -453,10 +666,54 @@ const Register = () => {
                   {errors.jobCategoryId && (
                     <p className="mt-1 text-sm text-red-600">{errors.jobCategoryId}</p>
                   )}
+                    </div>
+                  {/* Education Level */}
+                <div>
+                  <label htmlFor="educationLevelId" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.educationLevel', 'Education Level')}
+                  </label>
+                  <select
+                    id="educationLevelId"
+                    name="educationLevelId"
+                    value={formData.educationLevelId}
+                    onChange={handleInputChange}
+                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                  >
+                    <option value="">{t('register.educationLevelPlaceholder', 'Select your education level')}</option>
+                    {sampleEducationLevels.map(level => (
+                      <option key={level.id} value={level.id}>
+                        {level.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.educationLevelId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.educationLevelId}</p>
+                  )}
                 </div>
+                {/* Availability */}
+                <div>
+                  <label htmlFor="availabilityId" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.availability', 'Availability')}
+                  </label>
+                  <select
+                    id="availabilityId"
+                    name="availabilityId"
+                    value={formData.availabilityId}
+                    onChange={handleInputChange}
+                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                  >
+                    <option value="">{t('register.availabilityPlaceholder', 'Select your availability')}</option>
+                    {sampleAvailabilityOptions.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.availabilityId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.availabilityId}</p>
+                )}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Location */}
                 <FormInput
                   id="location"
                   name="location"
@@ -467,6 +724,9 @@ const Register = () => {
                   error={errors.location}
                   icon={MapPin}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormInput
                   id="city"
                   name="city"
@@ -485,18 +745,214 @@ const Register = () => {
                   onChange={handleInputChange}
                   error={errors.country}
                 />
+              {/* Skills Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.skills', 'Skills')} *
+                  </label>
+                  <div className="space-y-3">
+                    {/* Selected Skills Display */}
+                    {selectedSkills.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {selectedSkills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                          >
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => handleSkillRemove(skill)}
+                              className="ml-1 text-blue-600 hover:text-blue-800"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Skills Search */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={skillSearch}
+                        onChange={(e) => setSkillSearch(e.target.value)}
+                        placeholder="Search skills..."
+                        className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                      />
+                    </div>
+
+                    {/* Skills Selection */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
+                      {filteredSkills.map((skill) => (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() => handleSkillSelect(skill)}
+                          disabled={selectedSkills.includes(skill)}
+                          className={`text-left p-1 rounded text-xs ${
+                            selectedSkills.includes(skill)
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-200'
+                          }`}
+                        >
+                          {skill}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom Skill Input */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <input
+                        type="text"
+                        value={customSkill}
+                        onChange={(e) => setCustomSkill(e.target.value)}
+                        placeholder="Add custom skill..."
+                        className="col-span-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomSkillAdd())}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCustomSkillAdd}
+                        className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-800 text-sm transition-colors duration-200"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                  {errors.skills && (
+                    <p className="mt-1 text-sm text-red-600">{errors.skills}</p>
+                  )}
+                </div>
+
+                {/* Languages Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.languages', 'Languages')}
+                  </label>
+                  <div className="space-y-3">
+                    {/* Selected Languages Display */}
+                    {selectedLanguages.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {selectedLanguages.map((language, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
+                          >
+                            {language}
+                            <button
+                              type="button"
+                              onClick={() => handleLanguageRemove(language)}
+                              className="ml-1 text-green-600 hover:text-green-800"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Languages Search */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={languageSearch}
+                        onChange={(e) => setLanguageSearch(e.target.value)}
+                        placeholder="Search languages..."
+                        className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                      />
+                    </div>
+
+                    {/* Languages Selection */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
+                      {filteredLanguages.map((language) => (
+                        <button
+                          key={language}
+                          type="button"
+                          onClick={() => handleLanguageSelect(language)}
+                          disabled={selectedLanguages.includes(language)}
+                          className={`text-left p-1 rounded text-xs ${
+                            selectedLanguages.includes(language)
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white hover:bg-green-50 text-gray-700 border border-gray-200'
+                          }`}
+                        >
+                          {language}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom Language Input */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <input
+                        type="text"
+                        value={customLanguage}
+                        onChange={(e) => setCustomLanguage(e.target.value)}
+                        placeholder="Add custom language..."
+                        className="col-span-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomLanguageAdd())}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCustomLanguageAdd}
+                        className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm transition-colors duration-200"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                  {errors.languages && (
+                    <p className="mt-1 text-sm text-red-600">{errors.languages}</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  </div>
 
-        {/* Full Width Section - Professional Information */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Professional Information
-          </h3>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Professional Information Section - Collapsible */}
+        <motion.div 
+          className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden"
+          initial={false}
+        >
+          {/* Section Header */}
+          <button
+            type="button"
+            onClick={() => toggleSection('professionalInfo')}
+            className="w-full p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
+          >
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Professional Information
+              </h3>
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                Optional
+              </span>
+            </div>
+            <motion.div
+              animate={{ rotate: expandedSections.professionalInfo ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            </motion.div>
+          </button>
+
+          {/* Collapsible Content */}
+          <AnimatePresence>
+            {expandedSections.professionalInfo && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="p-4 border-t border-gray-200">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <FormInput
               id="description"
               name="description"
@@ -546,8 +1002,12 @@ const Register = () => {
               error={errors.references}
               icon={FileText}
             />
-          </div>
-        </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* Form Controls */}
         <div className="pt-6 border-t border-gray-200">

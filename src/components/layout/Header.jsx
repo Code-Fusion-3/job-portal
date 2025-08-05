@@ -247,6 +247,17 @@ const Header = () => {
                     </div>
                   </div>
                 </div>
+                
+                {/* Admin Link */}
+                <div className="pt-2 border-t border-white border-opacity-20">
+                  <Link
+                    to="/admin"
+                    className="text-sm text-white text-opacity-60 hover:text-opacity-100 transition-colors duration-200"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin Login
+                  </Link>
+                </div>
               </nav>
             </motion.div>
           )}

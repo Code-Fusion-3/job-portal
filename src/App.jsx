@@ -14,6 +14,7 @@ import Statistics from './components/sections/Statistics';
 import Footer from './components/layout/Footer';
 import JobSeekers from './pages/JobSeekers';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import Register from './pages/Register';
 import EmployerRequest from './pages/EmployerRequest';
 import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
@@ -235,6 +236,7 @@ function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/job-seekers" element={<JobSeekers />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/admin" element={<AdminLogin />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/employer-request/:id" element={<EmployerRequest />} />
                 <Route path="/about" element={<AboutUsPage />} />
