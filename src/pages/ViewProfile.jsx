@@ -139,50 +139,35 @@ const ViewProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
-        {/* Back Navigation */}
         <BackButton />
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Profile Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <Card className="p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
                   <Avatar 
-                    src={jobSeeker?.profile?.photo} 
-                    alt={`${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`} 
+                    src={isPublic ? jobSeeker.photo : jobSeeker?.profile?.photo}
+                    alt={isPublic ? `${jobSeeker.firstName} ${jobSeeker.lastName}` : `${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
                     size="xl"
-                    fallback={`${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
+                    fallback={isPublic ? `${jobSeeker.firstName} ${jobSeeker.lastName}` : `${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
                     className="flex-shrink-0"
                   />
-                  
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                       <div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
                           {isPublic
-                            ? `${maskName(jobSeeker.firstName)} ${maskName(jobSeeker.lastName)}`
+                            ? `${jobSeeker.firstName} ${jobSeeker.lastName}`
                             : `${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
                         </h1>
                         <p className="text-xl text-gray-600 mb-3">
                           {isPublic
                             ? jobSeeker.jobCategory?.name_en || 'Job Seeker'
-                            : jobSeeker?.profile?.jobCategoryId === 1 ? 'Software Developer'
-                              : jobSeeker?.profile?.jobCategoryId === 2 ? 'Housemaid'
-                              : jobSeeker?.profile?.jobCategoryId === 3 ? 'Gardener'
-                              : jobSeeker?.profile?.jobCategoryId === 4 ? 'Driver'
-                              : jobSeeker?.profile?.jobCategoryId === 5 ? 'Cook'
-                              : jobSeeker?.profile?.jobCategoryId === 6 ? 'Security Guard'
-                              : 'Job Seeker'}
+                            : jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
                         </p>
-                        
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center">
                             <MapPin className="w-4 h-4 mr-1" />
@@ -196,31 +181,21 @@ const ViewProfile = () => {
                             <Clock className="w-4 h-4 mr-1" />
                             {isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability || 'Availability not specified'}
                           </span>
-                    {isPublic && jobSeeker.memberSince && (
-                      <span className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {`Member since ${new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'long', year: 'numeric' })}`}
-                      </span>
-                    )}
+                          {isPublic && jobSeeker.memberSince && (
+                            <span className="flex items-center">
+                              <Calendar className="w-4 h-4 mr-1" />
+                              {`Member since ${new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'long', year: 'numeric' })}`}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      
                       <div className="flex items-center space-x-3 mt-4 md:mt-0">
                         {user?.role === 'admin' && (
                           <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleBookmark}
-                              className={isBookmarked ? 'text-red-600 border-red-600' : ''}
-                            >
+                            <Button variant="outline" size="sm" onClick={handleBookmark} className={isBookmarked ? 'text-red-600 border-red-600' : ''}>
                               {isBookmarked ? <Bookmark className="w-4 h-4" /> : <BookmarkPlus className="w-4 h-4" />}
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleShare}
-                            >
+                            <Button variant="outline" size="sm" onClick={handleShare}>
                               <Share2 className="w-4 h-4" />
                             </Button>
                           </>
@@ -231,27 +206,17 @@ const ViewProfile = () => {
                 </div>
               </Card>
             </motion.div>
-
             {/* About Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">About</h2>
                 <p className="text-gray-600 leading-relaxed">
-                  {jobSeeker?.profile?.description || 'No description available'}
+                  {isPublic ? jobSeeker.description : jobSeeker?.profile?.description || 'No description available'}
                 </p>
               </Card>
             </motion.div>
-
             {/* Skills Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Skills & Expertise</h2>
                 <div className="flex flex-wrap gap-2">
@@ -265,125 +230,19 @@ const ViewProfile = () => {
                 </div>
               </Card>
             </motion.div>
-
-            {/* Projects Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Projects</h2>
-                <div className="space-y-4">
-                  {jobSeeker.projects && jobSeeker.projects.length > 0 ? (
-                    jobSeeker.projects.map((project, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-gray-900 mb-2">{project.name}</h3>
-                        <p className="text-gray-600 mb-3">{project.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {project.tech.map((tech, techIndex) => (
-                            <Badge key={techIndex} variant="outline" size="sm">
-                              {tech}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No projects listed</p>
-                      <p className="text-sm text-gray-400 mt-1">This worker focuses on practical experience</p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
-
             {/* References Section */}
-            {jobSeeker.references && jobSeeker.references.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
+            {isPublic && jobSeeker.references && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                 <Card className="p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">References</h2>
-                  <div className="space-y-4">
-                    {jobSeeker.references.map((reference, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-gray-900 mb-2">{reference.name}</h3>
-                        <p className="text-gray-600 mb-2">{reference.relationship}</p>
-                        <p className="text-sm text-gray-500">{reference.phone}</p>
-                      </div>
-                    ))}
+                  <div className="space-y-2">
+                    <p className="text-gray-600">{jobSeeker.references}</p>
                   </div>
                 </Card>
               </motion.div>
             )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
-                  {user?.role === 'admin' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowContact(!showContact)}
-                    >
-                      {showContact ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  )}
-                </div>
-                
-                {showContact ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm">
-                      <Mail className="w-4 h-4 mr-3 text-gray-400" />
-                      <span className="text-gray-600">{jobSeeker.contact.email}</span>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <Phone className="w-4 h-4 mr-3 text-gray-400" />
-                      <span className="text-gray-600">{jobSeeker.contact.phone}</span>
-                    </div>
-                    {jobSeeker.contact.linkedin && (
-                      <div className="flex items-center text-sm">
-                        <Linkedin className="w-4 h-4 mr-3 text-gray-400" />
-                        <a 
-                          href={`https://${jobSeeker.contact.linkedin}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          {jobSeeker.contact.linkedin}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <Eye className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">Contact information is hidden</p>
-                    <p className="text-xs text-gray-400 mt-1">Click to reveal</p>
-                  </div>
-                )}
-              </Card>
-            </motion.div>
-
             {/* Education & Certifications */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Education & Certifications</h3>
                 <div className="space-y-4">
@@ -419,13 +278,8 @@ const ViewProfile = () => {
                 </div>
               </Card>
             </motion.div>
-
             {/* Languages */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Languages</h3>
                 <div className="flex flex-wrap gap-2">
@@ -450,13 +304,8 @@ const ViewProfile = () => {
                 </div>
               </Card>
             </motion.div>
-
             {/* Rate & Availability */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Rate & Availability</h3>
                 <div className="space-y-3">
@@ -471,40 +320,19 @@ const ViewProfile = () => {
                 </div>
               </Card>
             </motion.div>
-
             {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="space-y-3"
-            >
-              <Button 
-                variant="primary" 
-                size="lg" 
-                className="w-full"
-                onClick={handleRequestCandidate}
-              >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="space-y-3">
+              <Button variant="primary" size="lg" className="w-full" onClick={handleRequestCandidate}>
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Request Candidate
               </Button>
-              
               {user?.role === 'admin' && (
                 <>
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full"
-                  >
+                  <Button variant="outline" size="lg" className="w-full">
                     <Download className="w-4 h-4 mr-2" />
                     Download CV
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full"
-                    onClick={handleShare}
-                  >
+                  <Button variant="outline" size="lg" className="w-full" onClick={handleShare}>
                     <Share2 className="w-4 h-4 mr-2" />
                     Share Profile
                   </Button>
@@ -512,9 +340,52 @@ const ViewProfile = () => {
               )}
             </motion.div>
           </div>
+          {/* Sidebar: Hide for public profiles */}
+          {!isPublic && (
+            <div className="space-y-6">
+              {/* Contact Information */}
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                <Card className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                    {user?.role === 'admin' && (
+                      <Button variant="ghost" size="sm" onClick={() => setShowContact(!showContact)}>
+                        {showContact ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    )}
+                  </div>
+                  {showContact ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center text-sm">
+                        <Mail className="w-4 h-4 mr-3 text-gray-400" />
+                        <span className="text-gray-600">{jobSeeker.contact?.email}</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Phone className="w-4 h-4 mr-3 text-gray-400" />
+                        <span className="text-gray-600">{jobSeeker.contact?.phone}</span>
+                      </div>
+                      {jobSeeker.contact?.linkedin && (
+                        <div className="flex items-center text-sm">
+                          <Linkedin className="w-4 h-4 mr-3 text-gray-400" />
+                          <a href={`https://${jobSeeker.contact.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700">
+                            {jobSeeker.contact.linkedin}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <Eye className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500">Contact information is hidden</p>
+                      <p className="text-xs text-gray-400 mt-1">Click to reveal</p>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+            </div>
+          )}
         </div>
       </div>
-      
       <Footer />
     </div>
   );
