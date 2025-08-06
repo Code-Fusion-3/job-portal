@@ -52,9 +52,7 @@ const EmployerRequestForm = ({
       newErrors.employerName = t('employerRequest.errors.nameRequired', 'Employer name is required');
     }
     
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = t('employerRequest.errors.companyRequired', 'Company name is required');
-    }
+    // Company name is optional, no validation
     
     if (!formData.email) {
       newErrors.email = t('employerRequest.errors.emailRequired', 'Email is required');
@@ -177,12 +175,11 @@ const EmployerRequestForm = ({
             id="companyName"
             name="companyName"
             label={t('employerRequest.companyName', 'Company Name')}
-            placeholder={t('employerRequest.companyNamePlaceholder', 'Enter company name')}
+            placeholder={t('employerRequest.companyNamePlaceholder', 'Enter company name (optional)')}
             value={formData.companyName}
             onChange={handleInputChange}
             error={errors.companyName}
             icon={Building}
-            required
           />
         </div>
 
