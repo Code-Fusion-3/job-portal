@@ -19,7 +19,7 @@ const Login = () => {
   const { login } = useAuth();
   
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '', // can be email or phone
     password: '',
     rememberMe: false
   });
@@ -61,38 +61,41 @@ const Login = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.email) {
-      newErrors.email = t('login.errors.emailRequired', 'Email is required');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('login.errors.emailInvalid', 'Please enter a valid email');
+    if (!formData.identifier) {
+      newErrors.identifier = t('login.errors.identifierRequired', 'Email or phone number is required');
+    } else {
+      // Check if it's an email or phone
+      const isEmail = /\S+@\S+\.\S+/.test(formData.identifier);
+      const isPhone = /^\+?\d{10,15}$/.test(formData.identifier);
+      if (!isEmail && !isPhone) {
+        newErrors.identifier = t('login.errors.identifierInvalid', 'Enter a valid email or phone number');
+      }
     }
-    
     if (!formData.password) {
       newErrors.password = t('login.errors.passwordRequired', 'Password is required');
     } else if (formData.password.length < 6) {
       newErrors.password = t('login.errors.passwordLength', 'Password must be at least 6 characters');
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setLoading(true);
-    
     try {
-      // Always login as job seeker
-      const result = await login(formData.email, formData.password, 'jobseeker');
-      
-      if (result.success) {
-        // Redirect to job seeker dashboard
-        const from = location.state?.from?.pathname;
-        navigate(from || '/dashboard/jobseeker');
+      // Pass identifier (email or phone) to login
+      const result = await login(formData.identifier, formData.password, 'jobseeker');
+      if (result.success && result.user) {
+        // Redirect based on role
+        if (result.user.role === 'jobseeker') {
+          navigate('/update-profile');
+        } else if (result.user.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         setErrors({ general: result.error || t('login.errors.general', 'Login failed. Please try again.') });
       }
@@ -134,14 +137,14 @@ const Login = () => {
         )}
 
         <FormInput
-          type="email"
-          id="email"
-          name="email"
-          label={t('login.email', 'Email Address')}
-          value={formData.email}
+          type="text"
+          id="identifier"
+          name="identifier"
+          label={t('login.identifier', 'Email or Phone Number')}
+          value={formData.identifier}
           onChange={handleInputChange}
-          placeholder={t('login.emailPlaceholder', 'Enter your email')}
-          error={errors.email}
+          placeholder={t('login.identifierPlaceholder', 'Enter your email or phone number')}
+          error={errors.identifier}
           icon={Mail}
           required
         />

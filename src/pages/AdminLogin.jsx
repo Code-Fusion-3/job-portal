@@ -78,19 +78,19 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setLoading(true);
-    
     try {
-      // Always login as admin
       const result = await login(formData.email, formData.password, 'admin');
-      
-      if (result.success) {
-        // Redirect to admin dashboard
-        const from = location.state?.from?.pathname;
-        navigate(from || '/dashboard/admin');
+      if (result.success && result.user) {
+        // Redirect based on role
+        if (result.user.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else if (result.user.role === 'jobseeker') {
+          navigate('/update-profile');
+        } else {
+          navigate('/');
+        }
       } else {
         setErrors({ general: result.error || t('login.errors.general', 'Admin login failed. Please try again.') });
       }
