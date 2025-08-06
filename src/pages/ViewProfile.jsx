@@ -134,12 +134,7 @@ const ViewProfile = () => {
     );
   }
 
-  if (jobSeeker) {
-    // Debug: log jobSeeker and isPublic to verify structure and logic
-    // Remove this after debugging
-    // eslint-disable-next-line no-console
-    console.log('jobSeeker:', jobSeeker, 'isPublic:', isPublic);
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -201,6 +196,12 @@ const ViewProfile = () => {
                             <Clock className="w-4 h-4 mr-1" />
                             {isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability || 'Availability not specified'}
                           </span>
+                    {isPublic && jobSeeker.memberSince && (
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {`Member since ${new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'long', year: 'numeric' })}`}
+                      </span>
+                    )}
                         </div>
                       </div>
                       
@@ -457,17 +458,13 @@ const ViewProfile = () => {
               transition={{ delay: 0.5 }}
             >
               <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Rate & Availability</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Rate & Availability</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Daily Rate:</span>
-                    <span className="font-semibold text-gray-900">{formatDailyRate(isPublic ? jobSeeker.dailyRate : jobSeeker?.profile?.dailyRate)}</span>
-                  </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600">Monthly Rate:</span>
                     <span className="font-semibold text-gray-900">{formatMonthlyRate(isPublic ? jobSeeker.monthlyRate : jobSeeker?.profile?.monthlyRate)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-600">Availability:</span>
                     <span className="font-semibold text-green-600">{isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability}</span>
                   </div>
