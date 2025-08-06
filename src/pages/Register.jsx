@@ -343,9 +343,6 @@ const Register = () => {
       if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,})$/.test(formData.email)) {
         newErrors.email = t('register.errors.emailInvalid', 'Please provide a valid email address');
       }
-    } else {
-      // If email is not provided, do not set any error
-      newErrors.email = '';
     }
 
     if (!formData.dateOfBirth || formData.dateOfBirth.length === 0) {
@@ -364,6 +361,15 @@ const Register = () => {
     }
 
     // General error if any required field is missing
+    console.log('Validation check - firstName:', formData.firstName?.trim());
+    console.log('Validation check - lastName:', formData.lastName?.trim());
+    console.log('Validation check - contactNumber:', formData.contactNumber);
+    console.log('Validation check - password:', formData.password);
+    console.log('Validation check - confirmPassword:', formData.confirmPassword);
+    console.log('Validation check - skills:', formData.skills?.trim());
+    console.log('Validation check - dateOfBirth:', formData.dateOfBirth);
+    console.log('Validation check - agreeToTerms:', formData.agreeToTerms);
+    
     if (
       !formData.firstName.trim() ||
       !formData.lastName.trim() ||
@@ -377,14 +383,24 @@ const Register = () => {
       newErrors.general = t('register.errors.generalRequired', 'Please fill in all required fields correctly.');
     }
 
+    console.log('All validation errors before return:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submission triggered');
+    console.log('Form data:', formData);
     
-    if (!validateForm()) return;
+    const isValid = validateForm();
+    console.log('Form validation result:', isValid);
+    console.log('Current errors:', errors);
+    
+    if (!isValid) {
+      console.log('Form validation failed, stopping submission');
+      return;
+    }
     
     setLoading(true);
     
@@ -421,7 +437,9 @@ const Register = () => {
 
       const result = await authService.registerJobSeeker(userData, photo);
       if (result.success && result.user) {
-        // Redirect based on role
+        // Always clear errors after successful registration
+        setErrors({});
+        // Always redirect jobseeker to update-profile
         if (result.user.role === 'jobseeker') {
           navigate('/update-profile');
         } else if (result.user.role === 'admin') {

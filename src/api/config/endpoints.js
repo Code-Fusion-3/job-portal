@@ -5,7 +5,7 @@
 export const ENDPOINTS = {
   // Authentication
   AUTH: {
-    JOB_SEEKER_REGISTER: '/auth/register',
+    JOB_SEEKER_REGISTER: '/register',
     JOB_SEEKER_LOGIN: '/auth/login',
     ADMIN_LOGIN: '/auth/login',
     REFRESH_TOKEN: '/security/refresh',
