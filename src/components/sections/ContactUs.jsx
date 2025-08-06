@@ -105,13 +105,13 @@ const ContactUs = () => {
       
       if (result.success) {
         console.log('✅ Contact message submitted successfully:', result.data);
-        setIsSubmitted(true);
-        
-        // Reset form after 3 seconds
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setFormData({ name: '', email: '', subject: '', message: '' });
-        }, 3000);
+    setIsSubmitted(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }, 3000);
       } else {
         console.error('❌ Contact submission failed:', result.error);
         setSubmitError(result.error || 'Failed to send message. Please try again.');
@@ -292,8 +292,8 @@ const ContactUs = () => {
                     </>
                   ) : (
                     <>
-                      <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
-                      {t('contact.form.submit', 'Send Message')}
+                  <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  {t('contact.form.submit', 'Send Message')}
                     </>
                   )}
                 </Button>

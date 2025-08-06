@@ -25,6 +25,8 @@ import {
   BookmarkPlus
 } from 'lucide-react';
 import { jobSeekerService } from '../api/index.js';
+import { useAuth } from '../api/hooks/useAuth.js';
+import { maskName } from '../utils/helpers.js';
 import Button from '../components/ui/Button';
 import BackButton from '../components/ui/BackButton';
 import Card from '../components/ui/Card';
@@ -49,11 +51,21 @@ const ViewProfile = () => {
     const fetchJobSeeker = async () => {
       setLoading(true);
       try {
-        const seeker = await jobSeekerService.getJobSeekerById(id);
-        if (seeker) {
-          setJobSeeker(seeker);
+        let result;
+        if (!user) {
+          // Public user: fetch anonymized data
+          result = await jobSeekerService.getPublicJobSeekerById(id);
         } else {
-          // Handle not found
+          // Authenticated user: fetch full data
+          let numericId = id;
+          if (typeof id === 'string' && id.startsWith('JS')) {
+            numericId = parseInt(id.replace(/^JS/, ''), 10);
+          }
+          result = await jobSeekerService.getJobSeekerById(numericId);
+        }
+        if (result && result.success) {
+          setJobSeeker(result.data);
+        } else {
           navigate('/job-seekers');
         }
       } catch (error) {
@@ -67,7 +79,7 @@ const ViewProfile = () => {
     if (id) {
       fetchJobSeeker();
     }
-  }, [id, navigate]);
+  }, [id, navigate, user]);
 
   const handleRequestCandidate = () => {
     navigate(`/employer-request/${id}`);
@@ -90,6 +102,9 @@ const ViewProfile = () => {
       navigator.clipboard.writeText(window.location.href);
     }
   };
+
+  // Helper to check if public (anonymized) data is being used
+  const isPublic = !user && jobSeeker && jobSeeker.id && jobSeeker.id.startsWith('JS');
 
   if (loading) {
     return (
@@ -117,6 +132,13 @@ const ViewProfile = () => {
         <Footer />
       </div>
     );
+  }
+
+  if (jobSeeker) {
+    // Debug: log jobSeeker and isPublic to verify structure and logic
+    // Remove this after debugging
+    // eslint-disable-next-line no-console
+    console.log('jobSeeker:', jobSeeker, 'isPublic:', isPublic);
   }
 
   return (
@@ -150,29 +172,34 @@ const ViewProfile = () => {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                       <div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                          {jobSeeker?.profile?.firstName} {jobSeeker?.profile?.lastName}
+                          {isPublic
+                            ? `${maskName(jobSeeker.firstName)} ${maskName(jobSeeker.lastName)}`
+                            : `${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
                         </h1>
                         <p className="text-xl text-gray-600 mb-3">
-                          {jobSeeker?.profile?.jobCategoryId === 1 ? 'Software Developer' :
-                           jobSeeker?.profile?.jobCategoryId === 2 ? 'Housemaid' :
-                           jobSeeker?.profile?.jobCategoryId === 3 ? 'Gardener' :
-                           jobSeeker?.profile?.jobCategoryId === 4 ? 'Driver' :
-                           jobSeeker?.profile?.jobCategoryId === 5 ? 'Cook' :
-                           jobSeeker?.profile?.jobCategoryId === 6 ? 'Security Guard' : 'Job Seeker'}
+                          {isPublic
+                            ? jobSeeker.jobCategory?.name_en || 'Job Seeker'
+                            : jobSeeker?.profile?.jobCategoryId === 1 ? 'Software Developer'
+                              : jobSeeker?.profile?.jobCategoryId === 2 ? 'Housemaid'
+                              : jobSeeker?.profile?.jobCategoryId === 3 ? 'Gardener'
+                              : jobSeeker?.profile?.jobCategoryId === 4 ? 'Driver'
+                              : jobSeeker?.profile?.jobCategoryId === 5 ? 'Cook'
+                              : jobSeeker?.profile?.jobCategoryId === 6 ? 'Security Guard'
+                              : 'Job Seeker'}
                         </p>
                         
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center">
                             <MapPin className="w-4 h-4 mr-1" />
-                            {jobSeeker?.profile?.location || 'Location not specified'}
+                            {isPublic ? jobSeeker.location : jobSeeker?.profile?.location || 'Location not specified'}
                           </span>
                           <span className="flex items-center">
                             <Briefcase className="w-4 h-4 mr-1" />
-                            {jobSeeker?.profile?.experience || 'Experience not specified'}
+                            {isPublic ? jobSeeker.experience : jobSeeker?.profile?.experience || 'Experience not specified'}
                           </span>
                           <span className="flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
-                            {jobSeeker?.profile?.availability || 'Availability not specified'}
+                            {isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability || 'Availability not specified'}
                           </span>
                         </div>
                       </div>
@@ -227,15 +254,13 @@ const ViewProfile = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Skills & Expertise</h2>
                 <div className="flex flex-wrap gap-2">
-                  {jobSeeker?.profile?.skills ? (
-                    jobSeeker.profile.skills.split(',').map((skill, index) => (
-                      <Badge key={index} variant="primary" size="md">
-                        {skill.trim()}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">No skills listed</p>
-                  )}
+                  {(isPublic ? jobSeeker.skills : jobSeeker?.profile?.skills)
+                    ? (isPublic ? jobSeeker.skills : jobSeeker?.profile?.skills).split(',').map((skill, index) => (
+                        <Badge key={index} variant="primary" size="md">
+                          {skill.trim()}
+                        </Badge>
+                      ))
+                    : <p className="text-gray-500">No skills listed</p>}
                 </div>
               </Card>
             </motion.div>
@@ -360,25 +385,34 @@ const ViewProfile = () => {
             >
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Education & Certifications</h3>
-                
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center mb-2">
                       <GraduationCap className="w-4 h-4 mr-2 text-blue-600" />
                       <span className="font-medium text-gray-900">Education</span>
                     </div>
-                    <p className="text-sm text-gray-600 ml-6">{jobSeeker.education}</p>
+                    <p className="text-sm text-gray-600 ml-6">{isPublic ? jobSeeker.educationLevel : jobSeeker?.profile?.educationLevel}</p>
                   </div>
-                  
                   <div>
                     <div className="flex items-center mb-2">
                       <Award className="w-4 h-4 mr-2 text-green-600" />
                       <span className="font-medium text-gray-900">Certifications</span>
                     </div>
                     <div className="ml-6 space-y-1">
-                      {jobSeeker.certifications.map((cert, index) => (
-                        <p key={index} className="text-sm text-gray-600">{cert}</p>
-                      ))}
+                      {(() => {
+                        const certs = isPublic ? jobSeeker.certifications : jobSeeker?.profile?.certifications;
+                        if (Array.isArray(certs) && certs.length > 0) {
+                          return certs.map((cert, index) => (
+                            <p key={index} className="text-sm text-gray-600">{cert}</p>
+                          ));
+                        } else if (certs && typeof certs === 'string' && certs.trim() !== '') {
+                          return certs.split(',').map((cert, index) => (
+                            <p key={index} className="text-sm text-gray-600">{cert.trim()}</p>
+                          ));
+                        } else {
+                          return <p className="text-sm text-gray-400">No certifications listed</p>;
+                        }
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -394,11 +428,24 @@ const ViewProfile = () => {
               <Card className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Languages</h3>
                 <div className="flex flex-wrap gap-2">
-                  {jobSeeker.languages.map((language, index) => (
-                    <Badge key={index} variant="outline" size="sm">
-                      {language}
-                    </Badge>
-                  ))}
+                  {(() => {
+                    const langs = isPublic ? jobSeeker.languages : jobSeeker?.profile?.languages;
+                    if (Array.isArray(langs) && langs.length > 0) {
+                      return langs.map((language, index) => (
+                        <Badge key={index} variant="outline" size="sm">
+                          {language}
+                        </Badge>
+                      ));
+                    } else if (langs && typeof langs === 'string' && langs.trim() !== '') {
+                      return langs.split(',').map((language, index) => (
+                        <Badge key={index} variant="outline" size="sm">
+                          {language.trim()}
+                        </Badge>
+                      ));
+                    } else {
+                      return <p className="text-sm text-gray-400">No languages listed</p>;
+                    }
+                  })()}
                 </div>
               </Card>
             </motion.div>
@@ -414,15 +461,15 @@ const ViewProfile = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Daily Rate:</span>
-                    <span className="font-semibold text-gray-900">{formatDailyRate(jobSeeker.dailyRate)}</span>
+                    <span className="font-semibold text-gray-900">{formatDailyRate(isPublic ? jobSeeker.dailyRate : jobSeeker?.profile?.dailyRate)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Monthly Rate:</span>
-                    <span className="font-semibold text-gray-900">{formatMonthlyRate(jobSeeker.monthlyRate)}</span>
+                    <span className="font-semibold text-gray-900">{formatMonthlyRate(isPublic ? jobSeeker.monthlyRate : jobSeeker?.profile?.monthlyRate)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Availability:</span>
-                    <span className="font-semibold text-green-600">{jobSeeker.availability}</span>
+                    <span className="font-semibold text-green-600">{isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability}</span>
                   </div>
                 </div>
               </Card>

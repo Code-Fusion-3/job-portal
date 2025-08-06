@@ -305,6 +305,23 @@ export const jobSeekerService = {
   },
 
   /**
+   * Get a single public job seeker by ID (anonymized)
+   * GET /public/job-seekers/:id
+   */
+  getPublicJobSeekerById: async (id) => {
+    try {
+      const response = await apiClient.get(`/public/job-seekers/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      if (error.response?.data?.error) {
+        return { success: false, error: error.response.data.error };
+      }
+      const apiError = handleError(error, { context: 'get_public_job_seeker_by_id' });
+      return { success: false, error: apiError.userMessage };
+    }
+  },
+
+  /**
    * Get my profile (Authenticated user)
    * GET /profile/me
    */
