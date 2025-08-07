@@ -23,6 +23,7 @@ const EmployerRequestForm = ({
     phone: '',
     message: '',
     jobSeekerId: jobSeekerId || '',
+    priority: 'normal',
   });
   
   const [loading, setLoading] = useState(false);
@@ -51,9 +52,7 @@ const EmployerRequestForm = ({
       newErrors.employerName = t('employerRequest.errors.nameRequired', 'Employer name is required');
     }
     
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = t('employerRequest.errors.companyRequired', 'Company name is required');
-    }
+    // Company name is optional, no validation
     
     if (!formData.email) {
       newErrors.email = t('employerRequest.errors.emailRequired', 'Email is required');
@@ -63,8 +62,8 @@ const EmployerRequestForm = ({
     
     if (!formData.phone) {
       newErrors.phone = t('employerRequest.errors.phoneRequired', 'Phone number is required');
-    } else if (!/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = t('employerRequest.errors.phoneInvalid', 'Please enter a valid phone number');
+    } else if (!/^(078|079|072|073)\d{7}$/.test(formData.phone.trim())) {
+      newErrors.phone = t('employerRequest.errors.phoneInvalid', 'Please enter a valid Rwandan phone number (10 digits, starting with 078, 079, 072, or 073)');
     }
     
     if (!formData.message.trim()) {
@@ -85,15 +84,22 @@ const EmployerRequestForm = ({
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-  
-      
-      // For demo purposes, always succeed
+      // Send request to backend
+      const response = await fetch('http://localhost:3000/employer/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.employerName,
+          companyName: formData.companyName,
+          email: formData.email,
+          phoneNumber: formData.phone,
+          message: formData.message,
+          requestedCandidateId: formData.jobSeekerId,
+          priority: formData.priority
+        })
+      });
+      if (!response.ok) throw new Error('Failed to send request');
       onSuccess();
-      
-      // Reset form
       setFormData({
         employerName: '',
         companyName: '',
@@ -101,8 +107,8 @@ const EmployerRequestForm = ({
         phone: '',
         message: '',
         jobSeekerId: jobSeekerId || '',
+        priority: 'normal',
       });
-      
     } catch (error) {
       console.error('Request error:', error);
       onError(error);
@@ -129,6 +135,23 @@ const EmployerRequestForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('employerRequest.priority', 'Priority')}
+          </label>
+          <select
+            id="priority"
+            name="priority"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+            value={formData.priority}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="low">{t('employerRequest.priorityLow', 'Low')}</option>
+            <option value="normal">{t('employerRequest.priorityNormal', 'Normal')}</option>
+            <option value="high">{t('employerRequest.priorityHigh', 'High')}</option>
+          </select>
+        </div>
         {errors.general && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-red-600 text-sm">{errors.general}</p>
@@ -152,12 +175,11 @@ const EmployerRequestForm = ({
             id="companyName"
             name="companyName"
             label={t('employerRequest.companyName', 'Company Name')}
-            placeholder={t('employerRequest.companyNamePlaceholder', 'Enter company name')}
+            placeholder={t('employerRequest.companyNamePlaceholder', 'Enter company name (optional)')}
             value={formData.companyName}
             onChange={handleInputChange}
             error={errors.companyName}
             icon={Building}
-            required
           />
         </div>
 

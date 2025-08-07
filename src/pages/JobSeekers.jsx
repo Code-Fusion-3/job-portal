@@ -25,6 +25,7 @@ import Footer from '../components/layout/Footer';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
 import { filterJobSeekers, sortJobSeekers, maskName, formatExperienceDisplay } from '../utils/helpers';
 import useDebounce from '../hooks/useDebounce';
+import { useNavigate } from 'react-router-dom';
 
 // Static data moved from mockData.js
 const filterOptions = {
@@ -116,6 +117,7 @@ const JobSeekers = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const navigate = useNavigate();
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -192,8 +194,7 @@ const JobSeekers = () => {
   };
 
   const handleViewProfile = (seeker) => {
-    // Navigate to detailed profile page
-    window.location.href = `/job-seekers#${seeker.id}`;
+    navigate(`/view-profile/${seeker.id}`);
   };
 
   const handleFavorite = (seekerId) => {

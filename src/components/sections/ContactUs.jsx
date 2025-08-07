@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { publicContactService } from '../../api/services/publicContactService';
+import { submitContact } from '../../api/services/contactService';
 
 // Static data moved from mockData.js
 const contactInfo = [
@@ -51,6 +51,8 @@ const ContactUs = () => {
     }
   };
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -92,29 +94,33 @@ const ContactUs = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setSubmitError('');
+    setIsSubmitting(true);
+    
     try {
-      const result = await publicContactService.submitContactMessage({
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-        category: 'general' // Default category
-      });
-
+      console.log('📧 Submitting contact form:', formData);
+      
+      const result = await submitContact(formData);
+      
       if (result.success) {
-        setIsSubmitted(true);
-        
-        // Reset form after 3 seconds
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setFormData({ name: '', email: '', subject: '', message: '' });
-        }, 3000);
+        console.log('✅ Contact message submitted successfully:', result.data);
+    setIsSubmitted(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }, 3000);
       } else {
-        alert(`Failed to send message: ${result.error}`);
+        console.error('❌ Contact submission failed:', result.error);
+        setSubmitError(result.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
-      console.error('Error submitting contact form:', error);
-      alert('Failed to send message. Please try again.');
+      console.error('❌ Error submitting contact form:', error);
+      setSubmitError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -261,14 +267,35 @@ const ContactUs = () => {
                   />
                 </div>
 
+                {submitError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2"
+                  >
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <span className="text-red-800 text-sm">{submitError}</span>
+                  </motion.div>
+                )}
+
                 <Button
                   type="submit"
                   variant="primary"
                   size="lg"
                   className="w-full group"
+                  disabled={isSubmitting}
                 >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      {t('contact.form.sending', 'Sending...')}
+                    </>
+                  ) : (
+                    <>
                   <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
                   {t('contact.form.submit', 'Send Message')}
+                    </>
+                  )}
                 </Button>
               </form>
             ) : (

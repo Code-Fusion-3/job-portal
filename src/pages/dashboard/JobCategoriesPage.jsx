@@ -92,14 +92,14 @@ const JobCategoriesPage = () => {
 
     try {
       const result = await createCategoryHook({
-        name_en: formData.name_en.trim(),
-        name_rw: formData.name_rw.trim()
-      });
-      
+          name_en: formData.name_en.trim(),
+          name_rw: formData.name_rw.trim()
+        });
+        
       if (result.success) {
-        setFormData({ name_en: '', name_rw: '' });
-        setShowAddModal(false);
-        alert('Job category created successfully!');
+      setFormData({ name_en: '', name_rw: '' });
+      setShowAddModal(false);
+      alert('Job category created successfully!');
       } else {
         setActionError(result.error || 'Failed to create category');
       }
@@ -136,15 +136,15 @@ const JobCategoriesPage = () => {
 
     try {
       const result = await updateCategoryHook(selectedCategory.id, {
-        name_en: formData.name_en.trim(),
-        name_rw: formData.name_rw.trim()
-      });
-      
+          name_en: formData.name_en.trim(),
+          name_rw: formData.name_rw.trim()
+        });
+        
       if (result.success) {
-        setFormData({ name_en: '', name_rw: '' });
-        setSelectedCategory(null);
-        setShowEditModal(false);
-        alert('Job category updated successfully!');
+      setFormData({ name_en: '', name_rw: '' });
+      setSelectedCategory(null);
+      setShowEditModal(false);
+      alert('Job category updated successfully!');
       } else {
         setActionError(result.error || 'Failed to update category');
       }
@@ -165,9 +165,9 @@ const JobCategoriesPage = () => {
       const result = await deleteCategoryHook(selectedCategory.id);
       
       if (result.success) {
-        setSelectedCategory(null);
-        setShowDeleteModal(false);
-        alert('Job category deleted successfully!');
+      setSelectedCategory(null);
+      setShowDeleteModal(false);
+      alert('Job category deleted successfully!');
       } else {
         setActionError(result.error || 'Failed to delete category');
         
@@ -263,14 +263,14 @@ const JobCategoriesPage = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             {loading ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Category
-          </Button>
-        </div>
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Add Category
+        </Button>
+      </div>
       </div>
 
       {/* Error Display */}
@@ -412,8 +412,8 @@ const JobCategoriesPage = () => {
                 {loading 
                   ? 'Please wait while we fetch the categories.'
                   : searchTerm 
-                    ? 'Try adjusting your search criteria.'
-                    : 'Get started by creating your first job category.'
+                  ? 'Try adjusting your search criteria.'
+                  : 'Get started by creating your first job category.'
                 }
               </p>
             </div>

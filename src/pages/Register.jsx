@@ -124,12 +124,10 @@ const Register = () => {
     // Required fields
     firstName: '',
     lastName: '',
-    email: '',
+    contactNumber: '',
     password: '',
     confirmPassword: '',
-    
     // Optional fields
-    contactNumber: '',
     description: '',
     skills: '',
     gender: '',
@@ -145,7 +143,6 @@ const Register = () => {
     educationLevelId: '',
     availabilityId: '',
     languages: '',
-    
     // Form controls
     userType: 'jobseeker',
     agreeToTerms: false,
@@ -294,56 +291,116 @@ const Register = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
-    // Required fields validation
+
+    // First Name
     if (!formData.firstName.trim()) {
       newErrors.firstName = t('register.errors.firstNameRequired', 'First name is required');
     } else if (formData.firstName.trim().length < 2) {
       newErrors.firstName = t('register.errors.firstNameLength', 'First name must be at least 2 characters');
     }
-    
+
+    // Last Name
     if (!formData.lastName.trim()) {
       newErrors.lastName = t('register.errors.lastNameRequired', 'Last name is required');
     } else if (formData.lastName.trim().length < 2) {
       newErrors.lastName = t('register.errors.lastNameLength', 'Last name must be at least 2 characters');
     }
-    
-    if (!formData.email) {
-      newErrors.email = t('register.errors.emailRequired', 'Email is required');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('register.errors.emailInvalid', 'Please enter a valid email');
+
+    // Phone Number
+    if (!formData.contactNumber) {
+      newErrors.contactNumber = t('register.errors.phoneRequired', 'Please provide a valid contact number');
+    } else if (!/^(078|079|072|073)\d{7}$/.test(formData.contactNumber)) {
+      newErrors.contactNumber = t('register.errors.phoneInvalid', 'Contact number format is invalid. Enter a valid Rwandan phone number (078XXXXXXXX, 079XXXXXXXX, 072XXXXXXXX, 073XXXXXXXX)');
     }
-    
+
+    // Password
     if (!formData.password) {
       newErrors.password = t('register.errors.passwordRequired', 'Password is required');
     } else if (formData.password.length < 6) {
       newErrors.password = t('register.errors.passwordLength', 'Password must be at least 6 characters');
     }
-    
+
+    // Confirm Password
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = t('register.errors.confirmPasswordRequired', 'Please confirm your password');
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = t('register.errors.passwordMismatch', 'Passwords do not match');
     }
-    
-    // Skills validation
+
+    // Skills
     if (!formData.skills.trim()) {
       newErrors.skills = t('register.errors.skillsRequired', 'At least one skill is required');
     }
-    
-    // Terms agreement validation
+
+    // Terms agreement
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = t('register.errors.termsRequired', 'You must agree to the terms and conditions');
     }
+
+    // Optional fields: friendly validation
+    if (formData.email && formData.email.trim().length > 0) {
+      // Only validate if provided
+      if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,})$/.test(formData.email)) {
+        newErrors.email = t('register.errors.emailInvalid', 'Please provide a valid email address');
+      }
+    }
+
+    if (!formData.dateOfBirth || formData.dateOfBirth.length === 0) {
+      newErrors.dateOfBirth = t('register.errors.dateOfBirthRequired', 'Date of birth is required');
+    } else {
+      const dob = new Date(formData.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 18) {
+        newErrors.dateOfBirth = t('register.errors.ageLimit', 'You must be at least 18 years old');
+      }
+    }
+
+    // General error if any required field is missing
+    console.log('Validation check - firstName:', formData.firstName?.trim());
+    console.log('Validation check - lastName:', formData.lastName?.trim());
+    console.log('Validation check - contactNumber:', formData.contactNumber);
+    console.log('Validation check - password:', formData.password);
+    console.log('Validation check - confirmPassword:', formData.confirmPassword);
+    console.log('Validation check - skills:', formData.skills?.trim());
+    console.log('Validation check - dateOfBirth:', formData.dateOfBirth);
+    console.log('Validation check - agreeToTerms:', formData.agreeToTerms);
     
+    if (
+      !formData.firstName.trim() ||
+      !formData.lastName.trim() ||
+      !formData.contactNumber ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.skills.trim() ||
+      !formData.dateOfBirth ||
+      !formData.agreeToTerms
+    ) {
+      newErrors.general = t('register.errors.generalRequired', 'Please fill in all required fields correctly.');
+    }
+
+    console.log('All validation errors before return:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submission triggered');
+    console.log('Form data:', formData);
     
-    if (!validateForm()) return;
+    const isValid = validateForm();
+    console.log('Form validation result:', isValid);
+    console.log('Current errors:', errors);
+    
+    if (!isValid) {
+      console.log('Form validation failed, stopping submission');
+      return;
+    }
     
     setLoading(true);
     
@@ -352,11 +409,10 @@ const Register = () => {
       const userData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
+        contactNumber: formData.contactNumber,
         password: formData.password,
-        contactNumber: formData.contactNumber || undefined,
         description: formData.description || undefined,
-        skills: formData.skills || undefined,
+        skills: Array.from(new Set(formData.skills.split(',').map(s => s.trim()))).join(',') || undefined,
         gender: formData.gender || undefined,
         dateOfBirth: formData.dateOfBirth || undefined,
         idNumber: formData.idNumber || undefined,
@@ -380,9 +436,17 @@ const Register = () => {
       });
 
       const result = await authService.registerJobSeeker(userData, photo);
-      
-      if (result.success) {
-        navigate('/login');
+      if (result.success && result.user) {
+        // Always clear errors after successful registration
+        setErrors({});
+        // Always redirect jobseeker to update-profile
+        if (result.user.role === 'jobseeker') {
+          navigate('/update-profile');
+        } else if (result.user.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/');
+        }
       } else {
         setErrors({ general: result.error });
       }
@@ -411,11 +475,8 @@ const Register = () => {
         )}
 
         <UserTypeSelector
-          label={t('register.userType', 'I am a')}
           value={formData.userType}
           onChange={handleUserTypeChange}
-          jobseekerLabel={t('register.jobseeker', 'Job Seeker')}
-          jobseekerDesc={t('register.jobseekerDesc', 'Looking for opportunities')}
         />
 
           {/* Left Column - Required Information */}
@@ -449,16 +510,29 @@ const Register = () => {
                   required
                 />
               <FormInput
-                id="email"
-                name="email"
-                type="email"
-                label={t('register.email', 'Email Address')}
-                placeholder={t('register.emailPlaceholder', 'Enter your email')}
-                value={formData.email}
-                onChange={handleInputChange}
-                error={errors.email}
-                icon={Mail}
+                id="contactNumber"
+                name="contactNumber"
+                type="tel"
+                label={t('register.phone', 'Phone Number')}
+                placeholder={t('register.phonePlaceholder', 'e.g. 078XXXXXXXX')}
+                value={formData.contactNumber}
+                onChange={e => {
+                  // Only allow digits, max 10
+                  const value = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
+                  handleInputChange({
+                    target: {
+                      name: 'contactNumber',
+                      value,
+                      type: 'text',
+                    }
+                  });
+                }}
+                error={errors.contactNumber}
+                icon={Phone}
                 required
+                maxLength={10}
+                pattern="^(078|079|072|073)\d{7}$"
+                inputMode="numeric"
               />
 
               <PasswordInput
@@ -569,15 +643,15 @@ const Register = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormInput
-                  id="contactNumber"
-                  name="contactNumber"
-                  type="tel"
-                  label={t('register.contactNumber', 'Phone Number')}
-                  placeholder={t('register.contactNumberPlaceholder', '+250 788 123 456')}
-                  value={formData.contactNumber}
+                  id="email"
+                  name="email"
+                  type="email"
+                  label={t('register.email', 'Email Address')}
+                  placeholder={t('register.emailPlaceholder', 'Enter your email')}
+                  value={formData.email}
                   onChange={handleInputChange}
-                  error={errors.contactNumber}
-                  icon={Phone}
+                  error={errors.email}
+                  icon={Mail}
                 />
                 <FormInput
                   id="idNumber"
@@ -914,6 +988,7 @@ const Register = () => {
     </motion.div>
   </div>
 
+
         {/* Professional Information Section - Collapsible */}
         <motion.div 
           className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden"
@@ -952,56 +1027,42 @@ const Register = () => {
                 className="overflow-hidden"
               >
                 <div className="p-4 border-t border-gray-200">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <FormInput
-              id="description"
-              name="description"
-              type="textarea"
-              label={t('register.description', 'Professional Description')}
-              placeholder={t('register.descriptionPlaceholder', 'Tell us about your professional background and skills...')}
-              value={formData.description}
-              onChange={handleInputChange}
-              error={errors.description}
-              icon={FileText}
-            />
-
-            <FormInput
-              id="skills"
-              name="skills"
-              type="textarea"
-              label={t('register.skills', 'Skills')}
-              placeholder={t('register.skillsPlaceholder', 'List your key skills and competencies...')}
-              value={formData.skills}
-              onChange={handleInputChange}
-              error={errors.skills}
-              icon={Briefcase}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <FormInput
-              id="experience"
-              name="experience"
-              type="textarea"
-              label={t('register.experience', 'Experience')}
-              placeholder={t('register.experiencePlaceholder', 'Describe your work experience...')}
-              value={formData.experience}
-              onChange={handleInputChange}
-              error={errors.experience}
-              icon={Briefcase}
-            />
-
-            <FormInput
-              id="references"
-              name="references"
-              type="textarea"
-              label={t('register.references', 'References')}
-              placeholder={t('register.referencesPlaceholder', 'Professional references or previous employers...')}
-              value={formData.references}
-              onChange={handleInputChange}
-              error={errors.references}
-              icon={FileText}
-            />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormInput
+                      id="description"
+                      name="description"
+                      type="textarea"
+                      label={t('register.description', 'Professional Description')}
+                      placeholder={t('register.descriptionPlaceholder', 'Tell us about your professional background and skills...')}
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      error={errors.description}
+                      icon={FileText}
+                    />
+                    <FormInput
+                      id="experience"
+                      name="experience"
+                      type="textarea"
+                      label={t('register.experience', 'Experience')}
+                      placeholder={t('register.experiencePlaceholder', 'Describe your work experience...')}
+                      value={formData.experience}
+                      onChange={handleInputChange}
+                      error={errors.experience}
+                      icon={Briefcase}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <FormInput
+                      id="references"
+                      name="references"
+                      type="textarea"
+                      label={t('register.references', 'References')}
+                      placeholder={t('register.referencesPlaceholder', 'Professional references or previous employers...')}
+                      value={formData.references}
+                      onChange={handleInputChange}
+                      error={errors.references}
+                      icon={FileText}
+                    />
                   </div>
                 </div>
               </motion.div>

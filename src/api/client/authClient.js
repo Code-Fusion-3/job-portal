@@ -16,25 +16,42 @@ const authClient = axios.create({
 
 // Auth methods
 export const authApi = {
+  // Request password reset (email only)
+  requestPasswordReset: async ({ email }) => {
+    try {
+      const response = await authClient.post('/security/request-password-reset', { email });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Reset password with token
+  resetPassword: async ({ token, newPassword }) => {
+    try {
+      const response = await authClient.post('/security/reset-password', { token, newPassword });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   // Job Seeker Registration
   registerJobSeeker: async (userData, photo = null) => {
     try {
-      let data = userData;
-      let headers = {};
-
+      // Always use FormData for registration
+      const formData = new FormData();
+      Object.keys(userData).forEach(key => {
+        if (userData[key] !== null && userData[key] !== undefined) {
+          formData.append(key, userData[key]);
+        }
+      });
       if (photo) {
-        const formData = new FormData();
-        Object.keys(userData).forEach(key => {
-          if (userData[key] !== null && userData[key] !== undefined) {
-            formData.append(key, userData[key]);
-          }
-        });
         formData.append('photo', photo);
-        data = formData;
-        headers = { 'Content-Type': 'multipart/form-data' };
       }
-
-      const response = await authClient.post('/auth/register', data, { headers });
+      // Always set Content-Type to multipart/form-data (let browser set boundary)
+      const response = await authClient.post('/auth/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       return response.data;
     } catch (error) {
       throw error;
