@@ -57,7 +57,8 @@ const ContactUs = () => {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    priority: 'normal' // Default to normal priority (backend compatible)
   });
 
   const containerVariants = {
@@ -110,7 +111,7 @@ const ContactUs = () => {
     // Reset form after 3 seconds
     setTimeout(() => {
       setIsSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '', priority: 'normal' });
     }, 3000);
       } else {
         console.error('❌ Contact submission failed:', result.error);
@@ -249,6 +250,33 @@ const ContactUs = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
                     placeholder={t('contact.form.subjectPlaceholder', 'Enter subject')}
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('contact.form.priority', 'Priority')}
+                  </label>
+                  <select
+                    id="priority"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 bg-white"
+                  >
+                    <option value="low">
+                      {t('contact.form.priorityLow', 'Low Priority')}
+                    </option>
+                    <option value="normal">
+                      {t('contact.form.priorityNormal', 'Normal Priority')}
+                    </option>
+                    <option value="high">
+                      {t('contact.form.priorityHigh', 'High Priority')}
+                    </option>
+                    <option value="urgent">
+                      {t('contact.form.priorityUrgent', 'Urgent Priority')}
+                    </option>
+                  </select>
                 </div>
 
                 <div>
