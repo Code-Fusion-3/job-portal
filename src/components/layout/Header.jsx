@@ -51,7 +51,6 @@ const Header = () => {
     { key: 'nav.home', href: '/', isExternal: false },
     { key: 'nav.jobSeekers', href: '/job-seekers', isExternal: false },
     { key: 'nav.contact', href: '/contact', isExternal: false },
-    { key: 'nav.about', href: '/about', isExternal: false },
   ];
 
   return (
@@ -133,13 +132,13 @@ const Header = () => {
                     transition={{ duration: 0.2 }}
                   >
                     <button
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 text-red-600"
                       onClick={() => toggleLanguage('en')}
                     >
                       English
                     </button>
                     <button
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 text-red-600"
                       onClick={() => toggleLanguage('rw')}
                     >
                       Kinyarwanda

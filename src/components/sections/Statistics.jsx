@@ -2,29 +2,29 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 
-// Static data moved from mockData.js
+// Static data with translation keys
 const statsData = [
   { 
     id: 1,
-    label: 'Active Workers', 
+    translationKey: 'statistics.activeWorkers',
     number: '500+',
     icon: '👥'
   },
   { 
     id: 2,
-    label: 'Happy Clients', 
+    translationKey: 'statistics.happyClients',
     number: '1000+',
     icon: '😊'
   },
   { 
     id: 3,
-    label: 'Cities Covered', 
+    translationKey: 'statistics.citiesCovered',
     number: '10+',
     icon: '🏙️'
   },
   { 
     id: 4,
-    label: 'Years Experience', 
+    translationKey: 'statistics.yearsExperience',
     number: '5+',
     icon: '⭐'
   }
@@ -110,7 +110,7 @@ const Statistics = () => {
               <div className="text-3xl font-bold text-red-400 mb-2 counter" data-target={stat.number.replace(/\D/g, '')}>
                 {stat.number}
               </div>
-              <div className="text-gray-300">{t(`about.stats.${stat.id}.label`, stat.label)}</div>
+              <div className="text-gray-300">{safeTranslate(stat.translationKey, stat.translationKey)}</div>
             </motion.div>
           ))}
         </motion.div>
