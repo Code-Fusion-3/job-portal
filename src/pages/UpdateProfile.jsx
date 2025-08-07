@@ -285,6 +285,7 @@ const UpdateProfile = () => {
       // Initialize selected skills and languages arrays
       setSelectedSkills(getSkillsArray());
       setSelectedLanguages(getLanguagesArray());
+            
       setImagePreview(user.profile?.photo);
     }
   }, [user]);
@@ -528,23 +529,29 @@ const UpdateProfile = () => {
     try {
       // Use the updateProfile function from auth context
       const result = await updateProfile(formData, profileImage);
-      if (result.success) {
-        // Show success notification and stay on the page
-        setNotification({
-          show: true,
-          type: 'success',
-          message: 'Profile updated successfully! 🎉'
-        });
+      
+      if (result && result.success) {
+        
+        // Use setTimeout to ensure notification shows after any re-renders
+        setTimeout(() => {
+          setNotification({
+            show: true,
+            type: 'success',
+            message: 'Profile updated successfully! 🎉'
+          });
+        }, 100); // Small delay to ensure it shows after re-render
+        
         // Auto-hide notification after 5 seconds
         setTimeout(() => {
           setNotification({ show: false, type: '', message: '' });
-        }, 5000);
+        }, 5100); // 5 seconds + 100ms delay
       } else {
         setNotification({
           show: true,
           type: 'error',
-          message: result.error || 'Error updating profile. Please try again.'
+          message: result?.error || 'Error updating profile. Please try again.'
         });
+        
         // Auto-hide error notification after 7 seconds
         setTimeout(() => {
           setNotification({ show: false, type: '', message: '' });
@@ -557,6 +564,7 @@ const UpdateProfile = () => {
         type: 'error',
         message: 'Error updating profile. Please try again.'
       });
+      
       // Auto-hide error notification after 7 seconds
       setTimeout(() => {
         setNotification({ show: false, type: '', message: '' });
@@ -590,17 +598,15 @@ const UpdateProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Notification Toast */}
+      {/* Notification Toast - Enhanced for debugging */}
       {notification.show && (
-        <motion.div
-          initial={{ opacity: 0, y: -50, x: '-50%' }}
-          animate={{ opacity: 1, y: 0, x: '-50%' }}
-          exit={{ opacity: 0, y: -50, x: '-50%' }}
-          className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-lg shadow-lg max-w-md w-full mx-4 ${
+        <div
+          className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] px-8 py-6 rounded-lg shadow-2xl max-w-lg w-full mx-4 border-4 ${
             notification.type === 'success'
-              ? 'bg-green-500 text-white'
-              : 'bg-red-500 text-white'
+              ? 'bg-green-500 text-white border-green-300'
+              : 'bg-red-500 text-white border-red-300'
           }`}
+          style={{ zIndex: 99999 }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -628,7 +634,7 @@ const UpdateProfile = () => {
               </svg>
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
@@ -724,19 +730,50 @@ const UpdateProfile = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Profile Photo
                 </label>
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
-                    {imagePreview ? (
+                <div className="flex items-center space-x-6">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 shadow-sm">
+                    {(imagePreview || user.profile?.photo) ? (
                       <img 
-                        src={imagePreview} 
+                        src={(() => {
+                          let imageUrl;
+                          
+                          if (imagePreview) {
+                            // Check if imagePreview is a data URL (new upload) or a backend path (existing photo)
+                            if (imagePreview.startsWith('data:') || imagePreview.startsWith('blob:')) {
+                              imageUrl = imagePreview; // New upload preview (data URL or blob URL)
+                            } else {
+                              // Existing photo path from backend
+                              imageUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/${imagePreview}`;
+                            }
+                          } else if (user.profile?.photo) {
+                            // No preview, use backend photo
+                            imageUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/${user.profile?.photo}`;
+                          }
+                          
+                    
+                          return imageUrl;
+                        })()} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('❌ Image failed to load:', e.target.src);
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                        onLoad={() => {
+                          // console.log('✅ Image loaded successfully');
+                        }}
                       />
-                    ) : (
+                    ) : null}
+                    {!(imagePreview || user.profile?.photo) && (
                       <div className="w-full h-full flex items-center justify-center">
                         <User className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
+                    {/* Fallback div for image load errors */}
+                    <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
+                      <User className="w-8 h-8 text-gray-400" />
+                    </div>
                   </div>
                   <div>
                     <input
