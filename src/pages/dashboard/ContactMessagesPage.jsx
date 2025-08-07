@@ -23,10 +23,11 @@ import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Modal from '../../components/ui/Modal';
 import DataTable from '../../components/ui/DataTable';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ContactMessagesPage = () => {
   const { t } = useTranslation();
-  const [searchTerm, setSearchTerm] = useState('');
+  // Search removed
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
@@ -38,6 +39,7 @@ const ContactMessagesPage = () => {
     subject: '',
     message: ''
   });
+  const [replyLoading, setReplyLoading] = useState(false);
 
   const {
     messages,
@@ -68,21 +70,12 @@ const mappedMessages = Array.isArray(messages)
     }))
   : [];
 
-// Apply frontend search and filters
+// Apply frontend filters only (search removed)
 const filteredMessages = mappedMessages.filter(msg => {
-  // Search
-  const search = searchTerm.trim().toLowerCase();
-  const matchesSearch =
-    !search ||
-    msg.name?.toLowerCase().includes(search) ||
-    msg.email?.toLowerCase().includes(search) ||
-    msg.subject?.toLowerCase().includes(search) ||
-    msg.message?.toLowerCase().includes(search);
-  // Filters
   const matchesStatus = !statusFilter || msg.status === statusFilter;
   const matchesCategory = !categoryFilter || msg.category === categoryFilter;
   const matchesPriority = !priorityFilter || msg.priority === priorityFilter;
-  return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+  return matchesStatus && matchesCategory && matchesPriority;
 });
 
 // Pagination
@@ -100,12 +93,11 @@ const handleRowAction = (action, message) => {
 
   useEffect(() => {
     fetchMessages({
-      searchTerm,
       status: statusFilter,
       category: categoryFilter,
       priority: priorityFilter
     });
-  }, [searchTerm, statusFilter, categoryFilter, priorityFilter]);
+  }, [statusFilter, categoryFilter, priorityFilter]);
 
   const handleViewMessage = async (message) => {
     setSelectedMessage(message);
@@ -133,21 +125,30 @@ const handleRowAction = (action, message) => {
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
-    
     if (!replyData.subject.trim() || !replyData.message.trim()) {
-      alert('Please fill in both subject and message');
+      toast.error('Please fill in both subject and message');
       return;
     }
-
-    const result = await respondToMessage(selectedMessage.id, replyData);
-    
-    if (result.success) {
-      alert('Response sent successfully!');
+    if (selectedMessage && selectedMessage.status === 'responded') {
+      toast.error('This message has already been responded to. You cannot reply again.');
       setShowReplyModal(false);
-      setReplyData({ subject: '', message: '' });
-      setSelectedMessage(null);
-    } else {
-      alert(`Failed to send response: ${result.error}`);
+      return;
+    }
+    setReplyLoading(true);
+    try {
+      const result = await respondToMessage(selectedMessage.id, replyData);
+      if (result.success) {
+        toast.success('Response sent successfully!');
+        setShowReplyModal(false);
+        setReplyData({ subject: '', message: '' });
+        setSelectedMessage(null);
+      } else {
+        toast.error(result.error || 'Failed to send response');
+      }
+    } catch (err) {
+      toast.error('Failed to send response');
+    } finally {
+      setReplyLoading(false);
     }
   };
 
@@ -286,8 +287,15 @@ const handleRowAction = (action, message) => {
       key: 'reply',
       label: 'Reply',
       icon: Reply,
-      onClick: () => handleReply(message),
-      variant: 'primary'
+      onClick: () => {
+        if (message.status === 'responded') {
+          toast.error('This message has already been responded to.');
+        } else {
+          handleReply(message);
+        }
+      },
+      variant: 'primary',
+      disabled: message.status === 'responded'
     },
     {
       key: 'delete',
@@ -403,20 +411,7 @@ const handleRowAction = (action, message) => {
 
       {/* Filters */}
       <Card className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search messages..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -466,7 +461,6 @@ const handleRowAction = (action, message) => {
           <div className="flex items-end">
             <Button
               onClick={() => {
-                setSearchTerm('');
                 setStatusFilter('');
                 setCategoryFilter('');
                 setPriorityFilter('');
@@ -486,8 +480,6 @@ const handleRowAction = (action, message) => {
   data={paginatedMessages}
   pagination={true}
   itemsPerPage={itemsPerPage}
-  searchTerm={searchTerm}
-  onSearchChange={setSearchTerm}
   actionButtons={getActionButtons}
   onRowAction={handleRowAction}
   className="w-full"
@@ -619,16 +611,21 @@ const handleRowAction = (action, message) => {
               type="button"
               onClick={() => setShowReplyModal(false)}
               variant="outline"
+              disabled={replyLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
-              <Reply className="w-4 h-4 mr-2" />
-              Send Reply
+            <Button type="submit" variant="primary" disabled={replyLoading}>
+              {replyLoading ? (
+                <span className="flex items-center"><LoadingSpinner size="sm" className="mr-2" />Sending...</span>
+              ) : (
+                <><Reply className="w-4 h-4 mr-2" />Send Reply</>
+              )}
             </Button>
           </div>
         </form>
       </Modal>
+      <Toaster position="top-right" />
 
       {/* Delete Confirmation Modal */}
       <Modal
