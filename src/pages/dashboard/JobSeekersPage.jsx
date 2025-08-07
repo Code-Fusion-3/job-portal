@@ -35,7 +35,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DataTable from '../../components/ui/DataTable';
 import SearchFilter from '../../components/ui/SearchFilter';
 import AddJobSeekerForm from '../../components/forms/AddJobSeekerForm';
-import Pagination from '../../components/ui/Pagination';
+
 import { formatCurrency } from '../../utils/adminHelpers';
 import Modal from '../../components/ui/Modal';
 
@@ -108,6 +108,7 @@ const JobSeekersPage = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [experienceFilter, setExperienceFilter] = useState('');
   const [jobCategories, setJobCategories] = useState([]);
@@ -243,17 +244,24 @@ const JobSeekersPage = () => {
   // Handle row actions
   const handleRowAction = (action, jobSeeker) => {
     switch (action) {
+      case 'openActions':
+        setSelectedJobSeeker(jobSeeker);
+        setShowActionModal(true);
+        break;
       case 'view':
         setSelectedJobSeeker(jobSeeker);
         setShowDetailsModal(true);
+        setShowActionModal(false);
         break;
       case 'edit':
         setSelectedJobSeeker(jobSeeker);
         setShowEditModal(true);
+        setShowActionModal(false);
         break;
       case 'delete':
         setSelectedJobSeeker(jobSeeker);
         setShowDeleteModal(true);
+        setShowActionModal(false);
         break;
       default:
         break;
@@ -328,6 +336,16 @@ const JobSeekersPage = () => {
       console.error('Delete job seeker error:', error);
     }
   };
+
+  // Action buttons for DataTable
+  const getActionButtons = (jobSeeker) => [
+    {
+      key: 'openActions',
+      title: 'Actions',
+      icon: MoreHorizontal,
+      className: 'text-gray-600 hover:bg-gray-50'
+    }
+  ];
 
   // Show authentication error if user is not authenticated
   if (authLoading) {
@@ -551,39 +569,7 @@ const JobSeekersPage = () => {
         );
       }
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      render: (jobSeeker) => {
-        if (!jobSeeker) return <div className="text-gray-500">No actions</div>;
-        
-        return (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleRowAction('view', jobSeeker)}
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleRowAction('edit', jobSeeker)}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleRowAction('delete', jobSeeker)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-        );
-      }
-    }
+
   ];
 
   // Render loading state
@@ -667,34 +653,7 @@ const JobSeekersPage = () => {
         </motion.div>
       )}
 
-      {/* Search and Filters */}
-      <Pagination
-        pagination={{
-          currentPage,
-          totalPages,
-          totalItems,
-          searchTerm,
-          filters,
-          sortBy,
-          sortOrder,
-          setSearchTerm,
-          setFilters,
-          setSortBy,
-          setSortOrder,
-          goToPage,
-          nextPage,
-          prevPage,
-          hasNextPage,
-          hasPrevPage,
-          pageInfo
-        }}
-        onSearch={handleSearchChange}
-        onFilter={handleFilterChange}
-        searchPlaceholder="Search job seekers..."
-        showSearch={true}
-        showFilters={true}
-        showSort={true}
-      />
+
 
       {/* Job Seekers Table */}
       <Card>
@@ -703,6 +662,12 @@ const JobSeekersPage = () => {
           columns={columns}
           loading={loading}
           emptyMessage="No job seekers found"
+          actionButtons={getActionButtons}
+          onRowAction={handleRowAction}
+          pagination={true}
+          itemsPerPage={15}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
         />
       </Card>
 
@@ -936,6 +901,42 @@ const JobSeekersPage = () => {
                 </p>
               </div>
             )}
+          </div>
+        </Modal>
+      )}
+
+      {/* Action Modal */}
+      {showActionModal && selectedJobSeeker && (
+        <Modal
+          isOpen={showActionModal}
+          onClose={() => setShowActionModal(false)}
+          title={`Actions for ${selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || 'Unknown'} ${selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || ''}`}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-3">
+            <button
+              onClick={() => handleRowAction('view', selectedJobSeeker)}
+              className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-blue-50 transition-colors duration-200"
+            >
+              <Eye className="w-5 h-5 text-blue-600" />
+              <span className="text-gray-900">View Details</span>
+            </button>
+            
+            <button
+              onClick={() => handleRowAction('edit', selectedJobSeeker)}
+              className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-green-50 transition-colors duration-200"
+            >
+              <Edit className="w-5 h-5 text-green-600" />
+              <span className="text-gray-900">Edit Job Seeker</span>
+            </button>
+            
+            <button
+              onClick={() => handleRowAction('delete', selectedJobSeeker)}
+              className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-red-50 transition-colors duration-200"
+            >
+              <Trash2 className="w-5 h-5 text-red-600" />
+              <span className="text-gray-900">Delete Job Seeker</span>
+            </button>
           </div>
         </Modal>
       )}

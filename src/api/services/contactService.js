@@ -236,4 +236,25 @@ export const getContactStatistics = async () => {
       error: apiError.message
     };
   }
-}; 
+};
+
+// Export all functions as a service object
+export const contactService = {
+  submitContact,
+  getContact,
+  respondToContact,
+  updateContactStatus,
+  getAllContacts,
+  deleteContact,
+  getContactStatistics,
+  // Alias methods for backward compatibility
+  getAllMessages: getAllContacts,
+  getMessageById: getContact,
+  respondToMessage: respondToContact,
+  markAsRead: updateContactStatus,
+  deleteMessage: deleteContact,
+  getStatistics: getContactStatistics
+};
+
+// Default export
+export default contactService; 

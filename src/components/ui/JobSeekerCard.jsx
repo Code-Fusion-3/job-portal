@@ -94,14 +94,6 @@ const JobSeekerCard = ({
             </div>
           )}
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => onViewDetails?.(jobSeeker)}
-          title="View Details"
-        >
-          <Eye className="w-3 h-3" />
-        </Button>
       </div>
     );
   }

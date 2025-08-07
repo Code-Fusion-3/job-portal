@@ -16,7 +16,6 @@ import {
   Edit,
   Trash2,
   ArrowRight,
-  TrendingUp,
   TrendingDown,
   DollarSign,
   Calendar,
@@ -48,6 +47,8 @@ import AdminHeader from '../../components/layout/AdminHeader';
 import JobSeekersPage from './JobSeekersPage';
 import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
+import TableReportsPage from './TableReportsPage';
+import ContactMessagesPage from './ContactMessagesPage';
 import SettingsPage from './SettingsPage';
 import JobCategoriesPage from './JobCategoriesPage';
 
@@ -241,10 +242,6 @@ const AdminDashboard = () => {
     // Filter functionality
   };
 
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   // Load data on component mount
   useEffect(() => {
     loadDashboardData();
@@ -354,7 +351,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 ">
           <StatCard
             title="Total Job Seekers"
             value={dashboardStatsData.overview?.totalJobSeekers || dashboardStatsData.totalJobSeekers || 0}
@@ -448,7 +445,7 @@ const AdminDashboard = () => {
           {/* Recent Requests */}
           <Card title="Latest Employer Requests" subtitle="Most recent job requests with candidate details (showing latest 5)">
             <div className="mb-3">
-              <div className="flex gap-1">
+              <div className="grid grid-cols-3 gap-1">
                 <button
                   onClick={() => setRequestStatusFilter('all')}
                   className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
@@ -567,46 +564,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Analytics Section - Charts moved to Reports Page */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card title="Analytics Overview" subtitle="View detailed charts and analytics in the Reports section">
-            <div className="text-center py-8">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Charts and analytics are now available in the Reports section</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4"
-                onClick={() => setActiveTab('reports')}
-              >
-                View Reports
-              </Button>
-            </div>
-          </Card>
 
-          <Card title="Quick Stats" subtitle="Key metrics and trends">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-blue-600">Recent Growth</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {dashboardStatsData?.trends?.recentGrowth || 0}%
-                  </p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-blue-500" />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-green-600">Active Requests</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {dashboardStatsData?.trends?.activeRequests || 0}
-                  </p>
-                </div>
-                <MessageSquare className="w-8 h-8 text-green-500" />
-              </div>
-            </div>
-          </Card>
-        </div>
       </div>
     );
   };
@@ -618,12 +576,16 @@ const AdminDashboard = () => {
         return renderDashboardContent();
       case 'job-seekers':
         return <JobSeekersPage />;
-      case 'requests':
-        return <EmployerRequestsPage />;
-      case 'categories':
-        return <JobCategoriesPage />;
-      case 'reports':
+              case 'requests':
+          return <EmployerRequestsPage />;
+        case 'contact-messages':
+          return <ContactMessagesPage />;
+        case 'categories':
+          return <JobCategoriesPage />;
+      case 'reports-statistics':
         return <ReportsPage />;
+      case 'reports-tables':
+        return <TableReportsPage />;
       case 'settings':
         return <SettingsPage />;
       default:
@@ -639,7 +601,6 @@ const AdminDashboard = () => {
         onLogout={handleLogout}
         onSearch={handleSearch}
         onFilter={handleFilter}
-        onSidebarToggle={handleSidebarToggle}
         searchTerm={searchTerm}
         onRefresh={refreshDashboardData}
       />
@@ -652,9 +613,18 @@ const AdminDashboard = () => {
           navigationItems={[
             { id: 'dashboard', label: 'Dashboard', icon: 'Home' },
             { id: 'job-seekers', label: 'Job Seekers', icon: 'Users' },
-            { id: 'requests', label: 'Employer Requests', icon: 'MessageSquare' },
-            { id: 'categories', label: 'Categories', icon: 'Briefcase' },
-            { id: 'reports', label: 'Reports', icon: 'BarChart3' },
+                    { id: 'requests', label: 'Employer Requests', icon: 'MessageSquare' },
+        { id: 'contact-messages', label: 'Contact Messages', icon: 'Mail' },
+        { id: 'categories', label: 'Categories', icon: 'Briefcase' },
+            { 
+              id: 'reports', 
+              label: 'Reports', 
+              icon: 'BarChart3',
+              subItems: [
+                { id: 'reports-statistics', label: 'Statistics Reports' },
+                { id: 'reports-tables', label: 'Table Reports' }
+              ]
+            },
             { id: 'settings', label: 'Settings', icon: 'Settings' }
           ]}
           activeTab={activeTab}
@@ -664,7 +634,7 @@ const AdminDashboard = () => {
         />
 
         {/* Main Content */}
-        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0 md:ml-64' : 'ml-0'}`}>
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0' : 'ml-0'}`}>
           <div className="p-4 lg:p-6">
             {renderTabContent()}
           </div>

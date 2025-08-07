@@ -17,13 +17,7 @@ const AdminSidebar = ({
   onLogout,
   className = ""
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(!sidebarOpen);
   const [searchValue, setSearchValue] = useState('');
-
-  // Sync with parent state
-  useEffect(() => {
-    setIsCollapsed(!sidebarOpen);
-  }, [sidebarOpen]);
 
   // Auto-open sidebar on desktop
   useEffect(() => {
@@ -42,11 +36,6 @@ const AdminSidebar = ({
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-    setSidebarOpen(!isCollapsed);
   };
 
   const handleItemClick = (itemId) => {
@@ -88,17 +77,14 @@ const AdminSidebar = ({
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-white border-r border-slate-200 z-40 transition-all duration-300 ease-in-out flex flex-col
+          fixed top-0 left-0 h-full bg-white border-r border-slate-200 z-40 transition-all duration-300 ease-in-out flex flex-col w-64 md:w-80 md:sticky md:top-0 md:h-screen md:left-0 md:static
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          ${isCollapsed ? "w-28" : "w-78"}
           md:translate-x-0 md:static md:z-auto
           ${className}
         `}
-      >
+       >
         {/* Header */}
         <SidebarHeader
-          isCollapsed={isCollapsed}
-          onToggleCollapse={toggleCollapse}
           logo="J"
           title="Admin Panel"
           subtitle="Job Portal Management"
@@ -106,7 +92,6 @@ const AdminSidebar = ({
 
         {/* Search Bar */}
         <SidebarSearch
-          isCollapsed={isCollapsed}
           searchValue={searchValue}
           onSearchChange={handleSearchChange}
           placeholder="Search..."
@@ -116,15 +101,7 @@ const AdminSidebar = ({
         <SidebarNavigation
           navigationItems={navigationItems}
           activeItem={activeTab}
-          isCollapsed={isCollapsed}
           onItemClick={handleItemClick}
-        />
-
-        {/* Profile and Logout */}
-        <SidebarProfile
-          isCollapsed={isCollapsed}
-          user={user}
-          onLogout={onLogout}
         />
       </div>
     </>

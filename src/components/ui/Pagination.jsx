@@ -127,7 +127,7 @@ const Pagination = ({
             <button
               onClick={() => handleSortChange('name')}
               className={`px-3 py-2 border rounded-lg flex items-center gap-2 ${
-                sortBy === 'name' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 hover:bg-gray-50'
+                sortBy === 'name' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 hover:bg-gray-50 text-gray-700'
               }`}
             >
               {sortBy === 'name' && sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
@@ -136,7 +136,7 @@ const Pagination = ({
             <button
               onClick={() => handleSortChange('createdAt')}
               className={`px-3 py-2 border rounded-lg flex items-center gap-2 ${
-                sortBy === 'createdAt' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 hover:bg-gray-50'
+                sortBy === 'createdAt' ? 'bg-red-500 text-white border-red-500' : 'border-gray-300 hover:bg-gray-50 text-gray-700'
               }`}
             >
               {sortBy === 'createdAt' && sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
@@ -149,7 +149,7 @@ const Pagination = ({
         {showFilters && (
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-gray-700"
           >
             <Filter className="w-4 h-4" />
             Filters
@@ -219,7 +219,7 @@ const Pagination = ({
             <button
               onClick={goToFirstPage}
               disabled={currentPage === 1}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
             >
               <ChevronsLeft className="w-4 h-4" />
             </button>
@@ -228,7 +228,7 @@ const Pagination = ({
             <button
               onClick={prevPage}
               disabled={!hasPrevPage}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -242,7 +242,7 @@ const Pagination = ({
                   className={`px-3 py-2 border rounded-lg ${
                     page === currentPage
                       ? 'bg-red-500 text-white border-red-500'
-                      : 'border-gray-300 hover:bg-gray-50'
+                      : 'border-gray-300 hover:bg-gray-50 text-gray-700'
                   }`}
                 >
                   {page}
@@ -254,7 +254,7 @@ const Pagination = ({
             <button
               onClick={nextPage}
               disabled={!hasNextPage}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -263,7 +263,7 @@ const Pagination = ({
             <button
               onClick={goToLastPage}
               disabled={currentPage === totalPages}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
             >
               <ChevronsRight className="w-4 h-4" />
             </button>

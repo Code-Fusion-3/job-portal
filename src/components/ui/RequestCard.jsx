@@ -72,14 +72,6 @@ const RequestCard = ({
             >
               {priority}
             </Badge>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => onViewDetails?.(request)}
-              title="View Details"
-            >
-              <Eye className="w-3 h-3" />
-            </Button>
           </div>
         </div>
         
@@ -92,7 +84,7 @@ const RequestCard = ({
             </div>
           ) : (
             <div className="flex items-center space-x-2">
-              <span className="text-orange-600 text-xs font-medium">⏳ Requesting:</span>
+              <span className="text-green-600 text-xs font-medium">⏳ Requesting:</span>
               <span className="text-sm font-medium text-gray-900">{candidateName}</span>
             </div>
           )}
