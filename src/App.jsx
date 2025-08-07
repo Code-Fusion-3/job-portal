@@ -12,6 +12,8 @@ import LatestJobSeekers from './components/sections/LatestJobSeekers';
 import Statistics from './components/sections/Statistics';
 
 import Footer from './components/layout/Footer';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import JobSeekers from './pages/JobSeekers';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
@@ -241,6 +243,8 @@ function App() {
                 <Route path="/employer-request/:id" element={<EmployerRequest />} />
                 <Route path="/about" element={<AboutUsPage />} />
               <Route path="/contact" element={<ContactUsPage />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard/jobseeker" element={
                   <ProtectedRoute requiredRole="jobseeker">
                     <JobSeekerDashboard />

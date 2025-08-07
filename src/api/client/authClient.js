@@ -16,6 +16,25 @@ const authClient = axios.create({
 
 // Auth methods
 export const authApi = {
+  // Request password reset (email only)
+  requestPasswordReset: async ({ email }) => {
+    try {
+      const response = await authClient.post('/security/request-password-reset', { email });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Reset password with token
+  resetPassword: async ({ token, newPassword }) => {
+    try {
+      const response = await authClient.post('/security/reset-password', { token, newPassword });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   // Job Seeker Registration
   registerJobSeeker: async (userData, photo = null) => {
     try {
