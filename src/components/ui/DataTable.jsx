@@ -28,8 +28,9 @@ const DataTable = ({
     }
   };
 
-  // Filter and sort data
-  const filteredData = data.filter(item => {
+  // Filter and sort data - ensure data is an array
+  const safeData = Array.isArray(data) ? data : [];
+  const filteredData = safeData.filter(item => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return columns.some(col => 

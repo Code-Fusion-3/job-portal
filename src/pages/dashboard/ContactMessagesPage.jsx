@@ -29,6 +29,7 @@ const ContactMessagesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
@@ -59,9 +60,10 @@ const ContactMessagesPage = () => {
     fetchMessages({
       searchTerm,
       status: statusFilter,
-      category: categoryFilter
+      category: categoryFilter,
+      priority: priorityFilter
     });
-  }, [searchTerm, statusFilter, categoryFilter]);
+  }, [searchTerm, statusFilter, categoryFilter, priorityFilter]);
 
   const handleViewMessage = async (message) => {
     setSelectedMessage(message);
@@ -121,16 +123,31 @@ const ContactMessagesPage = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'new':
-        return <Badge variant="warning">New</Badge>;
+      case 'unread':
+        return <Badge variant="warning">Unread</Badge>;
       case 'read':
         return <Badge variant="info">Read</Badge>;
-      case 'replied':
-        return <Badge variant="success">Replied</Badge>;
+      case 'responded':
+        return <Badge variant="success">Responded</Badge>;
       case 'archived':
         return <Badge variant="secondary">Archived</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'low':
+        return <Badge variant="secondary">Low</Badge>;
+      case 'normal':
+        return <Badge variant="info">Normal</Badge>;
+      case 'high':
+        return <Badge variant="warning">High</Badge>;
+      case 'urgent':
+        return <Badge variant="danger">Urgent</Badge>;
+      default:
+        return <Badge variant="outline">{priority}</Badge>;
     }
   };
 
@@ -187,6 +204,12 @@ const ContactMessagesPage = () => {
       label: 'Category', 
       sortable: true,
       render: (item) => getCategoryBadge(item.category)
+    },
+    { 
+      key: 'priority', 
+      label: 'Priority', 
+      sortable: true,
+      render: (item) => getPriorityBadge(item.priority)
     },
     { 
       key: 'status', 
@@ -284,7 +307,6 @@ const ContactMessagesPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Contact Messages</h1>
           <p className="text-gray-600">Manage and respond to contact form submissions</p>
-          <p className="text-sm text-blue-600 mt-1">⚠️ Currently using mock data - Backend integration pending</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -320,8 +342,8 @@ const ContactMessagesPage = () => {
                 <Clock className="w-6 h-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">New Messages</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.new || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Unread Messages</p>
+                <p className="text-2xl font-bold text-gray-900">{statistics.unread || 0}</p>
               </div>
             </div>
           </Card>
@@ -332,8 +354,8 @@ const ContactMessagesPage = () => {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Replied</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.replied || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Responded</p>
+                <p className="text-2xl font-bold text-gray-900">{statistics.responded || 0}</p>
               </div>
             </div>
           </Card>
@@ -354,7 +376,7 @@ const ContactMessagesPage = () => {
 
       {/* Filters */}
       <Card className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
             <div className="relative">
@@ -377,9 +399,9 @@ const ContactMessagesPage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">All Status</option>
-              <option value="new">New</option>
+              <option value="unread">Unread</option>
               <option value="read">Read</option>
-              <option value="replied">Replied</option>
+              <option value="responded">Responded</option>
               <option value="archived">Archived</option>
             </select>
           </div>
@@ -399,12 +421,28 @@ const ContactMessagesPage = () => {
             </select>
           </div>
           
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Priorities</option>
+              <option value="low">Low</option>
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          
           <div className="flex items-end">
             <Button
               onClick={() => {
                 setSearchTerm('');
                 setStatusFilter('');
                 setCategoryFilter('');
+                setPriorityFilter('');
               }}
               variant="outline"
               className="w-full"
@@ -420,7 +458,7 @@ const ContactMessagesPage = () => {
       <Card className="p-6">
         <DataTable
           columns={columns}
-          data={messages}
+          data={Array.isArray(messages) ? messages : []}
           pagination={true}
           itemsPerPage={15}
           searchTerm={searchTerm}

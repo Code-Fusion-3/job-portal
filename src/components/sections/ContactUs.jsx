@@ -58,7 +58,8 @@ const ContactUs = () => {
     email: '',
     subject: '',
     message: '',
-    priority: 'normal' // Default to normal priority (backend compatible)
+    priority: 'normal', // Default to normal priority (backend compatible)
+    category: 'general' // Default to general (backend compatible)
   });
 
   const containerVariants = {
@@ -111,7 +112,7 @@ const ContactUs = () => {
     // Reset form after 3 seconds
     setTimeout(() => {
       setIsSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '', priority: 'normal' });
+      setFormData({ name: '', email: '', subject: '', message: '', priority: 'normal', category: 'general' });
     }, 3000);
       } else {
         console.error('❌ Contact submission failed:', result.error);
@@ -250,6 +251,26 @@ const ContactUs = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
                     placeholder={t('contact.form.subjectPlaceholder', 'Enter subject')}
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('contact.form.category', 'Category')}
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 bg-white"
+                  >
+                    <option value="general">{t('contact.form.categoryGeneral', 'General')}</option>
+                    <option value="support">{t('contact.form.categorySupport', 'Support')}</option>
+                    <option value="feedback">{t('contact.form.categoryFeedback', 'Feedback')}</option>
+                    <option value="business">{t('contact.form.categoryBusiness', 'Business')}</option>
+                    <option value="other">{t('contact.form.categoryOther', 'Other')}</option>
+                  </select>
                 </div>
 
                 <div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-// import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
+import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import SessionMonitor from './components/auth/SessionMonitor';
 import Header from './components/layout/Header';
@@ -231,7 +231,7 @@ function App() {
     return (
       <ErrorBoundary>
         <AuthProvider>
-          {/* <LiveUpdateProvider> */}
+          <LiveUpdateProvider>
             <Router>
               <SessionMonitor />
               <Routes>
@@ -286,7 +286,7 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
-          {/* </LiveUpdateProvider> */}
+          </LiveUpdateProvider>
         </AuthProvider>
       </ErrorBoundary>
     );

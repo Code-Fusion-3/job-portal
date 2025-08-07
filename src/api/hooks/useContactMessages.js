@@ -36,12 +36,16 @@ export const useContactMessages = (options = {}) => {
         ...params
       };
 
-      const result = await contactService.getAllMessages(queryParams);
+      const result = await contactService.getAllContacts(queryParams);
 
       if (result.success) {
-        setMessages(result.data);
-        if (result.pagination) {
-          setPagination(result.pagination);
+        // result.data is an object: { contacts, pagination, statistics, filters }
+        setMessages(Array.isArray(result.data.contacts) ? result.data.contacts : []);
+        if (result.data.pagination) {
+          setPagination(result.data.pagination);
+        }
+        if (result.data.statistics) {
+          setStatistics(result.data.statistics);
         }
       } else {
         setError(result.error);

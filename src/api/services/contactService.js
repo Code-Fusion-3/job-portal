@@ -149,7 +149,7 @@ export const getAllContacts = async (params = {}) => {
     const response = await fetch(`${API_BASE_URL}/contact/admin/all?${queryParams}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`, 
         'Content-Type': 'application/json',
       },
     });
