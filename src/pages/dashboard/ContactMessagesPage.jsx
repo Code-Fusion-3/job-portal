@@ -56,7 +56,47 @@ const ContactMessagesPage = () => {
     itemsPerPage: 15
   });
 
+// Frontend filtering, searching, and pagination
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 15;
 
+// Map backend date field to table expected field
+const mappedMessages = Array.isArray(messages)
+  ? messages.map(msg => ({
+      ...msg,
+      createdAt: msg.createdAt || '',
+    }))
+  : [];
+
+// Apply frontend search and filters
+const filteredMessages = mappedMessages.filter(msg => {
+  // Search
+  const search = searchTerm.trim().toLowerCase();
+  const matchesSearch =
+    !search ||
+    msg.name?.toLowerCase().includes(search) ||
+    msg.email?.toLowerCase().includes(search) ||
+    msg.subject?.toLowerCase().includes(search) ||
+    msg.message?.toLowerCase().includes(search);
+  // Filters
+  const matchesStatus = !statusFilter || msg.status === statusFilter;
+  const matchesCategory = !categoryFilter || msg.category === categoryFilter;
+  const matchesPriority = !priorityFilter || msg.priority === priorityFilter;
+  return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+});
+
+// Pagination
+const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
+const paginatedMessages = filteredMessages.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
+
+// Action menu for ... button
+const handleRowAction = (action, message) => {
+  setSelectedMessage(message);
+  setShowViewModal(true);
+};
 
   useEffect(() => {
     fetchMessages({
@@ -258,21 +298,6 @@ const ContactMessagesPage = () => {
     }
   ];
 
-  const handleRowAction = (action, message) => {
-    switch (action) {
-      case 'view':
-        handleViewMessage(message);
-        break;
-      case 'reply':
-        handleReply(message);
-        break;
-      case 'delete':
-        handleDelete(message);
-        break;
-      default:
-        break;
-    }
-  };
 
   if (loading && messages.length === 0) {
     return (
@@ -456,20 +481,40 @@ const ContactMessagesPage = () => {
         </div>
       </Card>
 
-      {/* Messages Table */}
-      <Card className="p-6">
-        <DataTable
-          columns={columns}
-          data={Array.isArray(messages) ? messages : []}
-          pagination={true}
-          itemsPerPage={15}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          actionButtons={getActionButtons}
-          onRowAction={handleRowAction}
-          className="w-full"
-        />
-      </Card>
+    <DataTable
+  columns={columns}
+  data={paginatedMessages}
+  pagination={true}
+  itemsPerPage={itemsPerPage}
+  searchTerm={searchTerm}
+  onSearchChange={setSearchTerm}
+  actionButtons={getActionButtons}
+  onRowAction={handleRowAction}
+  className="w-full"
+/>
+{totalPages > 1 && (
+  <div className="flex justify-between items-center mt-4">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setCurrentPage(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      Previous
+    </Button>
+    <span className="text-sm text-gray-700">
+      Page {currentPage} of {totalPages}
+    </span>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setCurrentPage(currentPage + 1)}
+      disabled={currentPage === totalPages}
+    >
+      Next
+    </Button>
+  </div>
+)}
 
       {/* View Message Modal */}
       <Modal
@@ -504,7 +549,7 @@ const ContactMessagesPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <p className="text-gray-900">
-                  {new Date(selectedMessage.submittedAt).toLocaleString()}
+                  {new Date(selectedMessage.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
