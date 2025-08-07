@@ -56,6 +56,8 @@ const ContactMessagesPage = () => {
     itemsPerPage: 15
   });
 
+
+
   useEffect(() => {
     fetchMessages({
       searchTerm,
@@ -225,7 +227,7 @@ const ContactMessagesPage = () => {
         <div className="flex items-center space-x-2">
           <Calendar className="w-4 h-4 text-gray-500" />
           <span className="text-sm">
-            {new Date(item.submittedAt).toLocaleDateString()}
+            {new Date(item.createdAt).toLocaleDateString()}
           </span>
         </div>
       )
