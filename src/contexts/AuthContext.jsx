@@ -35,15 +35,18 @@ export const AuthProvider = ({ children }) => {
         
         // Check if we have a valid token
         const token = getAuthToken();
+        
         if (token && !isTokenExpired()) {
           // Fetch user data from backend
           const result = await userService.getCurrentUser();
+          
           if (result.success) {
+           
             setUser(result.data);
             setSessionValid(true);
           } else {
             // Token is invalid or user not found
-            console.warn('Token validation failed:', result.error);
+            console.warn('❌ AuthContext: Token validation failed:', result.error);
             await logout();
           }
         } else {
@@ -52,7 +55,7 @@ export const AuthProvider = ({ children }) => {
           setSessionValid(false);
         }
       } catch (error) {
-        console.error('Error checking authentication:', error);
+        console.error('💥 AuthContext: Error checking authentication:', error);
         setError('Failed to verify authentication status');
         // Clear all auth data on error
         clearAuthTokens();
@@ -190,9 +193,19 @@ export const AuthProvider = ({ children }) => {
     try {
       const result = await userService.updateProfile(profileData, photo);
       if (result.success) {
-        // Update local user state with new data
-        setUser(result.data);
-        return { success: true, user: result.data };
+        // Profile updated successfully, but we need to fetch fresh user data
+        // because the update response doesn't contain the full user object with role
+        
+        // Fetch current user data to maintain proper user object structure
+        const userResult = await userService.getCurrentUser();
+        if (userResult.success) {
+          setUser(userResult.data);
+          return { success: true, user: userResult.data };
+        } else {
+          // Profile update succeeded but user fetch failed - keep existing user data
+          console.warn('⚠️ AuthContext: Profile updated but failed to fetch fresh user data:', userResult.error);
+          return { success: true, user: user };
+        }
       } else {
         setError(result.error);
         return { 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import { useLiveUpdates as useLiveUpdatesHook } from '../hooks/useLiveUpdates';
 import LiveNotification from '../components/ui/LiveNotification';
 
@@ -42,16 +42,31 @@ export const LiveUpdateProvider = ({ children }) => {
 
   const notificationIdCounter = useRef(0);
 
-  // Dashboard endpoints for polling - Fixed endpoints
-  const dashboardEndpoints = user ? [
-    '/dashboard/stats',
-    '/employer/requests?limit=5',
-    '/public/job-seekers?limit=5',
-    '/categories' // Fixed: categories endpoint is at /categories, not /public/categories
-  ] : [
-    '/public/job-seekers?limit=5'
-    // Removed /public/categories as it doesn't exist
-  ];
+  // Role-based endpoint filtering to prevent 403 errors
+  const dashboardEndpoints = useMemo(() => {
+    if (!user) {
+      // No user - only public endpoints
+      return ['/public/job-seekers?limit=5'];
+    }
+    
+    if (user.role === 'admin') {
+      // Admin user - all endpoints
+      return [
+        '/dashboard/stats',
+        '/employer/requests?limit=5',
+        '/public/job-seekers?limit=5',
+        '/categories'
+      ];
+    }
+    
+    if (user.role === 'jobseeker') {
+      // Job seeker - only public endpoints to avoid 403 errors
+      return ['/public/job-seekers?limit=5'];
+    }
+    
+    // Default fallback - only public endpoints
+    return ['/public/job-seekers?limit=5'];
+  }, [user]);
 
   // Add notification function
   const addNotification = useCallback((notification) => {

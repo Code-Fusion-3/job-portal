@@ -12,15 +12,23 @@ const ProtectedRoute = ({
   const { user, loading, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  
+
 
   useEffect(() => {
-    // Add a small delay to ensure auth context is properly initialized
-    const timer = setTimeout(() => {
+    // Wait for AuthContext to finish loading user data
+    if (!loading && user) {
+      // User is loaded, we can proceed with route protection
+      const timer = setTimeout(() => {
+        setIsCheckingSession(false);
+      }, 50);
+      return () => clearTimeout(timer);
+    } else if (!loading && !user) {
+      // AuthContext finished loading but no user found
       setIsCheckingSession(false);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
+    }
+    // If still loading, keep checking session true
+  }, [loading, user]);
 
   // Show loading spinner while checking authentication
   if (loading || isCheckingSession) {
@@ -33,7 +41,6 @@ const ProtectedRoute = ({
 
   // User is not authenticated
   if (!isAuthenticated) {
-    console.log('🔒 Access denied: User not authenticated');
     return (
       <Navigate 
         to={redirectTo} 
@@ -44,19 +51,25 @@ const ProtectedRoute = ({
   }
 
   // Check role requirements if specified
-  if (requiredRole && user?.role !== requiredRole) {
-    console.log(`🔒 Access denied: User role ${user?.role} does not match required role ${requiredRole}`);
+  if (requiredRole && user) {
+    // More robust role checking to handle state synchronization issues
+    const userRole = user.role || user.user?.role || (user.data ? user.data.role : null);
     
-    // Redirect to appropriate dashboard based on user role
-    const dashboardPath = user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/jobseeker';
+  
     
-    return (
-      <Navigate 
-        to={dashboardPath} 
-        state={{ from: location, reason: 'insufficient_permissions' }} 
-        replace 
-      />
-    );
+    if (userRole !== requiredRole) {
+      
+      // If we have a valid user but role mismatch, redirect to appropriate dashboard
+      const dashboardPath = userRole === 'admin' ? '/dashboard/admin' : '/dashboard/jobseeker';
+      
+      return (
+        <Navigate 
+          to={dashboardPath} 
+          state={{ from: location, reason: 'insufficient_permissions' }} 
+          replace 
+        />
+      );
+    }
   }
 
   // User is authenticated and has required permissions
