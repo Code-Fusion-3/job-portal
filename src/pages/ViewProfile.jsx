@@ -494,27 +494,7 @@ const ViewProfile = () => {
                     <MessageSquare className="w-5 h-5 mr-2" />
                     Request Candidate
                   </Button>
-                  {user?.role === 'admin' && (
-                    <>
-                      <Button 
-                        variant="outline" 
-                        size="lg" 
-                        className="w-full border-2 border-gray-200 hover:border-gray-300 font-semibold py-3 rounded-xl"
-                      >
-                        <Download className="w-5 h-5 mr-2" />
-                        Download CV
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="lg" 
-                        className="w-full border-2 border-gray-200 hover:border-gray-300 font-semibold py-3 rounded-xl" 
-                        onClick={handleShare}
-                      >
-                        <Share2 className="w-5 h-5 mr-2" />
-                        Share Profile
-                      </Button>
-                    </>
-                  )}
+                 
                 </div>
               </Card>
             </motion.div>
