@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Modal from '../ui/Modal';
 
 const AddJobSeekerForm = ({ 
   isOpen, 
@@ -374,25 +375,14 @@ const AddJobSeekerForm = ({
     }
   }, [isOpen, isEdit]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {isEdit ? "Edit Job Seeker" : "Add New Job Seeker"}
-          </h2>
-          <button
-            onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
-        </div>
-        
-        <div className="p-6">
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEdit ? "Edit Job Seeker" : "Add New Job Seeker"}
+      maxWidth="max-w-4xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -920,27 +910,25 @@ const AddJobSeekerForm = ({
       </div>
 
         {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-6">
-              <button
-          type="button"
+        <div className="flex justify-end space-x-3 pt-6">
+          <button
+            type="button"
             onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
-          disabled={isLoading}
-        >
-          Cancel
-              </button>
-              <button
-          type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          disabled={isLoading}
-        >
+            className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            disabled={isLoading}
+          >
             {isLoading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Job Seeker' : 'Create Job Seeker')}
-              </button>
-            </div>
-          </form>
+          </button>
         </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 };
 

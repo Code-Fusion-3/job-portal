@@ -77,12 +77,12 @@ const AdminSidebar = ({
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-white border-r border-slate-200 z-40 transition-all duration-300 ease-in-out flex flex-col w-64
+          fixed top-0 left-0 h-full bg-white border-r border-slate-200 z-40 transition-all duration-300 ease-in-out flex flex-col w-64 md:w-80 md:sticky md:top-0 md:h-screen md:left-0 md:static
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 md:static md:z-auto
           ${className}
         `}
-      >
+       >
         {/* Header */}
         <SidebarHeader
           logo="J"
@@ -102,12 +102,6 @@ const AdminSidebar = ({
           navigationItems={navigationItems}
           activeItem={activeTab}
           onItemClick={handleItemClick}
-        />
-
-        {/* Profile and Logout */}
-        <SidebarProfile
-          user={user}
-          onLogout={onLogout}
         />
       </div>
     </>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Home, 
   Users, 
@@ -13,7 +13,9 @@ import {
   Star,
   MapPin,
   Mail,
-  Phone
+  Phone,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
 const SidebarItem = ({ 
@@ -21,6 +23,8 @@ const SidebarItem = ({
   isActive, 
   onClick 
 }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   // Map icon names to actual components
   const iconMap = {
     'Home': Home,
@@ -41,10 +45,24 @@ const SidebarItem = ({
 
   const Icon = iconMap[item.icon] || Home; // Default to Home if icon not found
 
+  const handleClick = () => {
+    if (item.subItems) {
+      // If item has sub-items, toggle dropdown
+      setIsDropdownOpen(!isDropdownOpen);
+    } else {
+      // If no sub-items, call the original onClick
+      onClick(item.id);
+    }
+  };
+
+  const handleSubItemClick = (subItemId) => {
+    onClick(subItemId);
+  };
+
   return (
     <li>
       <button
-        onClick={() => onClick(item.id)}
+        onClick={handleClick}
         className={`
           relative w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-md text-left transition-all duration-200 group
           ${isActive
@@ -69,19 +87,64 @@ const SidebarItem = ({
           <span className={`text-sm ${isActive ? "font-medium" : "font-normal"}`}>
             {item.label}
           </span>
-          {item.badge && (
-            <span className={`
-              px-1.5 py-0.5 text-xs font-medium rounded-full
-              ${isActive
-                ? "bg-red-100 text-red-700"
-                : "bg-slate-100 text-slate-600"
-              }
-            `}>
-              {item.badge}
-            </span>
-          )}
+          <div className="flex items-center space-x-2">
+            {item.badge && (
+              <span className={`
+                px-1.5 py-0.5 text-xs font-medium rounded-full
+                ${isActive
+                  ? "bg-red-100 text-red-700"
+                  : "bg-slate-100 text-slate-600"
+                }
+              `}>
+                {item.badge}
+              </span>
+            )}
+            {item.subItems && (
+              <div className="flex items-center">
+                {isDropdownOpen ? (
+                  <ChevronDown className="w-4 h-4 text-slate-500" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </button>
+
+      {/* Dropdown sub-items */}
+      {item.subItems && isDropdownOpen && (
+        <ul className="ml-6 mt-1 space-y-0.5">
+          {item.subItems.map((subItem) => (
+            <li key={subItem.id}>
+              <button
+                onClick={() => handleSubItemClick(subItem.id)}
+                className={`
+                  relative w-full flex items-center space-x-2.5 px-3 py-2 rounded-md text-left transition-all duration-200 group
+                  ${isActive === subItem.id
+                    ? "bg-red-50 text-red-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }
+                `}
+              >
+                <div className="flex items-center justify-center min-w-[24px]">
+                  <div className={`
+                    w-1.5 h-1.5 rounded-full
+                    ${isActive === subItem.id 
+                      ? "bg-red-600" 
+                      : "bg-slate-400 group-hover:bg-slate-600"
+                    }
+                  `} />
+                </div>
+                
+                <span className={`text-sm ${isActive === subItem.id ? "font-medium" : "font-normal"}`}>
+                  {subItem.label}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </li>
   );
 };

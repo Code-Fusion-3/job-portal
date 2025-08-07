@@ -1,4 +1,4 @@
-import { Search, Filter, Menu, Bell, User, RefreshCw } from 'lucide-react';
+import { Search, Filter, Bell, User, RefreshCw } from 'lucide-react';
 import Button from '../ui/Button';
 
 const AdminHeader = ({
@@ -6,7 +6,6 @@ const AdminHeader = ({
   onLogout,
   onSearch,
   onFilter,
-  onSidebarToggle,
   searchTerm = '',
   onRefresh
 }) => {
@@ -24,17 +23,8 @@ const AdminHeader = ({
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-4 md:px-6 py-4 sticky top-0 z-20">
       <div className="flex items-center justify-between">
-        {/* Left side - Menu button and title */}
+        {/* Left side - Title */}
         <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSidebarToggle}
-            className="md:hidden"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          
           <div>
             <h1 className="text-lg md:text-xl font-bold text-gray-900">
               Admin Dashboard

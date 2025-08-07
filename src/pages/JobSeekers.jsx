@@ -565,8 +565,6 @@ const JobSeekers = () => {
                           </div>
                         )}
                       </div>
-
-
                     </div>
                   </Card>
                 </motion.div>

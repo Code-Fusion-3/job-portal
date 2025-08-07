@@ -15,7 +15,8 @@ import {
   Filter,
   Search,
   RefreshCw,
-  Play
+  Play,
+  MoreHorizontal
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
@@ -30,7 +31,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import Pagination from '../../components/ui/Pagination';
+
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
 import { motion } from 'motion/react';
 
@@ -409,14 +410,20 @@ const EmployerRequestsPage = () => {
     setAdminNotes(request.adminNotes || '');
     
     switch (action) {
+      case 'openActions':
+        setShowActionModal(true);
+        break;
       case 'view':
         setShowDetailsModal(true);
+        setShowActionModal(false);
         break;
       case 'contact':
         handleContactEmployer(request.employerContact, 'email');
+        setShowActionModal(false);
         break;
       case 'call':
         handleContactEmployer(request.employerContact, 'phone');
+        setShowActionModal(false);
         break;
       case 'reply':
         setCurrentAction('reply');
@@ -428,9 +435,11 @@ const EmployerRequestsPage = () => {
         break;
       case 'start':
         handleStatusUpdate('in_progress', 'Starting to process this request');
+        setShowActionModal(false);
         break;
       case 'approve':
         handleStatusUpdate('approved', 'Request approved and ready for completion');
+        setShowActionModal(false);
         break;
       case 'complete':
         setCurrentAction('complete');
@@ -438,6 +447,7 @@ const EmployerRequestsPage = () => {
         break;
       case 'reactivate':
         handleStatusUpdate('pending', 'Request reactivated and back to pending status');
+        setShowActionModal(false);
         break;
       default:
         console.warn('Unknown action:', action);
@@ -601,6 +611,18 @@ const EmployerRequestsPage = () => {
   };
 
   const getActionButtons = (request) => {
+    return [
+      {
+        key: 'openActions',
+        title: 'Actions',
+        icon: MoreHorizontal,
+        className: 'text-gray-600 hover:bg-gray-50'
+      }
+    ];
+  };
+
+  // Get all action buttons for the modal
+  const getAllActionButtons = (request) => {
     const baseActions = [
       // View Details - Always available
       { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
@@ -838,25 +860,11 @@ const EmployerRequestsPage = () => {
                 onFilterChange={handleFilterChange}
           onRowAction={handleRowAction}
                 actionButtons={getActionButtons}
-          pagination={false}
-                itemsPerPage={10}
+          pagination={true}
+                itemsPerPage={15}
               />
 
-              {/* Server-side Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={goToPage}
-                    onNextPage={nextPage}
-                    onPrevPage={prevPage}
-                    hasNextPage={hasNextPage}
-                    hasPrevPage={hasPrevPage}
-                    pageInfo={pageInfo}
-                  />
-                </div>
-              )}
+
             </div>
 
                           {/* Server-side pagination is handled by the DataTable component */}
@@ -1089,7 +1097,33 @@ const EmployerRequestsPage = () => {
       )}
 
       {/* Action Modal */}
-      {showActionModal && selectedRequest && (
+      {showActionModal && selectedRequest && !currentAction && (
+        <Modal
+          isOpen={showActionModal}
+          onClose={() => setShowActionModal(false)}
+          title={`Actions for ${selectedRequest.employerName} - ${selectedRequest.companyName}`}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-3">
+            {getAllActionButtons(selectedRequest).map((action, index) => {
+              const IconComponent = action.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleRowAction(action.key, selectedRequest)}
+                  className={`w-full flex items-center space-x-3 p-3 text-left rounded-lg transition-colors duration-200 ${action.className}`}
+                >
+                  <IconComponent className="w-5 h-5" />
+                  <span className="text-gray-900">{action.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
+      )}
+
+      {/* Specific Action Modal (Reply, Select, Complete) */}
+      {showActionModal && selectedRequest && currentAction && (
         <Modal
           isOpen={showActionModal}
           onClose={() => setShowActionModal(false)}
@@ -1162,8 +1196,8 @@ const EmployerRequestsPage = () => {
                 </p>
               </div>
               <div className="flex justify-end space-x-3">
-              <Button
-                variant="outline"
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setShowActionModal(false);
                     setReplyMessage('');
@@ -1173,7 +1207,7 @@ const EmployerRequestsPage = () => {
                   disabled={replyLoading}
                 >
                   Cancel
-              </Button>
+                </Button>
                 <Button
                   variant="primary"
                   onClick={handleReplySubmit}
@@ -1254,22 +1288,22 @@ const EmployerRequestsPage = () => {
                         </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                  <Button
-                    variant="outline"
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Profile Picture
-                  </Button>
-                  <Button
-                    variant="primary"
+                        </Button>
+                        <Button
+                          variant="primary"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Complete Details
-                  </Button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1279,14 +1313,14 @@ const EmployerRequestsPage = () => {
                     <p>No candidate specified in this request</p>
                     <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
                   </div>
-              )}
-            </div>
+                )}
+              </div>
 
               {candidateSelectionError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                   {candidateSelectionError}
-          </div>
-        )}
+                </div>
+              )}
 
               {candidateSelectionLoading && (
                 <div className="text-sm text-gray-600 flex items-center justify-center">
@@ -1312,7 +1346,7 @@ const EmployerRequestsPage = () => {
           )}
 
           {currentAction === 'complete' && (
-        <div className="space-y-4">
+            <div className="space-y-4">
               {/* Request Information */}
               <div className="bg-orange-50 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
@@ -1380,18 +1414,18 @@ const EmployerRequestsPage = () => {
               )}
 
               <div className="flex justify-end space-x-3">
-            <Button
-              variant="outline"
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setShowActionModal(false);
                     setCompletionNotes('');
                     setCompletionError('');
                   }}
                   disabled={completionLoading}
-            >
-              Cancel
-            </Button>
-            <Button
+                >
+                  Cancel
+                </Button>
+                <Button
                   variant="primary"
                   onClick={handleRequestCompletion}
                   disabled={completionLoading}
@@ -1405,11 +1439,11 @@ const EmployerRequestsPage = () => {
                   ) : (
                     'Complete Request'
                   )}
-            </Button>
-          </div>
-        </div>
+                </Button>
+              </div>
+            </div>
           )}
-      </Modal>
+        </Modal>
       )}
     </div>
   );

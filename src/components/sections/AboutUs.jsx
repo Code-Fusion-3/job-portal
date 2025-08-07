@@ -190,7 +190,7 @@ const AboutUs = () => {
               <motion.div
                 key={value.id}
                 variants={itemVariants}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-colors duration-300"
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-red-600/20 transition-colors duration-300"
               >
                 <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   {renderIcon(value.icon)}

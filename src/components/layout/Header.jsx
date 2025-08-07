@@ -152,7 +152,7 @@ const Header = () => {
             {/* CTA Buttons */}
             <div className="flex items-center space-x-4">
               <Link to="/login">
-                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-white hover:bg-opacity-20">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20">
                   {t('nav.login')}
                 </Button>
               </Link>
@@ -167,7 +167,7 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <motion.button
             ref={buttonRef}
-            className="md:hidden p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-colors duration-200"
+            className="md:hidden p-2 rounded-lg text-white hover:bg-red-600 hover:bg-opacity-20 transition-colors duration-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -228,7 +228,7 @@ const Header = () => {
                         className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
                           i18n.language === 'en' 
                             ? 'bg-red-600 text-white' 
-                            : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                            : 'bg-red-600 bg-opacity-20 text-white hover:bg-opacity-30'
                         }`}
                         onClick={() => toggleLanguage('en')}
                       >
@@ -238,7 +238,7 @@ const Header = () => {
                         className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
                           i18n.language === 'rw' 
                             ? 'bg-red-600 text-white' 
-                            : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                            : 'bg-red-600 bg-opacity-20 text-white hover:bg-opacity-30'
                         }`}
                         onClick={() => toggleLanguage('rw')}
                       >
