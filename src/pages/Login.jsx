@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight, AlertTriangle, LogIn, Sparkles } from 'lucide-react';
 import { useAuth } from '../api/hooks/useAuth.js';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
@@ -11,6 +11,7 @@ import FormCheckbox from '../components/ui/FormCheckbox';
 import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import jobseekerBackground from '../assets/jobseekerBackground.png';
 
 const Login = () => {
   const { t } = useTranslation();
@@ -56,8 +57,6 @@ const Login = () => {
       }));
     }
   };
-
-
 
   const validateForm = () => {
     const newErrors = {};
@@ -108,106 +107,153 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url(${jobseekerBackground})` }}
+    >
       <Header />
       
-      <FormLayout
-        title={t('login.title', 'Welcome Back')}
-        subtitle={t('login.subtitle', 'Sign in to your job seeker account')}
-        onSubmit={handleSubmit}
-      >
-        {/* Session Expiration Message */}
-        {sessionMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6"
+      {/* Hero Section */}
+      <div className="relative bg-blue-600/90 backdrop-blur-sm">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }}
+            className="text-center"
           >
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              <span className="text-yellow-700">{sessionMessage}</span>
-            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Welcome Back
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">
+              Sign in to your job seeker account and continue your career journey
+            </p>
           </motion.div>
-        )}
+        </div>
+      </div>
 
-        {errors.general && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-red-600 text-sm">{errors.general}</p>
-          </div>
-        )}
-
-        <FormInput
-          type="text"
-          id="identifier"
-          name="identifier"
-          label={t('login.identifier', 'Email or Phone Number')}
-          value={formData.identifier}
-          onChange={handleInputChange}
-          placeholder={t('login.identifierPlaceholder', 'Enter your email or phone number')}
-          error={errors.identifier}
-          icon={Mail}
-          required
-        />
-
-        <PasswordInput
-          id="password"
-          name="password"
-          label={t('login.password', 'Password')}
-          value={formData.password}
-          onChange={handleInputChange}
-          placeholder={t('login.passwordPlaceholder', 'Enter your password')}
-          error={errors.password}
-          required
-        />
-
-        <div className="flex items-center justify-between">
-          <FormCheckbox
-            id="rememberMe"
-            name="rememberMe"
-            label={t('login.rememberMe', 'Remember me')}
-            checked={formData.rememberMe}
-            onChange={handleInputChange}
-          />
-          <Link
-            to="/forgot-password"
-            className="text-sm text-red-600 hover:text-red-500 transition-colors duration-200"
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div className="max-w-md mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.2 }}
+            className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20"
           >
-            {t('login.forgotPassword', 'Forgot password?')}
-          </Link>
-        </div>
+            {/* Session Expiration Message */}
+            {sessionMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6"
+              >
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                  <span className="text-yellow-800 text-sm">{sessionMessage}</span>
+                </div>
+              </motion.div>
+            )}
 
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          className="w-full group"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              {t('login.signingIn', 'Signing in...')}
-            </>
-          ) : (
-            <>
-              {t('login.signIn', 'Sign In')}
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-            </>
-          )}
-        </Button>
+            {errors.general && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6"
+              >
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-red-700 text-sm">{errors.general}</p>
+                </div>
+              </motion.div>
+            )}
 
-        <div className="text-center space-y-2">
-          <p className="text-gray-600">
-            {t('login.noAccount', "Don't have an account?")}{' '}
-            <Link
-              to="/register"
-              className="text-red-600 hover:text-red-500 font-medium transition-colors duration-200"
-            >
-              {t('login.signUp', 'Sign up')}
-            </Link>
-          </p>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <FormInput
+                type="text"
+                id="identifier"
+                name="identifier"
+                label={t('login.identifier', 'Email or Phone Number')}
+                value={formData.identifier}
+                onChange={handleInputChange}
+                placeholder={t('login.identifierPlaceholder', 'Enter your email or phone number')}
+                error={errors.identifier}
+                icon={Mail}
+                required
+              />
+
+              <PasswordInput
+                id="password"
+                name="password"
+                label={t('login.password', 'Password')}
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder={t('login.passwordPlaceholder', 'Enter your password')}
+                error={errors.password}
+                required
+              />
+
+              <div className="flex items-center justify-between">
+                <FormCheckbox
+                  id="rememberMe"
+                  name="rememberMe"
+                  label={t('login.rememberMe', 'Remember me')}
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
+                />
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200 font-medium"
+                >
+                  {t('login.forgotPassword', 'Forgot password?')}
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full group bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {t('login.signingIn', 'Signing in...')}
+                  </>
+                ) : (
+                  <>
+                    {t('login.signIn', 'Sign In')}
+                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">New to our platform?</span>
+                  </div>
+                </div>
+                
+                <p className="text-gray-600">
+                  {t('login.noAccount', "Don't have an account?")}{' '}
+                  <Link
+                    to="/register"
+                    className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
+                  >
+                    {t('login.signUp', 'Sign up')}
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </motion.div>
         </div>
-      </FormLayout>
+      </div>
       
       <Footer />
     </div>

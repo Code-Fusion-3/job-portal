@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, User, Phone, Camera, MapPin, Calendar, FileText, Briefcase, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, Mail, User, Phone, Camera, MapPin, Calendar, FileText, Briefcase, ChevronDown, ChevronUp, UserPlus, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
@@ -12,6 +12,7 @@ import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { authService } from '../api/index.js';
+import jobseekerBackground from '../assets/jobseekerBackground.png';
 
 // Sample job categories data - replace with API call later
 const sampleCategories = [
@@ -460,14 +461,42 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url(${jobseekerBackground})` }}
+    >
       <Header />
       
-      <FormLayout
-        title={t('register.title', 'Create Your Account')}
-        subtitle={t('register.subtitle', 'Join thousands of job seekers and start your career journey')}
-        onSubmit={handleSubmit}
-      >
+      {/* Hero Section */}
+      <div className="relative bg-blue-600/90 backdrop-blur-sm">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }}
+            className="text-center"
+          >
+            
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Create Your Account
+            </h1>
+            <p className="text-xl text-white/90 max-w-2xl mx-auto">
+              Join thousands of job seekers and start your career journey
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.2 }}
+          className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20"
+        >
+          <form onSubmit={handleSubmit} className="space-y-8">
         {errors.general && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
             <p className="text-red-600 text-sm">{errors.general}</p>
@@ -1078,11 +1107,11 @@ const Register = () => {
             label={
               <span>
                 {t('register.agreeToTerms', 'I agree to the')}{' '}
-                <Link to="/terms" className="text-red-600 hover:underline">
+                <Link to="/terms" className="text-blue-600 hover:underline">
                   {t('register.terms', 'Terms of Service')}
                 </Link>{' '}
                 {t('register.and', 'and')}{' '}
-                <Link to="/privacy" className="text-red-600 hover:underline">
+                <Link to="/privacy" className="text-blue-600 hover:underline">
                   {t('register.privacy', 'Privacy Policy')}
                 </Link>
               </span>
@@ -1105,23 +1134,44 @@ const Register = () => {
             type="submit"
             variant="primary"
             size="lg"
-            className="w-full flex items-center justify-center gap-2 mt-6"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 mt-6"
             disabled={loading}
           >
-            {loading ? t('register.creating', 'Creating account...') : t('register.createAccount', 'Create Account')}
-            {!loading && <ArrowRight className="w-5 h-5" />}
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                {t('register.creating', 'Creating account...')}
+              </>
+            ) : (
+              <>
+                {t('register.createAccount', 'Create Account')}
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
           </Button>
 
-          <p className="text-center text-sm text-gray-600 mt-4">
-            {t('register.haveAccount', 'Already have an account?')}{' '}
-            <Link to="/login" className="font-medium text-red-600 hover:text-red-700 transition-colors duration-200">
-              {t('register.signIn', 'Sign in')}
-            </Link>
-          </p>
+          <div className="text-center space-y-4 mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+              </div>
+            </div>
+            
+            <p className="text-gray-600">
+              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                {t('register.signIn', 'Sign in')}
+              </Link>
+            </p>
+          </div>
         </div>
-      </FormLayout>
-      <Footer />
-    </div>
+      </form>
+    </motion.div>
+  </div>
+  <Footer />
+</div>
   );
 };
 

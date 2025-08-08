@@ -6,34 +6,34 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { submitContact } from '../../api/services/contactService';
 
-// Static data moved from mockData.js
+// Static data with translation keys
 const contactInfo = [
   {
     id: 1,
-    title: 'Email',
+    titleKey: 'contact.info.email.title',
     value: 'info@jobportal.com',
-    description: 'Send us an email anytime',
+    descriptionKey: 'contact.info.email.desc',
     icon: 'Mail'
   },
   {
     id: 2,
-    title: 'Phone',
+    titleKey: 'contact.info.phone.title',
     value: '+250 789 123 456',
-    description: 'Call us during business hours',
+    descriptionKey: 'contact.info.phone.desc',
     icon: 'Phone'
   },
   {
     id: 3,
-    title: 'Address',
+    titleKey: 'contact.info.office.title',
     value: 'Kigali, Rwanda',
-    description: 'Visit our office',
+    descriptionKey: 'contact.info.office.desc',
     icon: 'MapPin'
   },
   {
     id: 4,
-    title: 'Business Hours',
+    titleKey: 'contact.info.businessHours.title',
     value: 'Monday - Friday: 8:00 AM - 6:00 PM',
-    description: 'We\'re here to help',
+    descriptionKey: 'contact.info.businessHours.desc',
     icon: 'Clock'
   }
 ];
@@ -151,10 +151,10 @@ const ContactUs = () => {
         </motion.div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('contact.info.title', 'Get in Touch')}
+                {safeTranslate('contact.info.title', 'Get in Touch')}
               </h3>
               <p className="text-gray-600 mb-8">
-                {t('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
+                {safeTranslate('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
               </p>
             </div>
 
@@ -182,13 +182,13 @@ const ContactUs = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">
-                      {t(`contact.info.${info.id}.title`, info.title)}
+                      {safeTranslate(info.titleKey, info.titleKey)}
                     </h4>
                     <p className="text-gray-600 mb-1">
-                      {t(`contact.info.${info.id}.value`, info.value)}
+                      {info.value}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {t(`contact.info.${info.id}.description`, info.description)}
+                      {safeTranslate(info.descriptionKey, info.descriptionKey)}
                     </p>
                   </div>
                 </motion.div>
@@ -207,7 +207,7 @@ const ContactUs = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.name', 'Full Name')}
+                    {safeTranslate('contact.form.name', 'Full Name')}
                   </label>
                   <input
                     type="text"
@@ -217,13 +217,13 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.namePlaceholder', 'Enter your full name')}
+                    placeholder={safeTranslate('contact.form.namePlaceholder', 'Enter your full name')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.email', 'Email Address')}
+                    {safeTranslate('contact.form.email', 'Email Address')}
                   </label>
                   <input
                     type="email"
@@ -233,13 +233,13 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.emailPlaceholder', 'Enter your email address')}
+                    placeholder={safeTranslate('contact.form.emailPlaceholder', 'Enter your email address')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.subject', 'Subject')}
+                    {safeTranslate('contact.form.subject', 'Subject')}
                   </label>
                   <input
                     type="text"
@@ -249,7 +249,7 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.subjectPlaceholder', 'Enter subject')}
+                    placeholder={safeTranslate('contact.form.subjectPlaceholder', 'Enter subject')}
                   />
                 </div>
 
@@ -302,7 +302,7 @@ const ContactUs = () => {
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.message', 'Message')}
+                    {safeTranslate('contact.form.message', 'Message')}
                   </label>
                   <textarea
                     id="message"
@@ -312,7 +312,7 @@ const ContactUs = () => {
                     required
                     rows={5}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 resize-none text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.messagePlaceholder', 'Enter your message')}
+                    placeholder={safeTranslate('contact.form.messagePlaceholder', 'Enter your message')}
                   />
                 </div>
 
@@ -337,12 +337,12 @@ const ContactUs = () => {
                   {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      {t('contact.form.sending', 'Sending...')}
+                      {safeTranslate('contact.form.sending', 'Sending...')}
                     </>
                   ) : (
                     <>
                   <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
-                  {t('contact.form.submit', 'Send Message')}
+                  {safeTranslate('contact.form.submit', 'Send Message')}
                     </>
                   )}
                 </Button>
@@ -357,10 +357,10 @@ const ContactUs = () => {
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {t('contact.success.title', 'Message Sent Successfully!')}
+                  {safeTranslate('contact.success.title', 'Message Sent Successfully!')}
                 </h3>
                 <p className="text-gray-600">
-                  {t('contact.success.message', 'Thank you for your message. We\'ll get back to you as soon as possible.')}
+                  {safeTranslate('contact.success.message', 'Thank you for your message. We\'ll get back to you as soon as possible.')}
                 </p>
               </motion.div>
             )}

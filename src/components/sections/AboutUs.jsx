@@ -148,31 +148,6 @@ const AboutUs = () => {
           </motion.div>
         </motion.div>
 
-        {/* Statistics */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20"
-        >
-          {statsData.map((stat, index) => (
-            <motion.div
-              key={stat.id}
-              variants={itemVariants}
-              className="text-center floating-stat"
-            >
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                {renderIcon(stat.icon)}
-              </div>
-              <div className="text-3xl font-bold text-red-400 mb-2 counter" data-target={stat.number.replace(/\D/g, '')}>
-                {stat.number}
-              </div>
-              <div className="text-gray-300">{t(`about.stats.${stat.id}.label`, stat.label)}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-
         {/* Core Values */}
         <motion.div
           variants={containerVariants}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { CheckCircle, User } from 'lucide-react';
+import { CheckCircle, User, MapPin, Briefcase, Star, Clock, DollarSign, MessageSquare } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -10,6 +10,9 @@ import EmployerRequestForm from '../components/forms/EmployerRequestForm';
 import { jobSeekerService } from '../api/index.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import Avatar from '../components/ui/Avatar';
+import jobseekerBackground from '../assets/jobseekerBackground.png';
 
 const EmployerRequest = () => {
   const { t } = useTranslation();
@@ -54,38 +57,80 @@ const EmployerRequest = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${jobseekerBackground})` }}
+      >
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <LoadingSpinner size="lg" text="Loading candidate information..." />
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-center py-8">{t('employerRequest.error.message', 'Failed to load job seeker profile.')}</div>;
+    return (
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${jobseekerBackground})` }}
+      >
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Profile</h2>
+              <p className="text-gray-600 mb-6">{t('employerRequest.error.message', 'Failed to load job seeker profile.')}</p>
+              <BackButton to="/job-seekers" text="Back to Job Seekers" />
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   if (requestSent) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${jobseekerBackground})` }}
+      >
         <Header />
         <div className="pt-16 pb-8">
           <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-sm border p-8 text-center"
+              className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center"
             >
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 {t('employerRequest.success.title', 'Request Sent Successfully!')}
               </h1>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
                 {t('employerRequest.success.message', 'Your request has been sent to our admin team. We\'ll review it and get back to you within 24 hours.')}
               </p>
+              <div className="bg-green-50 rounded-xl p-6 mb-8">
+                <h3 className="font-semibold text-green-800 mb-2">What happens next?</h3>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• Our team will review your request within 24 hours</li>
+                  <li>• You'll receive an email confirmation</li>
+                  <li>• We'll contact you to discuss next steps</li>
+                </ul>
+              </div>
               <div className="space-y-4">
                 <BackButton 
                   to={`/view-profile/${id}`}
                   text={t('employerRequest.success.backToProfile', 'Back to Profile')}
-                  className="inline-block"
+                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold"
                 />
               </div>
             </motion.div>
@@ -97,86 +142,163 @@ const EmployerRequest = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url(${jobseekerBackground})` }}
+    >
       <Header />
       <div className="pt-16 pb-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <nav className="mt-8 mb-8">
-            <BackButton 
-              to={`/view-profile/${id}`}
-              text={t('employerRequest.backToProfile', 'Back to Profile')}
-            />
-          </nav>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Hero Section */}
+          <div className="relative backdrop-blur-sm mb-8">
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="relative">
+              <BackButton 
+                to={`/view-profile/${id}`}
+                text={t('employerRequest.backToProfile', 'Back to Profile')}
+                className="text-white hover:text-gray-200"
+              />
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.1 }}
+                className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mt-6"
+              >
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-8 h-8 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Request Candidate</h1>
+                  <p className="text-gray-600 text-lg">Fill out the form below to request this candidate for your position</p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Job Seeker Info */}
+            {/* Enhanced Candidate Info */}
             <div className="lg:col-span-1">
-              <Card className="p-6 sticky top-24">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t('employerRequest.candidateInfo', 'Candidate Information')}
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                      {jobSeeker?.profile?.photo ? (
-                        <img 
-                          src={jobSeeker.profile.photo} 
-                          alt={jobSeeker.profile.firstName + ' ' + jobSeeker.profile.lastName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <User className="w-6 h-6 text-gray-400" />
-                        </div>
-                      )}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="p-8 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border-0 sticky top-6">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-900">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {t('employerRequest.candidateInfo', 'Candidate Information')}
+                    </h2>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Profile Header */}
+                    <div className="text-center pb-6 border-b border-gray-200">
+                      <div className="relative inline-block">
+                        <Avatar 
+                          src={jobSeeker?.profile?.photo}
+                          alt={jobSeeker?.profile?.firstName + ' ' + jobSeeker?.profile?.lastName}
+                          size="xl"
+                          fallback={jobSeeker?.profile?.firstName + ' ' + jobSeeker?.profile?.lastName}
+                          className="w-20 h-20 ring-4 ring-white shadow-lg"
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
+                          <div className="w-3 h-3 bg-white rounded-full"></div>
+                        </div>
+                      </div>
+                      <h3 className="font-bold text-xl text-gray-900 mt-4">
                         {jobSeeker?.profile?.firstName ? jobSeeker.profile.firstName.charAt(0) + '*'.repeat(jobSeeker.profile.firstName.length - 1) : ''}
                         {' '}
                         {jobSeeker?.profile?.lastName ? jobSeeker.profile.lastName.charAt(0) + '*'.repeat(jobSeeker.profile.lastName.length - 1) : ''}
                       </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                          {jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
-                        </span>
-                        {/* Status dot (green for demo) */}
-                        <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                        <span className="text-xs text-gray-400">View Profile</span>
+                      <Badge variant="primary" size="lg" className="mt-2 bg-blue-500 text-white border-0">
+                        {jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
+                      </Badge>
+                    </div>
+
+                    {/* Key Information */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                        <MapPin className="w-5 h-5 text-blue-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Location</p>
+                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.location || (jobSeeker?.profile?.city ? jobSeeker.profile.city : '') || 'Location not specified'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                        <Briefcase className="w-5 h-5 text-green-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Experience</p>
+                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.experience || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                        <Clock className="w-5 h-5 text-purple-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Availability</p>
+                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.availability || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      {jobSeeker?.profile?.monthlyRate && (
+                        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-xl">
+                          <DollarSign className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Monthly Rate</p>
+                            <p className="text-sm font-semibold text-blue-600">{jobSeeker.profile.monthlyRate}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Skills Section */}
+                    <div>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Star className="w-4 h-4 text-orange-500" />
+                        <h4 className="text-sm font-semibold text-gray-900">Skills & Expertise</h4>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {jobSeeker?.profile?.skills ? jobSeeker.profile.skills.split(',').map((skill, idx) => (
+                          <Badge key={idx} variant="outline" size="sm" className="px-3 py-1 text-xs font-medium border-gray-200 text-gray-700 bg-gray-50">
+                            {skill.trim()}
+                          </Badge>
+                        )) : <span className="text-gray-400 text-sm">No skills listed</span>}
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600 mt-2">
-                    <span className="inline-flex items-center"><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 10.5a8.38 8.38 0 0 1-.9 3.8c-.6 1.2-1.5 2.2-2.6 3.1-2.1 1.7-4.7 2.6-7.5 2.1-2.8-.5-5.2-2.3-6.5-4.8A8.38 8.38 0 0 1 3 10.5C3 6.4 6.4 3 10.5 3S18 6.4 18 10.5c0 .2 0 .4-.1.6"/></svg></span>
-                    <span>{jobSeeker?.profile?.location || (jobSeeker?.profile?.city ? jobSeeker.profile.city : '') || 'Location not specified'}</span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="bg-blue-50 rounded-lg px-3 py-2 mb-2">
-                      <span className="text-xs font-bold text-blue-700">EXPERIENCE</span>
-                      <div className="text-gray-700 text-sm mt-1">{jobSeeker?.profile?.experience || 'Not specified'}</div>
+
+                    {/* Quick Actions */}
+                    <div className="pt-4 border-t border-gray-200">
+                      <Link 
+                        to={`/view-profile/${id}`}
+                        className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-xl transition-colors"
+                      >
+                        View Full Profile
+                      </Link>
                     </div>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-xs font-bold text-gray-700">SKILLS</span>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {jobSeeker?.profile?.skills ? jobSeeker.profile.skills.split(',').map((skill, idx) => (
-                        <span key={idx} className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{skill.trim()}</span>
-                      )) : <span className="text-gray-400">No skills listed</span>}
-                    </div>
-                  </div>
-                </div>
-              </Card>
+                </Card>
+              </motion.div>
             </div>
 
             {/* Request Form */}
             <div className="lg:col-span-2">
-              <EmployerRequestForm
-                jobSeekerId={jobSeeker?.id || jobSeeker?.profile?.userId}
-                jobSeekerName={jobSeeker?.profile ? `${jobSeeker.profile.firstName} ${jobSeeker.profile.lastName}` : jobSeeker.name}
-                onSuccess={handleSuccess}
-                onError={handleError}
-              />
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                transition={{ delay: 0.3 }}
+              >
+                <EmployerRequestForm
+                  jobSeekerId={jobSeeker?.id || jobSeeker?.profile?.userId}
+                  jobSeekerName={jobSeeker?.profile ? `${jobSeeker.profile.firstName} ${jobSeeker.profile.lastName}` : jobSeeker.name}
+                  onSuccess={handleSuccess}
+                  onError={handleError}
+                />
+              </motion.div>
             </div>
           </div>
         </div>
