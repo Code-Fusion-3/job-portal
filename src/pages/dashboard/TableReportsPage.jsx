@@ -176,20 +176,72 @@ const TableReportsPage = () => {
     }));
   };
 
+  // Robust transformation for employer requests, similar to EmployerRequestsPage.jsx
   const prepareEmployerRequestsTableData = () => {
     if (!allRequests || allRequests.length === 0) return [];
-    
-    return allRequests.map(request => ({
-      id: request.id,
-      employerName: request.employerName || request.employer?.name || 'Unknown',
-      companyName: request.companyName || request.employer?.company || 'Private',
-      position: request.position || request.jobTitle || 'General',
-      status: request.status || 'pending',
-      priority: request.priority || 'normal',
-      monthlyRate: request.monthlyRate ? `${request.monthlyRate.toLocaleString()} RWF` : 'Not specified',
-      createdAt: request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'Unknown',
-      contactEmail: request.employerContact?.email || request.employer?.email || 'Not provided'
-    }));
+
+    // Format monthly rate for display
+    const formatMonthlyRate = (rate) => {
+      if (!rate || rate === 'Not specified') return 'Not specified';
+      if (typeof rate === 'number') {
+        return new Intl.NumberFormat('en-RW', {
+          style: 'currency',
+          currency: 'RWF',
+          minimumFractionDigits: 0
+        }).format(rate);
+      }
+      if (typeof rate === 'string') {
+        const numRate = parseFloat(rate);
+        if (!isNaN(numRate)) {
+          return new Intl.NumberFormat('en-RW', {
+            style: 'currency',
+            currency: 'RWF',
+            minimumFractionDigits: 0
+          }).format(numRate);
+        }
+        return rate;
+      }
+      return 'Not specified';
+    };
+
+    return allRequests.map((backendRequest) => {
+      return {
+        id: backendRequest.id,
+        employerName: backendRequest.name || backendRequest.employerName || backendRequest.employer?.name || 'Unknown',
+        companyName: backendRequest.companyName || backendRequest.employer?.company || 'Private',
+        candidateName: backendRequest.requestedCandidate
+          ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
+          : 'Not specified',
+        position: backendRequest.requestedCandidate?.profile?.skills || backendRequest.position || backendRequest.jobTitle || 'General',
+        status: backendRequest.status || 'pending',
+        priority: backendRequest.priority || 'normal',
+        monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
+        createdAt: backendRequest.createdAt ? new Date(backendRequest.createdAt).toLocaleDateString() : 'Unknown',
+        contactEmail: backendRequest.email || backendRequest.employerContact?.email || backendRequest.employer?.email || 'Not provided',
+        // Add more fields if needed for future table columns or export
+        lastContactDate: backendRequest.updatedAt,
+        isCompleted: backendRequest.status === 'completed',
+        category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
+        candidateExperience: backendRequest.requestedCandidate?.profile?.experience || 'Not specified',
+        candidateExperienceLevel: backendRequest.requestedCandidate?.profile?.experienceLevel || 'Not specified',
+        candidateEducation: backendRequest.requestedCandidate?.profile?.educationLevel || 'Not specified',
+        candidateLocation: backendRequest.requestedCandidate?.profile?.location || 'Not specified',
+        candidateCity: backendRequest.requestedCandidate?.profile?.city || 'Not specified',
+        candidateCountry: backendRequest.requestedCandidate?.profile?.country || 'Not specified',
+        candidateContact: backendRequest.requestedCandidate?.profile?.contactNumber || 'Not specified',
+        candidateEmail: backendRequest.requestedCandidate?.email || 'Not specified',
+        candidateLanguages: backendRequest.requestedCandidate?.profile?.languages || 'Not specified',
+        candidateCertifications: backendRequest.requestedCandidate?.profile?.certifications || 'Not specified',
+        candidateAvailability: backendRequest.requestedCandidate?.profile?.availability || 'Not specified',
+        candidateDescription: backendRequest.requestedCandidate?.profile?.description || 'Not specified',
+        candidateGender: backendRequest.requestedCandidate?.profile?.gender || 'Not specified',
+        candidateMaritalStatus: backendRequest.requestedCandidate?.profile?.maritalStatus || 'Not specified',
+        candidateIdNumber: backendRequest.requestedCandidate?.profile?.idNumber || 'Not specified',
+        candidateReferences: backendRequest.requestedCandidate?.profile?.references || 'Not specified',
+        message: backendRequest.message || '',
+        _backendData: backendRequest
+      };
+    });
   };
 
   const prepareCategoriesTableData = () => {
@@ -292,9 +344,15 @@ const TableReportsPage = () => {
       
       case 'employer-requests':
         return [
-          { key: 'employerName', label: 'Employer', sortable: true },
+          { key: 'employerName', label: 'Employer Name', sortable: true },
           { key: 'companyName', label: 'Company', sortable: true },
-          { key: 'position', label: 'Position', sortable: true },
+          { key: 'contactEmail', label: 'Employer Email', sortable: true },
+          { key: 'candidateName', label: 'Candidate Name', sortable: true },
+          { key: 'candidateEmail', label: 'Candidate Email', sortable: true },
+          { key: 'candidateContact', label: 'Candidate Phone', sortable: true },
+          { key: 'position', label: 'Position/Skills', sortable: true },
+          { key: 'category', label: 'Category', sortable: true },
+          { key: 'monthlyRate', label: 'Monthly Rate', sortable: true },
           { key: 'status', label: 'Status', sortable: true, render: (item) => (
             <Badge variant={
               item.status === 'completed' ? 'success' :
@@ -313,9 +371,7 @@ const TableReportsPage = () => {
               {item.priority}
             </Badge>
           )},
-          { key: 'monthlyRate', label: 'Monthly Rate', sortable: true },
-          { key: 'createdAt', label: 'Created', sortable: true },
-          { key: 'contactEmail', label: 'Contact Email', sortable: true }
+          { key: 'createdAt', label: 'Created', sortable: true }
         ];
       
       case 'categories':
