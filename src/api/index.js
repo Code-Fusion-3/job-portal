@@ -20,6 +20,7 @@ export { jobSeekerService } from './services/jobSeekerService.js';
 export { categoryService } from './services/categoryService.js';
 export { requestService } from './services/requestService.js';
 export { adminService } from './services/adminService.js';
+export { default as statisticsService } from './services/statisticsService.js';
 
 // Export utilities
 export * from './utils/errorHandler.js';
@@ -34,6 +35,7 @@ export * from './hooks/useJobSeekers.js';
 export * from './hooks/useCategories.js';
 export * from './hooks/useRequests.js';
 export * from './hooks/useMessaging.js';
+export { default as useStatistics } from './hooks/useStatistics.js';
 
 // Export pagination utilities
 export * from '../utils/pagination.js'; 

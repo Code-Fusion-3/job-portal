@@ -1,37 +1,50 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useStatistics } from '../../api/hooks/useStatistics.js';
 
-// Static data with translation keys
-const statsData = [
+// Base stats configuration with translation keys and icons
+const getStatsData = (statistics) => [
   { 
     id: 1,
     translationKey: 'statistics.activeWorkers',
-    number: '500+',
-    icon: '👥'
+    number: statistics?.activeWorkers ? `${statistics.activeWorkers}+` : '500+',
+    icon: '👥',
+    isLoading: !statistics
   },
   { 
     id: 2,
     translationKey: 'statistics.happyClients',
     number: '1000+',
-    icon: '😊'
+    icon: '😊',
+    isLoading: false
   },
   { 
     id: 3,
     translationKey: 'statistics.citiesCovered',
-    number: '10+',
-    icon: '🏙️'
+    number: statistics?.citiesCovered ? `${statistics.citiesCovered}+` : '10+',
+    icon: '🏙️',
+    isLoading: !statistics
   },
   { 
     id: 4,
     translationKey: 'statistics.yearsExperience',
     number: '5+',
-    icon: '⭐'
+    icon: '⭐',
+    isLoading: false
   }
 ];
 
 const Statistics = () => {
   const { t } = useTranslation();
+  const { statistics, loading: statsLoading, error: statsError } = useStatistics();
+  
+  // Debug logging
+  console.log('📊 Statistics component received:', { statistics, statsLoading, statsError });
+  
+  // Get dynamic stats data
+  const statsData = getStatsData(statistics);
+  console.log('🎯 Generated stats data:', statsData);
 
   // Error handling for translation
   const safeTranslate = (key, fallback) => {
@@ -88,6 +101,15 @@ const Statistics = () => {
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             {safeTranslate('statistics.subtitle', 'Discover the impact we\'ve made in connecting talent with opportunity across Rwanda.')}
           </p>
+          
+          {/* Error Display */}
+          {statsError && (
+            <div className="mt-4 p-3 bg-red-600/20 border border-red-500/30 rounded-lg">
+              <p className="text-red-300 text-sm">
+                {statsError} - Showing default values
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {/* Statistics */}
@@ -108,9 +130,15 @@ const Statistics = () => {
                 {renderIcon(stat.icon)}
               </div>
               <div className="text-3xl font-bold text-red-400 mb-2 counter" data-target={stat.number.replace(/\D/g, '')}>
-                {stat.number}
+                {stat.isLoading && statsLoading ? (
+                  <div className="animate-pulse bg-red-300 h-8 w-16 rounded"></div>
+                ) : (
+                  stat.number
+                )}
               </div>
-              <div className="text-gray-300">{safeTranslate(stat.translationKey, stat.translationKey)}</div>
+              <div className="text-gray-300">
+                {safeTranslate(stat.translationKey, stat.translationKey)}
+              </div>
             </motion.div>
           ))}
         </motion.div>

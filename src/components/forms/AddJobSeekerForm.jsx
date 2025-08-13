@@ -478,6 +478,7 @@ const AddJobSeekerForm = ({
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
                 </select>
               </div>
 
@@ -526,8 +527,7 @@ const AddJobSeekerForm = ({
                   <option value="">Select Status</option>
                   <option value="Single">Single</option>
                   <option value="Married">Married</option>
-                  <option value="Divorced">Divorced</option>
-                  <option value="Widowed">Widowed</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
                 </select>
               </div>
         </div>
@@ -585,17 +585,26 @@ const AddJobSeekerForm = ({
                 </label>
                 <select
                   name="jobCategoryId"
-            value={formData.jobCategoryId}
+                  value={formData.jobCategoryId}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  disabled={jobCategories.length === 0}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
-                  <option value="">Select Category</option>
+                  <option value="">
+                    {jobCategories.length === 0 
+                      ? 'Loading categories...' 
+                      : 'Select Category'
+                    }
+                  </option>
                   {jobCategories.map(category => (
                     <option key={category.id} value={category.id.toString()}>
-                      {category.name_en || category.name}
+                      {category.name_en} - {category.name_rw}
                     </option>
                   ))}
                 </select>
+                {jobCategories.length === 0 && (
+                  <p className="mt-1 text-sm text-gray-500">Loading job categories...</p>
+                )}
               </div>
 
               <div>

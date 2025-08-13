@@ -18,7 +18,7 @@ const resources = {
       
       // Hero Section
       'hero.title': 'Connect Talent with Opportunity',
-      'hero.subtitle': 'The premier platform connecting skilled job seekers with forward-thinking employers in Rwanda',
+      'hero.subtitle': 'A platform that connects employers with workers in Rwanda for basic, semi-skilled, and skilled jobs — from cleaners and house helpers to builders, mechanics, technicians, and more.',
       'hero.cta.primary': 'Get Started',
       'hero.cta.secondary': 'Browse Candidates',
       'hero.tour': '360° PLATFORM TOUR',
@@ -126,7 +126,7 @@ const resources = {
       'contact.info.office.details': 'Kigali, Rwanda',
       'contact.info.office.desc': 'Visit our office',
       'contact.info.title': 'Get in Touch',
-      'contact.info.description': 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.',
+      'contact.info.description': 'Whether you have questions about our services, suggestions to improve the platform, feedback from your experience, requests for new features, or any ideas on how we can better serve you, we’re here to listen and assist. Your input is invaluable in helping us create a more effective and user-friendly job portal for everyone.',
       'contact.form.namePlaceholder': 'Enter your full name',
       'contact.form.emailPlaceholder': 'Enter your email address',
       'contact.form.subjectPlaceholder': 'Enter subject',
@@ -195,6 +195,8 @@ const resources = {
       'register.and': 'and',
       'register.privacy': 'Privacy Policy',
       'register.agreeToMarketing': 'I agree to receive marketing communications and updates',
+      'register.jobCategory': 'Job Category',
+      'register.jobCategoryPlaceholder': 'Select your job category',
       'register.errors.firstNameRequired': 'First name is required',
       'register.errors.firstNameLength': 'First name must be at least 2 characters',
       'register.errors.lastNameRequired': 'Last name is required',
@@ -247,6 +249,168 @@ const resources = {
       'employerRequest.title': 'Request Candidate',
       'employerRequest.subtitle': 'Send a request to connect with this candidate',
       'employerRequest.subtitleWithName': 'Request to connect with {{name}}',
+
+      // Privacy Policy Page
+      'privacyPolicy.title': 'Privacy Policy',
+      'privacyPolicy.subtitle': 'Your privacy and data security are our top priorities',
+      'privacyPolicy.backToHome': 'Back to Home',
+      'privacyPolicy.introduction.title': 'Our Commitment to Privacy',
+      'privacyPolicy.introduction.description': 'At JobPortal, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, share, and protect your data when you use our platform.',
+      'privacyPolicy.introduction.lastUpdated': 'Last updated',
+      'privacyPolicy.sections.informationWeCollect.title': 'Information We Collect',
+      'privacyPolicy.sections.informationWeCollect.items': [
+        'Personal information (name, email, phone number, location)',
+        'Professional information (skills, experience, education)',
+        'Profile photos and documents',
+        'Usage data and analytics',
+        'Communication preferences'
+      ],
+      'privacyPolicy.sections.howWeUse.title': 'How We Use Your Information',
+      'privacyPolicy.sections.howWeUse.items': [
+        'To provide and maintain our job portal services',
+        'To match job seekers with potential employers',
+        'To communicate important updates and opportunities',
+        'To improve our platform and user experience',
+        'To comply with legal obligations'
+      ],
+      'privacyPolicy.sections.informationSharing.title': 'Information Sharing',
+      'privacyPolicy.sections.informationSharing.items': [
+        'We do not sell your personal information',
+        'Information is shared only with your consent',
+        'Employers see only the information you choose to display',
+        'We may share data with service providers under strict agreements',
+        'Legal requirements may require disclosure in certain circumstances'
+      ],
+      'privacyPolicy.sections.dataSecurity.title': 'Data Security',
+      'privacyPolicy.sections.dataSecurity.items': [
+        'Industry-standard encryption for data transmission',
+        'Secure servers with regular security audits',
+        'Access controls and authentication measures',
+        'Regular backups and disaster recovery procedures',
+        'Employee training on data protection'
+      ],
+      'privacyPolicy.sections.yourRights.title': 'Your Rights',
+      'privacyPolicy.sections.yourRights.items': [
+        'Access and review your personal information',
+        'Update or correct inaccurate data',
+        'Request deletion of your account',
+        'Opt-out of marketing communications',
+        'Export your data in a portable format'
+      ],
+      'privacyPolicy.sections.dataRetention.title': 'Data Retention',
+      'privacyPolicy.sections.dataRetention.items': [
+        'We retain your data while your account is active',
+        'Data is deleted within 30 days of account closure',
+        'Some information may be retained for legal compliance',
+        'Anonymized data may be kept for analytics',
+        'You can request immediate deletion at any time'
+      ],
+      'privacyPolicy.contact.title': 'Contact Us',
+      'privacyPolicy.contact.description': 'If you have any questions about this Privacy Policy or our data practices, please contact us:',
+      'privacyPolicy.contact.email': 'Email',
+      'privacyPolicy.contact.phone': 'Phone',
+      'privacyPolicy.contact.address': 'Address',
+      'privacyPolicy.contact.emailValue': 'privacy@jobportal.rw',
+      'privacyPolicy.contact.phoneValue': '+250 788 123 456',
+      'privacyPolicy.contact.addressValue': 'Kigali, Rwanda',
+      'privacyPolicy.updates.title': 'Updates Notice',
+      'privacyPolicy.updates.description': 'We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.',
+
+      // Terms of Service Page
+      'termsOfService.title': 'Terms of Service',
+      'termsOfService.subtitle': 'Please read these terms carefully before using our platform',
+      'termsOfService.backToHome': 'Back to Home',
+      'termsOfService.introduction.title': 'Agreement to Terms',
+      'termsOfService.introduction.description': 'These Terms of Service ("Terms") govern your use of the JobPortal website and services. By using our platform, you agree to these terms and our Privacy Policy.',
+      'termsOfService.introduction.lastUpdated': 'Last updated',
+      'termsOfService.sections.acceptanceOfTerms.title': 'Acceptance of Terms',
+      'termsOfService.sections.acceptanceOfTerms.items': [
+        'By accessing and using JobPortal, you accept and agree to be bound by these terms',
+        'If you disagree with any part of these terms, you may not access our service',
+        'These terms apply to all visitors, users, and others who access or use the service',
+        'We reserve the right to modify these terms at any time',
+        'Continued use of the service after changes constitutes acceptance of new terms'
+      ],
+      'termsOfService.sections.userAccounts.title': 'User Accounts and Responsibilities',
+      'termsOfService.sections.userAccounts.items': [
+        'You must provide accurate and complete information when creating an account',
+        'You are responsible for maintaining the security of your account credentials',
+        'You must notify us immediately of any unauthorized use of your account',
+        'You are responsible for all activities that occur under your account',
+        'You must be at least 18 years old to create an account'
+      ],
+      'termsOfService.sections.acceptableUse.title': 'Acceptable Use',
+      'termsOfService.sections.acceptableUse.items': [
+        'Use the service only for lawful purposes and in accordance with these terms',
+        'Do not use the service to transmit harmful, offensive, or illegal content',
+        'Respect the privacy and rights of other users',
+        'Do not attempt to gain unauthorized access to our systems',
+        'Do not interfere with or disrupt the service or servers'
+      ],
+      'termsOfService.sections.jobSeekerObligations.title': 'Job Seeker Obligations',
+      'termsOfService.sections.jobSeekerObligations.items': [
+        'Provide accurate and truthful information in your profile',
+        'Maintain the confidentiality of your account information',
+        'Respond promptly to legitimate employer inquiries',
+        'Update your profile information as needed',
+        'Comply with all applicable laws and regulations'
+      ],
+      'termsOfService.sections.prohibitedActivities.title': 'Prohibited Activities',
+      'termsOfService.sections.prohibitedActivities.items': [
+        'Creating fake or misleading profiles',
+        'Harassing or discriminating against other users',
+        'Using the service for commercial purposes without authorization',
+        'Attempting to reverse engineer or hack the platform',
+        'Violating any applicable laws or regulations'
+      ],
+      'termsOfService.sections.intellectualProperty.title': 'Intellectual Property',
+      'termsOfService.sections.intellectualProperty.items': [
+        'The service and its original content are owned by JobPortal',
+        'You retain ownership of content you submit to the platform',
+        'You grant us a license to use your content to provide the service',
+        'You may not copy, modify, or distribute our proprietary content',
+        'Trademarks and logos are protected by intellectual property laws'
+      ],
+      'termsOfService.sections.limitationOfLiability.title': 'Limitation of Liability',
+      'termsOfService.sections.limitationOfLiability.items': [
+        'JobPortal is provided "as is" without warranties of any kind',
+        'We are not liable for any indirect, incidental, or consequential damages',
+        'Our total liability shall not exceed the amount you paid for the service',
+        'We are not responsible for the actions of other users',
+        'We do not guarantee job placement or employment opportunities'
+      ],
+      'termsOfService.sections.termination.title': 'Termination',
+      'termsOfService.sections.termination.items': [
+        'We may terminate or suspend your account at any time for violations',
+        'You may terminate your account at any time',
+        'Upon termination, your right to use the service ceases immediately',
+        'We may retain certain information as required by law',
+        'Provisions that should survive termination will remain in effect'
+      ],
+      'termsOfService.governingLaw.title': 'Governing Law',
+      'termsOfService.governingLaw.description': 'These Terms shall be governed by and construed in accordance with the laws of Rwanda. Any disputes arising from these terms or your use of the service shall be subject to the exclusive jurisdiction of the courts in Kigali, Rwanda.',
+      'termsOfService.contact.title': 'Contact Information',
+      'termsOfService.contact.description': 'If you have any questions about these Terms of Service, please contact us:',
+      'termsOfService.contact.email': 'Email',
+      'termsOfService.contact.phone': 'Phone',
+      'termsOfService.contact.address': 'Address',
+      'termsOfService.contact.emailValue': 'legal@jobportal.rw',
+      'termsOfService.contact.phoneValue': '+250 788 123 456',
+      'termsOfService.contact.addressValue': 'Kigali, Rwanda',
+      'termsOfService.important.title': 'Important',
+      'termsOfService.important.description': 'These terms constitute a legally binding agreement. By using our service, you acknowledge that you have read, understood, and agree to be bound by these terms.',
+
+      // Forgot Password Page
+      'forgotPassword.title': 'Forgot Password?',
+      'forgotPassword.subtitle': 'Enter your email to receive a password reset link',
+      'forgotPassword.email': 'Email Address',
+      'forgotPassword.emailPlaceholder': 'Enter your email',
+      'forgotPassword.sendLink': 'Send Reset Link',
+      'forgotPassword.sending': 'Sending...',
+      'forgotPassword.success': 'If the email exists, a password reset link has been sent.',
+      'forgotPassword.error': 'Failed to request password reset.',
+      'forgotPassword.rememberPassword': 'Remember your password?',
+      'forgotPassword.backToSignIn': '← Back to Sign In',
       'employerRequest.employerName': 'Your Name',
       'employerRequest.companyName': 'Company Name',
       'employerRequest.email': 'Email Address',
@@ -421,17 +585,17 @@ const resources = {
     translation: {
       // Navigation
       'nav.home': 'Ahabanza',
-      'nav.about': 'Abo turibo',
-      'nav.jobSeekers': 'Abashaka Akazi',
+      'nav.about': 'Ibyerekeye twe',
+      'nav.jobSeekers': 'Abashaka akazi',
       'nav.contact': 'Twandikire',
       'nav.register': 'Iyandikishe',
       'nav.login': 'Injira',
       'nav.language': 'Ururimi',
-      'nav.viewJobSeekers': 'Reba Abashaka Akazi',
+      'nav.viewJobSeekers': 'Reba abashaka akazi',
 
       // Hero Section
       'hero.title': 'Huza Impano n’Amahirwe',
-      'hero.subtitle': 'Urubuga rugezweho ruhuza abashaka akazi bafite ubumenyi n’abakoresha batekereza kure mu Rwanda',
+      'hero.subtitle': 'Urubuga ruhuza abakoresha n’abakozi mu Rwanda mu mirimo iciriritse ni iyisumbuye — kuva ku bakora isuku, abakozi bo mu rugo, abubatsi, abakanishi, kugeza ku ba tekinisiye n’abandi.',
       'hero.cta.primary': 'Tangira Ubu',
       'hero.cta.secondary': 'Reba Abakandida',
       'hero.tour': 'SURA URUBUGA 360°',
@@ -525,7 +689,7 @@ const resources = {
 
       // Contact Us Section
       'contact.title': 'Twandikire',
-      'contact.subtitle': 'Twandikire, turifuza kukumva.',
+      'contact.subtitle': 'Twandikire, twishimiye kumva ibitekerezo byawe!',
       'contact.form.name': 'Amazina Yuzuye',
       'contact.form.email': 'Imeli',
       'contact.form.subject': 'Insanganyamatsiko',
@@ -549,7 +713,7 @@ const resources = {
       'contact.info.office.details': 'Kigali, Rwanda',
       'contact.info.office.desc': 'Sura ibiro byacu',
       'contact.info.title': 'Twandikire',
-      'contact.info.description': 'Turimo kumufasha kandi tuzasubiza ibibazo byose ushobora kugira. Turifuza kukumva.',
+      'contact.info.description': 'Niba ufite ibibazo ku bijyanye na serivisi zacu, inama zo kunoza urubuga, ibitekerezo by’uko wakoresheje sisitemu, ibyifuzo by’ibindi bikorwa cyangwa serivisi tudafite, cyangwa ibitekerezo by’uko twagufasha neza, turi hano kugufasha no kukumva. Ibitekerezo byawe ni ingenzi mu kudufasha gukora urubuga rworoshye kandi rwiza kuri bose.',
       'contact.form.namePlaceholder': 'Andika amazina yawe yuzuye',
       'contact.form.emailPlaceholder': 'Andika aderesi yawe ya email',
       'contact.form.subjectPlaceholder': 'Andika insanganyamatsiko',
@@ -582,8 +746,8 @@ const resources = {
       'footer.description': 'Duhuza impano n’amahirwe mu Rwanda',
       'footer.quickLinks': 'Amahoro yihuse',
       'footer.contact': 'Twandikire',
-      'footer.privacy': 'Politiki y\'Ibanga',
-      'footer.terms': 'Amabwiriza y\'Serivisi',
+      'footer.privacy': 'Politiki y\'ibanga',
+      'footer.terms': 'Amabwiriza',
       'footer.copyright': '© 2024 Job Portal. Uburenganzira bwose burabitswe.',
       'footer.legal': 'Amategeko',
       'footer.cookies': 'Politiki y\'Amakuki',
@@ -613,10 +777,12 @@ const resources = {
       'register.confirmPasswordPlaceholder': 'Emeza ijambo ry’ibanga',
       'register.passwordRequirements': 'Igomba kugira inyuguti nini, nto, imibare kandi ibe nibura inyuguti 8',
       'register.agreeToTerms': 'Nemeza',
-      'register.terms': 'Amabwiriza y\'Serivisi',
+      'register.terms': 'Amabwiriza',
       'register.and': 'na',
-      'register.privacy': 'Politiki y\'Ibanga',
+      'register.privacy': 'Politiki y\'ibanga',
       'register.agreeToMarketing': 'Nemeza kwakira ubutumwa bw\'ubucuruzi n\'amakuru',
+      'register.jobCategory': 'Umutekano w\'Akazi',
+      'register.jobCategoryPlaceholder': 'Hitamo umutekano wawe w\'akazi',
       'register.errors.firstNameRequired': 'Izina rya mbere rirakenewe',
       'register.errors.firstNameLength': 'Izina rya mbere rigomba kuba nibura inyuguti 2',
       'register.errors.lastNameRequired': 'Izina rya nyuma rirakenewe',
@@ -695,6 +861,168 @@ const resources = {
       'employerRequest.errors.general': 'Iyandikishirizwa ryanze. Ongera ugerageze.',
       'employerRequest.backToJobSeekers': 'Subira ku Bashaka Akazi',
       'employerRequest.backToProfile': 'Subira ku Profile',
+
+      // Privacy Policy Page
+      'privacyPolicy.title': 'Politiki y\'ibanga',
+      'privacyPolicy.subtitle': 'Ibanga ryawe n\'umutekano w\'amakuru yawe ni iby\'ingenzi',
+      'privacyPolicy.backToHome': 'Subira ahabanza',
+      'privacyPolicy.introduction.title': 'Icyemezo cyacu cy\'ibanga',
+      'privacyPolicy.introduction.description': 'Mu JobPortal, tuyiyemeje kurinda ibanga ryawe no kugenzura umutekano w\'amakuru yawe. Iyi politiki isobanura uko dukusanya, dukoresha, duhira n\'urinda amakuru yawe.',
+      'privacyPolicy.introduction.lastUpdated': 'Byahindutse',
+      'privacyPolicy.sections.informationWeCollect.title': 'Amakuru dusanya',
+      'privacyPolicy.sections.informationWeCollect.items': [
+        'Amakuru y\'ibanga (izina, imeyili, telefoni, aho uherereye)',
+        'Amakuru y\'umwuga (ubumenyi, uburambe, amashuri)',
+        'Ifoto z\'umwirondoro n\'ibikoresho',
+        'Amakuru y\'uko ukoresheje n\'ubusesenguzi',
+        'Ibikoresho by\'itumanaho'
+      ],
+      'privacyPolicy.sections.howWeUse.title': 'Uko dukoresha amakuru yawe',
+      'privacyPolicy.sections.howWeUse.items': [
+        'Kugufasha no kugenzura serivisi zacu',
+        'Guhuza abashaka akazi n\'abakoresha',
+        'Gutumanaho amakuru y\'ingenzi',
+        'Gunoza urubuga rwacu',
+        'Kugenzura iby\'amategeko'
+      ],
+      'privacyPolicy.sections.informationSharing.title': 'Guhira amakuru',
+      'privacyPolicy.sections.informationSharing.items': [
+        'Ntituzugure amakuru yawe y\'ibanga',
+        'Amakuru ahirawe gusa iyo uyemeye',
+        'Abakoresha baba amakuru gusa wifuza kugaragaza',
+        'Dushobora guhira amakuru n\'abatanga serivisi',
+        'Ibikenewe n\'amategeko bishobora gutanga amakuru'
+      ],
+      'privacyPolicy.sections.dataSecurity.title': 'Umutekano w\'amakuru',
+      'privacyPolicy.sections.dataSecurity.items': [
+        'Umutekano w\'amakuru w\'ingamba zizewe',
+        'Seriveri z\'umutekano zigenzurwa buri gihe',
+        'Ingamba zo kurinda n\'ubwemezo',
+        'Gusubira inyuma buri gihe',
+        'Amahugurwa y\'abakozi'
+      ],
+      'privacyPolicy.sections.yourRights.title': 'Uburenganzira bwawe',
+      'privacyPolicy.sections.yourRights.items': [
+        'Geraho amakuru yawe y\'ibanga',
+        'Vugurura amakuru atari yo',
+        'Saba gusiba konti yawe',
+        'Ntukakire ubutumwa bw\'ubucuruzi',
+        'Fata amakuru yawe'
+      ],
+      'privacyPolicy.sections.dataRetention.title': 'Kubika amakuru',
+      'privacyPolicy.sections.dataRetention.items': [
+        'Dukubika amakuru yawe iyo konti yawe ikora',
+        'Amakuru asibwa mu masaha 30',
+        'Amakuru runaka ashobora kubikwa ku gengenura amategeko',
+        'Amakuru atazwi ashobora kubikwa',
+        'Urashobora gusaba gusiba amakuru byihuse'
+      ],
+      'privacyPolicy.contact.title': 'Twandikire',
+      'privacyPolicy.contact.description': 'Niba ufite ibibazo, twandikire:',
+      'privacyPolicy.contact.email': 'Imeyili',
+      'privacyPolicy.contact.phone': 'Telefone',
+      'privacyPolicy.contact.address': 'Aderesi',
+      'privacyPolicy.contact.emailValue': 'privacy@jobportal.rw',
+      'privacyPolicy.contact.phoneValue': '+250 788 123 456',
+      'privacyPolicy.contact.addressValue': 'Kigali, Rwanda',
+      'privacyPolicy.updates.title': 'Amatangazo',
+      'privacyPolicy.updates.description': 'Dushobora guhindura iyi politiki buri gihe. Tuzakumenyesha amahinduka.',
+
+      // Terms of Service Page
+      'termsOfService.title': 'Amabwiriza y\'urubuga',
+      'termsOfService.subtitle': 'Soma amabwiriza neza mbere yo gukoresha urubuga',
+      'termsOfService.backToHome': 'Subira ahabanza',
+      'termsOfService.introduction.title': 'Kuyemera amabwiriza',
+      'termsOfService.introduction.description': 'Aya mabwiriza agenzura uko ukoresheje urubuga rwa JobPortal. Iyo ukoresheje urubuga, uyemera amabwiriza n\'icyemezo cy\'ibanga.',
+      'termsOfService.introduction.lastUpdated': 'Byahindutse',
+      'termsOfService.sections.acceptanceOfTerms.title': 'Kuyemera amabwiriza',
+      'termsOfService.sections.acceptanceOfTerms.items': [
+        'Iyo ugera JobPortal, uyemera amabwiriza',
+        'Niba utemeye amabwiriza, ntushobora gukoresha serivisi',
+        'Amabwiriza akoreshejwe ku bantu bose bakoresheje serivisi',
+        'Dufite uburenganzira bwo guhindura amabwiriza',
+        'Gukomeza gukoresha serivisi bisobanura kuyemera amabwiriza mashya'
+      ],
+      'termsOfService.sections.userAccounts.title': 'Konti n\'ibikenewe',
+      'termsOfService.sections.userAccounts.items': [
+        'Tanga amakuru yemewe iyo ukora konti',
+        'Genzura umutekano w\'amakuru yawe',
+        'Tumenyeshe iyo icyo ari cyo cyose cy\'amakuru atemewe',
+        'Ufite umwanya ku bikorwa byose biba mu konti yawe',
+        'Ugomba kuba ufite imyaka 18'
+      ],
+      'termsOfService.sections.acceptableUse.title': 'Gukoresha bwemewe',
+      'termsOfService.sections.acceptableUse.items': [
+        'Koresha serivisi ku ntego z\'amategeko',
+        'Ntukoreshe serivisi gutumiza ibintu bibi',
+        'Shyira ibanga n\'uburenganzira bw\'abandi',
+        'Ntugerageze kugera ku masisitemu atemewe',
+        'Ntuhangayike serivisi'
+      ],
+      'termsOfService.sections.jobSeekerObligations.title': 'Ibikenewe ku bashaka akazi',
+      'termsOfService.sections.jobSeekerObligations.items': [
+        'Tanga amakuru yemewe mu mwirondoro',
+        'Genzura ibanga ryawe',
+        'Subiza vuba ibibazo by\'abakoresha',
+        'Vugurura amakuru yawe iyo akenewe',
+        'Genzura amategeko'
+      ],
+      'termsOfService.sections.prohibitedActivities.title': 'Ibikorwa bitemewe',
+      'termsOfService.sections.prohibitedActivities.items': [
+        'Gukora imirondoro y\'ibinyoma',
+        'Guhangayika abandi',
+        'Gukoresha serivisi ku ntego z\'ubucuruzi',
+        'Gegerageza guhanga urubuga',
+        'Kuvunja amategeko'
+      ],
+      'termsOfService.sections.intellectualProperty.title': 'Uburenganzira bw\'ikoranabuhanga',
+      'termsOfService.sections.intellectualProperty.items': [
+        'Serivisi ni ya JobPortal',
+        'Ufite uburenganzira bw\'ibikoresho wohereje',
+        'Uduha uruhushya rwo gukoresha ibikoresho byawe',
+        'Ntushobora gukopiya ibikoresho byacu',
+        'Ibimenyetso arinzwe n\'amategeko'
+      ],
+      'termsOfService.sections.limitationOfLiability.title': 'Icyerekezo cy\'umwanya',
+      'termsOfService.sections.limitationOfLiability.items': [
+        'JobPortal yatanzwe "nk\'uko ari"',
+        'Ntitufite umwanya ku mibabaro',
+        'Umwanya wacu ntushobora kurenza umubare wamaze gutanga',
+        'Ntitufite umwanya ku bikorwa by\'abandi',
+        'Ntituhamagara akazi'
+      ],
+      'termsOfService.sections.termination.title': 'Gusiba',
+      'termsOfService.sections.termination.items': [
+        'Dushobora gusiba konti yawe ku gushyira mu bikorwa',
+        'Urashobora gusiba konti yawe',
+        'Iyo gusiba, uburenganzira bwawe buhera',
+        'Dushobora kubika amakuru runaka',
+        'Amabwiriza agomba kuguma'
+      ],
+      'termsOfService.governingLaw.title': 'Amategeko agenzura',
+      'termsOfService.governingLaw.description': 'Aya mabwiriza agenzurwa n\'amategeko ya Rwanda. Ibibazo bizaba mu inkiko za Kigali.',
+      'termsOfService.contact.title': 'Twandikire',
+      'termsOfService.contact.description': 'Niba ufite ibibazo, twandikire:',
+      'termsOfService.contact.email': 'Imeyili',
+      'termsOfService.contact.phone': 'Telefone',
+      'termsOfService.contact.address': 'Aderesi',
+      'termsOfService.contact.emailValue': 'legal@jobportal.rw',
+      'termsOfService.contact.phoneValue': '+250 788 123 456',
+      'termsOfService.contact.addressValue': 'Kigali, Rwanda',
+      'termsOfService.important.title': 'Ibikenewe',
+      'termsOfService.important.description': 'Amabwiriza yawe akora isezerano rya mategeko. Iyo ukoresheje serivisi, uyemera amabwiriza.',
+
+      // Forgot Password Page
+      'forgotPassword.title': 'Wibagiwe ijambo ry\'ibanga?',
+      'forgotPassword.subtitle': 'Injiza email yawe kugira ngo ubone uko woherejwe ijambo rishya ry\'ibanga',
+      'forgotPassword.email': 'Imeyili',
+      'forgotPassword.emailPlaceholder': 'Andika imeyili yawe',
+      'forgotPassword.sendLink': 'Ohereza ijambo rishya',
+      'forgotPassword.sending': 'Turimo kohereza...',
+      'forgotPassword.success': 'Iyo imeyili yawe iba, tuzakuguhira ijambo rishya ry\'ibanga.',
+      'forgotPassword.error': 'Ntibyashoboye. Ongera ugerageze.',
+      'forgotPassword.rememberPassword': 'Wibuka ijambo ry\'ibanga?',
+      'forgotPassword.backToSignIn': '← Subira kwinjira',
 
       // Profile Page
       'profile.title': 'Umwirondoro Wawe',

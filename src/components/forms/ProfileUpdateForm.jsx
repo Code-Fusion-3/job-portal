@@ -18,6 +18,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ProfileUpdateForm = () => {
   const { user, updateProfile, changePassword, loading, error, refreshUserData } = useProfile();
@@ -395,7 +396,7 @@ const ProfileUpdateForm = () => {
                    if (file && file.size <= 5 * 1024 * 1024) {
                      handlePhotoChange(file);
                    } else {
-                     alert('Please select an image file under 5MB');
+                     toast.error('Please select an image file under 5MB');
                    }
                  }}
                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
@@ -485,6 +486,8 @@ const ProfileUpdateForm = () => {
           </form>
         )}
       </motion.div>
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

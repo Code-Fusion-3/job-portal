@@ -28,6 +28,7 @@ import {
   SkillsDoughnutChart,
   CategoriesDoughnutChart
 } from '../../components/ui/Charts';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ReportsPage = () => {
   const { t } = useTranslation();
@@ -126,13 +127,13 @@ const ReportsPage = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        alert(`${type} report exported successfully as PDF!`);
+        toast.success(`${type} report exported successfully as PDF!`);
       } else {
-        alert(`Failed to export report: ${result.error}`);
+        toast.error(`Failed to export report: ${result.error}`);
       }
     } catch (error) {
       console.error('Error exporting report:', error);
-      alert('Error exporting report. Please try again.');
+      toast.error('Error exporting report. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -493,6 +494,8 @@ const ReportsPage = () => {
           </div>
         </Card>
       </div>
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

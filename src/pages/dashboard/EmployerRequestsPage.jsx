@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   MessageSquare, 
@@ -12,11 +12,12 @@ import {
   Calendar,
   User,
   Building,
-  Filter,
-  Search,
   RefreshCw,
   Play,
-  MoreHorizontal
+  MoreHorizontal,
+  Search,
+  Filter,
+  X
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
@@ -34,6 +35,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
 import { motion } from 'motion/react';
+import toast, { Toaster } from 'react-hot-toast';
 
 const EmployerRequestsPage = () => {
   const { t } = useTranslation();
@@ -65,6 +67,48 @@ const EmployerRequestsPage = () => {
 
   const { categories, loadingCategories, fetchCategories } = useCategories();
 
+  // Filter options
+  const filterOptions = {
+    status: [
+      { value: '', label: 'All Statuses' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'in_progress', label: 'In Progress' },
+      { value: 'approved', label: 'Approved' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'cancelled', label: 'Cancelled' }
+    ],
+    priority: [
+      { value: '', label: 'All Priorities' },
+      { value: 'urgent', label: 'Urgent' },
+      { value: 'high', label: 'High' },
+      { value: 'normal', label: 'Normal' },
+      { value: 'low', label: 'Low' }
+    ],
+    category: [
+      { value: '', label: 'All Categories' },
+      ...(categories || []).map(cat => ({
+        value: cat.name_en.toLowerCase(),
+        label: cat.name_en
+      }))
+    ],
+    dateRange: [
+      { value: '', label: 'All Time' },
+      { value: 'today', label: 'Today' },
+      { value: 'week', label: 'This Week' },
+      { value: 'month', label: 'This Month' },
+      { value: 'quarter', label: 'This Quarter' },
+      { value: 'year', label: 'This Year' }
+    ],
+    monthlyRateRange: [
+      { value: '', label: 'All Rates' },
+      { value: '0-50000', label: '0 - 50,000 RWF' },
+      { value: '50000-100000', label: '50,000 - 100,000 RWF' },
+      { value: '100000-200000', label: '100,000 - 200,000 RWF' },
+      { value: '200000+', label: '200,000+ RWF' }
+    ],
+
+  };
+
   // State management
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -87,10 +131,19 @@ const EmployerRequestsPage = () => {
   const [completionError, setCompletionError] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
 
-  // Filter state
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  // Search and Filter state
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [localFilters, setLocalFilters] = useState({
+    status: '',
+    priority: '',
+    category: '',
+    dateRange: '',
+    monthlyRateRange: ''
+  });
   const [showFilters, setShowFilters] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+
 
   // Transform backend data to frontend format
   const transformRequestData = (backendRequest) => {
@@ -192,51 +245,6 @@ const EmployerRequestsPage = () => {
   // Transform the data for display
   const transformedRequests = safeData.map(transformRequestData).filter(Boolean);
 
-  // Debug logging
-  useEffect(() => {
-    if (safeData.length > 0) {
-      // console.log('Raw requests from backend:', safeData);
-      // console.log('Transformed requests:', transformedRequests);
-    }
-  }, [safeData, transformedRequests]);
-
-  // Create filter structure for DataTable
-  const tableFilters = [
-    {
-      key: 'status',
-      value: filters.status || '',
-      placeholder: 'Filter by status',
-      options: [
-        { value: '', label: 'All Statuses' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'cancelled', label: 'Cancelled' }
-      ]
-    },
-    {
-      key: 'priority',
-      value: filters.priority || '',
-      placeholder: 'Filter by priority',
-      options: [
-        { value: '', label: 'All Priorities' },
-        { value: 'low', label: 'Low' },
-        { value: 'normal', label: 'Normal' },
-        { value: 'high', label: 'High' },
-        { value: 'urgent', label: 'Urgent' }
-      ]
-    },
-    {
-      key: 'category',
-      value: filters.category || '',
-      placeholder: 'Filter by category',
-      options: [
-        { value: '', label: 'All Categories' },
-        ...categories.map(cat => ({ value: cat.name_en, label: cat.name_en }))
-      ]
-    }
-  ];
-
   // Ensure data is safe for rendering
   const safeDataForRendering = transformedRequests.map(item => ({
     ...item,
@@ -254,49 +262,19 @@ const EmployerRequestsPage = () => {
     }
   }));
 
-  // Statistics calculation
-  const stats = [
-    {
-      title: 'Total Requests',
-      value: safeDataForRendering.length.toString(),
-      change: '+5',
-      changeType: 'increase',
-      icon: MessageSquare,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'All employer requests'
-    },
-    {
-      title: 'Pending Review',
-      value: safeDataForRendering.filter(r => r.status === 'pending').length.toString(),
-      change: '+2',
-      changeType: 'increase',
-      icon: Clock,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      description: 'Awaiting admin review'
-    },
-    {
-      title: 'In Progress',
-      value: safeDataForRendering.filter(r => r.status === 'in_progress').length.toString(),
-      change: '+1',
-      changeType: 'increase',
-      icon: AlertCircle,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Under negotiation'
-    },
-    {
-      title: 'Completed',
-      value: safeDataForRendering.filter(r => r.status === 'completed').length.toString(),
-      change: '+3',
-      changeType: 'increase',
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      description: 'Successfully closed'
+
+
+  // Debug logging
+  useEffect(() => {
+    if (safeData.length > 0) {
+      console.log('🔍 Raw requests from backend:', safeData);
+      console.log('🔍 Transformed requests:', transformedRequests);
     }
-  ];
+  }, [safeData, transformedRequests]);
+
+  
+
+
 
   // Table columns configuration
   const columns = [
@@ -378,32 +356,206 @@ const EmployerRequestsPage = () => {
     }
   ];
 
-  // Event handlers
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-  };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
+
+
 
   // Load categories on mount
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Refresh function that clears all filters and fetches fresh data
-  const handleRefresh = useCallback(() => {
+  // Debug logging for categories
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      console.log('🔍 Categories loaded:', categories);
+    }
+  }, [categories]);
+
+  // Search and filter logic
+  const filteredData = useMemo(() => {
+    let filtered = safeDataForRendering || [];
+
+    // Apply search term
+    if (localSearchTerm.trim()) {
+      const searchLower = localSearchTerm.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.employerName?.toLowerCase().includes(searchLower) ||
+        item.companyName?.toLowerCase().includes(searchLower) ||
+        item.candidateName?.toLowerCase().includes(searchLower) ||
+        item.message?.toLowerCase().includes(searchLower) ||
+        item.position?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply filters
+    if (localFilters.status) {
+      filtered = filtered.filter(item => item.status === localFilters.status);
+    }
+
+    if (localFilters.priority) {
+      filtered = filtered.filter(item => item.priority === localFilters.priority);
+    }
+
+    if (localFilters.category) {
+      filtered = filtered.filter(item => 
+        item.category?.toLowerCase() === localFilters.category.toLowerCase()
+      );
+    }
+
+
+
+    if (localFilters.dateRange) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.date);
+        
+        switch (localFilters.dateRange) {
+          case 'today':
+            return itemDate >= today;
+          case 'week':
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return itemDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return itemDate >= monthAgo;
+          case 'quarter':
+            const quarterAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+            return itemDate >= quarterAgo;
+          case 'year':
+            const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+            return itemDate >= yearAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (localFilters.monthlyRateRange) {
+      filtered = filtered.filter(item => {
+        const rate = item.monthlyRate;
+        if (rate === 'Not specified') return false;
+        
+        const numericRate = typeof rate === 'string' ? 
+          parseFloat(rate.replace(/[^\d.]/g, '')) : rate;
+        
+        if (isNaN(numericRate)) return false;
+        
+        switch (localFilters.monthlyRateRange) {
+          case '0-50000':
+            return numericRate >= 0 && numericRate <= 50000;
+          case '50000-100000':
+            return numericRate > 50000 && numericRate <= 100000;
+          case '100000-200000':
+            return numericRate > 100000 && numericRate <= 200000;
+          case '200000+':
+            return numericRate > 200000;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  }, [safeDataForRendering, localSearchTerm, localFilters]);
+
+  // Handle search change with debouncing
+  const handleSearchChange = useCallback((value) => {
+    setLocalSearchTerm(value);
+    setIsSearching(true);
+    
+    // Debounce the search
+    const timeoutId = setTimeout(() => {
+      setIsSearching(false);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Handle filter change
+  const handleFilterChange = useCallback((filterKey, value) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      [filterKey]: value
+    }));
+  }, []);
+
     // Clear all filters
-    setSearchTerm('');
-    setFilters({});
-    setDateFrom('');
-    setDateTo('');
+  const clearAllFilters = useCallback(() => {
+    setLocalFilters({
+      status: '',
+      priority: '',
+      category: '',
+      dateRange: '',
+      monthlyRateRange: ''
+    });
+    setLocalSearchTerm('');
+  }, []);
+
+  // Get active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (localSearchTerm.trim()) count++;
+    Object.values(localFilters).forEach(value => {
+      if (value) count++;
+    });
+    return count;
+  }, [localSearchTerm, localFilters]);
+
+  // Statistics calculation
+  const stats = useMemo(() => [
+    {
+      title: 'Total Requests',
+      value: filteredData.length.toString(),
+      change: `+${filteredData.length - (safeDataForRendering || []).length}`,
+      changeType: filteredData.length >= (safeDataForRendering || []).length ? 'increase' : 'decrease',
+      icon: MessageSquare,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      description: `${activeFiltersCount > 0 ? 'Filtered' : 'All'} employer requests`
+    },
+    {
+      title: 'Pending Review',
+      value: filteredData.filter(r => r.status === 'pending').length.toString(),
+      change: '+2',
+      changeType: 'increase',
+      icon: Clock,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      description: 'Awaiting admin review'
+    },
+    {
+      title: 'In Progress',
+      value: filteredData.filter(r => r.status === 'in_progress').length.toString(),
+      change: '+1',
+      changeType: 'increase',
+      icon: AlertCircle,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      description: 'Under negotiation'
+    },
+    {
+      title: 'Completed',
+      value: filteredData.filter(r => r.status === 'completed').length.toString(),
+      change: '+3',
+      changeType: 'increase',
+      icon: CheckCircle,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      description: 'Successfully closed'
+    }
+  ], [filteredData, safeDataForRendering, activeFiltersCount]);
+
+  // Refresh function that fetches fresh data
+  const handleRefresh = useCallback(() => {
+    console.log('🔄 Refreshing data');
     // Reset to first page
     goToPage(1);
     // Apply filters to fetch fresh data
     applyFilters();
-  }, [setSearchTerm, setFilters, goToPage, applyFilters]);
+  }, [goToPage, applyFilters]);
 
   const handleRowAction = (action, request) => {
     setSelectedRequest(request);
@@ -469,17 +621,17 @@ const EmployerRequestsPage = () => {
         console.log('✅ Status updated successfully:', result.data);
         
         // Show success message
-        alert(`Request status updated to ${newStatus}. ${message || ''}`);
+        toast.success(`Request status updated to ${newStatus}. ${message || ''}`);
         
         // Refresh the requests to show updated data
         handleRefresh();
       } else {
         console.error('❌ Failed to update status:', result.error);
-        alert(`Failed to update status: ${result.error}`);
+        toast.error(`Failed to update status: ${result.error}`);
       }
     } catch (error) {
       console.error('❌ Error updating status:', error);
-      alert('Network error. Please try again.');
+      toast.error('Network error. Please try again.');
     }
   };
 
@@ -504,7 +656,7 @@ const EmployerRequestsPage = () => {
           ? `Reply sent successfully to ${selectedRequest.employerName} at ${selectedRequest.employerContact.email}`
           : `Reply saved but email delivery failed. Please check the email configuration.`;
         
-        alert(successMessage);
+        toast.success(successMessage);
         
         // Clear form and close modal
         setReplyMessage('');
@@ -544,7 +696,7 @@ const EmployerRequestsPage = () => {
           ? `Candidate profile picture sent to ${selectedRequest.employerName}`
           : `Complete candidate details sent to ${selectedRequest.employerName}`;
         
-        alert(successMessage);
+        toast.success(successMessage);
         setShowActionModal(false);
         setCurrentAction(null);
         setSelectedCandidate(null);
@@ -589,7 +741,7 @@ const EmployerRequestsPage = () => {
       if (result.success) {
         console.log('✅ Request completed successfully:', result.data);
         
-        alert(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
+        toast.success(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
         
         // Clear form and close modal
         setCompletionNotes('');
@@ -680,7 +832,7 @@ const EmployerRequestsPage = () => {
   };
 
   // Loading state
-  if (loading && transformedRequests.length === 0) {
+  if (loading || !safeData || !safeDataForRendering) {
   return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading employer requests..." />
@@ -689,7 +841,7 @@ const EmployerRequestsPage = () => {
   }
 
   // Error state
-  if (error && transformedRequests.length === 0) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
@@ -705,7 +857,7 @@ const EmployerRequestsPage = () => {
   }
 
   // No data state
-  if (!loading && safeDataForRendering.length === 0) {
+  if (!loading && safeDataForRendering && safeDataForRendering.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -790,79 +942,269 @@ const EmployerRequestsPage = () => {
         >
           <Card className="p-6">
             <div className="flex justify-between items-center mb-6">
+              <div>
               <h2 className="text-xl font-semibold text-gray-900">
-                Employer Requests ({safeDataForRendering.length})
+                  Employer Requests ({filteredData.length})
             </h2>
+                {activeFiltersCount > 0 && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Showing {filteredData.length} of {(safeDataForRendering || []).length} total requests
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Search and Filters Section */}
+            <div className="mb-6 space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by employer name, company, candidate, or message..."
+                  value={localSearchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                />
+                {isSearching && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                  </div>
+                )}
+                {localSearchTerm && (
+                  <button
+                    onClick={() => setLocalSearchTerm('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                    showFilters 
+                      ? 'bg-red-50 border-red-200 text-red-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <Filter className="h-4 w-4" />
+                  <span className="text-sm font-medium">Filters</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
+
+                {activeFiltersCount > 0 && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Dropdowns */}
+                {showFilters && (
+                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Status Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={localFilters.status}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.status.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+          </div>
+
+                    {/* Priority Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Priority
+                      </label>
+                      <select
+                        value={localFilters.priority}
+                        onChange={(e) => handleFilterChange('priority', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.priority.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Category Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </label>
+                      <select
+                        value={localFilters.category}
+                        onChange={(e) => handleFilterChange('category', e.target.value)}
+                        disabled={loadingCategories}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        {loadingCategories ? (
+                          <option value="">Loading categories...</option>
+                        ) : (
+                          filterOptions.category.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+
+                    {/* Date Range Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date Range
+                      </label>
+                      <select
+                        value={localFilters.dateRange}
+                        onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.dateRange.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Monthly Rate Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Monthly Rate
+                      </label>
+                      <select
+                        value={localFilters.monthlyRateRange}
+                        onChange={(e) => handleFilterChange('monthlyRateRange', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.monthlyRateRange.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+
+                  </div>
+
+                  {/* Active Filters Display */}
+                  {activeFiltersCount > 0 && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <div className="flex flex-wrap gap-2">
+                        {localSearchTerm && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                            Search: "{localSearchTerm}"
+                            <button
+                              onClick={() => setLocalSearchTerm('')}
+                              className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        )}
+                        {Object.entries(localFilters).map(([key, value]) => {
+                          if (!value) return null;
+                          const option = filterOptions[key]?.find(opt => opt.value === value);
+                          if (!option) return null;
+                          
+                          return (
+                            <span key={key} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                              {option.label}
+                              <button
+                                onClick={() => handleFilterChange(key, '')}
+                                className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Data Table */}
             <div className="space-y-4">
-              {/* Custom Filters */}
-              <div className="flex flex-wrap gap-4 items-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="w-4 h-4" />
-                  {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </Button>
-                
-                {loading && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                    Loading...
+        
+        {filteredData.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <div className="mx-auto w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
             </div>
-                )}
-                
-                {showFilters && (
-                  <div className="flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium text-gray-700">From:</label>
-                      <input
-                        type="date"
-                        value={dateFrom}
-                        onChange={(e) => handleDateFilterChange('from', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-          </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium text-gray-700">To:</label>
-                      <input
-                        type="date"
-                        value={dateTo}
-                        onChange={(e) => handleDateFilterChange('to', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-                    </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <p className="text-gray-600 mb-4">
+              {activeFiltersCount > 0 
+                ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+                : 'There are no employer requests to display.'
+              }
+            </p>
+            {activeFiltersCount > 0 && (
                     <Button
+                onClick={clearAllFilters}
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setDateFrom('');
-                        setDateTo('');
-                        setFilters(prev => ({ ...prev, dateFrom: '', dateTo: '' }));
-                      }}
-                    >
-                      Clear Dates
+                className="mx-auto"
+              >
+                Clear All Filters
                     </Button>
-                  </div>
                 )}
         </div>
-        
+        ) : (
         <DataTable
-                data={safeDataForRendering}
+            data={filteredData}
           columns={columns}
-                searchTerm={searchTerm}
-                filters={tableFilters}
-                onSearchChange={handleSearchChange}
-                onFilterChange={handleFilterChange}
           onRowAction={handleRowAction}
                 actionButtons={getActionButtons}
-          pagination={true}
-                itemsPerPage={15}
-              />
+            pagination={true}
+            itemsPerPage={15}
+            showSearch={false}
+          />
+        )}
+
+            {/* Debug Info */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
+                <div>Debug Info:</div>
+                <div>Total Data: {(safeDataForRendering || []).length}</div>
+                <div>Filtered Data: {filteredData.length}</div>
+                <div>Active Filters: {activeFiltersCount}</div>
+                <div>Search Term: "{localSearchTerm}"</div>
+                <div>Applied Filters: {JSON.stringify(localFilters)}</div>
+                <div>Categories Loaded: {categories?.length || 0}</div>
+                <div>Categories Loading: {loadingCategories ? 'Yes' : 'No'}</div>
+                </div>
+              )}
 
 
             </div>
@@ -1196,8 +1538,8 @@ const EmployerRequestsPage = () => {
                 </p>
               </div>
               <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
+              <Button
+                variant="outline"
                   onClick={() => {
                     setShowActionModal(false);
                     setReplyMessage('');
@@ -1207,7 +1549,7 @@ const EmployerRequestsPage = () => {
                   disabled={replyLoading}
                 >
                   Cancel
-                </Button>
+              </Button>
                 <Button
                   variant="primary"
                   onClick={handleReplySubmit}
@@ -1288,22 +1630,22 @@ const EmployerRequestsPage = () => {
                         </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                        <Button
-                          variant="outline"
+                  <Button
+                    variant="outline"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Profile Picture
-                        </Button>
-                        <Button
-                          variant="primary"
+                  </Button>
+                  <Button
+                    variant="primary"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Complete Details
-                        </Button>
+                  </Button>
                       </div>
                     </div>
                   </div>
@@ -1313,14 +1655,14 @@ const EmployerRequestsPage = () => {
                     <p>No candidate specified in this request</p>
                     <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
                   </div>
-                )}
-              </div>
+              )}
+            </div>
 
               {candidateSelectionError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                   {candidateSelectionError}
-                </div>
-              )}
+          </div>
+        )}
 
               {candidateSelectionLoading && (
                 <div className="text-sm text-gray-600 flex items-center justify-center">
@@ -1346,7 +1688,7 @@ const EmployerRequestsPage = () => {
           )}
 
           {currentAction === 'complete' && (
-            <div className="space-y-4">
+        <div className="space-y-4">
               {/* Request Information */}
               <div className="bg-orange-50 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
@@ -1414,18 +1756,18 @@ const EmployerRequestsPage = () => {
               )}
 
               <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
+            <Button
+              variant="outline"
                   onClick={() => {
                     setShowActionModal(false);
                     setCompletionNotes('');
                     setCompletionError('');
                   }}
                   disabled={completionLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
+            >
+              Cancel
+            </Button>
+            <Button
                   variant="primary"
                   onClick={handleRequestCompletion}
                   disabled={completionLoading}
@@ -1439,12 +1781,14 @@ const EmployerRequestsPage = () => {
                   ) : (
                     'Complete Request'
                   )}
-                </Button>
-              </div>
-            </div>
+            </Button>
+          </div>
+        </div>
           )}
-        </Modal>
+      </Modal>
       )}
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

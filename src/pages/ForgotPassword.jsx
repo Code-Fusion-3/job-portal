@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { useNavigate, Link } from 'react-router-dom';
+
 import { Mail, ArrowLeft, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
@@ -26,9 +26,9 @@ const ForgotPassword = () => {
     setMessage('');
     try {
       const res = await authApi.requestPasswordReset({ email });
-      setMessage(res.message || t('forgotPassword.success', 'If the email exists, a password reset link has been sent.'));
+      setMessage(res.message || t('forgotPassword.success'));
     } catch (err) {
-      setError(err.response?.data?.error || t('forgotPassword.error', 'Failed to request password reset.'));
+      setError(err.response?.data?.error || t('forgotPassword.error'));
     } finally {
       setLoading(false);
     }
@@ -42,37 +42,28 @@ const ForgotPassword = () => {
       <Header />
       
       {/* Hero Section */}
-      <div className="relative bg-blue-600/90 backdrop-blur-sm">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.1 }}
-            className="text-center"
-          >
+      <div className="relative mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
             <div className="flex items-center justify-center mb-4">
               <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                 <Lock className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Forgot Password?
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              {t('forgotPassword.title')}
             </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Enter your email to receive a password reset link
+            <p className="text-xl text-white/95 max-w-2xl mx-auto drop-shadow-md">
+              {t('forgotPassword.subtitle')}
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="max-w-md mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.2 }}
+          <div 
             className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -80,8 +71,8 @@ const ForgotPassword = () => {
                 id="email"
                 name="email"
                 type="email"
-                label={t('forgotPassword.email', 'Email Address')}
-                placeholder={t('forgotPassword.emailPlaceholder', 'Enter your email')}
+                label={t('forgotPassword.email')}
+                placeholder={t('forgotPassword.emailPlaceholder')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 error={error}
@@ -96,33 +87,29 @@ const ForgotPassword = () => {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg" 
                 disabled={loading}
               >
-                {loading ? t('forgotPassword.sending', 'Sending...') : t('forgotPassword.sendLink', 'Send Reset Link')}
+                {loading ? t('forgotPassword.sending') : t('forgotPassword.sendLink')}
               </Button>
               
               {message && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <div 
                   className="bg-green-50 border border-green-200 rounded-xl p-4"
                 >
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
                     <p className="text-green-700 text-sm">{message}</p>
                   </div>
-                </motion.div>
+                </div>
               )}
               
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <div 
                   className="bg-red-50 border border-red-200 rounded-xl p-4"
                 >
                   <div className="flex items-center space-x-3">
                     <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                     <p className="text-red-700 text-sm">{error}</p>
                   </div>
-                </motion.div>
+                </div>
               )}
               
               <div className="text-center space-y-4">
@@ -131,7 +118,7 @@ const ForgotPassword = () => {
                     <div className="w-full border-t border-gray-300"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Remember your password?</span>
+                    <span className="px-2 bg-white text-gray-500">{t('forgotPassword.rememberPassword')}</span>
                   </div>
                 </div>
                 
@@ -140,12 +127,12 @@ const ForgotPassword = () => {
                     to="/login" 
                     className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
                   >
-                    ← Back to Sign In
+                    {t('forgotPassword.backToSignIn')}
                   </Link>
                 </p>
               </div>
             </form>
-          </motion.div>
+          </div>
         </div>
       </div>
       <Footer />

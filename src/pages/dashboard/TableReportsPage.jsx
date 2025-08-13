@@ -19,6 +19,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DataTable from '../../components/ui/DataTable';
+import toast, { Toaster } from 'react-hot-toast';
 
 const TableReportsPage = () => {
   const { t } = useTranslation();
@@ -130,13 +131,13 @@ const TableReportsPage = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        alert(`${type} table report exported successfully as PDF!`);
+        toast.success(`${type} table report exported successfully as PDF!`);
       } else {
-        alert(`Failed to export report: ${result.error}`);
+        toast.error(`Failed to export report: ${result.error}`);
       }
     } catch (error) {
       console.error('Error exporting report:', error);
-      alert('Error exporting report. Please try again.');
+      toast.error('Error exporting report. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -566,6 +567,8 @@ const TableReportsPage = () => {
             </div>
         </Card>
       )}
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

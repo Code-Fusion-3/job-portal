@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -24,10 +24,12 @@ import {
   Languages,
   Award,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Briefcase
 } from 'lucide-react';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAdminCategories } from '../../api/hooks/useCategories.js';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -98,6 +100,35 @@ const experienceLevels = [
   { value: 'expert', label: 'Expert (10+ years)', description: 'Extensive experience' }
 ];
 
+// Filter options for professional filtering
+const filterOptions = {
+  experienceLevel: [
+    { value: '', label: 'All Experience Levels' },
+    ...experienceLevels
+  ],
+  category: [
+    { value: '', label: 'All Categories' }
+    // Will be populated dynamically from jobCategories
+  ],
+  location: [
+    { value: '', label: 'All Locations' },
+    { value: 'kigali', label: 'Kigali' },
+    { value: 'butare', label: 'Butare' },
+    { value: 'gisenyi', label: 'Gisenyi' },
+    { value: 'ruhengeri', label: 'Ruhengeri' },
+    { value: 'kibuye', label: 'Kibuye' },
+    { value: 'cyangugu', label: 'Cyangugu' },
+    { value: 'kibungo', label: 'Kibungo' },
+    { value: 'rwamagana', label: 'Rwamagana' }
+  ],
+  gender: [
+    { value: '', label: 'All Genders' },
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+    { value: 'Other', label: 'Other' }
+  ]
+};
+
 const JobSeekersPage = () => {
   const { t } = useTranslation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -109,43 +140,26 @@ const JobSeekersPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [experienceFilter, setExperienceFilter] = useState('');
-  const [jobCategories, setJobCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+  
+  // Professional filter states
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [localFilters, setLocalFilters] = useState({
+    experienceLevel: '',
+    category: '',
+    location: '',
+    gender: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Use the categories hook for dynamic job categories
+  const { categories: jobCategories, loading: loadingCategories, error: categoriesError } = useAdminCategories();
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
 
-  // Fetch job categories from backend
-  useEffect(() => {
-    const fetchJobCategories = async () => {
-      setLoadingCategories(true);
-      try {
-        const response = await fetch('http://localhost:3000/categories/admin', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('job_portal_token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          // Handle the correct data structure with categories array
-          const categories = data.categories || data || [];
-          setJobCategories(categories);
-        } else {
-          console.error('Failed to fetch job categories');
-        }
-      } catch (error) {
-        console.error('Error fetching job categories:', error);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-
-    fetchJobCategories();
-  }, []);
+  // Categories are automatically loaded by the useAdminCategories hook
 
   // Use the custom hook for job seekers management
   const {
@@ -241,6 +255,96 @@ const JobSeekersPage = () => {
     setSearchTerm('');
   };
 
+  // Professional filter handlers
+  const handleLocalSearchChange = (value) => {
+    setLocalSearchTerm(value);
+    setIsSearching(true);
+    // Debounce search
+    setTimeout(() => setIsSearching(false), 300);
+  };
+
+  const handleLocalFilterChange = (key, value) => {
+    setLocalFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearAllLocalFilters = () => {
+    setLocalFilters({
+      experienceLevel: '',
+      category: '',
+      location: '',
+      gender: ''
+    });
+    setLocalSearchTerm('');
+  };
+
+  // Filtered data using local filters
+  const filteredData = useMemo(() => {
+    if (!jobSeekers || jobSeekers.length === 0) return [];
+
+    return jobSeekers.filter(jobSeeker => {
+      // Search term filter
+      if (localSearchTerm) {
+        const searchLower = localSearchTerm.toLowerCase();
+        const name = `${jobSeeker.profile?.firstName || jobSeeker.firstName || ''} ${jobSeeker.profile?.lastName || jobSeeker.lastName || ''}`.toLowerCase();
+        const email = (jobSeeker.email || '').toLowerCase();
+        const skills = (jobSeeker.profile?.skills || jobSeeker.skills || '').toLowerCase();
+        const location = (jobSeeker.profile?.location || jobSeeker.location || '').toLowerCase();
+        
+        if (!name.includes(searchLower) && !email.includes(searchLower) && 
+            !skills.includes(searchLower) && !location.includes(searchLower)) {
+          return false;
+        }
+      }
+
+      // Experience level filter
+      if (localFilters.experienceLevel && jobSeeker.profile?.experienceLevel !== localFilters.experienceLevel) {
+        return false;
+      }
+
+      // Category filter
+      if (localFilters.category && jobSeeker.profile?.jobCategory?.name_en?.toLowerCase() !== localFilters.category.toLowerCase()) {
+        return false;
+      }
+
+      // Location filter
+      if (localFilters.location && (jobSeeker.profile?.location || jobSeeker.location || '').toLowerCase() !== localFilters.location.toLowerCase()) {
+        return false;
+      }
+
+      // Gender filter
+      if (localFilters.gender && jobSeeker.profile?.gender !== localFilters.gender) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [jobSeekers, localSearchTerm, localFilters]);
+
+  // Active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (localSearchTerm) count++;
+    Object.values(localFilters).forEach(value => {
+      if (value) count++;
+    });
+    return count;
+  }, [localSearchTerm, localFilters]);
+
+  // Update category filter options when jobCategories change
+  useEffect(() => {
+    if (jobCategories && jobCategories.length > 0) {
+      const categoryOptions = [
+        { value: '', label: 'All Categories' },
+        ...jobCategories.map(cat => ({
+          value: cat.name_en.toLowerCase(),
+          label: cat.name_en
+        }))
+      ];
+      // Update the filterOptions.category dynamically
+      filterOptions.category = categoryOptions;
+    }
+  }, [jobCategories]);
+
   // Handle row actions
   const handleRowAction = (action, jobSeeker) => {
     switch (action) {
@@ -268,11 +372,7 @@ const JobSeekersPage = () => {
     }
   };
 
-  // Handle status change
-  const handleStatusChange = (newStatus) => {
-    setStatusFilter(newStatus);
-    // You can add status-based filtering here
-  };
+
 
   // Handle add job seeker
   const handleAddJobSeeker = async (jobSeekerData) => {
@@ -653,12 +753,202 @@ const JobSeekersPage = () => {
         </motion.div>
       )}
 
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Job Seekers</p>
+              <p className="text-2xl font-bold text-gray-900">{filteredData.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </Card>
 
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Filters</p>
+              <p className="text-2xl font-bold text-gray-900">{activeFiltersCount}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <Filter className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Categories</p>
+              <p className="text-2xl font-bold text-gray-900">{jobCategories?.length || 0}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Briefcase className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Search Results</p>
+              <p className="text-2xl font-bold text-gray-900">{filteredData.length}</p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Search className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Search and Filter Controls */}
+      <Card className="p-6">
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by name, email, skills, or location..."
+                value={localSearchTerm}
+                onChange={(e) => handleLocalSearchChange(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+            </div>
+            
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+            </Button>
+            
+            {activeFiltersCount > 0 && (
+              <Button
+                onClick={clearAllLocalFilters}
+                variant="outline"
+                className="text-red-600 hover:text-red-700"
+              >
+                Clear All
+              </Button>
+            )}
+          </div>
+
+          {/* Filter Controls */}
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+              {/* Experience Level Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
+                <select
+                  value={localFilters.experienceLevel}
+                  onChange={(e) => handleLocalFilterChange('experienceLevel', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {filterOptions.experienceLevel.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select
+                  value={localFilters.category}
+                  onChange={(e) => handleLocalFilterChange('category', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loadingCategories}
+                >
+                  {loadingCategories ? (
+                    <option>Loading categories...</option>
+                  ) : (
+                    filterOptions.category.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              {/* Location Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                <select
+                  value={localFilters.location}
+                  onChange={(e) => handleLocalFilterChange('location', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {filterOptions.location.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Gender Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <select
+                  value={localFilters.gender}
+                  onChange={(e) => handleLocalFilterChange('gender', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {filterOptions.gender.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Debug Info (Development Only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="pt-4 border-t border-gray-200">
+              <div className="text-xs text-gray-500 space-y-1">
+                <div>Debug: Total: {jobSeekers.length} | Filtered: {filteredData.length} | Active Filters: {activeFiltersCount}</div>
+                <div>Search: "{localSearchTerm}" | Filters: {JSON.stringify(localFilters)}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* No Results State */}
+      {filteredData.length === 0 && (localSearchTerm || Object.values(localFilters).some(v => v)) && (
+        <Card className="p-8 text-center">
+          <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+          <p className="text-gray-600 mb-4">
+            Try adjusting your search criteria or filters to find more job seekers.
+          </p>
+          <Button onClick={clearAllLocalFilters} variant="outline">
+            Clear All Filters
+          </Button>
+        </Card>
+      )}
 
       {/* Job Seekers Table */}
       <Card>
         <DataTable
-          data={jobSeekers}
+          data={filteredData}
           columns={columns}
           loading={loading}
           emptyMessage="No job seekers found"
@@ -666,8 +956,9 @@ const JobSeekersPage = () => {
           onRowAction={handleRowAction}
           pagination={true}
           itemsPerPage={15}
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
+          searchTerm={localSearchTerm}
+          onSearchChange={handleLocalSearchChange}
+          showSearch={false}
         />
       </Card>
 

@@ -19,6 +19,7 @@ import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { categoryService } from '../../api/services/categoryService';
 import { useCategories } from '../../api/hooks/useCategories';
+import toast, { Toaster } from 'react-hot-toast';
 
 const JobCategoriesPage = () => {
   const { t } = useTranslation();
@@ -99,7 +100,7 @@ const JobCategoriesPage = () => {
       if (result.success) {
       setFormData({ name_en: '', name_rw: '' });
       setShowAddModal(false);
-      alert('Job category created successfully!');
+      toast.success('Job category created successfully!');
       } else {
         setActionError(result.error || 'Failed to create category');
       }
@@ -144,7 +145,7 @@ const JobCategoriesPage = () => {
       setFormData({ name_en: '', name_rw: '' });
       setSelectedCategory(null);
       setShowEditModal(false);
-      alert('Job category updated successfully!');
+      toast.success('Job category updated successfully!');
       } else {
         setActionError(result.error || 'Failed to update category');
       }
@@ -167,7 +168,7 @@ const JobCategoriesPage = () => {
       if (result.success) {
       setSelectedCategory(null);
       setShowDeleteModal(false);
-      alert('Job category deleted successfully!');
+      toast.success('Job category deleted successfully!');
       } else {
         setActionError(result.error || 'Failed to delete category');
         
@@ -572,6 +573,8 @@ const JobCategoriesPage = () => {
           )}
         </div>
       </Modal>
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight, AlertTriangle, LogIn, Sparkles } from 'lucide-react';
@@ -11,6 +11,7 @@ import FormCheckbox from '../components/ui/FormCheckbox';
 import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import HeroSection from '../components/ui/HeroSection';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
 
 const Login = () => {
@@ -114,24 +115,10 @@ const Login = () => {
       <Header />
       
       {/* Hero Section */}
-      <div className="relative bg-blue-600/90 backdrop-blur-sm">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.1 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Welcome Back
-            </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Sign in to your job seeker account and continue your career journey
-            </p>
-          </motion.div>
-        </div>
-      </div>
+      <HeroSection 
+        title="Welcome Back"
+        description="Sign in to your job seeker account and continue your career journey"
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">

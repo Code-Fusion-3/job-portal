@@ -14,7 +14,8 @@ const DataTable = ({
   onFilterChange,
   pagination = false,
   itemsPerPage = 10,
-  className = ''
+  className = '',
+  showSearch = true
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState('');
@@ -98,7 +99,7 @@ const DataTable = ({
       {(searchTerm !== undefined || filters.length > 0) && (
         <div className="p-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row gap-4">
-            {searchTerm !== undefined && (
+            {showSearch && searchTerm !== undefined && (
               <div className="flex-1">
                 <input
                   type="text"

@@ -12,9 +12,12 @@ import {
   Briefcase,
   Calendar,
   Phone,
-  Mail
+  Mail,
+  AlertCircle
 } from 'lucide-react';
 import { jobSeekerService } from '../api/index.js';
+import { usePublicCategories } from '../api/hooks/useCategories.js';
+import { usePublicJobSeekers } from '../api/hooks/useJobSeekers.js';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -27,68 +30,36 @@ import { filterJobSeekers, sortJobSeekers, maskName, formatExperienceDisplay } f
 import useDebounce from '../hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
 
-// Static data moved from mockData.js
+// Professional filter options from JobSeekersPage.jsx
 const filterOptions = {
-  categories: [
-    'All Categories',
-    'Domestic',
-    'Care',
-    'Maintenance',
-    'Food',
-    'Transport',
-    'Sales'
+  experienceLevel: [
+    { value: '', label: 'All Experience Levels' },
+    { value: 'no_experience', label: 'No Experience (0 years)' },
+    { value: 'beginner', label: 'Beginner (1-2 years)' },
+    { value: 'intermediate', label: 'Intermediate (3-5 years)' },
+    { value: 'experienced', label: 'Experienced (6-10 years)' },
+    { value: 'expert', label: 'Expert (10+ years)' }
   ],
-  locations: [
-    'All Locations',
-    'Kigali',
-    'Butare',
-    'Gitarama',
-    'Ruhengeri',
-    'Gisenyi',
-    'Cyangugu',
-    'Kibuye',
-    'Kibungo'
+  category: [
+    { value: '', label: 'All Categories' }
+    // Will be populated dynamically from jobCategories
   ],
-  experience: [
-    'All Experience',
-    'Entry Level',
-    '1-2 years',
-    '3-5 years',
-    '5+ years'
+  location: [
+    { value: '', label: 'All Locations' },
+    { value: 'kigali', label: 'Kigali' },
+    { value: 'butare', label: 'Butare' },
+    { value: 'gisenyi', label: 'Gisenyi' },
+    { value: 'ruhengeri', label: 'Ruhengeri' },
+    { value: 'kibuye', label: 'Kibuye' },
+    { value: 'cyangugu', label: 'Cyangugu' },
+    { value: 'kibungo', label: 'Kibungo' },
+    { value: 'rwamagana', label: 'Rwamagana' }
   ],
-  education: [
-    'All Education',
-    'No Formal Education',
-    'Primary School',
-    'Secondary School',
-    'Vocational Training',
-    'Bachelor\'s Degree',
-    'Master\'s Degree'
-  ],
-  availability: [
-    'All Availability',
-    'Full Time',
-    'Part Time',
-    'Flexible',
-    'Weekends Only',
-    'Evenings Only',
-    'On Call'
-  ],
-  dailyRateRange: [
-    'All Rates',
-    'Under 3,000 RWF',
-    '3,000 - 5,000 RWF',
-    '5,000 - 8,000 RWF',
-    '8,000 - 12,000 RWF',
-    'Over 12,000 RWF'
-  ],
-  monthlyRateRange: [
-    'All Monthly Rates',
-    'Under 80,000 RWF',
-    '80,000 - 120,000 RWF',
-    '120,000 - 180,000 RWF',
-    '180,000 - 250,000 RWF',
-    'Over 250,000 RWF'
+  gender: [
+    { value: '', label: 'All Genders' },
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+    { value: 'Other', label: 'Other' }
   ],
   sortBy: [
     'Most Recent',
@@ -107,89 +78,258 @@ const JobSeekers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedExperience, setSelectedExperience] = useState('');
-  const [selectedDailyRateRange, setSelectedDailyRateRange] = useState('');
-  const [selectedMonthlyRateRange, setSelectedMonthlyRateRange] = useState('');
-  const [selectedAvailability, setSelectedAvailability] = useState('');
-  const [selectedEducation, setSelectedEducation] = useState('');
-  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedExperienceLevel, setSelectedExperienceLevel] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
   const [sortBy, setSortBy] = useState('Most Recent');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const navigate = useNavigate();
 
+  // Use the public categories hook for dynamic job categories
+  const { categories: jobCategories, loading: loadingCategories, error: categoriesError } = usePublicCategories();
+
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Load job seekers data
+  // Update category filter options when jobCategories change
   useEffect(() => {
-    const loadJobSeekers = async () => {
-      setLoading(true);
-      try {
-        const result = await jobSeekerService.getLatestJobSeekers(50); // Get more job seekers for the full page
-  
-        
-        if (result.success) {
-  
-          setJobSeekers(result.data || []);
-          setFilteredSeekers(result.data || []);
-        } else {
-          console.error("Error fetching job seekers:", result.error);
-        }
-      } catch (error) {
-        console.error("Error fetching job seekers:", error);
-        // Optionally set an error state
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (jobCategories && jobCategories.length > 0) {
+      const categoryOptions = [
+        { value: '', label: 'All Categories' },
+        ...jobCategories.map(cat => ({
+          value: cat.name_en.toLowerCase(),
+          label: cat.name_en
+        }))
+      ];
+      // Update the filterOptions.category dynamically
+      filterOptions.category = categoryOptions;
+    } else if (categoriesError) {
+      // Fallback to static categories if API fails
+      filterOptions.category = [
+        { value: '', label: 'All Categories' },
+        { value: 'domestic', label: 'Domestic' },
+        { value: 'care', label: 'Care' },
+        { value: 'maintenance', label: 'Maintenance' },
+        { value: 'food', label: 'Food' },
+        { value: 'transport', label: 'Transport' },
+        { value: 'sales', label: 'Sales' }
+      ];
+    }
+    
+    // Debug: Log current filter options
+    console.log('🔍 Current Filter Options:', {
+      experienceLevel: filterOptions.experienceLevel,
+      category: filterOptions.category,
+      location: filterOptions.location,
+      gender: filterOptions.gender
+    });
+  }, [jobCategories, categoriesError]);
 
-    loadJobSeekers();
-  }, []);
+  // Get active filters count
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (selectedLocation) count++;
+    if (selectedCategory) count++;
+    if (selectedExperienceLevel) count++;
+    if (selectedGender) count++;
+    return count;
+  };
+
+  // Use the public job seekers hook
+  const { 
+    jobSeekers: publicJobSeekers, 
+    loading: jobSeekersLoading, 
+    error: jobSeekersError 
+  } = usePublicJobSeekers({ 
+    autoFetch: true, 
+    itemsPerPage: 50 
+  });
+
+  // Update local state when public data changes
+  useEffect(() => {
+    if (publicJobSeekers && publicJobSeekers.length > 0) {
+      setJobSeekers(publicJobSeekers);
+      setFilteredSeekers(publicJobSeekers);
+    } else if (jobSeekersError) {
+      // Set empty arrays if there's an error
+      setJobSeekers([]);
+      setFilteredSeekers([]);
+    } else if (!publicJobSeekers || publicJobSeekers.length === 0) {
+      // If no data from API, use sample data for testing
+      const sampleData = [
+        {
+          id: 1,
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john.doe@example.com',
+          location: 'kigali',
+          city: 'Kigali',
+          gender: 'Male',
+          experienceLevel: 'intermediate',
+          skills: 'House Cleaning, Laundry, Cooking',
+          experience: '3 years in domestic services',
+          jobCategory: { name_en: 'Domestic' },
+          createdAt: new Date('2024-01-15')
+        },
+        {
+          id: 2,
+          firstName: 'Jane',
+          lastName: 'Smith',
+          email: 'jane.smith@example.com',
+          location: 'butare',
+          city: 'Butare',
+          gender: 'Female',
+          experienceLevel: 'experienced',
+          skills: 'Childcare, Elderly Care, First Aid',
+          experience: '7 years in care services',
+          jobCategory: { name_en: 'Care' },
+          createdAt: new Date('2024-01-10')
+        },
+        {
+          id: 3,
+          firstName: 'Mike',
+          lastName: 'Johnson',
+          email: 'mike.johnson@example.com',
+          location: 'gisenyi',
+          city: 'Gisenyi',
+          gender: 'Male',
+          experienceLevel: 'beginner',
+          skills: 'Gardening, Basic Repairs',
+          experience: '1 year in maintenance',
+          jobCategory: { name_en: 'Maintenance' },
+          createdAt: new Date('2024-01-20')
+        }
+      ];
+      setJobSeekers(sampleData);
+      setFilteredSeekers(sampleData);
+    }
+  }, [publicJobSeekers, jobSeekersError]);
 
   // Apply filters and search
   useEffect(() => {
-    // Temporarily disable filtering to debug data issues
+    if (!jobSeekers || jobSeekers.length === 0) {
+      setFilteredSeekers([]);
+      return;
+    }
 
-    setFilteredSeekers(jobSeekers);
-    
-    // TODO: Re-enable filtering once data structure is confirmed
-    // const filters = {
-    //   searchTerm: debouncedSearchTerm,
-    //   location: selectedLocation,
-    //   category: selectedCategory,
-    //   experience: selectedExperience,
-    //   dailyRateRange: selectedDailyRateRange,
-    //   monthlyRateRange: selectedMonthlyRateRange,
-    //   availability: selectedAvailability,
-    //   education: selectedEducation,
-    //   skills: selectedSkills
-    // };
+    console.log('🔍 Applying filters:', {
+      searchTerm,
+      selectedExperienceLevel,
+      selectedCategory,
+      selectedLocation,
+      selectedGender,
+      sortBy,
+      totalJobSeekers: jobSeekers.length
+    });
 
-    // let filtered = filterJobSeekers(jobSeekers, filters);
-    // filtered = sortJobSeekers(filtered, sortBy);
-    // setFilteredSeekers(filtered);
-  }, [jobSeekers]); // Only depend on jobSeekers, not all the filter states
 
-  const toggleSkill = (skill) => {
-    setSelectedSkills(prev => 
-      prev.includes(skill) 
-        ? prev.filter(s => s !== skill)
-        : [...prev, skill]
-    );
-  };
+    let filtered = jobSeekers.filter(seeker => {
+      // Search term filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        // Try different possible name field structures
+        const firstName = seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || '';
+        const lastName = seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '';
+        const name = `${firstName} ${lastName}`.toLowerCase();
+        
+        // Try different possible skills field structures
+        const skills = (seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').toLowerCase();
+        
+        // Try different possible location field structures
+        const location = (seeker.location || seeker.profile?.location || seeker.city || '').toLowerCase();
+        
+        if (!name.includes(searchLower) && !skills.includes(searchLower) && !location.includes(searchLower)) {
+          return false;
+        }
+      }
+
+      // Experience level filter
+      if (selectedExperienceLevel) {
+        const seekerExperienceLevel = seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel;
+        console.log('🔍 Experience Filter Debug:', {
+          seeker: `${seeker.firstName} ${seeker.lastName}`,
+          seekerExperienceLevel,
+          selectedExperienceLevel,
+          matches: seekerExperienceLevel === selectedExperienceLevel
+        });
+        if (seekerExperienceLevel !== selectedExperienceLevel) {
+          return false;
+        }
+      }
+
+      // Category filter
+      if (selectedCategory) {
+        const seekerCategory = seeker.jobCategory?.name_en || 
+                              seeker.profile?.jobCategory?.name_en || 
+                              seeker.user?.jobCategory?.name_en ||
+                              seeker.category;
+        if (seekerCategory?.toLowerCase() !== selectedCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // Location filter
+      if (selectedLocation) {
+        const seekerLocation = seeker.location || seeker.profile?.location || seeker.city || '';
+        if (seekerLocation.toLowerCase() !== selectedLocation.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // Gender filter
+      if (selectedGender) {
+        const seekerGender = seeker.gender || seeker.profile?.gender || seeker.user?.gender;
+        if (seekerGender !== selectedGender) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Apply sorting
+    if (sortBy === 'Most Recent') {
+      filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    } else if (sortBy === 'Name A-Z') {
+      filtered.sort((a, b) => {
+        const aFirstName = a.firstName || a.profile?.firstName || a.user?.firstName || '';
+        const aLastName = a.lastName || a.profile?.lastName || a.user?.lastName || '';
+        const bFirstName = b.firstName || b.profile?.firstName || b.user?.firstName || '';
+        const bLastName = b.lastName || b.profile?.lastName || b.user?.lastName || '';
+        return (aFirstName + ' ' + aLastName).localeCompare(bFirstName + ' ' + bLastName);
+      });
+    } else if (sortBy === 'Most Experienced') {
+      filtered.sort((a, b) => {
+        const getExperienceValue = (level) => {
+          switch(level) {
+            case 'expert': return 5;
+            case 'experienced': return 4;
+            case 'intermediate': return 3;
+            case 'beginner': return 2;
+            case 'no_experience': return 1;
+            default: return 0;
+          }
+        };
+        const aLevel = a.experienceLevel || a.profile?.experienceLevel || a.user?.experienceLevel;
+        const bLevel = b.experienceLevel || b.profile?.experienceLevel || b.user?.experienceLevel;
+        return getExperienceValue(bLevel) - getExperienceValue(aLevel);
+      });
+    }
+
+    console.log('🔍 Filtered results:', filtered.length);
+    setFilteredSeekers(filtered);
+  }, [jobSeekers, searchTerm, selectedExperienceLevel, selectedCategory, selectedLocation, selectedGender, sortBy]);
+
+
 
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedLocation('');
     setSelectedCategory('');
-    setSelectedExperience('');
-    setSelectedDailyRateRange('');
-    setSelectedMonthlyRateRange('');
-    setSelectedAvailability('');
-    setSelectedEducation('');
-    setSelectedSkills([]);
+    setSelectedExperienceLevel('');
+    setSelectedGender('');
     setSortBy('Most Recent');
   };
 
@@ -211,7 +351,7 @@ const JobSeekers = () => {
     });
   };
 
-  if (loading) {
+  if (jobSeekersLoading) {
     return (
       <div className="min-h-screen relative">
         <div 
@@ -222,6 +362,31 @@ const JobSeekers = () => {
           <div className="text-center">
             <LoadingSpinner />
             <p className="text-white/80">Loading job seekers...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (jobSeekersError) {
+    return (
+      <div className="min-h-screen relative">
+        <div 
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${jobseekerBackground})` }}
+        />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+              <div className="flex items-center space-x-2 mb-4">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <span className="text-red-700 font-medium">Error Loading Job Seekers</span>
+              </div>
+              <p className="text-red-600 mb-4">{jobSeekersError}</p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -283,7 +448,7 @@ const JobSeekers = () => {
                 className="flex items-center gap-2"
               >
                 <Filter className="w-4 h-4" />
-                Filters
+                Filters {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
               </Button>
               <Button
                 variant="outline"
@@ -293,37 +458,36 @@ const JobSeekers = () => {
                 {viewMode === 'grid' ? <Briefcase className="w-4 h-4" /> : <Users className="w-4 h-4" />}
                 {viewMode === 'grid' ? 'List' : 'Grid'}
               </Button>
+              {getActiveFiltersCount() > 0 && (
               <Button
                 variant="outline"
                 onClick={clearFilters}
-                className="flex items-center gap-2"
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
               >
                 <Eye className="w-4 h-4" />
-                Clear
+                  Clear All
               </Button>
+              )}
             </div>
           </div>
 
-          {/* Filters */}
-          {/* AnimatePresence is removed as per new_code, assuming it's not needed */}
+          {/* Professional Filters */}
           {showFilters && (
-            <div
-              className="border-t pt-6"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Location Filter */}
+            <div className="border-t pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Experience Level Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.location', 'Location')}
+                    {t('jobSeekers.filters.experienceLevel', 'Experience Level')}
                   </label>
                   <select
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    value={selectedExperienceLevel}
+                    onChange={(e) => setSelectedExperienceLevel(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                   >
-                    {filterOptions.locations.map(location => (
-                      <option key={location} value={location === 'All Locations' ? '' : location}>
-                        {location}
+                    {filterOptions.experienceLevel.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </select>
@@ -338,107 +502,60 @@ const JobSeekers = () => {
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    disabled={loadingCategories}
                   >
-                    {filterOptions.categories.map(category => (
-                      <option key={category} value={category === 'All Categories' ? '' : category}>
-                        {category}
+                    {loadingCategories ? (
+                      <option>Loading categories...</option>
+                    ) : categoriesError ? (
+                      <option>Error loading categories</option>
+                    ) : (
+                      filterOptions.category.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                      </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                {/* Location Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('jobSeekers.filters.location', 'Location')}
+                  </label>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                  >
+                    {filterOptions.location.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Experience Filter */}
+                {/* Gender Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.experience', 'Experience')}
+                    {t('jobSeekers.filters.gender', 'Gender')}
                   </label>
                   <select
-                    value={selectedExperience}
-                    onChange={(e) => setSelectedExperience(e.target.value)}
+                    value={selectedGender}
+                    onChange={(e) => setSelectedGender(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
                   >
-                    {filterOptions.experience.map(exp => (
-                      <option key={exp} value={exp === 'All Experience' ? '' : exp}>
-                        {exp}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Daily Rate Range Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.dailyRate', 'Daily Rate')}
-                  </label>
-                  <select
-                    value={selectedDailyRateRange}
-                    onChange={(e) => setSelectedDailyRateRange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  >
-                    {filterOptions.dailyRateRange.map(rate => (
-                      <option key={rate} value={rate === 'All Rates' ? '' : rate}>
-                        {rate}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Monthly Rate Range Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.monthlyRate', 'Monthly Rate')}
-                  </label>
-                  <select
-                    value={selectedMonthlyRateRange}
-                    onChange={(e) => setSelectedMonthlyRateRange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  >
-                    {filterOptions.monthlyRateRange.map(rate => (
-                      <option key={rate} value={rate === 'All Monthly Rates' ? '' : rate}>
-                        {rate}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Availability Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.availability', 'Availability')}
-                  </label>
-                  <select
-                    value={selectedAvailability}
-                    onChange={(e) => setSelectedAvailability(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  >
-                    {filterOptions.availability.map(availability => (
-                      <option key={availability} value={availability === 'All Availability' ? '' : availability}>
-                        {availability}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Education Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.education', 'Education')}
-                  </label>
-                  <select
-                    value={selectedEducation}
-                    onChange={(e) => setSelectedEducation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  >
-                    {filterOptions.education.map(education => (
-                      <option key={education} value={education === 'All Education' ? '' : education}>
-                        {education}
+                    {filterOptions.gender.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Sort By */}
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('jobSeekers.filters.sortBy', 'Sort By')}
                   </label>
@@ -452,30 +569,141 @@ const JobSeekers = () => {
                     ))}
                   </select>
                 </div>
-
-                {/* Skills Filter */}
-                <div className="lg:col-span-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.skills', 'Skills')}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['React', 'Python', 'Node.js', 'UI/UX', 'Data Science'].map(skill => (
-                      <Badge
-                        key={skill}
-                        variant={selectedSkills.includes(skill) ? 'primary' : 'outline'}
-                        size="sm"
-                        className="cursor-pointer"
-                        onClick={() => toggleSkill(skill)}
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
                   </div>
                 </div>
-              </div>
-            </div>
+
           )}
         </motion.div>
+
+        {/* Fallback Categories Warning */}
+        {categoriesError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6"
+          >
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              <span className="text-yellow-700 font-medium">Using fallback categories</span>
+            </div>
+            <p className="text-yellow-600 text-sm mt-1">
+              Unable to load categories from server. Using default categories for filtering.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Debug Info (Development Only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 mb-6">
+            <div className="text-xs text-gray-500 space-y-1">
+              <div>Debug: Total: {jobSeekers.length} | Filtered: {filteredSeekers.length} | Active Filters: {getActiveFiltersCount()}</div>
+              <div>Search: "{searchTerm}" | Filters: {JSON.stringify({ selectedLocation, selectedCategory, selectedExperienceLevel, selectedGender })}</div>
+              <div>Categories: {jobCategories?.length || 0} | Categories Loading: {loadingCategories} | Categories Error: {categoriesError || 'None'}</div>
+              <div>Job Seekers Loading: {jobSeekersLoading} | Job Seekers Error: {jobSeekersError || 'None'}</div>
+              <div className="pt-2 space-y-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    console.log('🔍 Current Job Seekers:', jobSeekers);
+                    console.log('🔍 Current Filters:', { searchTerm, selectedLocation, selectedCategory, selectedExperienceLevel, selectedGender, sortBy });
+                  }}
+                >
+                  Log Data to Console
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    console.log('🔍 Testing Experience Filter:');
+                    jobSeekers.forEach(seeker => {
+                      const exp = seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel;
+                      console.log(`${seeker.firstName} ${seeker.lastName}: experienceLevel = "${exp}"`);
+                    });
+                  }}
+                >
+                  Test Experience Filter
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    console.log('🔍 Testing Experience Filter Logic:');
+                    setSelectedExperienceLevel('intermediate');
+                    console.log('Set experience level to "intermediate"');
+                  }}
+                >
+                  Test: Set Intermediate
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Statistics Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+        >
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-600">Total Job Seekers</p>
+            <p className="text-2xl font-bold text-gray-900">{jobSeekers.length}</p>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Search className="w-6 h-6 text-green-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-600">Search Results</p>
+            <p className="text-2xl font-bold text-gray-900">{filteredSeekers.length}</p>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Filter className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-600">Active Filters</p>
+            <p className="text-2xl font-bold text-gray-900">{getActiveFiltersCount()}</p>
+          </div>
+        </motion.div>
+
+        {/* No Results State */}
+        {filteredSeekers.length === 0 && getActiveFiltersCount() > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center"
+          >
+            <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <p className="text-gray-600 mb-4">
+              Try adjusting your search criteria or filters to find more job seekers.
+            </p>
+            <Button onClick={clearFilters} variant="outline">
+              Clear All Filters
+            </Button>
+          </motion.div>
+        )}
+
+        {/* No Job Seekers Available */}
+        {filteredSeekers.length === 0 && getActiveFiltersCount() === 0 && jobSeekers.length === 0 && !jobSeekersLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center"
+          >
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No job seekers available</h3>
+            <p className="text-gray-600 mb-4">
+              There are currently no job seekers registered in the system.
+            </p>
+          </motion.div>
+        )}
 
         {/* Job Seekers Grid/List */}
         {filteredSeekers.length > 0 ? (
@@ -514,11 +742,11 @@ const JobSeekers = () => {
                              </div>
                             <div className="flex-1">
                                                          <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                             {maskName(seeker.firstName)} {maskName(seeker.lastName)}
+                              {maskName(seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || 'Unknown')} {maskName(seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '')}
                            </h3>
                               <div className="flex items-center gap-2">
                                 <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
-                                  {seeker.jobCategory?.name_en || 'No Category'}
+                                   {seeker.jobCategory?.name_en || seeker.profile?.jobCategory?.name_en || seeker.user?.jobCategory?.name_en || seeker.category || 'No Category'}
                                 </span>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                               </div>
@@ -536,30 +764,39 @@ const JobSeekers = () => {
 
                       {/* Content Section */}
                       <div className="px-6 flex-1 space-y-4">
-                        {seeker.location && (
+                                                 {(seeker.location || seeker.profile?.location || seeker.city) && (
                           <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
                             <MapPin className="w-4 h-4 mr-2 text-blue-500" />
-                            <span className="font-medium">{seeker.location}, {seeker.city}</span>
+                             <span className="font-medium">
+                               {seeker.location || seeker.profile?.location || seeker.city}
+                               {seeker.city && seeker.city !== (seeker.location || seeker.profile?.location) && `, ${seeker.city}`}
+                             </span>
                           </div>
                         )}
 
                                                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
                            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience</span>
-                           <p className="text-sm text-gray-700 font-medium">{formatExperienceDisplay(seeker.experience)}</p>
+                           <p className="text-sm text-gray-700 font-medium">
+                             {formatExperienceDisplay(seeker.experience || seeker.profile?.experience || seeker.user?.experience || 'Not specified')}
+                           </p>
                          </div>
 
-                        {seeker.skills && (
+                         {(seeker.skills || seeker.profile?.skills || seeker.user?.skills) && (
                           <div>
                             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills</h4>
                             <div className="flex flex-wrap gap-1.5">
-                              {seeker.skills.split(',').slice(0, 4).map((skill, index) => (
+                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
+                                 .split(',')
+                                 .slice(0, 4)
+                                 .map((skill, index) => (
                                 <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
                                   {skill.trim()}
                                 </span>
                               ))}
-                              {seeker.skills.split(',').length > 4 && (
+                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
+                                 .split(',').length > 4 && (
                                 <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
-                                  +{seeker.skills.split(',').length - 4} more
+                                     +{(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').split(',').length - 4} more
                                 </span>
                               )}
                             </div>

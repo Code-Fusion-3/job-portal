@@ -88,7 +88,6 @@ export const footerConfig = {
       links: [
         { nameKey: 'footer.privacy', href: '/privacy', icon: null },
         { nameKey: 'footer.terms', href: '/terms', icon: null },
-        { nameKey: 'footer.cookies', href: '/cookies', icon: null },
       ],
     },
   ],
@@ -119,7 +118,6 @@ export const footerConfig = {
   bottomBarLinks: [
     { nameKey: 'footer.privacy', href: '/privacy' },
     { nameKey: 'footer.terms', href: '/terms' },
-    { nameKey: 'footer.cookies', href: '/cookies' },
   ],
 
   // Back to top button configuration

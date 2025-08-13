@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Mail, User, Phone, Camera, MapPin, Calendar, FileText, Briefcase, ChevronDown, ChevronUp, UserPlus, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
 import PasswordInput from '../components/ui/PasswordInput';
@@ -11,37 +11,12 @@ import UserTypeSelector from '../components/ui/UserTypeSelector';
 import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import HeroSection from '../components/ui/HeroSection';
 import { authService } from '../api/index.js';
+import { usePublicCategories } from '../api/hooks/useCategories';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
 
-// Sample job categories data - replace with API call later
-const sampleCategories = [
-  { id: '1', name: 'Software Development' },
-  { id: '2', name: 'Web Development' },
-  { id: '3', name: 'Mobile Development' },
-  { id: '4', name: 'Data Science' },
-  { id: '5', name: 'DevOps & Cloud' },
-  { id: '6', name: 'UI/UX Design' },
-  { id: '7', name: 'Project Management' },
-  { id: '8', name: 'Marketing' },
-  { id: '9', name: 'Sales' },
-  { id: '10', name: 'Customer Service' },
-  { id: '11', name: 'Human Resources' },
-  { id: '12', name: 'Finance & Accounting' },
-  { id: '13', name: 'Healthcare' },
-  { id: '14', name: 'Education' },
-  { id: '15', name: 'Legal' },
-  { id: '16', name: 'Engineering' },
-  { id: '17', name: 'Architecture' },
-  { id: '18', name: 'Construction' },
-  { id: '19', name: 'Manufacturing' },
-  { id: '20', name: 'Transportation & Logistics' },
-  { id: '21', name: 'Hospitality & Tourism' },
-  { id: '22', name: 'Agriculture' },
-  { id: '23', name: 'Media & Entertainment' },
-  { id: '24', name: 'Non-profit & NGO' },
-  { id: '25', name: 'Other' }
-];
+// Job categories will be loaded dynamically from the API
 
 // Sample education levels data - replace with API call later
 const sampleEducationLevels = [
@@ -120,6 +95,9 @@ const predefinedSkills = [
 const Register = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  
+  // Load categories dynamically from API
+  const { categories: jobCategories, loading: categoriesLoading, error: categoriesError } = usePublicCategories();
   
   const [formData, setFormData] = useState({
     // Required fields
@@ -468,25 +446,10 @@ const Register = () => {
       <Header />
       
       {/* Hero Section */}
-      <div className="relative bg-blue-600/90 backdrop-blur-sm">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.1 }}
-            className="text-center"
-          >
-            
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Create Your Account
-            </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
-              Join thousands of job seekers and start your career journey
-            </p>
-          </motion.div>
-        </div>
-      </div>
+      <HeroSection 
+        title="Create Your Account"
+        description="Join thousands of job seekers and start your career journey"
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
@@ -757,17 +720,26 @@ const Register = () => {
                     name="jobCategoryId"
                     value={formData.jobCategoryId}
                     onChange={handleInputChange}
-                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                    disabled={categoriesLoading}
+                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
-                    <option value="">{t('register.jobCategoryPlaceholder', 'Select your job category')}</option>
-                    {sampleCategories.map(category => (
+                    <option value="">
+                      {categoriesLoading 
+                        ? 'Loading categories...' 
+                        : t('register.jobCategoryPlaceholder', 'Select your job category')
+                      }
+                    </option>
+                    {!categoriesLoading && jobCategories.map(category => (
                       <option key={category.id} value={category.id}>
-                        {category.name}
+                        {category.name_en} - {category.name_rw}
                       </option>
                     ))}
                   </select>
                   {errors.jobCategoryId && (
                     <p className="mt-1 text-sm text-red-600">{errors.jobCategoryId}</p>
+                  )}
+                  {categoriesError && (
+                    <p className="mt-1 text-sm text-red-600">Error loading categories: {categoriesError}</p>
                   )}
                     </div>
                   {/* Education Level */}
@@ -1162,16 +1134,16 @@ const Register = () => {
             
             <p className="text-gray-600">
               <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
-                {t('register.signIn', 'Sign in')}
-              </Link>
-            </p>
-          </div>
+              {t('register.signIn', 'Sign in')}
+            </Link>
+          </p>
+        </div>
         </div>
       </form>
     </motion.div>
   </div>
-  <Footer />
-</div>
+      <Footer />
+    </div>
   );
 };
 

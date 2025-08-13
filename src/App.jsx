@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
@@ -29,6 +29,8 @@ import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
 import AboutUsPage from './pages/AboutUs';
 import ContactUsPage from './pages/ContactUs';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import NotFound from './pages/NotFound';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
@@ -242,7 +244,9 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/employer-request/:id" element={<EmployerRequest />} />
                 <Route path="/about" element={<AboutUsPage />} />
-              <Route path="/contact" element={<ContactUsPage />} />
+                <Route path="/contact" element={<ContactUsPage />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard/jobseeker" element={

@@ -156,11 +156,11 @@ const handleRowAction = (action, message) => {
     const result = await deleteMessage(selectedMessage.id);
     
     if (result.success) {
-      alert('Message deleted successfully!');
+      toast.success('Message deleted successfully!');
       setShowDeleteModal(false);
       setSelectedMessage(null);
     } else {
-      alert(`Failed to delete message: ${result.error}`);
+      toast.error('Failed to delete message');
     }
   };
 
@@ -326,10 +326,23 @@ const handleRowAction = (action, message) => {
           </div>
           <h3 className="text-lg font-medium text-red-900 mb-2">Error Loading Contact Messages</h3>
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={refreshMessages} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Try Again
-          </Button>
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Authentication Issue:</strong> This error usually means you need to log in again or your session has expired.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Button onClick={refreshMessages} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/login'} 
+              variant="primary"
+            >
+              Go to Login
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -407,6 +420,31 @@ const handleRowAction = (action, message) => {
             </div>
           </Card>
         </div>
+      )}
+
+      {/* Debug Info - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <div className="text-sm text-yellow-800">
+            <div className="font-medium mb-2">🔍 Debug Info:</div>
+            <div>Auth Token: {localStorage.getItem('job_portal_token') ? 'Present' : 'Missing'}</div>
+            <div>Token Expiry: {localStorage.getItem('job_portal_token_expiry') || 'Not set'}</div>
+            <div>Messages Count: {messages?.length || 0}</div>
+            <div>Loading: {loading ? 'Yes' : 'No'}</div>
+            <div>Error: {error || 'None'}</div>
+          </div>
+        </Card>
+      )}
+
+      {/* Mock Data Warning */}
+      {messages.length > 0 && (
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <div className="text-sm text-blue-800">
+            <div className="font-medium mb-2">ℹ️ Development Mode</div>
+            <div>You are currently viewing mock data because the backend server is not available.</div>
+            <div>To see real data, ensure your backend server is running on http://localhost:3000</div>
+          </div>
+        </Card>
       )}
 
       {/* Filters */}
