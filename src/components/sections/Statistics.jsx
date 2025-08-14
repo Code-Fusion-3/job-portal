@@ -8,30 +8,30 @@ const getStatsData = (statistics) => [
   { 
     id: 1,
     translationKey: 'statistics.activeWorkers',
-    number: statistics?.activeWorkers ? `${statistics.activeWorkers}+` : '500+',
+    number: statistics?.activeWorkers ? `${statistics.activeWorkers}+` : '0',
     icon: '👥',
     isLoading: !statistics
   },
   { 
     id: 2,
     translationKey: 'statistics.happyClients',
-    number: '1000+',
+    number: statistics?.totalEmployers ? `${statistics.totalEmployers}+` : '20',
     icon: '😊',
-    isLoading: false
+    isLoading: !statistics
   },
   { 
     id: 3,
     translationKey: 'statistics.citiesCovered',
-    number: statistics?.citiesCovered ? `${statistics.citiesCovered}+` : '10+',
+    number: statistics?.citiesCovered ? `${statistics.citiesCovered}+` : '5',
     icon: '🏙️',
     isLoading: !statistics
   },
   { 
     id: 4,
     translationKey: 'statistics.yearsExperience',
-    number: '5+',
+    number: statistics?.totalCategories ? `${statistics.totalCategories}+` : '0',
     icon: '⭐',
-    isLoading: false
+    isLoading: !statistics
   }
 ];
 
@@ -39,7 +39,10 @@ const Statistics = () => {
   const { t } = useTranslation();
   const { statistics, loading: statsLoading, error: statsError } = useStatistics();
   
-  const [stats, setStats] = useState(getStatsData(statistics));
+  // Debug: Log the statistics data
+  console.log('Statistics component received:', { statistics, statsLoading, statsError });
+  
+  const [stats, setStats] = useState([]);
 
   useEffect(() => {
     const generateStatsData = () => {
@@ -48,7 +51,8 @@ const Statistics = () => {
         return statsData;
       } catch (error) {
         console.error('Error generating stats data:', error);
-        return getStatsData(null); // Return default stats on error
+        // Return empty stats array instead of fallback data
+        return [];
       }
     };
 
@@ -116,7 +120,7 @@ const Statistics = () => {
           {statsError && (
             <div className="mt-4 p-3 bg-red-600/20 border border-red-500/30 rounded-lg">
               <p className="text-red-300 text-sm">
-                {statsError} - Showing default values
+                Unable to load statistics. Please try again later.
               </p>
             </div>
           )}
@@ -130,27 +134,40 @@ const Statistics = () => {
           viewport={{ once: true }}
           className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20"
         >
-          {stats.map((stat, index) => (
+          {stats.length > 0 ? (
+            stats.map((stat, index) => (
+              <motion.div
+                key={stat.id}
+                variants={itemVariants}
+                className="text-center floating-stat"
+              >
+                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  {renderIcon(stat.icon)}
+                </div>
+                <div className="text-3xl font-bold text-red-400 mb-2 counter" data-target={stat.number.replace(/\D/g, '')}>
+                  {stat.isLoading && statsLoading ? (
+                    <div className="animate-pulse bg-red-300 h-8 w-16 rounded"></div>
+                  ) : (
+                    stat.number
+                  )}
+                </div>
+                <div className="text-gray-300">
+                  {safeTranslate(stat.translationKey, stat.translationKey)}
+                </div>
+              </motion.div>
+            ))
+          ) : (
             <motion.div
-              key={stat.id}
               variants={itemVariants}
-              className="text-center floating-stat"
+              className="col-span-2 md:col-span-4 text-center py-8"
             >
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                {renderIcon(stat.icon)}
-              </div>
-              <div className="text-3xl font-bold text-red-400 mb-2 counter" data-target={stat.number.replace(/\D/g, '')}>
-                {stat.isLoading && statsLoading ? (
-                  <div className="animate-pulse bg-red-300 h-8 w-16 rounded"></div>
-                ) : (
-                  stat.number
-                )}
-              </div>
-              <div className="text-gray-300">
-                {safeTranslate(stat.translationKey, stat.translationKey)}
+              <div className="text-gray-400">
+                <div className="text-4xl mb-4">📊</div>
+                <p className="text-lg">Statistics are currently unavailable</p>
+                <p className="text-sm">Please check back later</p>
               </div>
             </motion.div>
-          ))}
+          )}
         </motion.div>
       </div>
     </section>

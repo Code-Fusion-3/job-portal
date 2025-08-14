@@ -4,9 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-
-// Note: This hook will be implemented when the messaging service is created
-// For now, it provides a structure for future implementation
+import { messagingService } from '../services/messagingService';
 
 export const useMessaging = (options = {}) => {
   const {
@@ -22,16 +20,6 @@ export const useMessaging = (options = {}) => {
   const [error, setError] = useState(null);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  // Placeholder for messaging service
-  const messagingService = {
-    // These will be implemented when the messaging service is created
-    sendMessage: async () => ({ success: false, error: 'Messaging service not implemented' }),
-    getConversation: async () => ({ success: false, error: 'Messaging service not implemented' }),
-    getConversations: async () => ({ success: false, error: 'Messaging service not implemented' }),
-    markAsRead: async () => ({ success: false, error: 'Messaging service not implemented' }),
-    getUnreadCount: async () => ({ success: false, error: 'Messaging service not implemented' })
-  };
 
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
@@ -229,8 +217,12 @@ export const useConversation = (conversationId) => {
     setError(null);
     
     try {
-      // This will be implemented when messaging service is created
-      setError('Messaging service not implemented');
+      const result = await messagingService.getConversation(conversationId);
+      if (result.success) {
+        setConversation(result.data);
+      } else {
+        setError(result.error || 'Failed to fetch conversation');
+      }
     } catch (error) {
       setError('An error occurred while fetching conversation');
       console.error('Error fetching conversation:', error);

@@ -17,28 +17,20 @@ export const useStatistics = (options = {}) => {
       setLoading(true);
       setError(null);
       
-      // Try to get public statistics first
+      // Get public statistics
       const result = await statisticsService.getPublicStatistics();
       
+      // Debug: Log the result
+      console.log('useStatistics received result:', result);
+      
       if (result.success && result.data) {
-        // Check if we have complete statistics
-        if (result.data.totalJobSeekers > 0 && result.data.totalCategories > 0) {
-          setStatistics(result.data);
-          return;
-        }
-      }
-      
-      // Fallback to job seeker statistics if public stats are incomplete
-      const fallbackResult = await statisticsService.getJobSeekerStatistics();
-      
-      if (fallbackResult.success && fallbackResult.data) {
-        setStatistics(fallbackResult.data);
+        setStatistics(result.data);
       } else {
-        throw new Error(fallbackResult.error || 'Failed to fetch statistics');
+        setError(result.error || 'Unable to load statistics');
       }
     } catch (err) {
       console.error('💥 Error fetching statistics:', err);
-      setError(err.message);
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }

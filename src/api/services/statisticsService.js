@@ -18,8 +18,12 @@ export const statisticsService = {
     try {
       const response = await apiClient.get('/public/statistics');
       
-      if (response.data && response.data.success) {
-        const stats = response.data.data;
+      // Debug: Log the actual response
+      console.log('statisticsService raw response:', response);
+      console.log('statisticsService response.data:', response.data);
+      
+      if (response.data) {
+        const stats = response.data;
         
         // Transform the data to match expected format
         const transformedStats = {
@@ -27,10 +31,16 @@ export const statisticsService = {
           totalEmployers: stats.totalEmployers || 0,
           totalRequests: stats.totalRequests || 0,
           totalCategories: stats.totalCategories || 0,
-          recentJobSeekers: stats.recentJobSeekers || [],
+          recentJobSeekers: stats.recentRegistrations || 0, // Map recentRegistrations to recentJobSeekers
           topCategories: stats.topCategories || [],
-          monthlyStats: stats.monthlyStats || []
+          monthlyStats: stats.monthlyStats || [],
+          // Add new fields from the actual response
+          topLocations: stats.topLocations || [],
+          activeWorkers: stats.totalJobSeekers || 0, // Map totalJobSeekers to activeWorkers
+          citiesCovered: stats.topLocations?.length || 0 // Count of cities from topLocations
         };
+        
+        console.log('statisticsService transformed stats:', transformedStats);
         
         return { success: true, data: transformedStats };
       }
@@ -44,7 +54,7 @@ export const statisticsService = {
 
   /**
    * Get job seeker statistics (for cities and active workers)
-   * This will be used as a fallback if the public statistics endpoint doesn't provide all needed data
+   * This endpoint provides job seeker-specific data, not general platform statistics
    */
   getJobSeekerStatistics: async () => {
     try {
@@ -54,17 +64,18 @@ export const statisticsService = {
         const jobSeekers = response.data.data;
         
         if (!Array.isArray(jobSeekers)) {
-          console.warn('⚠️ Fallback: Invalid response format');
-          return { success: false, error: 'Invalid response format' };
+          return { success: false, error: 'Invalid response format from job seekers endpoint' };
         }
         
-        // Calculate statistics from job seekers data
+        // Return only job seeker-specific data, not platform statistics
         const stats = {
           totalJobSeekers: jobSeekers.length,
-          totalEmployers: 0, // Not available in this endpoint
-          totalRequests: 0, // Not available in this endpoint
-          totalCategories: 0, // Not available in this endpoint
           recentJobSeekers: jobSeekers.slice(0, 5),
+          // Note: These fields are not available from this endpoint
+          // and should not be populated with fake data
+          totalEmployers: null,
+          totalRequests: null,
+          totalCategories: null,
           topCategories: [],
           monthlyStats: []
         };
@@ -72,7 +83,7 @@ export const statisticsService = {
         return { success: true, data: stats };
       }
       
-      return { success: false, error: 'Failed to fetch statistics' };
+      return { success: false, error: 'Failed to fetch job seeker data' };
     } catch (error) {
       console.error('❌ getJobSeekerStatistics error:', error);
       return { success: false, error: error.message };

@@ -21,6 +21,7 @@ export { categoryService } from './services/categoryService.js';
 export { requestService } from './services/requestService.js';
 export { adminService } from './services/adminService.js';
 export { default as statisticsService } from './services/statisticsService.js';
+export { messagingService } from './services/messagingService.js';
 
 // Export utilities
 export * from './utils/errorHandler.js';

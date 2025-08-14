@@ -240,23 +240,25 @@ const EmployerRequestsPage = () => {
       };
     } catch (error) {
       console.error('Error transforming request data:', error);
+      // Return a more user-friendly error state instead of hardcoded error messages
       return {
         id: backendRequest?.id || 'unknown',
-        employerName: 'Error loading data',
-        companyName: 'Error loading data',
-        candidateName: 'Error loading data',
-        position: 'Error loading data',
-        status: 'error',
+        employerName: 'Data unavailable',
+        companyName: 'Data unavailable',
+        candidateName: 'Data unavailable',
+        position: 'Data unavailable',
+        status: 'pending', // Default to pending instead of error
         priority: 'normal',
         date: new Date(),
-        monthlyRate: 'Error loading data',
-        message: 'Error loading data',
+        monthlyRate: 'Data unavailable',
+        message: 'Data unavailable',
         employerContact: { email: '', phone: '' },
         adminNotes: '',
         lastContactDate: new Date(),
-      isCompleted: false,
-        category: 'Error loading data',
-        _backendData: backendRequest
+        isCompleted: false,
+        category: 'Data unavailable',
+        _backendData: backendRequest,
+        _hasError: true // Flag to indicate this item had transformation issues
       };
     }
   };
@@ -265,21 +267,43 @@ const EmployerRequestsPage = () => {
   const transformedRequests = safeData.map(transformRequestData).filter(Boolean);
 
   // Ensure data is safe for rendering
-  const safeDataForRendering = transformedRequests.map(item => ({
-    ...item,
-    employerName: item.employerName || 'Unknown',
-    companyName: item.companyName || 'Private',
-    candidateName: item.candidateName || 'Not specified',
-    position: item.position || 'General',
-    status: item.status || 'pending',
-    priority: item.priority || 'normal',
-    monthlyRate: item.monthlyRate || 'Not specified',
-    message: item.message || '',
-    employerContact: {
-      email: item.employerContact?.email || '',
-      phone: item.employerContact?.phone || ''
+  const safeDataForRendering = transformedRequests.map(item => {
+    // If item had transformation errors, show appropriate fallback values
+    if (item._hasError) {
+      return {
+        ...item,
+        employerName: 'Data unavailable',
+        companyName: 'Data unavailable',
+        candidateName: 'Data unavailable',
+        position: 'Data unavailable',
+        status: 'pending',
+        priority: 'normal',
+        monthlyRate: 'Data unavailable',
+        message: 'Data unavailable',
+        employerContact: {
+          email: '',
+          phone: ''
+        }
+      };
     }
-  }));
+    
+    // Normal data processing
+    return {
+      ...item,
+      employerName: item.employerName || 'Unknown',
+      companyName: item.companyName || 'Private',
+      candidateName: item.candidateName || 'Not specified',
+      position: item.position || 'General',
+      status: item.status || 'pending',
+      priority: item.priority || 'normal',
+      monthlyRate: item.monthlyRate || 'Not specified',
+      message: item.message || '',
+      employerContact: {
+        email: item.employerContact?.email || '',
+        phone: item.employerContact?.phone || ''
+      }
+    };
+  });
 
 
   // Table columns configuration

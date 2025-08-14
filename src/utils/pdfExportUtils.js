@@ -412,24 +412,31 @@ export const createTestPDF = () => {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     
-    const testData = [
-      ['John Doe', 'john@example.com', '123-456-7890'],
-      ['Jane Smith', 'jane@example.com', '098-765-4321']
-    ];
-    
-    testData.forEach((row, index) => {
-      const y = startY + (index + 1) * rowHeight;
-      
-      // Draw cell rectangles
-      doc.rect(20, y, colWidths[0], rowHeight);
-      doc.rect(20 + colWidths[0], y, colWidths[1], rowHeight);
-      doc.rect(20 + colWidths[0] + colWidths[1], y, colWidths[2], rowHeight);
-      
-      // Add cell text
-      doc.text(row[0], 25, y + 7);
-      doc.text(row[1], 25 + colWidths[0], y + 7);
-      doc.text(row[2], 25 + colWidths[0] + colWidths[1], y + 7);
-    });
+    // Use actual data if provided, otherwise show message
+    if (tableData && tableData.length > 0) {
+      tableData.forEach((row, index) => {
+        const y = startY + (index + 1) * rowHeight;
+        
+        // Draw cell rectangles
+        doc.rect(20, y, colWidths[0], rowHeight);
+        doc.rect(20 + colWidths[0], y, colWidths[1], rowHeight);
+        doc.rect(20 + colWidths[0] + colWidths[1], y, colWidths[2], rowHeight);
+        
+        // Add cell text - ensure data exists
+        const name = row.name || row.firstName || row.title || 'N/A';
+        const email = row.email || 'N/A';
+        const phone = row.phone || row.contactNumber || 'N/A';
+        
+        doc.text(name, 25, y + 7);
+        doc.text(email, 25 + colWidths[0], y + 7);
+        doc.text(phone, 25 + colWidths[0] + colWidths[1], y + 7);
+      });
+    } else {
+      // Show no data message
+      const y = startY + rowHeight;
+      doc.rect(20, y, colWidths[0] + colWidths[1] + colWidths[2], rowHeight);
+      doc.text('No data available', 25, y + 7);
+    }
     
     return doc;
   } catch (error) {

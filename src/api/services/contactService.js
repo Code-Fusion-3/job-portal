@@ -150,63 +150,11 @@ export const getAllContacts = async (params = {}) => {
   } catch (error) {
     console.error('🔍 Error in getAllContacts:', error);
     
-    // Fallback to mock data if backend is not available
+    // Handle network or server errors gracefully
     if (error.message.includes('Failed to fetch') || error.message.includes('Network error')) {
       return {
-        success: true,
-        data: {
-          contacts: [
-            {
-              id: 1,
-              name: 'John Doe',
-              email: 'john@example.com',
-              subject: 'General Inquiry',
-              message: 'This is a test message for development purposes.',
-              category: 'general',
-              priority: 'normal',
-              status: 'unread',
-              createdAt: new Date().toISOString(),
-              isRead: false
-            },
-            {
-              id: 2,
-              name: 'Jane Smith',
-              email: 'jane@example.com',
-              subject: 'Support Request',
-              message: 'I need help with my account setup.',
-              category: 'support',
-              priority: 'high',
-              status: 'read',
-              createdAt: new Date(Date.now() - 86400000).toISOString(),
-              isRead: true
-            },
-            {
-              id: 3,
-              name: 'Bob Wilson',
-              email: 'bob@example.com',
-              subject: 'Feedback',
-              message: 'Great service! Keep up the good work.',
-              category: 'feedback',
-              priority: 'low',
-              status: 'responded',
-              createdAt: new Date(Date.now() - 172800000).toISOString(),
-              isRead: true
-            }
-          ],
-          pagination: {
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: 3,
-            itemsPerPage: 15
-          },
-          statistics: {
-            total: 3,
-            unread: 1,
-            read: 1,
-            responded: 1,
-            archived: 0
-          }
-        }
+        success: false,
+        error: 'Unable to connect to server. Please check your internet connection and try again.'
       };
     }
     
@@ -269,17 +217,11 @@ export const getContactStatistics = async () => {
   } catch (error) {
     console.error('🔍 Error in getContactStatistics:', error);
     
-    // Fallback to mock data if backend is not available
+    // Handle network or server errors gracefully
     if (error.message.includes('Failed to fetch') || error.message.includes('Network error')) {
       return {
-        success: true,
-        data: {
-          total: 3,
-          unread: 1,
-          read: 1,
-          responded: 1,
-          archived: 0
-        }
+        success: false,
+        error: 'Unable to connect to server. Please check your internet connection and try again.'
       };
     }
     

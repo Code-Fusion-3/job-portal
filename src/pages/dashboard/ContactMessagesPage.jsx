@@ -423,17 +423,6 @@ const handleRowAction = (action, message) => {
       )}
 
 
-      {/* Mock Data Warning */}
-      {messages.length > 0 && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <div className="text-sm text-blue-800">
-            <div className="font-medium mb-2">ℹ️ Development Mode</div>
-            <div>You are currently viewing mock data because the backend server is not available.</div>
-            <div>To see real data, ensure your backend server is running on http://localhost:3000</div>
-          </div>
-        </Card>
-      )}
-
       {/* Filters */}
       <Card className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

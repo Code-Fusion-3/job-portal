@@ -11,28 +11,23 @@ export const publicContactService = {
    */
   submitContactMessage: async (contactData) => {
     try {
-      // For now, simulate successful submission since backend endpoint doesn't exist
-      // TODO: Replace with actual API call when backend is ready
+      // Attempt to call the actual backend endpoint
+      const response = await apiClient.post('/contact/submit', contactData);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Simulate successful response
-      const mockResponse = {
-        contact: {
-          id: Date.now(),
-          subject: contactData.subject,
-          category: contactData.category || 'general',
-          submittedAt: new Date().toISOString()
-        },
-        message: 'Contact message submitted successfully. We will respond to you soon.'
-      };
+      if (response.data) {
+        return {
+          success: true,
+          data: response.data.contact || response.data,
+          message: response.data.message || 'Contact message submitted successfully. We will respond to you soon.'
+        };
+      }
       
       return {
         success: true,
-        data: mockResponse.contact,
-        message: mockResponse.message
+        data: response.data,
+        message: 'Contact message submitted successfully.'
       };
+      
     } catch (error) {
       // Handle specific backend error cases
       if (error.response?.data) {
@@ -55,6 +50,28 @@ export const publicContactService = {
         if (data.message) {
           return { success: false, error: data.message };
         }
+      }
+      
+      // Handle network or server errors
+      if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+        return { 
+          success: false, 
+          error: 'Unable to connect to server. Please check your internet connection and try again.' 
+        };
+      }
+      
+      if (error.response?.status === 404) {
+        return { 
+          success: false, 
+          error: 'Contact submission service is currently unavailable. Please try again later or contact support.' 
+        };
+      }
+      
+      if (error.response?.status === 500) {
+        return { 
+          success: false, 
+          error: 'Server error occurred. Please try again later.' 
+        };
       }
       
       const apiError = handleError(error, { context: 'submit_contact_message' });

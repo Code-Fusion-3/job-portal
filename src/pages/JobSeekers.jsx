@@ -104,16 +104,12 @@ const JobSeekers = () => {
       // Update the filterOptions.category dynamically
       filterOptions.category = categoryOptions;
     } else if (categoriesError) {
-      // Fallback to static categories if API fails
+      // Handle categories API error gracefully without fallback data
       filterOptions.category = [
-        { value: '', label: 'All Categories' },
-        { value: 'domestic', label: 'Domestic' },
-        { value: 'care', label: 'Care' },
-        { value: 'maintenance', label: 'Maintenance' },
-        { value: 'food', label: 'Food' },
-        { value: 'transport', label: 'Transport' },
-        { value: 'sales', label: 'Sales' }
+        { value: '', label: 'All Categories' }
       ];
+      // Clear any selected category when API fails
+      setSelectedCategory('');
     }
     
   }, [jobCategories, categoriesError]);
@@ -507,15 +503,15 @@ const JobSeekers = () => {
           )}
         </motion.div>
 
-        {/* Fallback Categories Warning */}
+        {/* Categories Error Message */}
         {categoriesError && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-yellow-500" />
-              <span className="text-yellow-700 font-medium">Using fallback categories</span>
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <span className="text-red-700 font-medium">Unable to load job categories</span>
             </div>
-            <p className="text-yellow-600 text-sm mt-1">
-              Unable to load categories from server. Using default categories for filtering.
+            <p className="text-red-600 text-sm mt-1">
+              There was an error loading job categories. Category filtering is temporarily unavailable.
             </p>
           </div>
         )}

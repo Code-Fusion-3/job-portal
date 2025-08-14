@@ -88,12 +88,31 @@ export const sortJobSeekers = (jobSeekers, sortBy) => {
       return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
     
     case 'Highest Rated':
-      // Rating not available in new API, fallback to memberSince
-      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
+      // Sort by rating if available, otherwise by memberSince
+      return sorted.sort((a, b) => {
+        if (a.rating && b.rating) {
+          return b.rating - a.rating;
+        }
+        // If rating not available, sort by memberSince
+        return new Date(b.memberSince) - new Date(a.memberSince);
+      });
     
     case 'Most Experienced':
-      // Experience is now a string, sort by memberSince as fallback
-      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
+      // Sort by experience level if available, otherwise by memberSince
+      return sorted.sort((a, b) => {
+        if (a.experienceLevel && b.experienceLevel) {
+          const experienceOrder = {
+            'expert': 5,
+            'experienced': 4,
+            'intermediate': 3,
+            'beginner': 2,
+            'no_experience': 1
+          };
+          return (experienceOrder[b.experienceLevel] || 0) - (experienceOrder[a.experienceLevel] || 0);
+        }
+        // If experience level not available, sort by memberSince
+        return new Date(b.memberSince) - new Date(a.memberSince);
+      });
     
     case 'Name A-Z':
       return sorted.sort((a, b) => {
@@ -103,11 +122,24 @@ export const sortJobSeekers = (jobSeekers, sortBy) => {
       });
     
     case 'Lowest Rate':
-      // Rate not available in new API, fallback to memberSince
-      return sorted.sort((a, b) => new Date(b.memberSince) - new Date(a.memberSince));
+      // Sort by daily rate if available, otherwise by memberSince
+      return sorted.sort((a, b) => {
+        if (a.dailyRate && b.dailyRate) {
+          return a.dailyRate - b.dailyRate;
+        }
+        // If rate not available, sort by memberSince
+        return new Date(b.memberSince) - new Date(a.memberSince);
+      });
     
     case 'Highest Rate':
-      return sorted.sort((a, b) => (b.dailyRate || 0) - (a.dailyRate || 0));
+      // Sort by daily rate if available, otherwise by memberSince
+      return sorted.sort((a, b) => {
+        if (a.dailyRate && b.dailyRate) {
+          return b.dailyRate - a.dailyRate;
+        }
+        // If rate not available, sort by memberSince
+        return new Date(b.memberSince) - new Date(a.memberSince);
+      });
     
     default:
       return sorted;
@@ -264,8 +296,8 @@ export const maskName = (name) => {
   return `${firstLetter}**`;
 };
 
-// Handle experience display with fallback to "Entry Level"
+// Handle experience display with proper handling for missing data
 export const formatExperienceDisplay = (experience) => {
-  if (!experience || experience.trim() === '') return 'Entry Level';
+  if (!experience || experience.trim() === '') return 'Experience not specified';
   return experience.trim();
 }; 
