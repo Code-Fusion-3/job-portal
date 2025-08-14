@@ -82,7 +82,6 @@ const JobSeekers = () => {
   const [selectedGender, setSelectedGender] = useState('');
   const [sortBy, setSortBy] = useState('Most Recent');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const navigate = useNavigate();
 
@@ -157,53 +156,9 @@ const JobSeekers = () => {
       setJobSeekers([]);
       setFilteredSeekers([]);
     } else if (!publicJobSeekers || publicJobSeekers.length === 0) {
-      // If no data from API, use sample data for testing
-      const sampleData = [
-        {
-          id: 1,
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          location: 'kigali',
-          city: 'Kigali',
-          gender: 'Male',
-          experienceLevel: 'intermediate',
-          skills: 'House Cleaning, Laundry, Cooking',
-          experience: '3 years in domestic services',
-          jobCategory: { name_en: 'Domestic' },
-          createdAt: new Date('2024-01-15')
-        },
-        {
-          id: 2,
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane.smith@example.com',
-          location: 'butare',
-          city: 'Butare',
-          gender: 'Female',
-          experienceLevel: 'experienced',
-          skills: 'Childcare, Elderly Care, First Aid',
-          experience: '7 years in care services',
-          jobCategory: { name_en: 'Care' },
-          createdAt: new Date('2024-01-10')
-        },
-        {
-          id: 3,
-          firstName: 'Mike',
-          lastName: 'Johnson',
-          email: 'mike.johnson@example.com',
-          location: 'gisenyi',
-          city: 'Gisenyi',
-          gender: 'Male',
-          experienceLevel: 'beginner',
-          skills: 'Gardening, Basic Repairs',
-          experience: '1 year in maintenance',
-          jobCategory: { name_en: 'Maintenance' },
-          createdAt: new Date('2024-01-20')
-        }
-      ];
-      setJobSeekers(sampleData);
-      setFilteredSeekers(sampleData);
+      // If no data from API, set empty arrays to show "no user found"
+      setJobSeekers([]);
+      setFilteredSeekers([]);
     }
   }, [publicJobSeekers, jobSeekersError]);
 
