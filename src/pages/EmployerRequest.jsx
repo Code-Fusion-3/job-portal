@@ -299,6 +299,18 @@ const EmployerRequest = () => {
 
             {/* Request Form */}
             <div className="lg:col-span-2">
+              {/* Debug Section */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <div className="text-xs text-yellow-800 font-medium mb-2">Debug: Job Seeker Data</div>
+                <div className="text-xs text-yellow-700 space-y-1">
+                  <div>URL ID: <span className="font-mono bg-yellow-100 px-1 rounded">{String(id)}</span></div>
+                  <div>jobSeeker exists: <span className="font-mono bg-yellow-100 px-1 rounded">{String(!!jobSeeker)}</span></div>
+                  <div>jobSeeker.id: <span className="font-mono bg-yellow-100 px-1 rounded">{String(jobSeeker?.id)}</span></div>
+                  <div>jobSeeker.profile?.userId: <span className="font-mono bg-yellow-100 px-1 rounded">{String(jobSeeker?.profile?.userId)}</span></div>
+                  <div>jobSeeker.userId: <span className="font-mono bg-yellow-100 px-1 rounded">{String(jobSeeker?.userId)}</span></div>
+                </div>
+              </div>
+              
               <motion.div 
                 initial={{ opacity: 0, x: 20 }} 
                 animate={{ opacity: 1, x: 0 }} 
@@ -310,15 +322,51 @@ const EmployerRequest = () => {
                     // Try different ways to get the ID
                     let candidateId = null;
                     
-                    if (jobSeeker?.id) {
+                    console.log('=== DEBUG: Calculating jobSeekerId ===');
+                    console.log('URL id parameter:', id);
+                    console.log('jobSeeker object:', jobSeeker);
+                    console.log('jobSeeker.id:', jobSeeker?.id);
+                    console.log('jobSeeker.profile?.userId:', jobSeeker?.profile?.userId);
+                    console.log('jobSeeker.userId:', jobSeeker?.userId);
+                    
+                    // Priority order for ID extraction
+                    if (jobSeeker?.id && jobSeeker.id !== 'undefined' && jobSeeker.id !== 'null') {
                       candidateId = jobSeeker.id;
-                    } else if (jobSeeker?.profile?.userId) {
+                      console.log('Using jobSeeker.id:', candidateId);
+                    } else if (jobSeeker?.profile?.userId && jobSeeker.profile.userId !== 'undefined' && jobSeeker.profile.userId !== 'null') {
                       candidateId = jobSeeker.profile.userId;
-                    } else if (jobSeeker?.userId) {
+                      console.log('Using jobSeeker.profile.userId:', candidateId);
+                    } else if (jobSeeker?.userId && jobSeeker.userId !== 'undefined' && jobSeeker.userId !== 'null') {
                       candidateId = jobSeeker.userId;
-                    } else if (id) {
-                      // Fallback to URL parameter
-                      candidateId = id;
+                      console.log('Using jobSeeker.userId:', candidateId);
+                    } else if (id && id !== 'undefined' && id !== 'null') {
+                      // Fallback to URL parameter - try to convert JS prefix if present
+                      if (typeof id === 'string' && id.startsWith('JS')) {
+                        const numericId = parseInt(id.replace(/^JS/, ''), 10);
+                        if (!isNaN(numericId)) {
+                          candidateId = numericId;
+                          console.log('Converted JS prefix to numeric ID:', candidateId);
+                        } else {
+                          candidateId = id;
+                          console.log('Using URL id parameter as fallback (JS format):', candidateId);
+                        }
+                      } else {
+                        candidateId = id;
+                        console.log('Using URL id parameter as fallback:', candidateId);
+                      }
+                    }
+                    
+                    // Final validation
+                    if (!candidateId || candidateId === 'undefined' || candidateId === 'null' || candidateId === '') {
+                      console.error('❌ No valid candidate ID found!');
+                      console.error('Available data:', {
+                        urlId: id,
+                        jobSeekerId: jobSeeker?.id,
+                        profileUserId: jobSeeker?.profile?.userId,
+                        userId: jobSeeker?.userId
+                      });
+                    } else {
+                      console.log('✅ Final candidateId:', candidateId);
                     }
                     
                     return candidateId;

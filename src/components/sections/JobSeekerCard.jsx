@@ -97,7 +97,7 @@ const JobSeekerCard = ({
           </div>
 
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
-            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience</span>
+            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
             <p className="text-sm text-gray-700 font-medium">{formatExperienceDisplay(experience)}</p>
           </div>
 
@@ -172,7 +172,7 @@ const JobSeekerCard = ({
                 <span className="font-medium">{location}</span>
               </div>
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
-                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience</span>
+                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
                 <p className="text-sm text-gray-700 font-medium">{formatExperienceDisplay(experience)}</p>
               </div>
 

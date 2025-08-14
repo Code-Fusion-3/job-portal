@@ -633,9 +633,15 @@ const JobSeekers = () => {
                         )}
 
                                                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
-                           <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience</span>
+                           <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
                            <p className="text-sm text-gray-700 font-medium">
-                             {formatExperienceDisplay(seeker.experience || seeker.profile?.experience || seeker.user?.experience || 'Not specified')}
+                             {(() => {
+                               console.log('Seeker data:', seeker);
+                               console.log('Experience Level:', seeker.experienceLevel);
+                               console.log('Profile Experience Level:', seeker.profile?.experienceLevel);
+                               console.log('User Experience Level:', seeker.user?.experienceLevel);
+                               return seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel || 'Not specified';
+                             })()}
                            </p>
                          </div>
 
