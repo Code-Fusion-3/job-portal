@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ChevronUp, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';

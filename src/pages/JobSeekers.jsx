@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { 
   Search, 
@@ -334,8 +334,11 @@ const JobSeekers = () => {
   };
 
   const handleViewProfile = (seeker) => {
+    console.log('🔍 Navigating to profile:', seeker.id);
     navigate(`/view-profile/${seeker.id}`);
   };
+
+
 
   const handleFavorite = (seekerId) => {
     // Implement favorite functionality
@@ -402,33 +405,33 @@ const JobSeekers = () => {
       
       <Header />
       
-      {/* Page Header */}
-      <div className="relative z-10 mt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
+        <div className="relative z-10 mt-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h1 className="text-4xl font-bold text-white mb-4">
+                {t('jobSeekers.pageTitle', 'All Job Seekers')}
+              </h1>
+              <p className="text-xl text-white/70 max-w-3xl mx-auto">
+                {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
+              </p>
+            </motion.div>
+          </div>
+        </div>
+
+        <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Search and Filters */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
           >
-            <h1 className="text-4xl font-bold text-white mb-4">
-              {t('jobSeekers.pageTitle', 'All Job Seekers')}
-            </h1>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
-              {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
-            </p>
-          </motion.div>
-        </div>
-      </div>
-
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Search and Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
-        >
           {/* Search Bar */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -577,11 +580,7 @@ const JobSeekers = () => {
 
         {/* Fallback Categories Warning */}
         {categoriesError && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6"
-          >
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
               <AlertCircle className="w-5 h-5 text-yellow-500" />
               <span className="text-yellow-700 font-medium">Using fallback categories</span>
@@ -589,64 +588,12 @@ const JobSeekers = () => {
             <p className="text-yellow-600 text-sm mt-1">
               Unable to load categories from server. Using default categories for filtering.
             </p>
-          </motion.div>
-        )}
-
-        {/* Debug Info (Development Only) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 mb-6">
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>Debug: Total: {jobSeekers.length} | Filtered: {filteredSeekers.length} | Active Filters: {getActiveFiltersCount()}</div>
-              <div>Search: "{searchTerm}" | Filters: {JSON.stringify({ selectedLocation, selectedCategory, selectedExperienceLevel, selectedGender })}</div>
-              <div>Categories: {jobCategories?.length || 0} | Categories Loading: {loadingCategories} | Categories Error: {categoriesError || 'None'}</div>
-              <div>Job Seekers Loading: {jobSeekersLoading} | Job Seekers Error: {jobSeekersError || 'None'}</div>
-              <div className="pt-2 space-y-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    console.log('🔍 Current Job Seekers:', jobSeekers);
-                    console.log('🔍 Current Filters:', { searchTerm, selectedLocation, selectedCategory, selectedExperienceLevel, selectedGender, sortBy });
-                  }}
-                >
-                  Log Data to Console
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    console.log('🔍 Testing Experience Filter:');
-                    jobSeekers.forEach(seeker => {
-                      const exp = seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel;
-                      console.log(`${seeker.firstName} ${seeker.lastName}: experienceLevel = "${exp}"`);
-                    });
-                  }}
-                >
-                  Test Experience Filter
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    console.log('🔍 Testing Experience Filter Logic:');
-                    setSelectedExperienceLevel('intermediate');
-                    console.log('Set experience level to "intermediate"');
-                  }}
-                >
-                  Test: Set Intermediate
-                </Button>
-              </div>
-            </div>
           </div>
         )}
 
+
         {/* Statistics Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
               <Users className="w-6 h-6 text-blue-600" />
@@ -670,15 +617,11 @@ const JobSeekers = () => {
             <p className="text-sm font-medium text-gray-600">Active Filters</p>
             <p className="text-2xl font-bold text-gray-900">{getActiveFiltersCount()}</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* No Results State */}
         {filteredSeekers.length === 0 && getActiveFiltersCount() > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center"
-          >
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
             <p className="text-gray-600 mb-4">
@@ -687,30 +630,23 @@ const JobSeekers = () => {
             <Button onClick={clearFilters} variant="outline">
               Clear All Filters
             </Button>
-          </motion.div>
+          </div>
         )}
 
         {/* No Job Seekers Available */}
         {filteredSeekers.length === 0 && getActiveFiltersCount() === 0 && jobSeekers.length === 0 && !jobSeekersLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center"
-          >
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No job seekers available</h3>
             <p className="text-gray-600 mb-4">
               There are currently no job seekers registered in the system.
             </p>
-          </motion.div>
+          </div>
         )}
 
         {/* Job Seekers Grid/List */}
         {filteredSeekers.length > 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <div
             className={viewMode === 'grid' 
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
               : 'space-y-6'
@@ -719,11 +655,8 @@ const JobSeekers = () => {
             {filteredSeekers.map((seeker, index) => {
       
               return (
-                <motion.div
+                <div
                   key={seeker.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
                 >
                   <Card className="h-[380px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 overflow-hidden group">
                     <div className="h-full flex flex-col">
@@ -805,16 +738,12 @@ const JobSeekers = () => {
                       </div>
                     </div>
                   </Card>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
+          <div className="text-center py-12">
             <div className="max-w-md mx-auto">
               <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-white/60" />
@@ -834,7 +763,7 @@ const JobSeekers = () => {
                 {t('jobSeekers.noResults.clearFilters', 'Clear All Filters')}
               </Button>
             </div>
-          </motion.div>
+          </div>
         )}
       </main>
       

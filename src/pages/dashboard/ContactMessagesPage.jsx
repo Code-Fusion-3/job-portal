@@ -422,19 +422,6 @@ const handleRowAction = (action, message) => {
         </div>
       )}
 
-      {/* Debug Info - Only show in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card className="p-4 bg-yellow-50 border-yellow-200">
-          <div className="text-sm text-yellow-800">
-            <div className="font-medium mb-2">🔍 Debug Info:</div>
-            <div>Auth Token: {localStorage.getItem('job_portal_token') ? 'Present' : 'Missing'}</div>
-            <div>Token Expiry: {localStorage.getItem('job_portal_token_expiry') || 'Not set'}</div>
-            <div>Messages Count: {messages?.length || 0}</div>
-            <div>Loading: {loading ? 'Yes' : 'No'}</div>
-            <div>Error: {error || 'None'}</div>
-          </div>
-        </Card>
-      )}
 
       {/* Mock Data Warning */}
       {messages.length > 0 && (

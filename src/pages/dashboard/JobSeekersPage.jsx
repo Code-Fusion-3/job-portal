@@ -919,15 +919,7 @@ const JobSeekersPage = () => {
             </div>
           )}
 
-          {/* Debug Info (Development Only) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="pt-4 border-t border-gray-200">
-              <div className="text-xs text-gray-500 space-y-1">
-                <div>Debug: Total: {jobSeekers.length} | Filtered: {filteredData.length} | Active Filters: {activeFiltersCount}</div>
-                <div>Search: "{localSearchTerm}" | Filters: {JSON.stringify(localFilters)}</div>
-              </div>
-            </div>
-          )}
+        
         </div>
       </Card>
 

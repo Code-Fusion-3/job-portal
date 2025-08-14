@@ -143,6 +143,35 @@ const EmployerRequestsPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Centralized modal state reset function
+  const resetModalStates = useCallback(() => {
+    setShowActionModal(false);
+    setCurrentAction(null);
+    setSelectedRequest(null);
+    setReplyMessage('');
+    setAdminNotes('');
+    setReplyError('');
+    setCompletionNotes('');
+    setCompletionError('');
+    setSelectedCandidate(null);
+    setCandidateSelectionError('');
+    setShowDetailsModal(false);
+  }, []);
+
+  // State validation function for debugging
+  const validateModalStates = useCallback(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Modal State Validation:', {
+        showActionModal,
+        currentAction,
+        selectedRequest: !!selectedRequest,
+        showDetailsModal,
+        replyMessage: !!replyMessage,
+        adminNotes: !!adminNotes,
+        completionNotes: !!completionNotes
+      });
+    }
+  }, [showActionModal, currentAction, selectedRequest, showDetailsModal, replyMessage, adminNotes, completionNotes]);
 
 
   // Transform backend data to frontend format
@@ -263,19 +292,6 @@ const EmployerRequestsPage = () => {
   }));
 
 
-
-  // Debug logging
-  useEffect(() => {
-    if (safeData.length > 0) {
-      console.log('🔍 Raw requests from backend:', safeData);
-      console.log('🔍 Transformed requests:', transformedRequests);
-    }
-  }, [safeData, transformedRequests]);
-
-  
-
-
-
   // Table columns configuration
   const columns = [
     {
@@ -365,12 +381,19 @@ const EmployerRequestsPage = () => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Debug logging for categories
+  // Cleanup modal states on component unmount
   useEffect(() => {
-    if (categories && categories.length > 0) {
-      console.log('🔍 Categories loaded:', categories);
-    }
-  }, [categories]);
+    return () => {
+      // Cleanup on unmount to prevent state persistence
+      resetModalStates();
+    };
+  }, [resetModalStates]);
+
+  // Debug modal state changes in development
+  useEffect(() => {
+    validateModalStates();
+  }, [validateModalStates]);
+
 
   // Search and filter logic
   const filteredData = useMemo(() => {
@@ -564,6 +587,7 @@ const EmployerRequestsPage = () => {
     switch (action) {
       case 'openActions':
         setShowActionModal(true);
+        setCurrentAction(null); // Ensure clean state
         break;
       case 'view':
         setShowDetailsModal(true);
@@ -571,11 +595,11 @@ const EmployerRequestsPage = () => {
         break;
       case 'contact':
         handleContactEmployer(request.employerContact, 'email');
-        setShowActionModal(false);
+        resetModalStates(); // Use centralized cleanup
         break;
       case 'call':
         handleContactEmployer(request.employerContact, 'phone');
-        setShowActionModal(false);
+        resetModalStates(); // Use centralized cleanup
         break;
       case 'reply':
         setCurrentAction('reply');
@@ -587,11 +611,11 @@ const EmployerRequestsPage = () => {
         break;
       case 'start':
         handleStatusUpdate('in_progress', 'Starting to process this request');
-        setShowActionModal(false);
+        resetModalStates(); // Use centralized cleanup
         break;
       case 'approve':
         handleStatusUpdate('approved', 'Request approved and ready for completion');
-        setShowActionModal(false);
+        resetModalStates(); // Use centralized cleanup
         break;
       case 'complete':
         setCurrentAction('complete');
@@ -599,10 +623,11 @@ const EmployerRequestsPage = () => {
         break;
       case 'reactivate':
         handleStatusUpdate('pending', 'Request reactivated and back to pending status');
-        setShowActionModal(false);
+        resetModalStates(); // Use centralized cleanup
         break;
       default:
         console.warn('Unknown action:', action);
+        resetModalStates(); // Cleanup for unknown actions
     }
   };
 
@@ -661,8 +686,7 @@ const EmployerRequestsPage = () => {
         // Clear form and close modal
         setReplyMessage('');
         setAdminNotes('');
-      setShowActionModal(false);
-      setCurrentAction(null);
+        resetModalStates(); // Use centralized cleanup
         
         // Refresh the requests to show updated data
         handleRefresh();
@@ -697,9 +721,7 @@ const EmployerRequestsPage = () => {
           : `Complete candidate details sent to ${selectedRequest.employerName}`;
         
         toast.success(successMessage);
-        setShowActionModal(false);
-        setCurrentAction(null);
-        setSelectedCandidate(null);
+        resetModalStates(); // Use centralized cleanup
         
         // Refresh the requests to show updated data
         handleRefresh();
@@ -745,8 +767,7 @@ const EmployerRequestsPage = () => {
         
         // Clear form and close modal
         setCompletionNotes('');
-        setShowActionModal(false);
-        setCurrentAction(null);
+        resetModalStates(); // Use centralized cleanup
         
         // Refresh the requests to show updated data
         handleRefresh();
@@ -779,11 +800,17 @@ const EmployerRequestsPage = () => {
       // View Details - Always available
       { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
       
-      // Contact Group - Always available
+      // Contact Group - Status-dependent
       { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
       { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
-      { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' },
     ];
+
+    // Add reply action only for non-terminal statuses
+    if (request.status !== 'completed' && request.status !== 'cancelled' && request.status !== 'approved') {
+      baseActions.push(
+        { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' }
+      );
+    }
 
     // Status-based actions
     const statusActions = [];
@@ -803,12 +830,12 @@ const EmployerRequestsPage = () => {
         );
         break;
         
-      case 'approved':
-        statusActions.push(
-          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
-          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
-        );
-        break;
+          case 'approved':
+      statusActions.push(
+        { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+        // Candidate selection removed - backend rejects it for approved requests
+      );
+      break;
         
       case 'completed':
         // No additional actions for completed requests
@@ -1192,22 +1219,7 @@ const EmployerRequestsPage = () => {
           />
         )}
 
-            {/* Debug Info */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
-                <div>Debug Info:</div>
-                <div>Total Data: {(safeDataForRendering || []).length}</div>
-                <div>Filtered Data: {filteredData.length}</div>
-                <div>Active Filters: {activeFiltersCount}</div>
-                <div>Search Term: "{localSearchTerm}"</div>
-                <div>Applied Filters: {JSON.stringify(localFilters)}</div>
-                <div>Categories Loaded: {categories?.length || 0}</div>
-                <div>Categories Loading: {loadingCategories ? 'Yes' : 'No'}</div>
-                </div>
-              )}
-
-
-            </div>
+    </div>
 
                           {/* Server-side pagination is handled by the DataTable component */}
       </Card>
@@ -1218,7 +1230,10 @@ const EmployerRequestsPage = () => {
       {showDetailsModal && selectedRequest && (
       <Modal
         isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedRequest(null);
+        }}
         title="Request Details"
           size="lg"
       >
@@ -1442,7 +1457,7 @@ const EmployerRequestsPage = () => {
       {showActionModal && selectedRequest && !currentAction && (
         <Modal
           isOpen={showActionModal}
-          onClose={() => setShowActionModal(false)}
+          onClose={resetModalStates} // Use centralized cleanup
           title={`Actions for ${selectedRequest.employerName} - ${selectedRequest.companyName}`}
           maxWidth="max-w-md"
         >
@@ -1468,7 +1483,7 @@ const EmployerRequestsPage = () => {
       {showActionModal && selectedRequest && currentAction && (
         <Modal
           isOpen={showActionModal}
-          onClose={() => setShowActionModal(false)}
+          onClose={resetModalStates} // Use centralized cleanup
           title={currentAction === 'reply' ? 'Reply to Request' : 
                  currentAction === 'select' ? 'Send Candidate Details' : 
                  currentAction === 'complete' ? 'Complete Request' : 'Action'}
@@ -1541,10 +1556,7 @@ const EmployerRequestsPage = () => {
               <Button
                 variant="outline"
                   onClick={() => {
-                    setShowActionModal(false);
-                    setReplyMessage('');
-                    setAdminNotes('');
-                    setReplyError('');
+                    resetModalStates(); // Use centralized cleanup
                   }}
                   disabled={replyLoading}
                 >
@@ -1675,9 +1687,7 @@ const EmployerRequestsPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setShowActionModal(false);
-                    setSelectedCandidate(null);
-                    setCandidateSelectionError('');
+                    resetModalStates(); // Use centralized cleanup
                   }}
                   disabled={candidateSelectionLoading}
                 >
@@ -1759,9 +1769,7 @@ const EmployerRequestsPage = () => {
             <Button
               variant="outline"
                   onClick={() => {
-                    setShowActionModal(false);
-                    setCompletionNotes('');
-                    setCompletionError('');
+                    resetModalStates(); // Use centralized cleanup
                   }}
                   disabled={completionLoading}
             >

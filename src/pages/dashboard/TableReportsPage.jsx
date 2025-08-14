@@ -20,6 +20,7 @@ import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DataTable from '../../components/ui/DataTable';
 import toast, { Toaster } from 'react-hot-toast';
+import { generateTablePDF, exportPDFToFile, exportToCSV, exportToExcel } from '../../utils/reactPdfExportUtils';
 
 const TableReportsPage = () => {
   const { t } = useTranslation();
@@ -31,6 +32,7 @@ const TableReportsPage = () => {
   const [dashboardStats, setDashboardStats] = useState(null);
   const [activeReport, setActiveReport] = useState('job-seekers'); // Default to job seekers
   const [searchTerm, setSearchTerm] = useState(''); // Add search state
+  const [exportFormat, setExportFormat] = useState('pdf'); // Export format selection
 
   // Use hooks to fetch complete data
   const {
@@ -112,36 +114,86 @@ const TableReportsPage = () => {
   const handleExportReport = async (type) => {
     setIsLoading(true);
     try {
-      const result = await adminService.exportSystemData({ 
-        type, 
-        format: 'pdf',
-        startDate: new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString(),
-        endDate: new Date().toISOString()
-      });
+      // Get the current report data and columns
+      const tableData = getReportData(type);
+      const columns = getTableColumns(type);
       
-      if (result.success) {
-        const pdfContent = result.data;
-        const blob = new Blob([pdfContent], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = result.filename || `table-report-${type}-${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast.success(`${type} table report exported successfully as PDF!`);
-      } else {
-        toast.error(`Failed to export report: ${result.error}`);
+      if (!tableData || tableData.length === 0) {
+        toast.error('No data available for export');
+        return false;
       }
+      
+      // Generate filename based on format
+      const dateStr = new Date().toISOString().split('T')[0];
+      const baseFilename = `table-report-${type}-${dateStr}`;
+      
+      let success = false;
+      
+      switch (exportFormat) {
+        case 'pdf':
+          // Prepare export options
+          const exportOptions = {
+            title: getReportTitle(type),
+            subtitle: `Comprehensive data table for ${getReportTitle(type).toLowerCase()}`,
+            dateRange: `Last ${selectedPeriod} days (${new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toLocaleDateString()} - ${new Date().toLocaleDateString()})`
+          };
+          
+          // Generate PDF using react-pdf utility
+          try {
+            const pdfBlob = await generateTablePDF(type, tableData, columns, exportOptions);
+            const pdfFilename = `${baseFilename}.pdf`;
+            success = await exportPDFToFile(pdfBlob, pdfFilename);
+          } catch (pdfError) {
+            console.error('PDF generation error:', pdfError);
+            toast.error(`PDF generation failed: ${pdfError.message}`);
+            return false;
+          }
+          
+          if (success) {
+            toast.success(`${getReportTitle(type)} exported successfully as PDF!`);
+          } else {
+            toast.error('Failed to save PDF file');
+          }
+          break;
+          
+        case 'csv':
+          const csvFilename = `${baseFilename}.csv`;
+          success = exportToCSV(tableData, columns, csvFilename);
+          
+          if (success) {
+            toast.success(`${getReportTitle(type)} exported successfully as CSV!`);
+          } else {
+            toast.error('Failed to save CSV file');
+          }
+          break;
+          
+        case 'excel':
+          const excelFilename = `${baseFilename}.xlsx`;
+          success = exportToExcel(tableData, columns, excelFilename);
+          
+          if (success) {
+            toast.success(`${getReportTitle(type)} exported successfully as Excel!`);
+          } else {
+            toast.error('Failed to save Excel file');
+          }
+          break;
+          
+        default:
+          toast.error('Unsupported export format');
+          return false;
+      }
+      
+      return success;
     } catch (error) {
       console.error('Error exporting report:', error);
-      toast.error('Error exporting report. Please try again.');
+      toast.error('Error generating export report. Please try again.');
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   const handleRefreshData = async () => {
     setIsLoading(true);
@@ -532,14 +584,28 @@ const TableReportsPage = () => {
                 <h2 className="text-xl font-semibold text-gray-900">{getReportTitle(activeReport)}</h2>
                 <p className="text-gray-600">Comprehensive data table for {getReportTitle(activeReport).toLowerCase()}</p>
                 </div>
-                <Button
-                onClick={() => handleExportReport(activeReport)}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-                >
-                <Download className="w-3 h-3" />
-                {isLoading ? 'Exporting...' : 'Export PDF'}
-                </Button>
+                <div className="flex items-center gap-3">
+                  {/* Export Format Selector */}
+                  <select
+                    value={exportFormat}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="pdf">PDF</option>
+                    <option value="csv">CSV</option>
+                    <option value="excel">Excel</option>
+                  </select>
+                  
+                  {/* Export Button */}
+                  <Button
+                    onClick={() => handleExportReport(activeReport)}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="w-3 h-3" />
+                    {isLoading ? 'Exporting...' : `Export ${exportFormat.toUpperCase()}`}
+                  </Button>
+                </div>
                 <div className="flex items-center gap-3">
                     <Button
                         onClick={handleRefreshData}
@@ -551,6 +617,7 @@ const TableReportsPage = () => {
                         {isLoading ? 'Refreshing...' : 'Refresh'}
                     </Button>
                     
+
                 </div>
             </div>
           

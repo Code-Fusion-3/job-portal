@@ -39,9 +39,6 @@ const Statistics = () => {
   const { t } = useTranslation();
   const { statistics, loading: statsLoading, error: statsError } = useStatistics();
   
-  // Debug logging
-  console.log('📊 Statistics component received:', { statistics, statsLoading, statsError });
-  
   // Get dynamic stats data
   const statsData = getStatsData(statistics);
   console.log('🎯 Generated stats data:', statsData);
