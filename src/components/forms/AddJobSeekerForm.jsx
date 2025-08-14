@@ -213,7 +213,7 @@ const AddJobSeekerForm = ({
     if (!formData.contactNumber.trim()) {
       newErrors.contactNumber = 'Phone number is required';
     } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.contactNumber.trim())) {
-      newErrors.contactNumber = 'Please enter a valid phone number';
+      newErrors.contactNumber = 'Please enter a valid phone number (25 ---)';
     }
 
     // Experience level is required

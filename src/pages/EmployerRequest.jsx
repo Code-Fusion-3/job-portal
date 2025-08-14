@@ -311,10 +311,7 @@ const EmployerRequest = () => {
               >
                 <EmployerRequestForm
                   jobSeekerId={(() => {
-                    // Debug the job seeker data structure
-                    console.log('Job seeker data for form:', jobSeeker);
-                    console.log('URL ID parameter:', id);
-                    
+                   
                     // Try different ways to get the ID
                     let candidateId = null;
                     

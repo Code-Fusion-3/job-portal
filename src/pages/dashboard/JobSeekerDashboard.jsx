@@ -69,9 +69,7 @@ const JobSeekerDashboard = () => {
     );
   }
 
-  // Debug logging
-
-
+ 
   // Helper functions to map backend data to frontend expectations
   const getUserName = () => {
     if (user?.profile?.firstName && user?.profile?.lastName) {

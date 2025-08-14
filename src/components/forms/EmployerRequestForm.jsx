@@ -70,7 +70,7 @@ const EmployerRequestForm = ({
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Please enter a valid phone number';
+      newErrors.phone = 'Please enter a valid phone number (25 ---)';
     }
     
     if (!formData.message.trim()) {
@@ -319,28 +319,7 @@ const EmployerRequestForm = ({
           )}
         </Button>
 
-        {/* Debug Information */}
-        {import.meta.env.DEV && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-xs">
-            <h4 className="font-semibold mb-2">Debug Info:</h4>
-            <div className="space-y-1">
-              <div>Form Data: {JSON.stringify(formData, null, 2)}</div>
-              <div>Errors: {JSON.stringify(errors, null, 2)}</div>
-              <div>Loading: {loading.toString()}</div>
-              <div>Job Seeker ID: {jobSeekerId}</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                console.log('Current form state:', { formData, errors, loading, jobSeekerId });
-                console.log('Form validation result:', validateForm());
-              }}
-              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs"
-            >
-              Debug Form State
-            </button>
-          </div>
-        )}
+     
 
         <p className="text-center text-sm text-gray-500">
           {t('employerRequest.disclaimer', 'Your request will be sent to our admin team for review. We\'ll get back to you within 24 hours.')}
