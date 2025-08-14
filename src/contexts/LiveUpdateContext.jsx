@@ -147,11 +147,11 @@ export const LiveUpdateProvider = ({ children }) => {
 
     // Add notification for significant changes (but not too frequently)
     if (dataArray.length > 0 && (!lastUpdate || timestamp - lastUpdate > 10000)) {
-      addNotification({
-        message: 'Dashboard data updated',
-        type: 'info',
-        duration: 3000
-      });
+      // addNotification({
+      //   message: 'Dashboard data updated',
+      //   type: 'info',
+      //   duration: 3000
+      // });
     }
   }, [liveData, lastUpdate, addNotification]);
 
