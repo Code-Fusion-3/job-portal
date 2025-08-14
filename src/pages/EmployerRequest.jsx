@@ -32,7 +32,6 @@ const EmployerRequest = () => {
         
         if (!user) {
           // Public user: fetch anonymized data
-          console.log('Fetching public job seeker data for ID:', id);
           result = await jobSeekerService.getPublicJobSeekerById(id);
         } else {
           // Authenticated user: fetch full data
@@ -40,15 +39,11 @@ const EmployerRequest = () => {
           if (typeof id === 'string' && id.startsWith('JS')) {
             candidateId = parseInt(id.replace(/^JS/, ''), 10);
           }
-          console.log('Fetching authenticated job seeker data for ID:', candidateId);
           result = await jobSeekerService.getJobSeekerById(candidateId);
         }
         
-        console.log('Fetched job seeker result:', result);
         if (result && result.success && result.data) {
           setJobSeeker(result.data);
-          console.log('Job seeker data set:', result.data);
-          console.log('Job seeker ID for form:', result.data.id || result.data.profile?.userId);
         } else {
           console.error('Failed to fetch job seeker:', result);
           setJobSeeker(null);
@@ -317,20 +312,15 @@ const EmployerRequest = () => {
                     
                     if (jobSeeker?.id) {
                       candidateId = jobSeeker.id;
-                      console.log('Using jobSeeker.id:', candidateId);
                     } else if (jobSeeker?.profile?.userId) {
                       candidateId = jobSeeker.profile.userId;
-                      console.log('Using jobSeeker.profile.userId:', candidateId);
                     } else if (jobSeeker?.userId) {
                       candidateId = jobSeeker.userId;
-                      console.log('Using jobSeeker.userId:', candidateId);
                     } else if (id) {
                       // Fallback to URL parameter
                       candidateId = id;
-                      console.log('Using URL ID parameter as fallback:', candidateId);
                     }
                     
-                    console.log('Final candidate ID for form:', candidateId);
                     return candidateId;
                   })()}
                   jobSeekerName={jobSeeker?.profile ? `${jobSeeker.profile.firstName} ${jobSeeker.profile.lastName}` : jobSeeker.name}

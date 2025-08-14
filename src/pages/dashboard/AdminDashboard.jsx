@@ -124,10 +124,8 @@ const AdminDashboard = () => {
       // Fetch dashboard statistics
       const statsResult = await adminService.getDashboardStats();
       if (statsResult.success) {
-        // console.log('Dashboard stats loaded:', statsResult.data);
         setDashboardStats(statsResult.data);
       } else {
-        console.error('Failed to load dashboard stats:', statsResult.error);
         setError('Failed to load dashboard statistics');
       }
 

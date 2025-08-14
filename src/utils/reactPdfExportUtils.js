@@ -194,10 +194,6 @@ const createPDFDocument = (reportType, tableData, columns, options) => {
  */
 export const generateTablePDF = async (reportType, tableData, columns, options = {}) => {
   try {
-    console.log('Starting react-pdf generation for:', reportType);
-    console.log('Table data length:', tableData.length);
-    console.log('Columns:', columns);
-
     if (!tableData || !Array.isArray(tableData) || tableData.length === 0) {
       throw new Error('No table data provided');
     }
@@ -211,7 +207,6 @@ export const generateTablePDF = async (reportType, tableData, columns, options =
 
     // Generate PDF blob
     const blob = await pdf(pdfDocument).toBlob();
-    console.log('React-PDF generation completed successfully');
     
     return blob;
   } catch (error) {
@@ -526,8 +521,6 @@ const formatMergedCellValue = (row, col, reportType) => {
  */
 export const exportPDFToFile = async (blob, filename) => {
   try {
-    console.log('Saving PDF with filename:', filename);
-    
     // Create download link
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -543,7 +536,6 @@ export const exportPDFToFile = async (blob, filename) => {
     // Clean up
     URL.revokeObjectURL(url);
     
-    console.log('PDF saved successfully');
     return true;
   } catch (error) {
     console.error('Error saving PDF:', error);

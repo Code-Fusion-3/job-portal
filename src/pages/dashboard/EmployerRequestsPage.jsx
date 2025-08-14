@@ -160,17 +160,7 @@ const EmployerRequestsPage = () => {
 
   // State validation function for debugging
   const validateModalStates = useCallback(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Modal State Validation:', {
-        showActionModal,
-        currentAction,
-        selectedRequest: !!selectedRequest,
-        showDetailsModal,
-        replyMessage: !!replyMessage,
-        adminNotes: !!adminNotes,
-        completionNotes: !!completionNotes
-      });
-    }
+    // Debug function - console.log removed for production
   }, [showActionModal, currentAction, selectedRequest, showDetailsModal, replyMessage, adminNotes, completionNotes]);
 
 
@@ -573,7 +563,6 @@ const EmployerRequestsPage = () => {
 
   // Refresh function that fetches fresh data
   const handleRefresh = useCallback(() => {
-    console.log('🔄 Refreshing data');
     // Reset to first page
     goToPage(1);
     // Apply filters to fetch fresh data
@@ -635,7 +624,6 @@ const EmployerRequestsPage = () => {
     if (!selectedRequest) return;
     
     try {
-      console.log(`🔄 Updating request status: ${selectedRequest.id} -> ${newStatus}`);
       
       const result = await updateRequestStatus(selectedRequest.id, {
                 status: newStatus, 
@@ -643,7 +631,6 @@ const EmployerRequestsPage = () => {
       });
       
       if (result.success) {
-        console.log('✅ Status updated successfully:', result.data);
         
         // Show success message
         toast.success(`Request status updated to ${newStatus}. ${message || ''}`);
@@ -667,14 +654,12 @@ const EmployerRequestsPage = () => {
     setReplyError('');
 
     try {
-      console.log(`📧 Sending reply to employer: ${selectedRequest.employerName} (${selectedRequest.employerContact.email})`);
       
       const result = await replyToRequest(selectedRequest.id, {
         content: replyMessage
       });
       
       if (result.success) {
-        console.log('✅ Reply sent successfully:', result.data);
         
         // Show success message with details
         const successMessage = result.data.emailSent 
@@ -709,12 +694,10 @@ const EmployerRequestsPage = () => {
     setCandidateSelectionError('');
 
     try {
-      console.log(`📤 Sending candidate information: ${jobSeekerId}, Details type: ${detailsType}`);
       
       const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId, detailsType);
       
       if (result.success) {
-        console.log('✅ Candidate information sent successfully:', result.data);
         
         const successMessage = detailsType === 'picture' 
           ? `Candidate profile picture sent to ${selectedRequest.employerName}`
@@ -750,18 +733,14 @@ const EmployerRequestsPage = () => {
     setCompletionError('');
 
     try {
-      console.log(`✅ Completing request: ${selectedRequest.id}`);
-      console.log(`📝 Completion notes: ${completionNotes || 'None'}`);
       
       const result = await updateRequestStatus(selectedRequest.id, {
         status: 'completed',
         adminNotes: completionNotes
       });
       
-      console.log('📊 Completion result:', result);
       
       if (result.success) {
-        console.log('✅ Request completed successfully:', result.data);
         
         toast.success(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
         

@@ -16,36 +16,29 @@ export const statisticsService = {
    */
   getPublicStatistics: async () => {
     try {
-      console.log('🌐 Calling /public/statistics endpoint...');
       const response = await apiClient.get('/public/statistics');
-      console.log('📡 Raw response:', response);
       
-      // Transform the response to match our expected format
-      const stats = {
-        activeWorkers: response.data?.totalJobSeekers || 0,
-        citiesCovered: response.data?.topLocations?.length || 0,
-        totalJobSeekers: response.data?.totalJobSeekers || 0,
-        totalCategories: response.data?.totalCategories || 0,
-        recentRegistrations: response.data?.recentRegistrations || 0
-      };
-      
-      console.log('🔢 Transformed stats:', stats);
-      
-      const result = {
-        success: true,
-        data: stats
-      };
-      
-      return result;
-    } catch (error) {
-      console.error('❌ getPublicStatistics error:', error);
-      
-      // Handle specific backend error cases
-      if (error.response?.data?.error) {
-        return { success: false, error: error.response.data.error };
+      if (response.data && response.data.success) {
+        const stats = response.data.data;
+        
+        // Transform the data to match expected format
+        const transformedStats = {
+          totalJobSeekers: stats.totalJobSeekers || 0,
+          totalEmployers: stats.totalEmployers || 0,
+          totalRequests: stats.totalRequests || 0,
+          totalCategories: stats.totalCategories || 0,
+          recentJobSeekers: stats.recentJobSeekers || [],
+          topCategories: stats.topCategories || [],
+          monthlyStats: stats.monthlyStats || []
+        };
+        
+        return { success: true, data: transformedStats };
       }
       
-      return { success: false, error: 'Failed to fetch statistics' };
+      return { success: false, error: 'Invalid response format' };
+    } catch (error) {
+      console.error('❌ getPublicStatistics error:', error);
+      return { success: false, error: error.message };
     }
   },
 
@@ -55,43 +48,34 @@ export const statisticsService = {
    */
   getJobSeekerStatistics: async () => {
     try {
-      console.log('🔄 Fallback: Calling /job-seekers/public endpoint...');
-      // Get all public job seekers to calculate statistics
       const response = await apiClient.get('/job-seekers/public');
-      console.log('📡 Fallback raw response:', response);
       
-      if (!response.data || !Array.isArray(response.data)) {
-        console.warn('⚠️ Fallback: Invalid response format');
-        return { success: false, error: 'Invalid response format' };
+      if (response.data && response.data.success) {
+        const jobSeekers = response.data.data;
+        
+        if (!Array.isArray(jobSeekers)) {
+          console.warn('⚠️ Fallback: Invalid response format');
+          return { success: false, error: 'Invalid response format' };
+        }
+        
+        // Calculate statistics from job seekers data
+        const stats = {
+          totalJobSeekers: jobSeekers.length,
+          totalEmployers: 0, // Not available in this endpoint
+          totalRequests: 0, // Not available in this endpoint
+          totalCategories: 0, // Not available in this endpoint
+          recentJobSeekers: jobSeekers.slice(0, 5),
+          topCategories: [],
+          monthlyStats: []
+        };
+        
+        return { success: true, data: stats };
       }
-
-      const jobSeekers = response.data;
-      console.log('👥 Fallback: Job seekers data:', jobSeekers);
       
-      // Calculate statistics
-      const stats = {
-        activeWorkers: jobSeekers.length,
-        citiesCovered: new Set(jobSeekers.map(seeker => seeker.city).filter(Boolean)).size,
-        totalJobSeekers: jobSeekers.length
-      };
-      
-      console.log('🔢 Fallback calculated stats:', stats);
-      
-      const result = {
-        success: true,
-        data: stats
-      };
-      
-      return result;
+      return { success: false, error: 'Failed to fetch statistics' };
     } catch (error) {
       console.error('❌ getJobSeekerStatistics error:', error);
-      
-      // Handle specific backend error cases
-      if (error.response?.data?.error) {
-        return { success: false, error: error.response.data.error };
-      }
-      
-      return { success: false, error: 'Failed to fetch job seeker statistics' };
+      return { success: false, error: error.message };
     }
   }
 };

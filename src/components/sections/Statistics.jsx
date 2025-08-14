@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useStatistics } from '../../api/hooks/useStatistics.js';
@@ -39,9 +39,22 @@ const Statistics = () => {
   const { t } = useTranslation();
   const { statistics, loading: statsLoading, error: statsError } = useStatistics();
   
-  // Get dynamic stats data
-  const statsData = getStatsData(statistics);
-  console.log('🎯 Generated stats data:', statsData);
+  const [stats, setStats] = useState(getStatsData(statistics));
+
+  useEffect(() => {
+    const generateStatsData = () => {
+      try {
+        const statsData = getStatsData(statistics);
+        return statsData;
+      } catch (error) {
+        console.error('Error generating stats data:', error);
+        return getStatsData(null); // Return default stats on error
+      }
+    };
+
+    const statsData = generateStatsData();
+    setStats(statsData);
+  }, [statistics]);
 
   // Error handling for translation
   const safeTranslate = (key, fallback) => {
@@ -117,7 +130,7 @@ const Statistics = () => {
           viewport={{ once: true }}
           className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20"
         >
-          {statsData.map((stat, index) => (
+          {stats.map((stat, index) => (
             <motion.div
               key={stat.id}
               variants={itemVariants}

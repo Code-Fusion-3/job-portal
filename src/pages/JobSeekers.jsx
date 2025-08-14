@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -116,13 +116,6 @@ const JobSeekers = () => {
       ];
     }
     
-    // Debug: Log current filter options
-    console.log('🔍 Current Filter Options:', {
-      experienceLevel: filterOptions.experienceLevel,
-      category: filterOptions.category,
-      location: filterOptions.location,
-      gender: filterOptions.gender
-    });
   }, [jobCategories, categoriesError]);
 
   // Get active filters count
@@ -169,17 +162,6 @@ const JobSeekers = () => {
       return;
     }
 
-    console.log('🔍 Applying filters:', {
-      searchTerm,
-      selectedExperienceLevel,
-      selectedCategory,
-      selectedLocation,
-      selectedGender,
-      sortBy,
-      totalJobSeekers: jobSeekers.length
-    });
-
-
     let filtered = jobSeekers.filter(seeker => {
       // Search term filter
       if (searchTerm) {
@@ -203,12 +185,6 @@ const JobSeekers = () => {
       // Experience level filter
       if (selectedExperienceLevel) {
         const seekerExperienceLevel = seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel;
-        console.log('🔍 Experience Filter Debug:', {
-          seeker: `${seeker.firstName} ${seeker.lastName}`,
-          seekerExperienceLevel,
-          selectedExperienceLevel,
-          matches: seekerExperienceLevel === selectedExperienceLevel
-        });
         if (seekerExperienceLevel !== selectedExperienceLevel) {
           return false;
         }
@@ -273,7 +249,6 @@ const JobSeekers = () => {
       });
     }
 
-    console.log('🔍 Filtered results:', filtered.length);
     setFilteredSeekers(filtered);
   }, [jobSeekers, searchTerm, selectedExperienceLevel, selectedCategory, selectedLocation, selectedGender, sortBy]);
 
@@ -289,7 +264,6 @@ const JobSeekers = () => {
   };
 
   const handleViewProfile = (seeker) => {
-    console.log('🔍 Navigating to profile:', seeker.id);
     navigate(`/view-profile/${seeker.id}`);
   };
 

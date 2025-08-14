@@ -1,9 +1,5 @@
 import jsPDF from 'jspdf';
 
-// Debug: Check jsPDF version
-console.log('jsPDF version:', jsPDF.version);
-console.log('jsPDF API methods:', Object.keys(jsPDF.prototype).slice(0, 10));
-
 /**
  * PDF Export Utility for Table Reports
  * Handles generation of professional PDF reports with proper table formatting
@@ -40,19 +36,6 @@ const PDF_CONFIG = {
  */
 export const generateTablePDF = (reportType, tableData, columns, options = {}) => {
   try {
-    console.log('Starting PDF generation for:', reportType);
-    console.log('Table data length:', tableData.length);
-    console.log('Columns:', columns);
-    
-    // Validate inputs
-    if (!tableData || !Array.isArray(tableData) || tableData.length === 0) {
-      throw new Error('No table data provided');
-    }
-    
-    if (!columns || !Array.isArray(columns) || columns.length === 0) {
-      throw new Error('No columns provided');
-    }
-    
     // Initialize PDF document
     const doc = new jsPDF(PDF_CONFIG.orientation, 'mm', PDF_CONFIG.pageSize);
     
@@ -70,14 +53,11 @@ export const generateTablePDF = (reportType, tableData, columns, options = {}) =
     const availableWidth = pageWidth - PDF_CONFIG.margins.left - PDF_CONFIG.margins.right;
     const availableHeight = pageHeight - PDF_CONFIG.margins.top - PDF_CONFIG.margins.bottom - PDF_CONFIG.headerHeight - PDF_CONFIG.footerHeight;
 
-    console.log('Page dimensions:', { pageWidth, pageHeight, availableWidth, availableHeight });
-
     // Generate header
     generateHeader(doc, options.title || getReportTitle(reportType), options.subtitle, options.dateRange);
 
     // Prepare table data for PDF
     const pdfTableData = prepareTableDataForPDF(tableData, columns);
-    console.log('Prepared PDF table data:', pdfTableData);
     
     // Generate table with auto-pagination
     generateTable(doc, pdfTableData, columns, availableWidth, availableHeight);
@@ -85,7 +65,6 @@ export const generateTablePDF = (reportType, tableData, columns, options = {}) =
     // Generate footer
     generateFooter(doc, pageWidth, pageHeight);
 
-    console.log('PDF generation completed successfully');
     // Return the PDF document
     return doc;
   } catch (error) {
@@ -158,18 +137,8 @@ const generateTable = (doc, tableData, columns, availableWidth, availableHeight)
   try {
     const { margins, headerHeight, fontSize } = PDF_CONFIG;
     
-    console.log('Generating table with:', {
-      tableDataLength: tableData.length,
-      columnsLength: columns.length,
-      availableWidth,
-      availableHeight
-    });
-    
-    console.log('Using manual table generation...');
-    
     // Generate table manually (jsPDF v3 compatible)
     generateManualTable(doc, tableData, columns, margins, headerHeight, fontSize);
-    console.log('Table generation completed with manual method');
   } catch (error) {
     console.error('Error in generateTable:', error);
     throw error;
@@ -193,7 +162,7 @@ const generateManualTable = (doc, tableData, columns, margins, headerHeight, fon
     try {
       doc.setFillColor(59, 130, 246); // Blue header background
     } catch (e) {
-      console.log('setFillColor not available, using default');
+      // console.log('setFillColor not available, using default'); // Removed
     }
     
     columns.forEach((col, colIndex) => {
@@ -207,7 +176,7 @@ const generateManualTable = (doc, tableData, columns, margins, headerHeight, fon
       try {
         doc.setTextColor(255, 255, 255); // White text
       } catch (e) {
-        console.log('setTextColor not available, using default');
+        // console.log('setTextColor not available, using default'); // Removed
       }
       doc.text(col.label, x + 5, startY + 8);
     });
@@ -219,7 +188,7 @@ const generateManualTable = (doc, tableData, columns, margins, headerHeight, fon
     try {
       doc.setTextColor(17, 24, 39); // Dark text
     } catch (e) {
-      console.log('setTextColor not available, using default');
+      // console.log('setTextColor not available, using default'); // Removed
     }
     
     tableData.forEach((row, rowIndex) => {
@@ -230,13 +199,13 @@ const generateManualTable = (doc, tableData, columns, margins, headerHeight, fon
         try {
           doc.setFillColor(249, 250, 251); // Light gray
         } catch (e) {
-          console.log('setFillColor not available, using default');
+          // console.log('setFillColor not available, using default'); // Removed
         }
       } else {
         try {
           doc.setFillColor(255, 255, 255); // White
         } catch (e) {
-          console.log('setFillColor not available, using default');
+          // console.log('setFillColor not available, using default'); // Removed
         }
       }
       
@@ -258,8 +227,6 @@ const generateManualTable = (doc, tableData, columns, margins, headerHeight, fon
         doc.text(displayValue, x + 5, y + 8);
       });
     });
-    
-    console.log('Manual table generation completed');
   } catch (error) {
     console.error('Error in manual table generation:', error);
     throw error;
@@ -278,7 +245,7 @@ const generateFooter = (doc, pageWidth, pageHeight) => {
       doc.setDrawColor(229, 231, 235);
       doc.setLineWidth(0.5);
     } catch (e) {
-      console.log('setDrawColor/setLineWidth not available, using default');
+      // console.log('setDrawColor/setLineWidth not available, using default'); // Removed
     }
     
     doc.line(margins.left, pageHeight - margins.bottom - footerHeight, pageWidth - margins.right, pageHeight - margins.bottom - footerHeight);
@@ -288,7 +255,7 @@ const generateFooter = (doc, pageWidth, pageHeight) => {
     try {
       doc.setTextColor(107, 114, 128);
     } catch (e) {
-      console.log('setTextColor not available, using default');
+      // console.log('setTextColor not available, using default'); // Removed
     }
     
     doc.text('Generated by Job Portal System', margins.left, pageHeight - margins.bottom - 10);
@@ -307,53 +274,37 @@ const generateFooter = (doc, pageWidth, pageHeight) => {
  */
 const prepareTableDataForPDF = (tableData, columns) => {
   try {
-    console.log('Preparing table data for PDF. Rows:', tableData.length, 'Columns:', columns.length);
-    
-    if (!tableData || !Array.isArray(tableData)) {
-      throw new Error('Invalid table data');
-    }
-    
-    if (!columns || !Array.isArray(columns)) {
-      throw new Error('Invalid columns');
-    }
-    
     const result = tableData.map((row, rowIndex) => {
-      try {
-        return columns.map((col, colIndex) => {
-          try {
-            const value = row[col.key];
-            
-            // Handle special formatting
-            if (col.key === 'status' || col.key === 'priority' || col.key === 'demand') {
-              return formatStatusValue(value);
-            }
-            
-            if (col.key === 'percentage') {
-              return `${value}%`;
-            }
-            
-            if (col.key === 'monthlyRate' && value !== 'Not specified') {
-              return value; // Already formatted in the data preparation
-            }
-            
-            // Handle long text by truncating
-            if (typeof value === 'string' && value.length > 50) {
-              return value.substring(0, 47) + '...';
-            }
-            
-            return value || 'N/A';
-          } catch (colError) {
-            console.error(`Error processing column ${col.key} at row ${rowIndex}, col ${colIndex}:`, colError);
-            return 'Error';
+      return columns.map((col, colIndex) => {
+        try {
+          const value = row[col.key];
+          
+          // Handle special formatting
+          if (col.key === 'status' || col.key === 'priority' || col.key === 'demand') {
+            return formatStatusValue(value);
           }
-        });
-      } catch (rowError) {
-        console.error(`Error processing row ${rowIndex}:`, rowError);
-        return columns.map(() => 'Error');
-      }
+          
+          if (col.key === 'percentage') {
+            return `${value}%`;
+          }
+          
+          if (col.key === 'monthlyRate' && value !== 'Not specified') {
+            return value; // Already formatted in the data preparation
+          }
+          
+          // Handle long text by truncating
+          if (typeof value === 'string' && value.length > 50) {
+            return value.substring(0, 47) + '...';
+          }
+          
+          return value || 'N/A';
+        } catch (colError) {
+          console.error(`Error processing column ${col.key} at row ${rowIndex}, col ${colIndex}:`, colError);
+          return 'Error';
+        }
+      });
     });
     
-    console.log('Table data preparation completed. Result rows:', result.length);
     return result;
   } catch (error) {
     console.error('Error in prepareTableDataForPDF:', error);
@@ -419,9 +370,7 @@ const getTotalRecords = () => {
  */
 export const exportPDFToFile = (doc, filename) => {
   try {
-    console.log('Saving PDF with filename:', filename);
     doc.save(filename);
-    console.log('PDF saved successfully');
     return true;
   } catch (error) {
     console.error('Error saving PDF:', error);
@@ -434,14 +383,11 @@ export const exportPDFToFile = (doc, filename) => {
  */
 export const createTestPDF = () => {
   try {
-    console.log('Creating test PDF...');
     const doc = new jsPDF('landscape', 'mm', 'a4');
     
     // Add simple text using jsPDF v3 API
     doc.setFontSize(16);
     doc.text('Test PDF Generation', 20, 20);
-    
-    console.log('Creating manual table...');
     
     // Create a simple manual table using jsPDF v3 API
     const startY = 40;
@@ -485,7 +431,6 @@ export const createTestPDF = () => {
       doc.text(row[2], 25 + colWidths[0] + colWidths[1], y + 7);
     });
     
-    console.log('Test PDF created successfully');
     return doc;
   } catch (error) {
     console.error('Error creating test PDF:', error);

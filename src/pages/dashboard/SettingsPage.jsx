@@ -62,44 +62,38 @@ const SettingsPage = () => {
 
   // Load admin profile
   useEffect(() => {
-    console.log('🔍 SettingsPage mounted, user:', user);
-    console.log('🔍 Auth token exists:', !!localStorage.getItem('job_portal_token'));
-    loadAdminProfile();
-  }, []);
-
-
+    if (user) {
+      setProfile({
+        firstName: user.profile?.firstName || user.firstName || '',
+        lastName: user.profile?.lastName || user.lastName || '',
+        email: user.email || '',
+        phoneNumber: user.profile?.phoneNumber || user.phoneNumber || '',
+        bio: user.profile?.bio || user.bio || '',
+        skills: user.profile?.skills || user.skills || '',
+        experienceLevel: user.profile?.experienceLevel || user.experienceLevel || '',
+        category: user.profile?.category || user.category || '',
+        city: user.profile?.city || user.city || '',
+        gender: user.profile?.gender || user.gender || '',
+        dateOfBirth: user.profile?.dateOfBirth || user.dateOfBirth || '',
+        photo: user.profile?.photo || user.photo || null
+      });
+    }
+  }, [user]);
 
   const loadAdminProfile = async () => {
     try {
       setIsLoadingProfile(true);
-      console.log('🔄 Loading admin profile...');
-      const data = await adminService.getAdminProfile();
-      console.log('📋 Admin profile data received:', data);
       
-      if (data && data.success && data.data) {
-        setProfile({
-          firstName: data.data.firstName || '',
-          lastName: data.data.lastName || '',
-          email: data.data.email || '',
-          phone: data.data.phone || '',
-          location: data.data.location || '',
-          bio: data.data.bio || ''
-        });
-        console.log('✅ Profile state updated:', {
-          firstName: data.data.firstName || '',
-          lastName: data.data.lastName || '',
-          email: data.data.email || '',
-          phone: data.data.phone || '',
-          location: data.data.location || '',
-          bio: data.data.bio || ''
-        });
-      } else {
-        console.error('❌ Invalid data structure received:', data);
-        setMessage({ type: 'error', text: 'Invalid profile data received' });
+      const data = await adminService.getAdminProfile();
+      
+      if (data.success) {
+        setProfile(prev => ({
+          ...prev,
+          ...data.data
+        }));
       }
     } catch (error) {
-      console.error('❌ Error loading admin profile:', error);
-      setMessage({ type: 'error', text: 'Failed to load profile data: ' + (error.message || 'Unknown error') });
+      console.error('Error loading admin profile:', error);
     } finally {
       setIsLoadingProfile(false);
     }

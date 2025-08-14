@@ -761,7 +761,7 @@ const UpdateProfile = () => {
                           e.target.nextSibling.style.display = 'flex';
                         }}
                         onLoad={() => {
-                          // console.log('✅ Image loaded successfully');
+                          // Image loaded successfully
                         }}
                       />
                     ) : null}

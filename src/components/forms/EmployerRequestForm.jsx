@@ -31,11 +31,12 @@ const EmployerRequestForm = ({
 
   // Update form data when jobSeekerId prop changes
   useEffect(() => {
-    console.log('EmployerRequestForm: jobSeekerId prop changed to:', jobSeekerId);
-    setFormData(prev => ({
-      ...prev,
-      jobSeekerId: jobSeekerId || ''
-    }));
+    if (jobSeekerId !== formData.jobSeekerId) {
+      setFormData(prev => ({
+        ...prev,
+        jobSeekerId: jobSeekerId
+      }));
+    }
   }, [jobSeekerId]);
 
   const handleInputChange = (e) => {
@@ -84,7 +85,6 @@ const EmployerRequestForm = ({
       newErrors.general = 'Candidate ID is missing. Please refresh the page and try again.';
     }
     
-    console.log('Validation errors:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -92,21 +92,10 @@ const EmployerRequestForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('=== FORM SUBMISSION STARTED ===');
-    console.log('Event:', e);
-    console.log('Form data:', formData);
-    console.log('Current errors:', errors);
-    console.log('Job seeker ID prop:', jobSeekerId);
-    console.log('Form jobSeekerId value:', formData.jobSeekerId);
-    console.log('Form jobSeekerId type:', typeof formData.jobSeekerId);
-    console.log('Form jobSeekerId length:', formData.jobSeekerId ? formData.jobSeekerId.toString().length : 'undefined');
-    
     if (!validateForm()) {
-      console.log('Form validation failed', { errors });
       return;
     }
     
-    console.log('Form validation passed, proceeding with submission...');
     setLoading(true);
     
     try {
@@ -114,18 +103,6 @@ const EmployerRequestForm = ({
       const apiUrl = import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000';
       const endpoint = `${apiUrl}/employer/request`;
       
-      console.log('Sending request to:', endpoint);
-      console.log('Request payload:', {
-        name: formData.employerName,
-        companyName: formData.companyName,
-        email: formData.email,
-        phoneNumber: formData.phone,
-        message: formData.message,
-        id: formData.jobSeekerId, // Changed from requestedCandidateId to id
-        priority: formData.priority
-      });
-      
-      // Send request to backend
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -140,9 +117,6 @@ const EmployerRequestForm = ({
         })
       });
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Response not OK:', { status: response.status, statusText: response.statusText, body: errorText });
@@ -150,8 +124,6 @@ const EmployerRequestForm = ({
       }
       
       const responseData = await response.json();
-      console.log('Response data:', responseData);
-      console.log('=== FORM SUBMISSION SUCCESSFUL ===');
       
       onSuccess();
       setFormData({
@@ -169,7 +141,6 @@ const EmployerRequestForm = ({
       onError(error);
     } finally {
       setLoading(false);
-      console.log('=== FORM SUBMISSION COMPLETED ===');
     }
   };
 

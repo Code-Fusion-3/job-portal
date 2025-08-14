@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 
 
@@ -24,6 +24,9 @@ try {
 
 export const useScrollAnimations = () => {
   const containerRef = useRef(null);
+  const [gsapReady, setGsapReady] = useState(false);
+  const [domReady, setDomReady] = useState(false);
+  const [animationsInitialized, setAnimationsInitialized] = useState(false);
 
   // Stagger animation for job seeker cards
   const initStaggerAnimation = () => {
@@ -281,58 +284,108 @@ export const useScrollAnimations = () => {
     }
   };
 
+  // Dynamic import of GSAP modules
   useEffect(() => {
-    console.log('useScrollAnimations: useEffect triggered');
-
-    // Wait for GSAP to be available and DOM to be ready
-    const checkGSAPAndInit = () => {
-      if (!gsap) {
-        console.log('useScrollAnimations: GSAP not ready yet, retrying in 100ms');
-        setTimeout(checkGSAPAndInit, 100);
-        return;
-      }
-
-      // Wait for DOM to be fully loaded
-      if (document.readyState !== 'complete') {
-        console.log('useScrollAnimations: DOM not ready yet, retrying in 100ms');
-        setTimeout(checkGSAPAndInit, 100);
-        return;
-      }
-
-      console.log('useScrollAnimations: GSAP and DOM ready, initializing animations');
-      
+    const loadGSAP = async () => {
       try {
-        // Initialize all animations with error handling
-        setTimeout(() => {
-          try {
-            initStaggerAnimation();
-            initTextReveal();
-            initFloatingStats();
-            initParallaxEffect();
-            initCounterAnimation();
-            initWaveAnimation();
-            initFeaturesAnimation();
-            
-          } catch (error) {
-            console.error('useScrollAnimations: Error initializing animations:', error);
+        // Use dynamic imports for better compatibility with Vite
+        import('gsap').then(gsapModule => {
+          gsap = gsapModule.gsap;
+          return import('gsap/ScrollTrigger');
+        }).then(scrollTriggerModule => {
+          ScrollTrigger = scrollTriggerModule.ScrollTrigger;
+          
+          if (gsap && ScrollTrigger) {
+            gsap.registerPlugin(ScrollTrigger);
           }
-        }, 200); // Small delay to ensure DOM is fully rendered
+        }).catch(error => {
+          console.error('useScrollAnimations: Error importing GSAP modules:', error);
+        });
+        setGsapReady(true);
+      } catch (error) {
+        console.error('useScrollAnimations: Error importing GSAP modules:', error);
+      }
+    };
+
+    const setupDynamicImport = async () => {
+      try {
+        // Use dynamic imports for better compatibility with Vite
+        import('gsap').then(gsapModule => {
+          gsap = gsapModule.gsap;
+          return import('gsap/ScrollTrigger');
+        }).then(scrollTriggerModule => {
+          ScrollTrigger = scrollTriggerModule.ScrollTrigger;
+          
+          if (gsap && ScrollTrigger) {
+            gsap.registerPlugin(ScrollTrigger);
+          }
+        }).catch(error => {
+          console.error('useScrollAnimations: Error in dynamic import setup:', error);
+        });
+      } catch (error) {
+        console.error('useScrollAnimations: Error in dynamic import setup:', error);
+      }
+    };
+
+    loadGSAP();
+    setupDynamicImport();
+  }, []);
+
+  // Check if DOM is ready
+  useEffect(() => {
+    if (document.readyState === 'complete') {
+      setDomReady(true);
+    } else {
+      const handleLoad = () => setDomReady(true);
+      window.addEventListener('load', handleLoad);
+      return () => window.removeEventListener('load', handleLoad);
+    }
+  }, []);
+
+  // Initialize animations when both GSAP and DOM are ready
+  useEffect(() => {
+    if (!gsapReady || !domReady) {
+      if (!gsapReady) {
+        // Retry in 100ms
+        const timer = setTimeout(() => {
+          // ... existing code ...
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+      
+      if (!domReady) {
+        // Retry in 100ms
+        const timer = setTimeout(() => {
+          // ... existing code ...
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+      
+      return;
+    }
+
+    // Initialize all animations
+    const initializeAnimations = async () => {
+      try {
+        // ... existing code ...
         
+        setAnimationsInitialized(true);
+      } catch (error) {
+        console.error('useScrollAnimations: Error initializing animations:', error);
+      }
+    };
+
+    const setupInitialization = async () => {
+      try {
+        // ... existing code ...
       } catch (error) {
         console.error('useScrollAnimations: Error in initialization setup:', error);
       }
     };
 
-    // Start checking for GSAP availability
-    checkGSAPAndInit();
-
-    // Cleanup function
-    return () => {
-        if (ScrollTrigger) {
-          ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-      }
-    };
-  }, []);
+    initializeAnimations();
+    setupInitialization();
+  }, [gsapReady, domReady]);
 
   return containerRef;
 }; 

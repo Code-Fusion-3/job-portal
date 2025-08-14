@@ -193,23 +193,17 @@ const JobSeekersPage = () => {
     itemsPerPage: 10
   });
 
-  // Debug logging
   useEffect(() => {
-    // Removed excessive logging
-  }, [user, isAuthenticated, authLoading, jobSeekers, allJobSeekers, loading, error, totalItems, currentPage, totalPages]);
-
-  // Check authentication
-  useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        // console.log('❌ User not authenticated');
-      } else if (user?.role !== 'admin') {
-        // console.log('❌ User is not admin, role:', user?.role);
-      } else {
-        // console.log('✅ User is authenticated as admin');
-      }
+    if (!user) {
+      return;
     }
-  }, [authLoading, isAuthenticated, user]);
+    
+    if (user.role !== 'admin') {
+      return;
+    }
+    
+    fetchJobSeekers();
+  }, [user, fetchJobSeekers]);
 
   // Auto-hide success message
   useEffect(() => {
@@ -703,8 +697,7 @@ const JobSeekersPage = () => {
 
   // Debug: Log the first job seeker to see the structure
   if (jobSeekers.length > 0) {
-    // console.log('🔍 First job seeker data:', jobSeekers[0]);
-    // console.log('🔍 First job seeker profile:', jobSeekers[0]?.profile);
+    // Debug logging removed for production
   }
 
   return (

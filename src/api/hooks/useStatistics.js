@@ -9,36 +9,36 @@ export const useStatistics = (options = {}) => {
   const { autoFetch = true } = options;
   
   const [statistics, setStatistics] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchStatistics = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
     try {
-      console.log('🔄 Fetching public statistics...');
-      // Try to get public statistics first
-      let result = await statisticsService.getPublicStatistics();
-      console.log('📊 Public statistics result:', result);
+      setLoading(true);
+      setError(null);
       
-      // If public statistics doesn't have all the data we need, fall back to job seeker statistics
-      if (!result.success || !result.data.activeWorkers || !result.data.citiesCovered) {
-        console.log('⚠️ Public statistics incomplete, fetching job seeker statistics as fallback');
-        result = await statisticsService.getJobSeekerStatistics();
-        console.log('📊 Job seeker statistics fallback result:', result);
+      // Try to get public statistics first
+      const result = await statisticsService.getPublicStatistics();
+      
+      if (result.success && result.data) {
+        // Check if we have complete statistics
+        if (result.data.totalJobSeekers > 0 && result.data.totalCategories > 0) {
+          setStatistics(result.data);
+          return;
+        }
       }
       
-      if (result.success) {
-        console.log('✅ Statistics fetched successfully:', result.data);
-        setStatistics(result.data);
+      // Fallback to job seeker statistics if public stats are incomplete
+      const fallbackResult = await statisticsService.getJobSeekerStatistics();
+      
+      if (fallbackResult.success && fallbackResult.data) {
+        setStatistics(fallbackResult.data);
       } else {
-        console.error('❌ Statistics fetch failed:', result.error);
-        setError(result.error || 'Failed to fetch statistics');
+        throw new Error(fallbackResult.error || 'Failed to fetch statistics');
       }
     } catch (err) {
       console.error('💥 Error fetching statistics:', err);
-      setError('Failed to fetch statistics');
+      setError(err.message);
     } finally {
       setLoading(false);
     }

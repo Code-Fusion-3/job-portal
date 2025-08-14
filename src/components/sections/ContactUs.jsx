@@ -101,13 +101,10 @@ const ContactUs = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('📧 Submitting contact form:', formData);
-      
       const result = await submitContact(formData);
       
       if (result.success) {
-        console.log('✅ Contact message submitted successfully:', result.data);
-    setIsSubmitted(true);
+        setIsSubmitted(true);
     
     // Reset form after 3 seconds
     setTimeout(() => {

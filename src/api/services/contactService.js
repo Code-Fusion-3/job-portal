@@ -131,16 +131,11 @@ export const getAllContacts = async (params = {}) => {
     });
 
     const url = `${API_BASE_URL}/contact/admin/all?${queryParams}`;
-    console.log('🔍 Fetching from URL:', url);
-    console.log('🔍 Auth headers:', getAuthHeaders());
 
     const response = await fetch(url, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
-
-    console.log('🔍 Response status:', response.status);
-    console.log('🔍 Response headers:', response.headers);
 
     const data = await response.json();
 
@@ -157,7 +152,6 @@ export const getAllContacts = async (params = {}) => {
     
     // Fallback to mock data if backend is not available
     if (error.message.includes('Failed to fetch') || error.message.includes('Network error')) {
-      console.log('🔍 Backend not available, using mock data');
       return {
         success: true,
         data: {
@@ -256,16 +250,11 @@ export const deleteContact = async (contactId) => {
 export const getContactStatistics = async () => {
   try {
     const url = `${API_BASE_URL}/contact/admin/statistics`;
-    console.log('🔍 Fetching statistics from URL:', url);
-    console.log('🔍 Auth headers:', getAuthHeaders());
 
     const response = await fetch(url, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
-
-    console.log('🔍 Statistics response status:', response.status);
-    console.log('🔍 Statistics response headers:', response.headers);
 
     const data = await response.json();
 
@@ -282,7 +271,6 @@ export const getContactStatistics = async () => {
     
     // Fallback to mock data if backend is not available
     if (error.message.includes('Failed to fetch') || error.message.includes('Network error')) {
-      console.log('🔍 Backend not available, using mock statistics');
       return {
         success: true,
         data: {

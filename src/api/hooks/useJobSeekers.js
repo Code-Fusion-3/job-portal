@@ -36,16 +36,11 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      // console.log('🔍 Fetching job seekers...');
-      
       const result = includePrivate 
         ? await jobSeekerService.getAllJobSeekers()
         : await jobSeekerService.getPublicJobSeekers();
       
-      // console.log('📊 API Response:', result);
-      
       if (result.success) {
-        // console.log('✅ Job seekers data:', result.data);
         setJobSeekers(result.data || []);
       } else {
         console.error('❌ API Error:', result.error);
@@ -65,10 +60,8 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      // console.log('➕ Creating job seeker:', jobSeekerData);
       const result = await jobSeekerService.createJobSeeker(jobSeekerData);
       if (result.success) {
-        console.log('✅ Job seeker created:', result.data);
         // Refresh the list after creation
         await fetchJobSeekers();
         return { success: true, data: result.data };
@@ -93,7 +86,6 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      // console.log('✏️ Updating job seeker:', id, updateData);
       const result = await jobSeekerService.updateJobSeeker(id, updateData);
       if (result.success) {
         // console.log('✅ Job seeker updated:', result.data);
@@ -165,7 +157,7 @@ export const useJobSeekers = (options = {}) => {
     setError(null);
     
     try {
-      console.log('🗑️ Deleting job seeker:', id);
+      // Deleting job seeker
       const result = await jobSeekerService.deleteJobSeeker(id);
       if (result.success) {
         // console.log('✅ Job seeker deleted');
@@ -189,15 +181,11 @@ export const useJobSeekers = (options = {}) => {
 
   // Filter and search logic
   const filteredJobSeekers = useMemo(() => {
-    // console.log('🔍 Filtering job seekers...');
-    // console.log('📊 Raw job seekers:', jobSeekers);
-    
     let filtered = [...jobSeekers];
 
     // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      // console.log('🔎 Searching for:', term);
       filtered = filtered.filter(seeker => {
         const firstName = seeker.profile?.firstName || seeker.firstName || '';
         const lastName = seeker.profile?.lastName || seeker.lastName || '';
@@ -211,13 +199,11 @@ export const useJobSeekers = (options = {}) => {
                skills.toLowerCase().includes(term) ||
                location.toLowerCase().includes(term);
       });
-      // console.log('🔍 Search results:', filtered.length);
     }
 
     // Apply filters
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        console.log('🎯 Filtering by:', key, value);
         filtered = filtered.filter(seeker => {
           const seekerValue = seeker.profile?.[key] || seeker[key];
           if (Array.isArray(seekerValue)) {
@@ -249,7 +235,6 @@ export const useJobSeekers = (options = {}) => {
       }
     });
 
-    // console.log('✅ Filtered job seekers:', filtered);
     return filtered;
   }, [jobSeekers, searchTerm, filters, sortBy, sortOrder]);
 
@@ -259,15 +244,6 @@ export const useJobSeekers = (options = {}) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedJobSeekers = filteredJobSeekers.slice(startIndex, endIndex);
-
-  // console.log('📄 Pagination:', {
-  //   currentPage,
-  //   totalPages,
-  //   totalItems,
-  //   startIndex,
-  //   endIndex,
-  //   paginatedJobSeekers: paginatedJobSeekers.length
-  // });
 
   // Pagination controls
   const goToPage = useCallback((page) => {
