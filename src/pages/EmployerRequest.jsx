@@ -8,6 +8,7 @@ import Footer from '../components/layout/Footer';
 import BackButton from '../components/ui/BackButton';
 import EmployerRequestForm from '../components/forms/EmployerRequestForm';
 import { jobSeekerService } from '../api/index.js';
+import { useAuth } from '../api/hooks/useAuth.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -17,6 +18,7 @@ import jobseekerBackground from '../assets/jobseekerBackground.png';
 const EmployerRequest = () => {
   const { t } = useTranslation();
   const { id } = useParams();
+  const { user } = useAuth();
   const [requestSent, setRequestSent] = useState(false);
   const [jobSeeker, setJobSeeker] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,26 +28,41 @@ const EmployerRequest = () => {
     const fetchJobSeeker = async () => {
       try {
         setLoading(true);
-        let candidateId = id;
-        if (typeof id === 'string' && id.startsWith('JS')) {
-          candidateId = parseInt(id.replace(/^JS/, ''), 10);
-        }
-        const seeker = await jobSeekerService.getJobSeekerById(candidateId);
-        console.log('Fetched job seeker:', seeker);
-        if (seeker && seeker.success && seeker.data) {
-          setJobSeeker(seeker.data);
+        let result;
+        
+        if (!user) {
+          // Public user: fetch anonymized data
+          console.log('Fetching public job seeker data for ID:', id);
+          result = await jobSeekerService.getPublicJobSeekerById(id);
         } else {
+          // Authenticated user: fetch full data
+          let candidateId = id;
+          if (typeof id === 'string' && id.startsWith('JS')) {
+            candidateId = parseInt(id.replace(/^JS/, ''), 10);
+          }
+          console.log('Fetching authenticated job seeker data for ID:', candidateId);
+          result = await jobSeekerService.getJobSeekerById(candidateId);
+        }
+        
+        console.log('Fetched job seeker result:', result);
+        if (result && result.success && result.data) {
+          setJobSeeker(result.data);
+          console.log('Job seeker data set:', result.data);
+          console.log('Job seeker ID for form:', result.data.id || result.data.profile?.userId);
+        } else {
+          console.error('Failed to fetch job seeker:', result);
           setJobSeeker(null);
         }
       } catch (err) {
-        setError(err);
         console.error('Error fetching job seeker:', err);
+        setError(err);
+        setJobSeeker(null);
       } finally {
         setLoading(false);
       }
     };
     fetchJobSeeker();
-  }, [id]);
+  }, [id, user]);
 
   const handleSuccess = () => {
     setRequestSent(true);
@@ -293,7 +310,32 @@ const EmployerRequest = () => {
                 transition={{ delay: 0.3 }}
               >
                 <EmployerRequestForm
-                  jobSeekerId={jobSeeker?.id || jobSeeker?.profile?.userId}
+                  jobSeekerId={(() => {
+                    // Debug the job seeker data structure
+                    console.log('Job seeker data for form:', jobSeeker);
+                    console.log('URL ID parameter:', id);
+                    
+                    // Try different ways to get the ID
+                    let candidateId = null;
+                    
+                    if (jobSeeker?.id) {
+                      candidateId = jobSeeker.id;
+                      console.log('Using jobSeeker.id:', candidateId);
+                    } else if (jobSeeker?.profile?.userId) {
+                      candidateId = jobSeeker.profile.userId;
+                      console.log('Using jobSeeker.profile.userId:', candidateId);
+                    } else if (jobSeeker?.userId) {
+                      candidateId = jobSeeker.userId;
+                      console.log('Using jobSeeker.userId:', candidateId);
+                    } else if (id) {
+                      // Fallback to URL parameter
+                      candidateId = id;
+                      console.log('Using URL ID parameter as fallback:', candidateId);
+                    }
+                    
+                    console.log('Final candidate ID for form:', candidateId);
+                    return candidateId;
+                  })()}
                   jobSeekerName={jobSeeker?.profile ? `${jobSeeker.profile.firstName} ${jobSeeker.profile.lastName}` : jobSeeker.name}
                   onSuccess={handleSuccess}
                   onError={handleError}

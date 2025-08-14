@@ -3,6 +3,40 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { isTokenExpired, clearAuthTokens } from '../../api/config/apiConfig.js';
 
+// Define public routes that don't require authentication
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/register',
+  '/admin',
+  '/about',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/forgot-password',
+  '/reset-password',
+  '/job-seekers'
+];
+
+// Helper function to check if current route is public
+const isPublicRoute = (pathname) => {
+  // Check exact matches first
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return true;
+  }
+  
+  // Check dynamic public routes
+  if (pathname.startsWith('/view-profile/')) {
+    return true;
+  }
+  
+  if (pathname.startsWith('/employer-request/')) {
+    return true;
+  }
+  
+  return false;
+};
+
 const SessionMonitor = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -12,6 +46,21 @@ const SessionMonitor = () => {
   const isInitialized = useRef(false);
 
   useEffect(() => {
+    // Don't start monitoring if we're on a public route
+    if (isPublicRoute(location.pathname)) {
+      // Clear any existing intervals for public routes
+      if (sessionCheckInterval.current) {
+        clearInterval(sessionCheckInterval.current);
+        sessionCheckInterval.current = null;
+      }
+      if (tokenCheckInterval.current) {
+        clearInterval(tokenCheckInterval.current);
+        tokenCheckInterval.current = null;
+      }
+      isInitialized.current = false;
+      return;
+    }
+    
     // Don't start monitoring until we have a user and are not on login/register pages
     if (!isAuthenticated || !user || location.pathname === '/login' || location.pathname === '/register') {
       // Clear any existing intervals
@@ -31,7 +80,6 @@ const SessionMonitor = () => {
     if (isInitialized.current) {
       return;
     }
-
 
     // Temporarily disable aggressive session checking to avoid login interference
     // Only check token expiration for now
@@ -67,6 +115,11 @@ const SessionMonitor = () => {
   }, [isAuthenticated, user, location.pathname]);
 
   const checkSession = async () => {
+    // Don't check if we're on public routes
+    if (isPublicRoute(location.pathname)) {
+      return;
+    }
+    
     // Don't check if we're on login/register pages
     if (location.pathname === '/login' || location.pathname === '/register') {
       return;
@@ -97,6 +150,11 @@ const SessionMonitor = () => {
   };
 
   const checkTokenExpiration = () => {
+    // Don't check if we're on public routes
+    if (isPublicRoute(location.pathname)) {
+      return;
+    }
+    
     // Don't check if we're on login/register pages
     if (location.pathname === '/login' || location.pathname === '/register') {
       return;
@@ -116,8 +174,8 @@ const SessionMonitor = () => {
       // Call logout to clean up any server-side session
       await logout();
       
-      // Only redirect if we're not already on login page
-      if (location.pathname !== '/login') {
+      // Only redirect if we're not already on login page and not on a public route
+      if (location.pathname !== '/login' && !isPublicRoute(location.pathname)) {
         navigate('/login', { 
           state: { 
             message: 'Your session has expired. Please log in again.',
@@ -129,7 +187,7 @@ const SessionMonitor = () => {
     } catch (error) {
       console.error('Error during session expiration handling:', error);
       // Force redirect even if logout fails
-      if (location.pathname !== '/login') {
+      if (location.pathname !== '/login' && !isPublicRoute(location.pathname)) {
         navigate('/login', { 
           state: { 
             message: 'Your session has expired. Please log in again.',

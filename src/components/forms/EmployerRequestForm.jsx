@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Mail, User, Building, MessageSquare, Send } from 'lucide-react';
@@ -29,6 +29,15 @@ const EmployerRequestForm = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Update form data when jobSeekerId prop changes
+  useEffect(() => {
+    console.log('EmployerRequestForm: jobSeekerId prop changed to:', jobSeekerId);
+    setFormData(prev => ({
+      ...prev,
+      jobSeekerId: jobSeekerId || ''
+    }));
+  }, [jobSeekerId]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -49,29 +58,33 @@ const EmployerRequestForm = ({
     const newErrors = {};
     
     if (!formData.employerName.trim()) {
-      newErrors.employerName = t('employerRequest.errors.nameRequired', 'Employer name is required');
+      newErrors.employerName = 'Name is required';
     }
     
-    // Company name is optional, no validation
-    
-    if (!formData.email) {
-      newErrors.email = t('employerRequest.errors.emailRequired', 'Email is required');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('employerRequest.errors.emailInvalid', 'Please enter a valid email');
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
     
-    if (!formData.phone) {
-      newErrors.phone = t('employerRequest.errors.phoneRequired', 'Phone number is required');
-    } else if (!/^(078|079|072|073)\d{7}$/.test(formData.phone.trim())) {
-      newErrors.phone = t('employerRequest.errors.phoneInvalid', 'Please enter a valid Rwandan phone number (10 digits, starting with 078, 079, 072, or 073)');
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Please enter a valid phone number';
     }
     
     if (!formData.message.trim()) {
-      newErrors.message = t('employerRequest.errors.messageRequired', 'Message is required');
+      newErrors.message = 'Message is required';
     } else if (formData.message.trim().length < 10) {
-      newErrors.message = t('employerRequest.errors.messageLength', 'Message must be at least 10 characters');
+      newErrors.message = 'Message must be at least 10 characters long';
     }
     
+    // Add validation for jobSeekerId
+    if (!formData.jobSeekerId || formData.jobSeekerId === '') {
+      newErrors.general = 'Candidate ID is missing. Please refresh the page and try again.';
+    }
+    
+    console.log('Validation errors:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -79,13 +92,41 @@ const EmployerRequestForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('=== FORM SUBMISSION STARTED ===');
+    console.log('Event:', e);
+    console.log('Form data:', formData);
+    console.log('Current errors:', errors);
+    console.log('Job seeker ID prop:', jobSeekerId);
+    console.log('Form jobSeekerId value:', formData.jobSeekerId);
+    console.log('Form jobSeekerId type:', typeof formData.jobSeekerId);
+    console.log('Form jobSeekerId length:', formData.jobSeekerId ? formData.jobSeekerId.toString().length : 'undefined');
     
+    if (!validateForm()) {
+      console.log('Form validation failed', { errors });
+      return;
+    }
+    
+    console.log('Form validation passed, proceeding with submission...');
     setLoading(true);
     
     try {
+      // Use environment variable for API URL
+      const apiUrl = import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000';
+      const endpoint = `${apiUrl}/employer/request`;
+      
+      console.log('Sending request to:', endpoint);
+      console.log('Request payload:', {
+        name: formData.employerName,
+        companyName: formData.companyName,
+        email: formData.email,
+        phoneNumber: formData.phone,
+        message: formData.message,
+        id: formData.jobSeekerId, // Changed from requestedCandidateId to id
+        priority: formData.priority
+      });
+      
       // Send request to backend
-      const response = await fetch('http://localhost:3000/employer/request', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -94,11 +135,24 @@ const EmployerRequestForm = ({
           email: formData.email,
           phoneNumber: formData.phone,
           message: formData.message,
-          requestedCandidateId: formData.jobSeekerId,
+          id: formData.jobSeekerId, // Changed from requestedCandidateId to id
           priority: formData.priority
         })
       });
-      if (!response.ok) throw new Error('Failed to send request');
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response not OK:', { status: response.status, statusText: response.statusText, body: errorText });
+        throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+      console.log('=== FORM SUBMISSION SUCCESSFUL ===');
+      
       onSuccess();
       setFormData({
         employerName: '',
@@ -110,10 +164,12 @@ const EmployerRequestForm = ({
         priority: 'normal',
       });
     } catch (error) {
+      console.error('=== FORM SUBMISSION FAILED ===');
       console.error('Request error:', error);
       onError(error);
     } finally {
       setLoading(false);
+      console.log('=== FORM SUBMISSION COMPLETED ===');
     }
   };
 
@@ -135,6 +191,10 @@ const EmployerRequestForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="text-xs text-gray-500 mb-2">
+          Form ID: employer-request-form | onSubmit handler: {handleSubmit ? 'Attached' : 'Missing'}
+        </div>
+        
         <div>
           <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
             {t('employerRequest.priority', 'Priority')}
@@ -258,6 +318,29 @@ const EmployerRequestForm = ({
             </>
           )}
         </Button>
+
+        {/* Debug Information */}
+        {import.meta.env.DEV && (
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-xs">
+            <h4 className="font-semibold mb-2">Debug Info:</h4>
+            <div className="space-y-1">
+              <div>Form Data: {JSON.stringify(formData, null, 2)}</div>
+              <div>Errors: {JSON.stringify(errors, null, 2)}</div>
+              <div>Loading: {loading.toString()}</div>
+              <div>Job Seeker ID: {jobSeekerId}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                console.log('Current form state:', { formData, errors, loading, jobSeekerId });
+                console.log('Form validation result:', validateForm());
+              }}
+              className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-xs"
+            >
+              Debug Form State
+            </button>
+          </div>
+        )}
 
         <p className="text-center text-sm text-gray-500">
           {t('employerRequest.disclaimer', 'Your request will be sent to our admin team for review. We\'ll get back to you within 24 hours.')}
