@@ -495,7 +495,7 @@ const JobSeekersPage = () => {
   const columns = [
     {
       key: 'name',
-      label: 'Name',
+      label: 'joobseekr details',
       render: (jobSeeker) => {
         if (!jobSeeker) return <div className="text-gray-500">No data</div>;
         
@@ -503,6 +503,8 @@ const JobSeekersPage = () => {
         const firstName = jobSeeker.profile?.firstName || jobSeeker.firstName || 'Unknown';
         const lastName = jobSeeker.profile?.lastName || jobSeeker.lastName || '';
         const email = jobSeeker.email || 'No email';
+  const contactNumber = jobSeeker.profile?.contactNumber || jobSeeker.contactNumber || 'No phone';
+  const gender = jobSeeker.profile?.gender || jobSeeker.gender || 'Not specified';
         
         // Resolve photo URL: backend stores relative path like "uploads/profiles/..."
         const photoPath = jobSeeker.profile?.photo || jobSeeker.photo || null;
@@ -541,7 +543,8 @@ const JobSeekersPage = () => {
               <div className="font-medium">
                 {firstName} {lastName}
               </div>
-              <div className="text-sm text-gray-500">{email}</div>
+              <div className="text-sm text-gray-500">{contactNumber} {gender ? <>• {gender}</> : null}</div>
+              <div className="text-lg text-gray-400">{email}</div>
             </div>
           </div>
         );
@@ -642,42 +645,7 @@ const JobSeekersPage = () => {
         );
       }
     },
-    {
-      key: 'contactNumber',
-      label: 'Contact',
-      render: (jobSeeker) => {
-        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
-        
-        // Properly access nested profile data
-        const contactNumber = jobSeeker.profile?.contactNumber || jobSeeker.contactNumber || 'Not provided';
-        
-        return (
-          <div className="flex items-center space-x-1">
-            <Phone className="w-4 h-4 text-gray-400" />
-            <span>{contactNumber}</span>
-          </div>
-        );
-      }
-    },
-    {
-      key: 'gender',
-      label: 'Gender',
-      render: (jobSeeker) => {
-        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
-        
-        // Properly access nested profile data
-        const gender = jobSeeker.profile?.gender || jobSeeker.gender || 'Not specified';
-        
-        return (
-          <Badge 
-            variant={gender === 'Male' ? 'primary' : gender === 'Female' ? 'secondary' : 'outline'}
-            size="sm"
-          >
-            {gender}
-          </Badge>
-        );
-      }
-    },
+ 
     {
       key: 'createdAt',
       label: 'Registered',
