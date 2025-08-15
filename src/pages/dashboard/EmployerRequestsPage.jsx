@@ -311,17 +311,11 @@ const EmployerRequestsPage = () => {
   // Debug: log transformed requests and any raw photo paths present in backend payloads
   React.useEffect(() => {
     try {
-      console.log('EmployerRequestsPage: transformedRequests count', transformedRequests.length);
       transformedRequests.forEach(r => {
         const raw = r._backendData?.requestedCandidate?.profile?.photo || r._backendData?.requestedCandidate?.photo || null;
-        if (raw) {
-          console.log('EmployerRequestsPage: transformed request has raw photo', { id: r.id, raw });
-        }
+       
       });
-      // Also print a small sample of backend payloads for inspection
-      if (transformedRequests.length > 0) {
-        console.log('EmployerRequestsPage: sample _backendData for first 3 requests', transformedRequests.slice(0,3).map(r => ({ id: r.id, backend: r._backendData })));
-      }
+    
     } catch (err) {
       console.log('EmployerRequestsPage: debug logging error', err);
     }
@@ -356,11 +350,8 @@ const EmployerRequestsPage = () => {
         const rawPhoto = requestedCandidate?.profile?.photo || requestedCandidate?.photo || null;
         const avatarUrl = rawPhoto ? (/^https?:\/\//i.test(rawPhoto) ? rawPhoto : `${API_CONFIG.BASE_URL}/${rawPhoto.replace(/^\//, '')}`) : null;
         if (rawPhoto && !avatarUrl) {
-          console.log('EmployerRequestsPage: candidate has photo path but failed to resolve', { id: item.id, rawPhoto });
         }
-        if (avatarUrl) {
-          console.log('EmployerRequestsPage: resolved candidate avatar URL', { id: item.id, avatarUrl });
-        }
+        
         return (
           <div className="flex items-center space-x-3">
             <Avatar
@@ -433,11 +424,7 @@ const EmployerRequestsPage = () => {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Log mount for debugging visibility
-  useEffect(() => {
-    console.log('EmployerRequestsPage mounted');
-    return () => console.log('EmployerRequestsPage unmounted');
-  }, []);
+
 
   // Cleanup modal states on component unmount
   useEffect(() => {
@@ -1352,8 +1339,6 @@ const EmployerRequestsPage = () => {
                       {(() => {
                         const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
                         const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
-                        if (raw && !url) console.log('EmployerRequestsPage: failed to resolve selectedRequest avatar', { id: selectedRequest.id, raw });
-                        if (url) console.log('EmployerRequestsPage: resolved selectedRequest avatar', { id: selectedRequest.id, url });
                         return (
                           <Avatar
                             src={url}
@@ -1677,8 +1662,6 @@ const EmployerRequestsPage = () => {
                           {(() => {
                             const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
                             const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
-                            if (raw && !url) console.log('EmployerRequestsPage: failed to resolve send-candidate avatar', { id: selectedRequest.id, raw });
-                            if (url) console.log('EmployerRequestsPage: resolved send-candidate avatar', { id: selectedRequest.id, url });
                             return (
                               <Avatar
                                 src={url}

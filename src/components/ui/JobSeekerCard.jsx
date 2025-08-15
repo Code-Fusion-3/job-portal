@@ -1,6 +1,7 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
 import Avatar from './Avatar';
+import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import Badge from './Badge';
 import Button from './Button';
 
@@ -63,6 +64,7 @@ const JobSeekerCard = ({
           alt={jobSeeker?.name || 'Job Seeker'} 
           size="sm"
           fallback={jobSeeker?.name || 'JS'}
+          fallbackSrc={defaultProfileImage}
         />
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-gray-900 text-sm truncate">{jobSeeker?.name || 'Unknown'}</h4>
@@ -105,6 +107,7 @@ const JobSeekerCard = ({
         alt={jobSeeker?.name || 'Job Seeker'} 
         size="md"
         fallback={jobSeeker?.name || 'JS'}
+        fallbackSrc={defaultProfileImage}
       />
       <div className="flex-1 min-w-0">
         <h3 className="font-medium text-gray-900 truncate">{jobSeeker?.name || 'Unknown'}</h3>
