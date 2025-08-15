@@ -32,6 +32,7 @@ import { useAuth } from '../../api/hooks/useAuth.js';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
 import API_CONFIG from '../../api/config/apiConfig.js';
 import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
+import ProfileImage from '../../components/ui/ProfileImage';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -1123,23 +1124,15 @@ const JobSeekersPage = () => {
               <div className="mt-2">
                 {(function(){
                   const photoPath = selectedJobSeeker?.profile?.photo || selectedJobSeeker?.photo || null;
-                  const photoUrl = photoPath ? (/^https?:\/\//i.test(photoPath) ? photoPath : `${API_CONFIG.BASE_URL}/${photoPath.replace(/^\//, '')}`) : null;
-                  if (photoUrl) {
-                    return (
-                      <img
-                        src={photoUrl}
-                        alt={`${selectedJobSeeker?.profile?.firstName || ''} ${selectedJobSeeker?.profile?.lastName || ''}`}
-                        className="w-48 h-48 rounded-lg object-cover"
-                        onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
-                      />
-                    );
-                  }
-
-                  const initials = ((selectedJobSeeker?.profile?.firstName || selectedJobSeeker?.firstName || '').charAt(0) || '') + ((selectedJobSeeker?.profile?.lastName || selectedJobSeeker?.lastName || '').charAt(0) || '');
+                  const photoUrl = photoPath ? (/^https?:\/\//i.test(photoPath) ? photoPath : `${API_CONFIG.BASE_URL}/${photoPath.replace(/^\//, '')}`) : defaultProfileImage;
                   return (
-                    <div className="w-48 h-48 rounded-lg bg-gray-400 flex items-center justify-center text-3xl font-semibold text-white">
-                      {initials.toUpperCase() || 'U'}
-                    </div>
+                    <ProfileImage
+                      src={photoUrl}
+                      alt={`${selectedJobSeeker?.profile?.firstName || ''} ${selectedJobSeeker?.profile?.lastName || ''}`}
+                      size="xl"
+                      variant="rounded"
+                      isPrivate={false}
+                    />
                   );
                 })()}
               </div>
