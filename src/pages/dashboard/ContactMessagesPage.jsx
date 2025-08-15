@@ -125,6 +125,16 @@ const handleRowAction = (action, message) => {
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if user is authenticated
+    const token = localStorage.getItem('job_portal_token');
+    if (!token) {
+      toast.error('You are not logged in. Please log in again.');
+      // Redirect to login page
+      window.location.href = '/login';
+      return;
+    }
+    
     if (!replyData.subject.trim() || !replyData.message.trim()) {
       toast.error('Please fill in both subject and message');
       return;
@@ -134,9 +144,11 @@ const handleRowAction = (action, message) => {
       setShowReplyModal(false);
       return;
     }
+    
     setReplyLoading(true);
     try {
       const result = await respondToMessage(selectedMessage.id, replyData);
+      
       if (result.success) {
         toast.success('Response sent successfully!');
         setShowReplyModal(false);
@@ -146,7 +158,7 @@ const handleRowAction = (action, message) => {
         toast.error(result.error || 'Failed to send response');
       }
     } catch (err) {
-      toast.error('Failed to send response');
+      toast.error('Failed to send response. Please try again.');
     } finally {
       setReplyLoading(false);
     }
@@ -402,8 +414,7 @@ const handleRowAction = (action, message) => {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Responded</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.responded || 0}</p>
+                <p className="text-sm font-medium text-gray-900">{statistics.responded || 0}</p>
               </div>
             </div>
           </Card>
@@ -421,7 +432,6 @@ const handleRowAction = (action, message) => {
           </Card>
         </div>
       )}
-
 
       {/* Filters */}
       <Card className="p-6">

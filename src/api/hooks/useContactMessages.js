@@ -97,7 +97,6 @@ export const useContactMessages = (options = {}) => {
       }
     } catch (err) {
       setError('Failed to respond to message');
-      console.error('Error responding to message:', err);
       return { success: false, error: 'Failed to respond to message' };
     } finally {
       setLoading(false);

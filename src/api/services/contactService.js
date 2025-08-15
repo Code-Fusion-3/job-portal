@@ -1,7 +1,8 @@
 import { handleError } from '../utils/errorHandler.js';
 import { getAuthHeaders } from '../config/apiConfig.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use the correct environment variable that matches the user's .env file
+const API_BASE_URL = import.meta.env.VITE_DEV_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Submit contact message
 export const submitContact = async (contactData) => {
@@ -67,14 +68,17 @@ export const respondToContact = async (contactId, responseData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/contact/admin/${contactId}/respond`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify(responseData),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to respond to contact message');
+      throw new Error(data.error || `HTTP ${response.status}: Failed to respond to contact message`);
     }
 
     return {
@@ -83,6 +87,21 @@ export const respondToContact = async (contactId, responseData) => {
       message: data.message || 'Response sent successfully!'
     };
   } catch (error) {
+    // Handle specific network errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      return {
+        success: false,
+        error: 'Network error: Unable to connect to server. Please check your internet connection and try again.'
+      };
+    }
+    
+    if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+      return {
+        success: false,
+        error: 'Network error: Unable to connect to server. Please check your internet connection and try again.'
+      };
+    }
+    
     const apiError = handleError(error, { context: 'respond_to_contact' });
     return {
       success: false,

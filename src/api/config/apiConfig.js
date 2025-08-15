@@ -5,8 +5,8 @@
 
 // Environment-based API configuration
 const API_CONFIG = {
-  // Base URLs - Updated for local backend
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  // Base URLs - Updated to use the correct environment variable
+  BASE_URL: import.meta.env.VITE_DEV_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000',
   
   // Timeouts (in milliseconds)
   TIMEOUT: 30000, // 30 seconds
@@ -47,7 +47,8 @@ const API_CONFIG = {
 
 // Environment-specific overrides
 if (import.meta.env.DEV) {
-  API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000';
+  // Use VITE_DEV_API_URL as the primary source for development
+  API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
   API_CONFIG.TIMEOUT = 10000; // Shorter timeout for development
   API_CONFIG.LOG_REQUESTS = true;
   API_CONFIG.LOG_RESPONSES = true;
@@ -102,5 +103,13 @@ export const isTokenExpired = () => {
 
 export const getAuthHeaders = () => {
   const token = getAuthToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  
+  if (!token) {
+    return {};
+  }
+  
+  return { 
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
 }; 
