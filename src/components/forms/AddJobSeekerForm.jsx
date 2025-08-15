@@ -346,6 +346,12 @@ const AddJobSeekerForm = ({
           const languagesArray = initialData.languages.split(',').map(l => l.trim()).filter(l => l);
           setSelectedLanguages(languagesArray);
         }
+        // Initialize photo preview from initial data (resolved URL) if present
+        if (initialData.photo) {
+          setPhotoPreview(initialData.photo);
+        } else {
+          setPhotoPreview(null);
+        }
       } else {
         setFormData({
           firstName: '',
@@ -376,7 +382,8 @@ const AddJobSeekerForm = ({
       }
       setErrors({});
       setPhotoFile(null);
-      setPhotoPreview(null);
+  // photoPreview already set above for edit; ensure cleared for create
+  if (!isEdit) setPhotoPreview(null);
     }
   }, [isOpen, isEdit]);
 

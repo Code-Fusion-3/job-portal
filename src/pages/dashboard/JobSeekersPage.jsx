@@ -1056,6 +1056,12 @@ const JobSeekersPage = () => {
               availability: selectedJobSeeker.profile?.availability || '',
               languages: selectedJobSeeker.profile?.languages || '',
               certifications: selectedJobSeeker.profile?.certifications || ''
+              ,
+              // include resolved photo URL so the edit form can show existing image preview
+              photo: (() => {
+                const photoPath = selectedJobSeeker?.profile?.photo || selectedJobSeeker?.photo || null;
+                return photoPath ? (/^https?:\/\//i.test(photoPath) ? photoPath : `${API_CONFIG.BASE_URL}/${photoPath.replace(/^\//, '')}`) : null;
+              })()
             };
             return (
               <AddJobSeekerForm
