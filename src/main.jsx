@@ -4,20 +4,21 @@ import './index.css'
 import './i18n.js' // Import i18n configuration
 import App from './App.jsx'
 
-console.log('main.jsx: Starting application initialization');
+// Starting application initialization
 
 try {
+
   // Check if root element exists
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     throw new Error('Root element not found. Make sure there is a <div id="root"></div> in your HTML.');
   }
 
-  console.log('main.jsx: Root element found, creating React root');
+  // Root element found, creating React root
   
   const root = createRoot(rootElement);
   
-  console.log('main.jsx: Rendering App component');
+  // Rendering App component
   
   root.render(
     <StrictMode>
@@ -25,7 +26,7 @@ try {
     </StrictMode>,
   );
   
-  console.log('main.jsx: App component rendered successfully');
+  // App component rendered successfully
 } catch (error) {
   console.error('main.jsx: Fatal error during app initialization:', error);
   

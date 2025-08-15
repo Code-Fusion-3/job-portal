@@ -50,8 +50,7 @@ const Header = () => {
   const navItems = [
     { key: 'nav.home', href: '/', isExternal: false },
     { key: 'nav.jobSeekers', href: '/job-seekers', isExternal: false },
-    { key: 'nav.contact', href: '#contact', isExternal: true },
-    { key: 'nav.about', href: '#about', isExternal: true },
+    { key: 'nav.contact', href: '/contact', isExternal: false },
   ];
 
   return (
@@ -133,13 +132,13 @@ const Header = () => {
                     transition={{ duration: 0.2 }}
                   >
                     <button
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 text-red-600"
                       onClick={() => toggleLanguage('en')}
                     >
                       English
                     </button>
                     <button
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 text-red-600"
                       onClick={() => toggleLanguage('rw')}
                     >
                       Kinyarwanda
@@ -152,7 +151,7 @@ const Header = () => {
             {/* CTA Buttons */}
             <div className="flex items-center space-x-4">
               <Link to="/login">
-                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-white hover:bg-opacity-20">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20">
                   {t('nav.login')}
                 </Button>
               </Link>
@@ -167,7 +166,7 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <motion.button
             ref={buttonRef}
-            className="md:hidden p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-colors duration-200"
+            className="md:hidden p-2 rounded-lg text-white hover:bg-red-600 hover:bg-opacity-20 transition-colors duration-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -228,7 +227,7 @@ const Header = () => {
                         className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
                           i18n.language === 'en' 
                             ? 'bg-red-600 text-white' 
-                            : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                            : 'bg-red-600 bg-opacity-20 text-white hover:bg-opacity-30'
                         }`}
                         onClick={() => toggleLanguage('en')}
                       >
@@ -238,7 +237,7 @@ const Header = () => {
                         className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
                           i18n.language === 'rw' 
                             ? 'bg-red-600 text-white' 
-                            : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                            : 'bg-red-600 bg-opacity-20 text-white hover:bg-opacity-30'
                         }`}
                         onClick={() => toggleLanguage('rw')}
                       >
@@ -246,6 +245,17 @@ const Header = () => {
                       </button>
                     </div>
                   </div>
+                </div>
+                
+                {/* Admin Link */}
+                <div className="pt-2 border-t border-white border-opacity-20">
+                  <Link
+                    to="/admin"
+                    className="text-sm text-white text-opacity-60 hover:text-opacity-100 transition-colors duration-200"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Admin Login
+                  </Link>
                 </div>
               </nav>
             </motion.div>

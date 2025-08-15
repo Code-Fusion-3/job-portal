@@ -1,7 +1,11 @@
-import { useState } from 'react';
-import { MoreHorizontal, LogOut, Menu } from 'lucide-react';
-import Avatar from '../ui/Avatar';
-import Button from '../ui/Button';
+import { useState, useEffect } from 'react';
+import { Menu, X } from 'lucide-react';
+import {
+  SidebarHeader,
+  SidebarSearch,
+  SidebarNavigation,
+  SidebarProfile
+} from './sidebar';
 
 const AdminSidebar = ({
   sidebarOpen,
@@ -10,116 +14,95 @@ const AdminSidebar = ({
   activeTab,
   setActiveTab,
   user,
-  onLogout
+  onLogout,
+  className = ""
 }) => {
-  // Mobile overlay state
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
-  const handleSidebarToggle = () => {
+  // Auto-open sidebar on desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setSidebarOpen]);
+
+  const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
-    setMobileOpen(!mobileOpen);
+  };
+
+  const handleItemClick = (itemId) => {
+    // Sidebar item clicked
+    setActiveTab(itemId);
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchValue(value);
+    // You can implement search functionality here
+    // Search value changed
   };
 
   return (
     <>
-      {/* Hamburger for mobile */}
+      {/* Mobile hamburger button */}
       <button
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-white shadow-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500"
-        onClick={handleSidebarToggle}
-        aria-label="Open sidebar"
+        onClick={toggleSidebar}
+        className="fixed top-6 left-6 z-50 p-3 rounded-lg bg-white shadow-md border border-slate-100 md:hidden hover:bg-slate-50 transition-all duration-200"
+        aria-label="Toggle sidebar"
       >
-        <Menu className="w-6 h-6 text-gray-700" />
+        {sidebarOpen ? 
+          <X className="h-5 w-5 text-slate-600" /> : 
+          <Menu className="h-5 w-5 text-slate-600" />
+        }
       </button>
 
-      {/* Backdrop overlay for mobile */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
-          onClick={handleSidebarToggle}
-          aria-label="Close sidebar overlay"
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300" 
+          onClick={toggleSidebar} 
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed md:static top-0 left-0 h-full z-50 transition-all duration-300 ease-in-out
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0
-          ${sidebarOpen ? 'w-64' : 'w-16'}
-          bg-white shadow-lg border-r border-gray-200
+        className={`
+          fixed top-0 left-0 h-full bg-white border-r border-slate-200 z-40 transition-all duration-300 ease-in-out flex flex-col w-64 md:w-80 md:sticky md:top-0 md:h-screen md:left-0 md:static
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:z-auto
+          ${className}
         `}
-        style={{ minWidth: sidebarOpen ? '16rem' : '4rem' }}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo and collapse button */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">J</span>
-              </div>
-              {sidebarOpen && (
-                <span className="text-xl font-bold text-gray-900 hidden md:inline">Admin Panel</span>
-              )}
-            </div>
-            <button
-              onClick={handleSidebarToggle}
-              className="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-              aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            >
-              <MoreHorizontal className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
+       >
+        {/* Header */}
+        <SidebarHeader
+          logo="J"
+          title="Admin Panel"
+          subtitle="Job Portal Management"
+        />
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {navigationItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setMobileOpen(false);
-                }}
-                className={`w-full flex items-center space-x-3 px-3 py-3 rounded-lg transition-all
-                  ${activeTab === item.id
-                    ? 'bg-red-50 text-red-600 border border-red-200 shadow'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-red-600'}
-                  min-h-[44px] focus:outline-none focus:ring-2 focus:ring-red-500
-                `}
-                aria-label={item.label}
-              >
-                <item.icon className="w-6 h-6" />
-                {sidebarOpen && <span className="font-medium hidden md:inline">{item.label}</span>}
-              </button>
-            ))}
-          </nav>
+        {/* Search Bar */}
+        <SidebarSearch
+          searchValue={searchValue}
+          onSearchChange={handleSearchChange}
+          placeholder="Search..."
+        />
 
-          {/* User Info and Logout */}
-          <div className="p-4 border-t border-gray-200 mt-auto">
-            <div className="flex items-center space-x-3">
-              <Avatar
-                src={user?.avatar}
-                alt={user?.name}
-                size="sm"
-                fallback={user?.name}
-              />
-              {sidebarOpen && (
-                <div className="flex-1 min-w-0 hidden md:block">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-                  <p className="text-xs text-gray-500">Administrator</p>
-                </div>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onLogout}
-                className="text-gray-600 hover:text-red-600"
-                aria-label="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
+        {/* Navigation */}
+        <SidebarNavigation
+          navigationItems={navigationItems}
+          activeItem={activeTab}
+          onItemClick={handleItemClick}
+        />
       </div>
     </>
   );

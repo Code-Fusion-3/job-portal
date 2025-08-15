@@ -1,0 +1,643 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { 
+  Users, 
+  MessageSquare, 
+  Briefcase, 
+  MapPin,
+  Activity,
+  Download,
+  RefreshCw,
+  FileText
+} from 'lucide-react';
+import { adminService } from '../../api/services/adminService';
+import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers';
+import { useAdminRequests } from '../../api/hooks/useRequests';
+import { useCategories } from '../../api/hooks/useCategories';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
+import Badge from '../../components/ui/Badge';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import DataTable from '../../components/ui/DataTable';
+import toast, { Toaster } from 'react-hot-toast';
+import { generateTablePDF, exportPDFToFile, exportToCSV, exportToExcel } from '../../utils/reactPdfExportUtils';
+
+const TableReportsPage = () => {
+  const { t } = useTranslation();
+  const [selectedPeriod, setSelectedPeriod] = useState('30');
+  const [isLoading, setIsLoading] = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [activeReport, setActiveReport] = useState('job-seekers'); // Default to job seekers
+  const [searchTerm, setSearchTerm] = useState(''); // Add search state
+  const [exportFormat, setExportFormat] = useState('pdf'); // Export format selection
+
+  // Use hooks to fetch complete data
+  const {
+    jobSeekers: allJobSeekers,
+    loading: jobSeekersLoading,
+    error: jobSeekersError,
+    fetchJobSeekers
+  } = useAdminJobSeekers({ 
+    autoFetch: true,
+    itemsPerPage: 1000 // Get all job seekers
+  });
+
+  const {
+    requests: allRequests,
+    loading: requestsLoading,
+    error: requestsError,
+    fetchRequests
+  } = useAdminRequests({ 
+    autoFetch: true,
+    itemsPerPage: 1000 // Get all requests
+  });
+
+  const {
+    categories: allCategories,
+    loading: categoriesLoading,
+    error: categoriesError,
+    fetchCategories
+  } = useCategories({ 
+    includeAdmin: true,
+    autoFetch: true
+  });
+
+  useEffect(() => {
+    loadReportData();
+  }, [selectedPeriod]);
+
+  const loadReportData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const [analyticsResult, statsResult] = await Promise.all([
+        adminService.getAnalytics({ period: selectedPeriod }),
+        adminService.getDashboardStats()
+      ]);
+
+      if (analyticsResult.success) {
+        setReportData(analyticsResult.data);
+      } else {
+        setError(analyticsResult.error || 'Failed to load analytics data');
+      }
+
+      if (statsResult.success) {
+        setDashboardStats(statsResult.data);
+      }
+    } catch (error) {
+      console.error('Error loading report data:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const periodOptions = [
+    { value: '7', label: 'Last 7 Days' },
+    { value: '30', label: 'Last 30 Days' },
+    { value: '90', label: 'Last 90 Days' },
+    { value: '365', label: 'Last Year' }
+  ];
+
+  const reportOptions = [
+    { value: 'job-seekers', label: 'Job Seekers', icon: Users },
+    { value: 'employer-requests', label: 'Employer Requests', icon: MessageSquare },
+    { value: 'categories', label: 'Categories', icon: Briefcase },
+    { value: 'locations', label: 'Locations', icon: MapPin },
+    { value: 'skills', label: 'Skills', icon: Activity }
+  ];
+
+  const handleExportReport = async (type) => {
+    setIsLoading(true);
+    try {
+      // Get the current report data and columns
+      const tableData = getReportData(type);
+      const columns = getTableColumns(type);
+      
+      if (!tableData || tableData.length === 0) {
+        toast.error('No data available for export');
+        return false;
+      }
+      
+      // Generate filename based on format
+      const dateStr = new Date().toISOString().split('T')[0];
+      const baseFilename = `table-report-${type}-${dateStr}`;
+      
+      let success = false;
+      
+      switch (exportFormat) {
+        case 'pdf':
+          // Prepare export options
+          const exportOptions = {
+            title: getReportTitle(type),
+            subtitle: `Comprehensive data table for ${getReportTitle(type).toLowerCase()}`,
+            dateRange: `Last ${selectedPeriod} days (${new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toLocaleDateString()} - ${new Date().toLocaleDateString()})`
+          };
+          
+          // Generate PDF using react-pdf utility
+          try {
+            const pdfBlob = await generateTablePDF(type, tableData, columns, exportOptions);
+            const pdfFilename = `${baseFilename}.pdf`;
+            success = await exportPDFToFile(pdfBlob, pdfFilename);
+          } catch (pdfError) {
+            console.error('PDF generation error:', pdfError);
+            toast.error(`PDF generation failed: ${pdfError.message}`);
+            return false;
+          }
+          
+          if (success) {
+            toast.success(`${getReportTitle(type)} exported successfully as PDF!`);
+          } else {
+            toast.error('Failed to save PDF file');
+          }
+          break;
+          
+        case 'csv':
+          const csvFilename = `${baseFilename}.csv`;
+          success = exportToCSV(tableData, columns, csvFilename);
+          
+          if (success) {
+            toast.success(`${getReportTitle(type)} exported successfully as CSV!`);
+          } else {
+            toast.error('Failed to save CSV file');
+          }
+          break;
+          
+        case 'excel':
+          const excelFilename = `${baseFilename}.xlsx`;
+          success = exportToExcel(tableData, columns, excelFilename);
+          
+          if (success) {
+            toast.success(`${getReportTitle(type)} exported successfully as Excel!`);
+          } else {
+            toast.error('Failed to save Excel file');
+          }
+          break;
+          
+        default:
+          toast.error('Unsupported export format');
+          return false;
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      toast.error('Error generating export report. Please try again.');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+
+  const handleRefreshData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        loadReportData(),
+        fetchJobSeekers(),
+        fetchRequests(),
+        fetchCategories()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      setError('Failed to refresh data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Table data preparation functions - now using complete data
+  const prepareJobSeekersTableData = () => {
+    if (!allJobSeekers || allJobSeekers.length === 0) return [];
+    
+    return allJobSeekers.map(seeker => ({
+      id: seeker.id,
+      name: `${seeker.profile?.firstName || seeker.firstName || seeker.name || 'Unknown'} ${seeker.profile?.lastName || seeker.lastName || ''}`,
+      email: seeker.email || seeker.profile?.email || 'Not provided',
+      phone: seeker.profile?.contactNumber || seeker.contactNumber || seeker.phone || 'Not provided',
+      location: seeker.profile?.location || seeker.location || seeker.city || 'Not specified',
+      category: seeker.profile?.jobCategory?.name_en || seeker.jobCategory?.name_en || seeker.category || 'Not specified',
+      experience: seeker.profile?.experienceLevel || seeker.experienceLevel || seeker.experience || 'Not specified',
+      registeredAt: seeker.registeredAt || seeker.createdAt ? new Date(seeker.registeredAt || seeker.createdAt).toLocaleDateString() : 'Unknown',
+      status: seeker.status || 'Active'
+    }));
+  };
+
+  // Robust transformation for employer requests, similar to EmployerRequestsPage.jsx
+  const prepareEmployerRequestsTableData = () => {
+    if (!allRequests || allRequests.length === 0) return [];
+
+    // Format monthly rate for display
+    const formatMonthlyRate = (rate) => {
+      if (!rate || rate === 'Not specified') return 'Not specified';
+      if (typeof rate === 'number') {
+        return new Intl.NumberFormat('en-RW', {
+          style: 'currency',
+          currency: 'RWF',
+          minimumFractionDigits: 0
+        }).format(rate);
+      }
+      if (typeof rate === 'string') {
+        const numRate = parseFloat(rate);
+        if (!isNaN(numRate)) {
+          return new Intl.NumberFormat('en-RW', {
+            style: 'currency',
+            currency: 'RWF',
+            minimumFractionDigits: 0
+          }).format(numRate);
+        }
+        return rate;
+      }
+      return 'Not specified';
+    };
+
+    return allRequests.map((backendRequest) => {
+      return {
+        id: backendRequest.id,
+        employerName: backendRequest.name || backendRequest.employerName || backendRequest.employer?.name || 'Unknown',
+        companyName: backendRequest.companyName || backendRequest.employer?.company || 'Private',
+        candidateName: backendRequest.requestedCandidate
+          ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
+          : 'Not specified',
+        position: backendRequest.requestedCandidate?.profile?.skills || backendRequest.position || backendRequest.jobTitle || 'General',
+        status: backendRequest.status || 'pending',
+        priority: backendRequest.priority || 'normal',
+        monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
+        createdAt: backendRequest.createdAt ? new Date(backendRequest.createdAt).toLocaleDateString() : 'Unknown',
+        contactEmail: backendRequest.email || backendRequest.employerContact?.email || backendRequest.employer?.email || 'Not provided',
+        // Add more fields if needed for future table columns or export
+        lastContactDate: backendRequest.updatedAt,
+        isCompleted: backendRequest.status === 'completed',
+        category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
+        candidateExperience: backendRequest.requestedCandidate?.profile?.experience || 'Not specified',
+        candidateExperienceLevel: backendRequest.requestedCandidate?.profile?.experienceLevel || 'Not specified',
+        candidateEducation: backendRequest.requestedCandidate?.profile?.educationLevel || 'Not specified',
+        candidateLocation: backendRequest.requestedCandidate?.profile?.location || 'Not specified',
+        candidateCity: backendRequest.requestedCandidate?.profile?.city || 'Not specified',
+        candidateCountry: backendRequest.requestedCandidate?.profile?.country || 'Not specified',
+        candidateContact: backendRequest.requestedCandidate?.profile?.contactNumber || 'Not specified',
+        candidateEmail: backendRequest.requestedCandidate?.email || 'Not specified',
+        candidateLanguages: backendRequest.requestedCandidate?.profile?.languages || 'Not specified',
+        candidateCertifications: backendRequest.requestedCandidate?.profile?.certifications || 'Not specified',
+        candidateAvailability: backendRequest.requestedCandidate?.profile?.availability || 'Not specified',
+        candidateDescription: backendRequest.requestedCandidate?.profile?.description || 'Not specified',
+        candidateGender: backendRequest.requestedCandidate?.profile?.gender || 'Not specified',
+        candidateMaritalStatus: backendRequest.requestedCandidate?.profile?.maritalStatus || 'Not specified',
+        candidateIdNumber: backendRequest.requestedCandidate?.profile?.idNumber || 'Not specified',
+        candidateReferences: backendRequest.requestedCandidate?.profile?.references || 'Not specified',
+        message: backendRequest.message || '',
+        _backendData: backendRequest
+      };
+    });
+  };
+
+  const prepareCategoriesTableData = () => {
+    if (!allCategories || allCategories.length === 0) return [];
+    
+    // Count job seekers per category
+    const categoryCounts = {};
+    allJobSeekers?.forEach(seeker => {
+      const category = seeker.profile?.jobCategory?.name_en || seeker.jobCategory?.name_en || seeker.category || 'Uncategorized';
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    });
+
+    return allCategories.map(category => {
+      const count = categoryCounts[category.name_en] || 0;
+      const total = allJobSeekers?.length || 1;
+      const percentage = Math.round((count / total) * 100);
+      
+      return {
+        id: category.id,
+        name: category.name_en || category.name,
+        count: count,
+        percentage: percentage,
+        status: 'Active'
+      };
+    });
+  };
+
+  const prepareLocationsTableData = () => {
+    if (!allJobSeekers || allJobSeekers.length === 0) return [];
+    
+    // Count job seekers per location
+    const locationCounts = {};
+    allJobSeekers.forEach(seeker => {
+      const location = seeker.profile?.location || seeker.location || seeker.city || 'Unknown';
+      locationCounts[location] = (locationCounts[location] || 0) + 1;
+    });
+
+    return Object.entries(locationCounts).map(([location, count]) => {
+      const total = allJobSeekers.length;
+      const percentage = Math.round((count / total) * 100);
+      
+      return {
+        id: location,
+        name: location,
+        count: count,
+        percentage: percentage,
+        status: 'Active'
+      };
+    }).sort((a, b) => b.count - a.count);
+  };
+
+  const prepareSkillsTableData = () => {
+    if (!allJobSeekers || allJobSeekers.length === 0) return [];
+    
+    // Count skills across all job seekers
+    const skillCounts = {};
+    allJobSeekers.forEach(seeker => {
+      const skills = seeker.profile?.skills || seeker.skills || '';
+      if (skills) {
+        const skillList = skills.split(',').map(skill => skill.trim()).filter(skill => skill);
+        skillList.forEach(skill => {
+          skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+        });
+      }
+    });
+
+    return Object.entries(skillCounts).map(([skill, count]) => {
+      const total = allJobSeekers.length;
+      const percentage = Math.round((count / total) * 100);
+      const demand = count > total * 0.3 ? 'High' : count > total * 0.1 ? 'Medium' : 'Low';
+      
+      return {
+        id: skill,
+        name: skill,
+        count: count,
+        percentage: percentage,
+        demand: demand
+      };
+    }).sort((a, b) => b.count - a.count);
+  };
+
+  // Table columns configuration
+  const getTableColumns = (reportType) => {
+    switch (reportType) {
+      case 'job-seekers':
+        return [
+          { key: 'name', label: 'Name', sortable: true },
+          { key: 'email', label: 'Email', sortable: true },
+          { key: 'phone', label: 'Phone', sortable: true },
+          { key: 'location', label: 'Location', sortable: true },
+          { key: 'category', label: 'Category', sortable: true },
+          { key: 'experience', label: 'Experience', sortable: true },
+          { key: 'registeredAt', label: 'Registered', sortable: true },
+          { key: 'status', label: 'Status', sortable: true, render: (item) => (
+            <Badge variant={item.status === 'Active' ? 'success' : 'warning'}>
+              {item.status}
+            </Badge>
+          )}
+        ];
+      
+      case 'employer-requests':
+        return [
+          { key: 'employerName', label: 'Employer Name', sortable: true },
+          { key: 'companyName', label: 'Company', sortable: true },
+          { key: 'contactEmail', label: 'Employer Email', sortable: true },
+          { key: 'candidateName', label: 'Candidate Name', sortable: true },
+          { key: 'candidateEmail', label: 'Candidate Email', sortable: true },
+          { key: 'candidateContact', label: 'Candidate Phone', sortable: true },
+          { key: 'position', label: 'Position/Skills', sortable: true },
+          { key: 'category', label: 'Category', sortable: true },
+          { key: 'monthlyRate', label: 'Monthly Rate', sortable: true },
+          { key: 'status', label: 'Status', sortable: true, render: (item) => (
+            <Badge variant={
+              item.status === 'completed' ? 'success' :
+              item.status === 'in_progress' ? 'warning' :
+              item.status === 'pending' ? 'info' : 'danger'
+            }>
+              {item.status.replace('_', ' ')}
+            </Badge>
+          )},
+          { key: 'priority', label: 'Priority', sortable: true, render: (item) => (
+            <Badge variant={
+              item.priority === 'urgent' ? 'danger' :
+              item.priority === 'high' ? 'warning' :
+              item.priority === 'normal' ? 'info' : 'secondary'
+            }>
+              {item.priority}
+            </Badge>
+          )},
+          { key: 'createdAt', label: 'Created', sortable: true }
+        ];
+      
+      case 'categories':
+        return [
+          { key: 'name', label: 'Category Name', sortable: true },
+          { key: 'count', label: 'Job Seekers', sortable: true },
+          { key: 'percentage', label: 'Percentage', sortable: true, render: (item) => (
+            <span>{item.percentage}%</span>
+          )},
+          { key: 'status', label: 'Status', sortable: true, render: (item) => (
+            <Badge variant="success">{item.status}</Badge>
+          )}
+        ];
+      
+      case 'locations':
+        return [
+          { key: 'name', label: 'Location', sortable: true },
+          { key: 'count', label: 'Job Seekers', sortable: true },
+          { key: 'percentage', label: 'Percentage', sortable: true, render: (item) => (
+            <span>{item.percentage}%</span>
+          )},
+          { key: 'status', label: 'Status', sortable: true, render: (item) => (
+            <Badge variant="success">{item.status}</Badge>
+          )}
+        ];
+      
+      case 'skills':
+        return [
+          { key: 'name', label: 'Skill Name', sortable: true },
+          { key: 'count', label: 'Count', sortable: true },
+          { key: 'percentage', label: 'Percentage', sortable: true, render: (item) => (
+            <span>{item.percentage}%</span>
+          )},
+          { key: 'demand', label: 'Demand Level', sortable: true, render: (item) => (
+            <Badge variant={
+              item.demand === 'High' ? 'success' :
+              item.demand === 'Medium' ? 'warning' : 'info'
+            }>
+              {item.demand}
+            </Badge>
+          )}
+        ];
+      
+      default:
+        return [];
+    }
+  };
+
+  const getReportData = (reportType) => {
+    switch (reportType) {
+      case 'job-seekers':
+        return prepareJobSeekersTableData();
+      case 'employer-requests':
+        return prepareEmployerRequestsTableData();
+      case 'categories':
+        return prepareCategoriesTableData();
+      case 'locations':
+        return prepareLocationsTableData();
+      case 'skills':
+        return prepareSkillsTableData();
+      default:
+        return [];
+    }
+  };
+
+  const getReportTitle = (reportType) => {
+    const option = reportOptions.find(opt => opt.value === reportType);
+    return option ? option.label : 'Report';
+  };
+
+  if (loading || jobSeekersLoading || requestsLoading || categoriesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <LoadingSpinner size="lg" text="Loading table reports..." />
+      </div>
+    );
+  }
+
+  if (error || jobSeekersError || requestsError || categoriesError) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <FileText className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+          <h3 className="text-lg font-medium text-red-900 mb-2">Error Loading Table Reports</h3>
+          <p className="text-red-600 mb-4">{error || jobSeekersError || requestsError || categoriesError}</p>
+          <Button onClick={handleRefreshData} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Table Reports</h1>
+        </div>
+      </div>
+
+      {/* Report Navigation Grid */}
+        <Card className="">
+            {/* <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Report Type</h2> */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+                                <select
+                                value={selectedPeriod}
+                                onChange={(e) => setSelectedPeriod(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                {periodOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                    {option.label}
+                                    </option>
+                                ))}
+                                </select>
+                            </div>
+                        </div>
+                        {reportOptions.map((option) => {
+                        const IconComponent = option.icon;
+                        const isActive = activeReport === option.value;
+                        
+                    return (
+                    <button
+                        key={option.value}
+                        onClick={() => setActiveReport(option.value)}
+                        className={`p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
+                        isActive
+                            ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                            : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                        }`}
+                        >
+                        <div className="flex flex-col items-center space-y-2">
+                        <IconComponent className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                        <span className="text-sm font-medium text-center">{option.label}</span>
+                        </div>
+                    </button>
+                    );
+                    })}
+                </div>
+        </Card>
+
+      {/* Main Content Area - Selected Report */}
+      {activeReport && (
+        <Card>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                <h2 className="text-xl font-semibold text-gray-900">{getReportTitle(activeReport)}</h2>
+                <p className="text-gray-600">Comprehensive data table for {getReportTitle(activeReport).toLowerCase()}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {/* Export Format Selector */}
+                  <select
+                    value={exportFormat}
+                    onChange={(e) => setExportFormat(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="pdf">PDF</option>
+                    <option value="csv">CSV</option>
+                    <option value="excel">Excel</option>
+                  </select>
+                  
+                  {/* Export Button */}
+                  <Button
+                    onClick={() => handleExportReport(activeReport)}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="w-3 h-3" />
+                    {isLoading ? 'Exporting...' : `Export ${exportFormat.toUpperCase()}`}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-3">
+                    <Button
+                        onClick={handleRefreshData}
+                        variant="outline"
+                        disabled={isLoading}
+                        className="flex items-center gap-2"
+                    >
+                        <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                        {isLoading ? 'Refreshing...' : 'Refresh'}
+                    </Button>
+                    
+
+                </div>
+            </div>
+          
+            <div className="overflow-x-auto">
+                                 <DataTable
+                 columns={getTableColumns(activeReport)}
+                 data={getReportData(activeReport)}
+                 pagination={true}
+                 itemsPerPage={15}
+                 searchTerm={searchTerm}
+                 onSearchChange={setSearchTerm}
+                 className="w-full"
+                 />
+            </div>
+        </Card>
+      )}
+      
+      <Toaster position="top-right" />
+    </div>
+  );
+};
+
+export default TableReportsPage; 

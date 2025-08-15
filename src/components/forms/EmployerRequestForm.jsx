@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Mail, User, Building, MessageSquare, Send } from 'lucide-react';
@@ -23,10 +23,51 @@ const EmployerRequestForm = ({
     phone: '',
     message: '',
     jobSeekerId: jobSeekerId || '',
+    priority: 'normal',
   });
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Update form data when jobSeekerId prop changes
+  useEffect(() => {
+    if (jobSeekerId && jobSeekerId !== formData.jobSeekerId) {
+      setFormData(prev => ({
+        ...prev,
+        jobSeekerId: jobSeekerId
+      }));
+    }
+    
+    // Fallback: if jobSeekerId is still null, try to extract from URL
+    if (!jobSeekerId && !formData.jobSeekerId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlId = urlParams.get('id') || window.location.pathname.split('/').pop();
+      
+      if (urlId && urlId !== 'undefined' && urlId !== 'null') {
+        // Convert JS prefix to numeric ID if needed
+        let numericId = urlId;
+        if (typeof urlId === 'string' && urlId.startsWith('JS')) {
+          numericId = parseInt(urlId.replace(/^JS/, ''), 10);
+        }
+        
+        setFormData(prev => ({
+          ...prev,
+          jobSeekerId: numericId
+        }));
+      }
+    }
+    
+    // Additional fallback: if jobSeekerId is a JS-prefixed ID, convert it to numeric
+    if (jobSeekerId && typeof jobSeekerId === 'string' && jobSeekerId.startsWith('JS')) {
+      const numericId = parseInt(jobSeekerId.replace(/^JS/, ''), 10);
+      if (!isNaN(numericId) && numericId !== formData.jobSeekerId) {
+        setFormData(prev => ({
+          ...prev,
+          jobSeekerId: numericId
+        }));
+      }
+    }
+  }, [jobSeekerId, formData.jobSeekerId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -48,29 +89,30 @@ const EmployerRequestForm = ({
     const newErrors = {};
     
     if (!formData.employerName.trim()) {
-      newErrors.employerName = t('employerRequest.errors.nameRequired', 'Employer name is required');
+      newErrors.employerName = 'Name is required';
     }
     
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = t('employerRequest.errors.companyRequired', 'Company name is required');
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
     
-    if (!formData.email) {
-      newErrors.email = t('employerRequest.errors.emailRequired', 'Email is required');
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('employerRequest.errors.emailInvalid', 'Please enter a valid email');
-    }
-    
-    if (!formData.phone) {
-      newErrors.phone = t('employerRequest.errors.phoneRequired', 'Phone number is required');
-    } else if (!/^[\+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = t('employerRequest.errors.phoneInvalid', 'Please enter a valid phone number');
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Please enter a valid phone number';
     }
     
     if (!formData.message.trim()) {
-      newErrors.message = t('employerRequest.errors.messageRequired', 'Message is required');
+      newErrors.message = 'Message is required';
     } else if (formData.message.trim().length < 10) {
-      newErrors.message = t('employerRequest.errors.messageLength', 'Message must be at least 10 characters');
+      newErrors.message = 'Message must be at least 10 characters long';
+    }
+    
+    // Add validation for jobSeekerId
+    if (!formData.jobSeekerId || formData.jobSeekerId === '') {
+      newErrors.general = 'Candidate ID is missing. This is required to submit the request. Please refresh the page and try again.';
     }
     
     setErrors(newErrors);
@@ -80,20 +122,63 @@ const EmployerRequestForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
     
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Use environment variable for API URL
+      const apiUrl = import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000';
+      const endpoint = `${apiUrl}/employer/request`;
       
-      console.log('Employer request:', formData);
+      const requestBody = {
+        name: formData.employerName,
+        companyName: formData.companyName,
+        email: formData.email,
+        phoneNumber: formData.phone,
+        message: formData.message,
+        requestedCandidateId: (() => {
+          // Extract the numeric ID from JS-prefixed IDs
+          let candidateId = formData.jobSeekerId;
+          
+          if (typeof candidateId === 'string' && candidateId.startsWith('JS')) {
+            const numericId = parseInt(candidateId.replace(/^JS/, ''), 10);
+            return numericId;
+          }
+          
+          // If it's already a number, use it directly
+          if (typeof candidateId === 'number') {
+            return candidateId;
+          }
+          
+          // If it's a string number, convert it
+          const parsedId = parseInt(candidateId, 10);
+          return parsedId;
+        })(),
+        priority: formData.priority
+      };
       
-      // For demo purposes, always succeed
+      // Validate that requestedCandidateId is a valid number
+      if (isNaN(requestBody.requestedCandidateId) || !requestBody.requestedCandidateId) {
+        throw new Error('Invalid candidate ID. Please refresh the page and try again.');
+      }
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseData = await response.json();
+      
       onSuccess();
-      
-      // Reset form
       setFormData({
         employerName: '',
         companyName: '',
@@ -101,10 +186,9 @@ const EmployerRequestForm = ({
         phone: '',
         message: '',
         jobSeekerId: jobSeekerId || '',
+        priority: 'normal',
       });
-      
     } catch (error) {
-      console.error('Request error:', error);
       onError(error);
     } finally {
       setLoading(false);
@@ -129,9 +213,30 @@ const EmployerRequestForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('employerRequest.priority', 'Priority')}
+          </label>
+          <select
+            id="priority"
+            name="priority"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+            value={formData.priority}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="low">{t('employerRequest.priorityLow', 'Low')}</option>
+            <option value="normal">{t('employerRequest.priorityNormal', 'Normal')}</option>
+            <option value="high">{t('employerRequest.priorityHigh', 'High')}</option>
+          </select>
+        </div>
+        
         {errors.general && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-red-600 text-sm">{errors.general}</p>
+            <p className="text-red-600 text-sm font-medium">{errors.general}</p>
+            <p className="text-red-500 text-xs mt-1">
+              This form requires a valid candidate ID to submit. Please contact support if this issue persists.
+            </p>
           </div>
         )}
 
@@ -152,12 +257,11 @@ const EmployerRequestForm = ({
             id="companyName"
             name="companyName"
             label={t('employerRequest.companyName', 'Company Name')}
-            placeholder={t('employerRequest.companyNamePlaceholder', 'Enter company name')}
+            placeholder={t('employerRequest.companyNamePlaceholder', 'Enter company name (optional)')}
             value={formData.companyName}
             onChange={handleInputChange}
             error={errors.companyName}
             icon={Building}
-            required
           />
         </div>
 

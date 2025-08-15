@@ -2,27 +2,40 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import SessionMonitor from './components/auth/SessionMonitor';
 import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
 import LatestJobSeekers from './components/sections/LatestJobSeekers';
-import AboutUs from './components/sections/AboutUs';
-import ContactUs from './components/sections/ContactUs';
+import Statistics from './components/sections/Statistics';
+
 import Footer from './components/layout/Footer';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import JobSeekers from './pages/JobSeekers';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import Register from './pages/Register';
 import EmployerRequest from './pages/EmployerRequest';
 import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
+import JobSeekersPage from './pages/dashboard/JobSeekersPage';
+import JobCategoriesPage from './pages/dashboard/JobCategoriesPage';
+import EmployerRequestsPage from './pages/dashboard/EmployerRequestsPage';
+import ReportsPage from './pages/dashboard/ReportsPage';
 import ViewProfile from './pages/ViewProfile';
 import UpdateProfile from './pages/UpdateProfile';
+import AboutUsPage from './pages/AboutUs';
+import ContactUsPage from './pages/ContactUs';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import NotFound from './pages/NotFound';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
-console.log('App: Starting full application');
+  // Starting full application
 
 // Error Boundary Component
 const ErrorBoundary = ({ children }) => {
@@ -90,51 +103,27 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  console.log('HomePage: Component starting to render');
+      // Component starting to render
 
   let containerRef = null;
   
   try {
     const scrollAnimations = useScrollAnimations();
     containerRef = scrollAnimations.containerRef;
-    console.log('HomePage: Scroll animations hook initialized');
+    // Scroll animations hook initialized
   } catch (error) {
     console.error('HomePage: Error initializing scroll animations:', error);
   }
 
-  // Smooth scrolling for anchor links
-  useEffect(() => {
-    console.log('HomePage: Setting up smooth scrolling');
-    
-    try {
-      const handleAnchorClick = (e) => {
-        const href = e.target.getAttribute('href');
-        if (href && href.startsWith('#')) {
-          e.preventDefault();
-          const element = document.querySelector(href);
-          if (element) {
-            element.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-            });
-          }
-        }
-      };
 
-      document.addEventListener('click', handleAnchorClick);
-      return () => document.removeEventListener('click', handleAnchorClick);
-    } catch (error) {
-      console.error('HomePage: Error setting up smooth scrolling:', error);
-    }
-  }, []);
 
   useEffect(() => {
-    console.log('HomePage: Component mounted, setting loading to false');
+    // Component mounted, setting loading to false
     setIsLoading(false);
   }, []);
 
   if (isLoading) {
-    console.log('HomePage: Showing loading spinner');
+    // Showing loading spinner
     return <LoadingSpinner />;
   }
 
@@ -150,7 +139,7 @@ const HomePage = () => {
     );
   }
 
-  console.log('HomePage: Rendering main content');
+      // Rendering main content
   
   try {
     return (
@@ -166,8 +155,7 @@ const HomePage = () => {
           <Hero />
           <Features />
           <LatestJobSeekers />
-          <AboutUs />
-          <ContactUs />
+          <Statistics />
         </main>
         <Footer />
       </motion.div>
@@ -189,10 +177,10 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
   const [appError, setAppError] = useState(null);
 
-  console.log('App: Component starting to render');
+      // Component starting to render
 
   useEffect(() => {
-    console.log('App: Initializing application');
+    // Initializing application
     
     try {
       // Check if required dependencies are available
@@ -205,7 +193,7 @@ function App() {
         throw new Error('Location object not available');
       }
 
-      console.log('App: All dependencies available, setting ready state');
+              // All dependencies available, setting ready state
       setIsAppReady(true);
       
     } catch (error) {
@@ -216,7 +204,7 @@ function App() {
 
   if (appError) {
     console.error('App: Fatal error:', appError);
-    return (
+  return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Application Error</h1>
@@ -235,43 +223,74 @@ function App() {
   }
 
   if (!isAppReady) {
-    console.log('App: Application not ready, showing loading');
+    // Application not ready, showing loading
     return <LoadingSpinner />;
   }
 
-  console.log('App: Application ready, rendering router');
+      // Application ready, rendering router
 
   try {
     return (
       <ErrorBoundary>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/job-seekers" element={<JobSeekers />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/employer-request/:id" element={<EmployerRequest />} />
+          <LiveUpdateProvider>
+            <Router>
+              <SessionMonitor />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/job-seekers" element={<JobSeekers />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/employer-request/:id" element={<EmployerRequest />} />
+                <Route path="/about" element={<AboutUsPage />} />
+                <Route path="/contact" element={<ContactUsPage />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/dashboard/jobseeker" element={
-                <ProtectedRoute requiredRole="jobseeker">
-                  <JobSeekerDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/view-profile/:id" element={<ViewProfile />} />
-              <Route path="/update-profile" element={
-                <ProtectedRoute requiredRole="jobseeker">
-                  <UpdateProfile />
-                </ProtectedRoute>
-              } />
-              {/* Catch-all route for 404 errors */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Router>
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <JobSeekerDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/admin" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/jobseekers" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <JobSeekersPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/job-categories" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <JobCategoriesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/employer-requests" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <EmployerRequestsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/reports" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ReportsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/view-profile/:id" element={<ViewProfile />} />
+                <Route path="/update-profile" element={
+                  <ProtectedRoute requiredRole="jobseeker">
+                    <UpdateProfile />
+                  </ProtectedRoute>
+                } />
+           
+                {/* Catch-all route for 404 errors */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Router>
+          </LiveUpdateProvider>
         </AuthProvider>
       </ErrorBoundary>
     );

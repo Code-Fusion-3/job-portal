@@ -1,34 +1,33 @@
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { 
   MapPin, 
   Briefcase, 
-  Star, 
   Calendar, 
   BookOpen, 
   Award, 
   Globe, 
-  Heart, 
   Eye 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
-import Avatar from '../ui/Avatar';
-import { truncateText, formatExperience, formatDailyRate, formatMonthlyRate } from '../../utils/helpers';
+
+import ProfileImage from '../ui/ProfileImage';
+import { truncateText, formatExperience, maskName, formatExperienceDisplay } from '../../utils/helpers';
 
 const JobSeekerCard = ({ 
   seeker, 
   variant = 'compact',
   showActions = true,
   onViewProfile,
-  onFavorite,
-  isFavorite = false,
   className = '',
   ...props 
 }) => {
   const { t } = useTranslation();
+  const [showFullBio, setShowFullBio] = useState(false);
 
   // Defensive programming: ensure seeker object exists
   if (!seeker) {
@@ -36,13 +35,7 @@ const JobSeekerCard = ({
     return null;
   }
 
-  // Debug logging
-  console.log('JobSeekerCard rendering:', { 
-    id: seeker.id, 
-    name: seeker.name, 
-    dailyRate: seeker.dailyRate,
-    monthlyRate: seeker.monthlyRate 
-  });
+  // Component rendering
 
   // Ensure required fields exist with fallbacks
   const {
@@ -52,8 +45,6 @@ const JobSeekerCard = ({
     experience = 0,
     skills = [],
     avatar = null,
-    dailyRate = 0,
-    monthlyRate = 0,
     availability = 'Unknown',
     languages = ['English'],
     education = 'Not specified',
@@ -62,178 +53,195 @@ const JobSeekerCard = ({
   } = seeker;
 
   const compactVariant = (
-    <Card className={`job-seeker-card ${className}`} {...props}>
-      <div className="p-6">
-        <div className="flex items-center mb-4">
-          <Avatar 
-            src={avatar} 
-            alt={name} 
-            size="lg" 
-            fallback={name}
-            className="mr-4"
-          />
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 text-lg">{name}</h3>
-            <p className="text-sm text-gray-600">{title}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="w-4 h-4 mr-2" />
-            {location}
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Briefcase className="w-4 h-4 mr-2" />
-            {formatExperience(experience)} experience
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Star className="w-4 h-4 mr-2" />
-            {formatDailyRate(dailyRate)}
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <div className="flex flex-wrap gap-1">
-            {skills.slice(0, 3).map((skill, index) => (
-              <Badge key={index} variant="primary" size="sm">
-                {skill}
-              </Badge>
-            ))}
-            {skills.length > 3 && (
-              <Badge variant="outline" size="sm">
-                +{skills.length - 3} more
-              </Badge>
+    <Card className={`job-seeker-card h-[380px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 overflow-hidden group ${className}`} {...props}>
+      <div className="h-full flex flex-col">
+        {/* Header Section */}
+        <div className="p-6 pb-4">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center">
+              <div className="mr-4">
+                <ProfileImage 
+                  size="lg"
+                  variant="rounded"
+                  showBorder={true}
+                  borderColor="border-blue-200"
+                  showShadow={true}
+                />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">{maskName(name)}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
+                    {title}
+                  </span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            {showActions && (
+              <Link to={`/view-profile/${seeker.id}`}>
+                <button className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium">
+                  <Eye className="w-4 h-4" />
+                  View Profile
+                </button>
+              </Link>
             )}
           </div>
         </div>
 
-        {showActions && (
-          <div className="space-y-2">
-            <Link to={`/view-profile/${seeker.id}`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full group"
-              >
-                <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                {t('jobSeekers.actions.viewProfile', 'View Profile')}
-              </Button>
-            </Link>
+        {/* Content Section */}
+        <div className="px-6 flex-1 space-y-4">
+          <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+            <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+            <span className="font-medium">{location}</span>
           </div>
-        )}
+
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
+            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
+            <p className="text-sm text-gray-700 font-medium">{formatExperienceDisplay(experience)}</p>
+          </div>
+
+
+
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills</h4>
+            <div className="flex flex-wrap gap-1.5">
+              {skills.slice(0, 3).map((skill, index) => (
+                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+                  {skill}
+                </span>
+              ))}
+              {skills.length > 3 && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
+                  +{skills.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+
       </div>
     </Card>
   );
 
   const detailedVariant = (
-    <Card className={`job-seeker-card ${className}`} {...props}>
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center">
-            <Avatar 
-              src={avatar} 
-              alt={name} 
-              size="xl" 
-              fallback={name}
-              className="mr-4"
-            />
-            <div>
-              <h3 className="font-semibold text-gray-900 text-xl">{name}</h3>
-              <p className="text-gray-600">{title}</p>
+    <Card className={`job-seeker-card h-[480px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 overflow-hidden group ${className}`} {...props}>
+      <div className="h-full flex flex-col">
+        {/* Header Section */}
+        <div className="p-6 pb-4">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center">
+              <div className="mr-4">
+                <ProfileImage 
+                  size="xl"
+                  variant="rounded"
+                  showBorder={true}
+                  borderColor="border-blue-200"
+                  showShadow={true}
+                />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-2xl mb-1 group-hover:text-blue-600 transition-colors">{maskName(name)}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full">
+                    {title}
+                  </span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+              </div>
             </div>
+            {showActions && (
+              <Link to={`/view-profile/${seeker.id}`}>
+                <button className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium">
+                  <Eye className="w-4 h-4" />
+                  View Profile
+                </button>
+              </Link>
+            )}
+
           </div>
-          
-          {showActions && (
-            <div className="flex items-center space-x-2">
-              <motion.button
-                onClick={() => onFavorite?.(seeker)}
-                className={`p-2 rounded-lg transition-colors duration-200 ${
-                  isFavorite 
-                    ? 'bg-red-100 text-red-600' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600'
-                }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-              </motion.button>
-            </div>
-          )}
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="space-y-3">
-            <div className="flex items-center text-sm text-gray-600">
-              <MapPin className="w-4 h-4 mr-3" />
-              {location}
+        <div className="px-6 flex-1 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
+                <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+                <span className="font-medium">{location}</span>
+              </div>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
+                <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
+                <p className="text-sm text-gray-700 font-medium">{formatExperienceDisplay(experience)}</p>
+              </div>
+
+              <div className="flex items-center text-sm text-gray-600 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-100">
+                <Calendar className="w-4 h-4 mr-2 text-yellow-600" />
+                <span className="font-medium">Available {availability}</span>
+              </div>
             </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Briefcase className="w-4 h-4 mr-3" />
-              {formatExperience(experience)} experience
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Star className="w-4 h-4 mr-3" />
-              {formatDailyRate(dailyRate)}
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Calendar className="w-4 h-4 mr-3" />
-              Available {availability}
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex items-center text-sm text-gray-600">
-              <BookOpen className="w-4 h-4 mr-3" />
-              {education}
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Award className="w-4 h-4 mr-3" />
-              {certifications.length} certifications
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Globe className="w-4 h-4 mr-3" />
-              {languages.join(', ')}
+            
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-gray-600 bg-purple-50 px-3 py-2 rounded-lg border border-purple-100">
+                <BookOpen className="w-4 h-4 mr-2 text-purple-500" />
+                <span className="font-medium">{education}</span>
+              </div>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-lg border border-purple-100">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Certifications</span>
+                  <div className="w-8 h-1 bg-purple-200 rounded-full overflow-hidden">
+                    <div className="w-5 h-1 bg-purple-500 rounded-full"></div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700 font-medium">{certifications.length} certifications</p>
+              </div>
+              <div className="flex items-center text-sm text-gray-600 bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                <Globe className="w-4 h-4 mr-2 text-indigo-500" />
+                <span className="font-medium">{languages.join(', ')}</span>
+              </div>
+
             </div>
           </div>
         </div>
 
-        {/* Skills */}
-        <div className="mb-6">
-          <h4 className="font-medium text-gray-900 mb-3">Skills</h4>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, index) => (
-              <Badge key={index} variant="primary" size="sm">
-                {skill}
-              </Badge>
-            ))}
+        {/* Skills & Bio Section */}
+        <div className="px-6 flex-1 space-y-4">
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Skills</h4>
+            <div className="flex flex-wrap gap-1.5 max-h-16 overflow-hidden">
+              {skills.slice(0, 6).map((skill, index) => (
+                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+                  {skill}
+                </span>
+              ))}
+              {skills.length > 6 && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
+                  +{skills.length - 6} more
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">About</h4>
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {showFullBio ? bio : truncateText(bio, 120)}
+              </p>
+              {bio.length > 120 && (
+                <button
+                  onClick={() => setShowFullBio(!showFullBio)}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2 transition-colors duration-200"
+                >
+                  {showFullBio ? 'Show Less' : 'Read More'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Description */}
-        <div className="mb-6">
-          <h4 className="font-medium text-gray-900 mb-2">About</h4>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            {truncateText(bio, 200)}
-          </p>
-        </div>
 
-        {/* Actions */}
-        {showActions && (
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 group"
-              onClick={() => onViewProfile?.(seeker)}
-            >
-              <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              {t('jobSeekers.actions.viewProfile', 'View Profile')}
-            </Button>
-          </div>
-        )}
       </div>
     </Card>
   );

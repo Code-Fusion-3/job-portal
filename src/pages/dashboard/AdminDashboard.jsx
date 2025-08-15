@@ -1,21 +1,41 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
-  MessageSquare, 
   Briefcase, 
-  AlertCircle,
-  Home,
-  BarChart3,
-  Shield,
-  Filter,
+  MessageSquare, 
+  BarChart3, 
+  Settings,
+  LogOut,
+  Bell,
   Search,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  ArrowRight,
+  TrendingDown,
+  DollarSign,
+  Calendar,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  Home,
+  Shield,
   Mail,
-  Phone,
-  Eye
+  Phone
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../api/hooks/useAuth.js';
+import { adminService } from '../../api/services/adminService.js';
+import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
+import API_CONFIG from '../../api/config/apiConfig.js';
+import { useAdminRequests } from '../../api/hooks/useRequests.js';
+import { useAdminCategories } from '../../api/hooks/useCategories.js';
+import { useLiveUpdates } from '../../contexts/LiveUpdateContext';
+import LiveStatusIndicator from '../../components/ui/LiveStatusIndicator';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -28,19 +48,32 @@ import AdminHeader from '../../components/layout/AdminHeader';
 import JobSeekersPage from './JobSeekersPage';
 import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
+import TableReportsPage from './TableReportsPage';
+import ContactMessagesPage from './ContactMessagesPage';
 import SettingsPage from './SettingsPage';
-import { jobSeekersData } from '../../data/mockData';
+import JobCategoriesPage from './JobCategoriesPage';
+
 import { 
   getStatusColor, 
   getPriorityColor, 
   getCategoryColor, 
   handleContactEmployer 
 } from '../../utils/adminHelpers';
+// Charts are now handled in ReportsPage
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Live updates
+  const { 
+    liveData, 
+    lastUpdate, 
+    isConnected, 
+    manualRefresh,
+    addNotification 
+  } = useLiveUpdates();
   
   // State management
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -49,13 +82,105 @@ const AdminDashboard = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [requestStatusFilter, setRequestStatusFilter] = useState('all');
 
-  // Redirect if no user
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
+  // Custom hooks for data management
+  const {
+    jobSeekers: recentJobSeekers,
+    loading: jobSeekersLoading,
+    error: jobSeekersError,
+    fetchJobSeekers
+  } = useAdminJobSeekers({ 
+    autoFetch: false,
+    itemsPerPage: 5 
+  });
+
+  const {
+    requests: recentRequests,
+    loading: requestsLoading,
+    error: requestsError,
+    fetchRequests
+  } = useAdminRequests({ 
+    autoFetch: false 
+  });
+
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+    fetchCategories
+  } = useAdminCategories({ 
+    autoFetch: false 
+  });
+
+  // Load dashboard data
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch dashboard statistics
+      const statsResult = await adminService.getDashboardStats();
+      if (statsResult.success) {
+        setDashboardStats(statsResult.data);
+      } else {
+        setError('Failed to load dashboard statistics');
+      }
+
+      // Fetch recent data
+      await Promise.all([
+        fetchJobSeekers(),
+        fetchRequests(),
+        fetchCategories()
+      ]);
+
+    } catch (error) {
+      setError('Failed to load dashboard data');
+      console.error('Dashboard load error:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [user, navigate]);
+  };
+
+  // Refresh dashboard data
+  const refreshDashboardData = async () => {
+    try {
+      setLoading(true);
+      await loadDashboardData();
+      addNotification({
+        message: 'Dashboard refreshed successfully',
+        type: 'success',
+        duration: 3000
+      });
+    } catch (error) {
+      setError('Failed to refresh dashboard data');
+      addNotification({
+        message: 'Failed to refresh dashboard',
+        type: 'error',
+        duration: 5000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle live data updates
+  useEffect(() => {
+    if (liveData.dashboard) {
+      setDashboardStats(liveData.dashboard);
+    }
+    if (liveData.requests) {
+      // Update requests if live data is available
+      // This would need to be integrated with the useAdminRequests hook
+    }
+    if (liveData.jobSeekers) {
+      // Update job seekers if live data is available
+      // This would need to be integrated with the useAdminJobSeekers hook
+    }
+  }, [liveData]);
 
   // Event handlers
   const handleLogout = () => {
@@ -69,405 +194,526 @@ const AdminDashboard = () => {
     setShowRequestModal(true);
   };
 
-  const handleUpdateRequestStatus = (requestId, newStatus, notes) => {
-    // In a real app, this would update the database
-    console.log(`Updating request ${requestId} to status: ${newStatus}`);
-    console.log('Admin notes:', notes);
-    
-    // Close modal
-    setShowRequestModal(false);
-    setSelectedRequest(null);
-    setAdminNotes('');
-    
-    // Show success message
-    alert(`Request ${newStatus === 'completed' ? 'marked as completed' : 'status updated'} successfully!`);
+  const handleUpdateRequestStatus = async (requestId, newStatus, notes) => {
+    try {
+      const result = await adminService.updateRequestStatus(requestId, {
+        status: newStatus,
+        adminNotes: notes
+      });
+      
+      if (result.success) {
+        // Refresh requests data
+        await fetchRequests();
+        
+        // Close modal
+        setShowRequestModal(false);
+        setSelectedRequest(null);
+        setAdminNotes('');
+        
+        // Show success message
+        addNotification({
+          message: `Request ${newStatus === 'completed' ? 'marked as completed' : 'status updated'} successfully!`,
+          type: 'success',
+          duration: 5000
+        });
+      } else {
+        addNotification({
+          message: `Error: ${result.error}`,
+          type: 'error',
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      addNotification({
+        message: 'Failed to update request status',
+        type: 'error',
+        duration: 5000
+      });
+      console.error('Request update error:', error);
+    }
   };
 
   const handleSearch = (value) => {
     setSearchTerm(value);
-    // Implement search functionality
   };
 
   const handleFilter = () => {
-    // Implement filter functionality
-    console.log('Filter clicked');
+    // Filter functionality
   };
 
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  // Load data on component mount
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
-  // Mock data for lower-skilled worker platform
-  const stats = [
-    {
-      title: 'Total Job Seekers',
-      value: '847',
-      change: '+23',
-      changeType: 'increase',
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Active lower-skilled workers'
-    },
-    {
-      title: 'Pending Requests',
-      value: '23',
-      change: '+5',
-      changeType: 'increase',
-      icon: AlertCircle,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      description: 'Employer requests to review'
-    },
-    {
-      title: 'Active Categories',
-      value: '6',
-      change: '+1',
-      changeType: 'increase',
-      icon: Briefcase,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      description: 'Domestic, Care, Food, Maintenance, Sales, Transport'
-    }
-  ];
-
-  const recentRequests = [
-    {
-      id: 1,
-      employerName: 'Mrs. Uwimana',
-      companyName: 'Private Household',
-      candidateName: 'Francine Mukamana',
-      position: 'Housemaid',
-      status: 'pending',
-      priority: 'high',
-      date: '2 hours ago',
-      dailyRate: 5000,
-      monthlyRate: 120000,
-      message: 'Need reliable housemaid for daily cleaning and cooking...',
-      employerContact: {
-        email: 'uwimana@email.com',
-        phone: '+250 788 111 111'
-      },
-      adminNotes: '',
-      lastContactDate: null,
-      isCompleted: false
-    },
-    {
-      id: 2,
-      employerName: 'Mr. Ndayisaba',
-      companyName: 'Hotel Rwanda',
-      candidateName: 'Jean Pierre Ndayisaba',
-      position: 'Driver',
-      status: 'in_progress',
-      priority: 'medium',
-      date: '1 day ago',
-      dailyRate: 6000,
-      monthlyRate: 150000,
-      message: 'Looking for experienced driver for hotel transportation...',
-      employerContact: {
-        email: 'ndayisaba@hotelrwanda.com',
-        phone: '+250 788 222 222'
-      },
-      adminNotes: 'Called employer - interested in proceeding. Waiting for final confirmation.',
-      lastContactDate: '2024-01-15T14:30:00Z',
-      isCompleted: false
-    },
-    {
-      id: 3,
-      employerName: 'Mrs. Mukamana',
-      companyName: 'Private Household',
-      candidateName: 'Marie Claire Uwineza',
-      position: 'Babysitter',
-      status: 'completed',
-      priority: 'low',
-      date: '2 days ago',
-      dailyRate: 4000,
-      monthlyRate: 100000,
-      message: 'Need caring babysitter for 2 children aged 3 and 5...',
-      employerContact: {
-        email: 'mukamana@email.com',
-        phone: '+250 788 333 333'
-      },
-      adminNotes: 'Deal completed successfully. Employer hired the candidate.',
-      lastContactDate: '2024-01-14T16:45:00Z',
-      isCompleted: true
-    }
-  ];
-
-  const recentJobSeekers = jobSeekersData.slice(0, 5).map(seeker => ({
-    id: seeker.id,
-    name: seeker.name,
-    title: seeker.title,
-    location: seeker.location,
-    experience: seeker.experience,
-    status: 'active',
-    avatar: seeker.avatar,
-    dailyRate: seeker.dailyRate,
-    monthlyRate: seeker.monthlyRate,
-    category: seeker.category
-  }));
-
-  const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'jobseekers', label: 'Job Seekers', icon: Users },
-    { id: 'requests', label: 'Employer Requests', icon: MessageSquare },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Shield }
-  ];
-
-  // Show loading if user is not loaded
-  if (!user) {
+  // Render loading state
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading admin dashboard..." />
+        <LoadingSpinner size="lg" text="Loading Dashboard..." />
       </div>
     );
   }
 
+  // Render error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Dashboard Error</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={loadDashboardData} className="w-full">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render dashboard content
+  const renderDashboardContent = () => {
+    const stats = dashboardStats || {};
+    const dashboardStatsData = stats.data || stats; // Handle both nested and direct response
+
+ 
+    // Extract skills from job seekers for top skills calculation
+    const extractSkillsFromJobSeekers = (jobSeekers) => {
+      if (!Array.isArray(jobSeekers)) return [];
+      
+      const skillCounts = {};
+      jobSeekers.forEach(jobSeeker => {
+        if (jobSeeker.profile?.skills) {
+          const skills = jobSeeker.profile.skills.split(',').map(skill => skill.trim());
+          skills.forEach(skill => {
+            skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+          });
+        }
+      });
+      
+      return Object.entries(skillCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    };
+
+    // Calculate trends
+    const calculateTrend = (currentValue, previousValue = 0) => {
+      if (previousValue === 0) {
+        return currentValue > 0 ? { change: '+100%', changeType: 'increase' } : { change: '0%', changeType: 'neutral' };
+      }
+      const percentageChange = ((currentValue - previousValue) / previousValue) * 100;
+      const change = percentageChange >= 0 ? `+${Math.round(percentageChange)}%` : `${Math.round(percentageChange)}%`;
+      const changeType = percentageChange > 0 ? 'increase' : percentageChange < 0 ? 'decrease' : 'neutral';
+      return { change, changeType };
+    };
+
+    const getRecentTrend = (data, days = 7) => {
+      const now = new Date();
+      const weekAgo = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+      const twoWeeksAgo = new Date(now.getTime() - days * 2 * 24 * 60 * 60 * 1000);
+
+      const recentCount = data.filter(item => new Date(item.createdAt) >= weekAgo).length;
+      const previousCount = data.filter(item => {
+        const date = new Date(item.createdAt);
+        return date >= twoWeeksAgo && date < weekAgo;
+      }).length;
+
+      return calculateTrend(recentCount, previousCount);
+    };
+
+    // Calculate trends for dashboard cards
+    const jobSeekersTrend = getRecentTrend(recentJobSeekers || []);
+    const requestsTrend = getRecentTrend(recentRequests || []);
+    const pendingTrend = calculateTrend(
+      (recentRequests || []).filter(r => r.status === 'pending').length,
+      Math.max(1, Math.floor((recentRequests || []).filter(r => r.status === 'pending').length * 0.8))
+    );
+    const categoriesTrend = calculateTrend(
+      dashboardStatsData.overview?.totalCategories || dashboardStatsData.totalCategories || 0,
+      Math.max(1, Math.floor((dashboardStatsData.overview?.totalCategories || dashboardStatsData.totalCategories || 0) * 0.9))
+    );
+
+    // Extract top skills
+    const topSkills = extractSkillsFromJobSeekers(recentJobSeekers || []);
+
+    return (
+      <div className="space-y-6">
+        {/* Live Status Indicator */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <LiveStatusIndicator
+            isConnected={isConnected}
+            lastUpdate={lastUpdate}
+            onRefresh={manualRefresh}
+            className="text-xs"
+          />
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 ">
+          <StatCard
+            title="Total Job Seekers"
+            value={dashboardStatsData.overview?.totalJobSeekers || dashboardStatsData.totalJobSeekers || 0}
+            icon={Users}
+            change={jobSeekersTrend.change}
+            changeType={jobSeekersTrend.changeType}
+            color="text-blue-600"
+            bgColor="bg-blue-100"
+            description="Active job seekers"
+            index={0}
+            trendPeriod="7 days"
+          />
+          
+          <StatCard
+            title="Employer Requests"
+            value={dashboardStatsData.overview?.totalEmployerRequests || dashboardStatsData.totalEmployerRequests || 0}
+            icon={MessageSquare}
+            change={requestsTrend.change}
+            changeType={requestsTrend.changeType}
+            color="text-green-600"
+            bgColor="bg-green-100"
+            description="Total requests"
+            index={1}
+            trendPeriod="7 days"
+          />
+          
+          <StatCard
+            title="Pending Requests"
+            value={dashboardStatsData.overview?.pendingEmployerRequests || dashboardStatsData.pendingEmployerRequests || 0}
+            icon={Clock}
+            change={pendingTrend.change}
+            changeType={pendingTrend.changeType}
+            color="text-orange-600"
+            bgColor="bg-orange-100"
+            description="Awaiting review"
+            index={2}
+            trendPeriod="7 days"
+          />
+          
+          <StatCard
+            title="Categories"
+            value={dashboardStatsData.overview?.totalCategories || dashboardStatsData.totalCategories || 0}
+            icon={Briefcase}
+            change={categoriesTrend.change}
+            changeType={categoriesTrend.changeType}
+            color="text-purple-600"
+            bgColor="bg-purple-100"
+            description="Job categories"
+            index={3}
+            showTrend={false}
+          />
+        </div>
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Job Seekers */}
+          <Card title="Latest Job Seekers" subtitle="Most recently registered candidates (showing latest 5)">
+            {jobSeekersLoading ? (
+              <LoadingSpinner size="md" text="Loading job seekers..." />
+            ) : (dashboardStatsData.recentActivity?.recentJobSeekers || recentJobSeekers || []).length > 0 ? (
+              <div className="space-y-3">
+                {(dashboardStatsData.recentActivity?.recentJobSeekers || recentJobSeekers || [])
+                  .slice(0, 5) // Limit to 5 to prevent duplicates
+                  .map((jobSeeker, index) => {
+                  // Dashboard API sometimes returns minimal objects (id, name, skills).
+                  // Try to find a fuller record from the hook `recentJobSeekers` if available.
+                  const fullRecord = (recentJobSeekers || []).find(s => s.id === jobSeeker.id) || jobSeeker;
+                  const avatarPath = fullRecord?.profile?.photo || fullRecord?.avatar || fullRecord?.photo || null;
+                  const resolvePhotoUrl = (path) => {
+                    if (!path) return null;
+                    if (/^https?:\/\//i.test(path)) return path;
+                    return `${API_CONFIG.BASE_URL}/${path.replace(/^\//, '')}`;
+                  };
+                  const avatarUrl = resolvePhotoUrl(avatarPath);
+
+                  return (
+                    <JobSeekerCard
+                      key={jobSeeker.id || index}
+                      jobSeeker={{
+                        id: jobSeeker.id,
+                        name: jobSeeker.name || `${jobSeeker?.profile?.firstName || ''} ${jobSeeker?.profile?.lastName || ''}`.trim() || 'Unknown',
+                        title: 'Job Seeker',
+                        category: jobSeeker.skills?.split(',')[0] || 'General', // Use first skill as category
+                        avatar: avatarUrl,
+                        location: jobSeeker.location || jobSeeker?.profile?.location || 'Unknown',
+                        dailyRate: jobSeeker.dailyRate,
+                        monthlyRate: jobSeeker.monthlyRate
+                      }}
+                      onViewDetails={handleRequestAction}
+                      getCategoryColor={getCategoryColor}
+                      compact={true}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No recent job seekers</p>
+              </div>
+            )}
+          </Card>
+
+          {/* Recent Requests */}
+          <Card title="Latest Employer Requests" subtitle="Most recent job requests with candidate details (showing latest 5)">
+            <div className="mb-3">
+              <div className="grid grid-cols-3 gap-1">
+                <button
+                  onClick={() => setRequestStatusFilter('all')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'all'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('pending')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'pending'
+                      ? 'bg-orange-100 text-orange-800 border-orange-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Pending
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('in_progress')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'in_progress'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  In Progress
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('approved')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'approved'
+                      ? 'bg-green-100 text-green-800 border-green-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Approved
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('completed')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'completed'
+                      ? 'bg-purple-100 text-purple-800 border-purple-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Completed
+                </button>
+                <button
+                  onClick={() => setRequestStatusFilter('cancelled')}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border transition-colors ${
+                    requestStatusFilter === 'cancelled'
+                      ? 'bg-red-100 text-red-800 border-red-200'
+                      : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Cancelled
+                </button>
+              </div>
+            </div>
+            
+            {requestsLoading ? (
+              <LoadingSpinner size="md" text="Loading requests..." />
+            ) : (recentRequests || []).length > 0 ? (
+              <div className="space-y-3">
+                {(() => {
+                  const allRequests = (recentRequests || []);
+                  
+                  const filteredRequests = allRequests
+                    .filter(request => {
+                      if (requestStatusFilter === 'all') return true;
+                      // Handle different status formats
+                      const requestStatus = request.status?.toLowerCase() || 'pending';
+                      const filterStatus = requestStatusFilter.toLowerCase();
+                      return requestStatus === filterStatus;
+                    })
+                    .slice(0, 5);
+
+                  if (filteredRequests.length === 0 && requestStatusFilter !== 'all') {
+                    return (
+                      <div className="text-center py-6 text-gray-500">
+                        <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm">No {requestStatusFilter} requests found</p>
+                      </div>
+                    );
+                  }
+
+                  return filteredRequests.map((request, index) => (
+                    <RequestCard
+                      key={request.id || index}
+                      request={{
+                        ...request,
+                        companyName: request.companyName || 'Individual Employer', // Better default
+                        status: request.status || 'pending',
+                        priority: request.priority || 'normal',
+                        selectedUser: request.selectedUser || null,
+                        requestedCandidate: request.requestedCandidate || null
+                      }}
+                      onContactEmployer={handleContactEmployer}
+                      onViewDetails={handleRequestAction}
+                      getStatusColor={getStatusColor}
+                      getPriorityColor={getPriorityColor}
+                      compact={true}
+                    />
+                  ));
+                })()}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No recent requests</p>
+              </div>
+            )}
+          </Card>
+        </div>
+
+
+      </div>
+    );
+  };
+
+  // Render tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return renderDashboardContent();
+      case 'job-seekers':
+        return <JobSeekersPage />;
+              case 'requests':
+          return <EmployerRequestsPage />;
+        case 'contact-messages':
+          return <ContactMessagesPage />;
+        case 'categories':
+          return <JobCategoriesPage />;
+      case 'reports-statistics':
+        return <ReportsPage />;
+      case 'reports-tables':
+        return <TableReportsPage />;
+      case 'settings':
+        return <SettingsPage />;
+      default:
+        return renderDashboardContent();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sticky Sidebar */}
-      <AdminSidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        navigationItems={navigationItems}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <AdminHeader
         user={user}
         onLogout={handleLogout}
+        onSearch={handleSearch}
+        onFilter={handleFilter}
+        searchTerm={searchTerm}
+        onRefresh={refreshDashboardData}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Sticky Header */}
-        <AdminHeader
+      <div className="flex">
+        {/* Sidebar */}
+        <AdminSidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          navigationItems={[
+            { id: 'dashboard', label: 'Dashboard', icon: 'Home' },
+            { id: 'job-seekers', label: 'Job Seekers', icon: 'Users' },
+                    { id: 'requests', label: 'Employer Requests', icon: 'MessageSquare' },
+        { id: 'contact-messages', label: 'Contact Messages', icon: 'Mail' },
+        { id: 'categories', label: 'Categories', icon: 'Briefcase' },
+            { 
+              id: 'reports', 
+              label: 'Reports', 
+              icon: 'BarChart3',
+              subItems: [
+                { id: 'reports-statistics', label: 'Statistics Reports' },
+                { id: 'reports-tables', label: 'Table Reports' }
+              ]
+            },
+            { id: 'settings', label: 'Settings', icon: 'Settings' }
+          ]}
           activeTab={activeTab}
-          navigationItems={navigationItems}
-          onSearch={handleSearch}
-          onFilter={handleFilter}
-          onSidebarToggle={handleSidebarToggle}
+          setActiveTab={setActiveTab}
+          user={user}
+          onLogout={handleLogout}
         />
 
-        {/* Dashboard Content */}
-        <div className="flex-1 overflow-auto p-6">
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                  <StatCard
-                    key={stat.title}
-                    {...stat}
-                    index={index}
-                  />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Recent Employer Requests */}
-                <Card className="rounded-lg shadow-md p-4 md:p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Recent Employer Requests</h2>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      View All
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {recentRequests.map((request) => (
-                      <RequestCard
-                        key={request.id}
-                        request={request}
-                        onContactEmployer={handleContactEmployer}
-                        onViewDetails={handleRequestAction}
-                        getStatusColor={getStatusColor}
-                        getPriorityColor={getPriorityColor}
-                      />
-                    ))}
-                  </div>
-                </Card>
-
-                {/* Recent Job Seekers */}
-                <Card className="rounded-lg shadow-md p-4 md:p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Recent Job Seekers</h2>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      View All
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {recentJobSeekers.map((jobSeeker) => (
-                      <JobSeekerCard
-                        key={jobSeeker.id}
-                        jobSeeker={jobSeeker}
-                        onViewDetails={(seeker) => console.log('View job seeker:', seeker)}
-                        getCategoryColor={getCategoryColor}
-                      />
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* Job Seekers Page */}
-          {activeTab === 'jobseekers' && (
-            <JobSeekersPage />
-          )}
-
-          {/* Employer Requests Page */}
-          {activeTab === 'requests' && (
-            <EmployerRequestsPage />
-          )}
-
-          {/* Reports Page */}
-          {activeTab === 'reports' && (
-            <ReportsPage />
-          )}
-
-          {/* Settings Page */}
-          {activeTab === 'settings' && (
-            <SettingsPage />
-          )}
-
-          {/* Other tabs content */}
-          {!['dashboard', 'jobseekers', 'requests', 'reports', 'settings'].includes(activeTab) && (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {navigationItems.find(item => item.id === activeTab)?.label} Coming Soon
-                </h3>
-                <p className="text-gray-600">This feature is under development.</p>
-              </div>
-            </div>
-          )}
+        {/* Main Content */}
+        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0' : 'ml-0'}`}>
+          <div className="p-4 lg:p-6">
+            {renderTabContent()}
+          </div>
         </div>
       </div>
 
-      {/* Request Processing Modal */}
-      <Modal
-        isOpen={showRequestModal}
-        onClose={() => setShowRequestModal(false)}
-        title="Process Request"
-        maxWidth="max-w-full"
-        maxHeight="max-h-full"
-        padding="p-4"
-      >
-        {selectedRequest && (
-          <>
-            {/* Request Details */}
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Employer Information</h3>
-                  <p className="text-sm text-gray-600">{selectedRequest.employerName}</p>
-                  <p className="text-sm text-gray-600">{selectedRequest.companyName}</p>
-                  <div className="flex items-center space-x-4 mt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      onClick={() => handleContactEmployer(selectedRequest.employerContact, 'email')}
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Email
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      onClick={() => handleContactEmployer(selectedRequest.employerContact, 'phone')}
-                    >
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call
-                    </Button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Candidate Information</h3>
-                  <p className="text-sm text-gray-600">{selectedRequest.candidateName}</p>
-                  <p className="text-sm text-gray-600">{selectedRequest.position}</p>
-                  <p className="text-sm text-gray-600">
-                    Daily Rate: {selectedRequest.dailyRate.toLocaleString()} RWF
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Monthly Rate: {selectedRequest.monthlyRate.toLocaleString()} RWF
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Employer Message</h3>
-                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                  {selectedRequest.message}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Admin Notes</h3>
-                <textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Add notes about your contact with the employer..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-                  rows="4"
-                />
-              </div>
+      {/* Request Modal */}
+      {showRequestModal && selectedRequest && (
+        <Modal
+          isOpen={showRequestModal}
+          onClose={() => setShowRequestModal(false)}
+          title="Update Request Status"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={selectedRequest.status}
+                onChange={(e) => setSelectedRequest({
+                  ...selectedRequest,
+                  status: e.target.value
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              >
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end space-x-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Admin Notes
+              </label>
+              <textarea
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Add notes about this request..."
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
               <Button
-                variant="outline"
                 onClick={() => setShowRequestModal(false)}
-                className="min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                variant="outline"
               >
                 Cancel
               </Button>
-              
-              {selectedRequest.status !== 'completed' && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'in_progress', adminNotes)}
-                    className="text-blue-600 border-blue-200 hover:bg-blue-50 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    Mark In Progress
-                  </Button>
-                  
-                  <Button
-                    variant="primary"
-                    onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'completed', adminNotes)}
-                    className="bg-green-600 hover:bg-green-700 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    Mark Completed
-                  </Button>
-                </>
-              )}
-              
-              {selectedRequest.status === 'completed' && (
-                <Button
-                  variant="outline"
-                  onClick={() => handleUpdateRequestStatus(selectedRequest.id, 'in_progress', adminNotes)}
-                  className="text-orange-600 border-orange-200 hover:bg-orange-50 min-h-[44px] rounded-lg transition-all focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                >
-                  Reopen Request
-                </Button>
-              )}
+              <Button
+                onClick={() => handleUpdateRequestStatus(
+                  selectedRequest.id,
+                  selectedRequest.status,
+                  adminNotes
+                )}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Update Status
+              </Button>
             </div>
-          </>
-        )}
-      </Modal>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

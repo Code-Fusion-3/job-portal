@@ -214,9 +214,11 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link to="/login">
               <Button variant="primary" size="lg">
                 {t('hero.cta.primary')}
               </Button>
+              </Link>
               <Link to="/job-seekers">
                 <Button as="div" variant="secondary" size="lg">
                   {t('hero.cta.secondary')}

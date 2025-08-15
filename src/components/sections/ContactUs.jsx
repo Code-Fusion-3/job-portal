@@ -1,18 +1,65 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { contactInfo } from '../../data/mockData';
+import { submitContact } from '../../api/services/contactService';
+
+// Static data with translation keys
+const contactInfo = [
+  {
+    id: 1,
+    titleKey: 'contact.info.email.title',
+    value: 'info@jobportal.com',
+    descriptionKey: 'contact.info.email.desc',
+    icon: 'Mail'
+  },
+  {
+    id: 2,
+    titleKey: 'contact.info.phone.title',
+    value: '+250 789 123 456',
+    descriptionKey: 'contact.info.phone.desc',
+    icon: 'Phone'
+  },
+  {
+    id: 3,
+    titleKey: 'contact.info.office.title',
+    value: 'Kigali, Rwanda',
+    descriptionKey: 'contact.info.office.desc',
+    icon: 'MapPin'
+  },
+  {
+    id: 4,
+    titleKey: 'contact.info.businessHours.title',
+    value: 'Monday - Friday: 8:00 AM - 6:00 PM',
+    descriptionKey: 'contact.info.businessHours.desc',
+    icon: 'Clock'
+  }
+];
 
 const ContactUs = () => {
   const { t } = useTranslation();
+
+  // Error handling for translation
+  const safeTranslate = (key, fallback) => {
+    try {
+      return t(key, fallback);
+    } catch (error) {
+      console.error(`Translation error for key: ${key}`, error);
+      return fallback;
+    }
+  };
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    priority: 'normal', // Default to normal priority (backend compatible)
+    category: 'general' // Default to general (backend compatible)
   });
 
   const containerVariants = {
@@ -49,20 +96,35 @@ const ContactUs = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Clear previous errors
+    setSubmitError('');
+    setIsSubmitting(true);
     
-    setIsSubmitted(true);
+    try {
+      const result = await submitContact(formData);
+      
+      if (result.success) {
+        setIsSubmitted(true);
     
     // Reset form after 3 seconds
     setTimeout(() => {
       setIsSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '', priority: 'normal', category: 'general' });
     }, 3000);
+      } else {
+        console.error('❌ Contact submission failed:', result.error);
+        setSubmitError(result.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error submitting contact form:', error);
+      setSubmitError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderIcon = (iconName) => {
-    const icons = { Mail, Phone, MapPin };
+    const icons = { Mail, Phone, MapPin, Clock };
     const IconComponent = icons[iconName];
     return IconComponent ? <IconComponent className="w-6 h-6" /> : null;
   };
@@ -78,12 +140,20 @@ const ContactUs = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            {t('contact.title', 'Contact Us')}
+            {safeTranslate('contact.title', 'Contact Us')}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t('contact.subtitle', 'Get in touch with us. We\'d love to hear from you and answer any questions you might have.')}
+            {safeTranslate('contact.subtitle', 'Get in touch with us. We\'d love to hear from you and answer any questions you might have.')}
           </p>
         </motion.div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                {safeTranslate('contact.info.title', 'Get in Touch')}
+              </h3>
+              <p className="text-gray-600 mb-8">
+                {safeTranslate('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
+              </p>
+            </div>
 
         <motion.div
           variants={containerVariants}
@@ -94,14 +164,6 @@ const ContactUs = () => {
         >
           {/* Contact Information */}
           <motion.div variants={itemVariants} className="space-y-8">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                {t('contact.info.title', 'Get in Touch')}
-              </h3>
-              <p className="text-gray-600 mb-8">
-                {t('contact.info.description', 'We\'re here to help and answer any questions you might have. We look forward to hearing from you.')}
-              </p>
-            </div>
 
             <div className="space-y-6">
               {contactInfo.map((info) => (
@@ -117,13 +179,13 @@ const ContactUs = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">
-                      {t(`contact.info.${info.id}.title`, info.title)}
+                      {safeTranslate(info.titleKey, info.titleKey)}
                     </h4>
                     <p className="text-gray-600 mb-1">
-                      {t(`contact.info.${info.id}.value`, info.value)}
+                      {info.value}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {t(`contact.info.${info.id}.description`, info.description)}
+                      {safeTranslate(info.descriptionKey, info.descriptionKey)}
                     </p>
                   </div>
                 </motion.div>
@@ -142,7 +204,7 @@ const ContactUs = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.name', 'Full Name')}
+                    {safeTranslate('contact.form.name', 'Full Name')}
                   </label>
                   <input
                     type="text"
@@ -152,13 +214,13 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.namePlaceholder', 'Enter your full name')}
+                    placeholder={safeTranslate('contact.form.namePlaceholder', 'Enter your full name')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.email', 'Email Address')}
+                    {safeTranslate('contact.form.email', 'Email Address')}
                   </label>
                   <input
                     type="email"
@@ -168,13 +230,13 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.emailPlaceholder', 'Enter your email address')}
+                    placeholder={safeTranslate('contact.form.emailPlaceholder', 'Enter your email address')}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.subject', 'Subject')}
+                    {safeTranslate('contact.form.subject', 'Subject')}
                   </label>
                   <input
                     type="text"
@@ -184,13 +246,60 @@ const ContactUs = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.subjectPlaceholder', 'Enter subject')}
+                    placeholder={safeTranslate('contact.form.subjectPlaceholder', 'Enter subject')}
                   />
                 </div>
 
                 <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('contact.form.category', 'Category')}
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 bg-white"
+                  >
+                    <option value="general">{t('contact.form.categoryGeneral', 'General')}</option>
+                    <option value="support">{t('contact.form.categorySupport', 'Support')}</option>
+                    <option value="feedback">{t('contact.form.categoryFeedback', 'Feedback')}</option>
+                    <option value="business">{t('contact.form.categoryBusiness', 'Business')}</option>
+                    <option value="other">{t('contact.form.categoryOther', 'Other')}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('contact.form.priority', 'Priority')}
+                  </label>
+                  <select
+                    id="priority"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 bg-white"
+                  >
+                    <option value="low">
+                      {t('contact.form.priorityLow', 'Low Priority')}
+                    </option>
+                    <option value="normal">
+                      {t('contact.form.priorityNormal', 'Normal Priority')}
+                    </option>
+                    <option value="high">
+                      {t('contact.form.priorityHigh', 'High Priority')}
+                    </option>
+                    <option value="urgent">
+                      {t('contact.form.priorityUrgent', 'Urgent Priority')}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('contact.form.message', 'Message')}
+                    {safeTranslate('contact.form.message', 'Message')}
                   </label>
                   <textarea
                     id="message"
@@ -200,18 +309,39 @@ const ContactUs = () => {
                     required
                     rows={5}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 resize-none text-gray-900 placeholder-gray-500"
-                    placeholder={t('contact.form.messagePlaceholder', 'Enter your message')}
+                    placeholder={safeTranslate('contact.form.messagePlaceholder', 'Enter your message')}
                   />
                 </div>
+
+                {submitError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2"
+                  >
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <span className="text-red-800 text-sm">{submitError}</span>
+                  </motion.div>
+                )}
 
                 <Button
                   type="submit"
                   variant="primary"
                   size="lg"
                   className="w-full group"
+                  disabled={isSubmitting}
                 >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      {safeTranslate('contact.form.sending', 'Sending...')}
+                    </>
+                  ) : (
+                    <>
                   <Send className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform duration-200" />
-                  {t('contact.form.submit', 'Send Message')}
+                  {safeTranslate('contact.form.submit', 'Send Message')}
+                    </>
+                  )}
                 </Button>
               </form>
             ) : (
@@ -224,10 +354,10 @@ const ContactUs = () => {
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {t('contact.success.title', 'Message Sent Successfully!')}
+                  {safeTranslate('contact.success.title', 'Message Sent Successfully!')}
                 </h3>
                 <p className="text-gray-600">
-                  {t('contact.success.message', 'Thank you for your message. We\'ll get back to you as soon as possible.')}
+                  {safeTranslate('contact.success.message', 'Thank you for your message. We\'ll get back to you as soon as possible.')}
                 </p>
               </motion.div>
             )}

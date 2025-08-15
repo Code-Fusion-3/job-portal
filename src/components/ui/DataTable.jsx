@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { ChevronUp, ChevronDown, MoreHorizontal } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Button from './Button';
 import Badge from './Badge';
+import { ChevronUp, ChevronDown, Search, MoreHorizontal } from 'lucide-react';
 
 const DataTable = ({ 
   columns, 
@@ -14,13 +14,12 @@ const DataTable = ({
   onFilterChange,
   pagination = false,
   itemsPerPage = 10,
-  className = ''
+  className = '',
+  showSearch = true
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Sorting logic
   const handleSort = (column) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -30,8 +29,9 @@ const DataTable = ({
     }
   };
 
-  // Filter and sort data
-  const filteredData = data.filter(item => {
+  // Filter and sort data - ensure data is an array
+  const safeData = Array.isArray(data) ? data : [];
+  const filteredData = safeData.filter(item => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return columns.some(col => 
@@ -61,8 +61,9 @@ const DataTable = ({
   const paginatedData = pagination ? sortedData.slice(startIndex, endIndex) : sortedData;
 
   const renderCell = (item, column) => {
+    
     if (column.render) {
-      return column.render(item[column.key], item);
+      return column.render(item);
     }
     
     if (column.type === 'badge') {
@@ -98,7 +99,7 @@ const DataTable = ({
       {(searchTerm !== undefined || filters.length > 0) && (
         <div className="p-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row gap-4">
-            {searchTerm !== undefined && (
+            {showSearch && searchTerm !== undefined && (
               <div className="flex-1">
                 <input
                   type="text"
@@ -130,66 +131,64 @@ const DataTable = ({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
-                  }`}
-                  onClick={() => column.sortable && handleSort(column.key)}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
-                    {column.sortable && sortColumn === column.key && (
-                      sortDirection === 'asc' ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )
-                    )}
-                  </div>
-                </th>
-              ))}
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.map((item, index) => (
-              <tr key={item.id || index} className="hover:bg-gray-50">
+      <div className="grid grid-cols-1 md:grid-cols-2 overflow-x-auto">
+        <div className="">
+          <table className="">
+            <thead className="bg-gray-50">
+              <tr>
                 {columns.map((column) => (
-                  <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {renderCell(item, column)}
-                  </td>
+                  <th
+                    key={column.key}
+                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                    }`}
+                    onClick={() => column.sortable && handleSort(column.key)}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{column.label}</span>
+                      {column.sortable && sortColumn === column.key && (
+                        sortDirection === 'asc' ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )
+                      )}
+                    </div>
+                  </th>
                 ))}
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    {actionButtons.map((action, actionIndex) => {
-                      const IconComponent = action.icon;
-                      return (
-                        <Button
-                          key={actionIndex}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onRowAction?.(action.key, item)}
-                          className={action.className}
-                          title={action.title}
-                        >
-                          <IconComponent />
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </td>
+                {actionButtons && actionButtons.length > 0 && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                )}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedData.map((item, index) => (
+                <tr key={item.id || index} className="hover:bg-gray-50">
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {renderCell(item, column)}
+                    </td>
+                  ))}
+                  {actionButtons && actionButtons.length > 0 && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRowAction?.('openActions', item)}
+                        className="text-gray-600 hover:bg-gray-100"
+                        title="Actions"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}

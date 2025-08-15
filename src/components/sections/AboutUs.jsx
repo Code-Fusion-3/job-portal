@@ -1,10 +1,75 @@
-import { motion } from 'framer-motion';
+import React from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import * as LucideIcons from 'lucide-react';
-import { statsData, valuesData } from '../../data/mockData';
+import Card from '../ui/Card';
+
+// Static data moved from mockData.js
+const statsData = [
+  { 
+    id: 1,
+    label: 'Active Workers', 
+    number: '500+',
+    icon: '👥'
+  },
+  { 
+    id: 2,
+    label: 'Happy Clients', 
+    number: '1000+',
+    icon: '😊'
+  },
+  { 
+    id: 3,
+    label: 'Cities Covered', 
+    number: '10+',
+    icon: '🏙️'
+  },
+  { 
+    id: 4,
+    label: 'Years Experience', 
+    number: '5+',
+    icon: '⭐'
+  }
+];
+
+const valuesData = [
+  {
+    id: 1,
+    title: 'Reliability',
+    description: 'We ensure all workers are dependable and trustworthy.',
+    icon: '🤝'
+  },
+  {
+    id: 2,
+    title: 'Quality',
+    description: 'High standards for all services and worker qualifications.',
+    icon: '✨'
+  },
+  {
+    id: 3,
+    title: 'Transparency',
+    description: 'Clear pricing and honest communication throughout.',
+    icon: '🔍'
+  },
+  {
+    id: 4,
+    title: 'Innovation',
+    description: 'Continuously improving our platform and services.',
+    icon: '🚀'
+  }
+];
 
 const AboutUs = () => {
   const { t } = useTranslation();
+
+  // Error handling for translation
+  const safeTranslate = (key, fallback) => {
+    try {
+      return t(key, fallback);
+    } catch (error) {
+      console.error(`Translation error for key: ${key}`, error);
+      return fallback;
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -30,8 +95,8 @@ const AboutUs = () => {
   };
 
   const renderIcon = (iconName) => {
-    const IconComponent = LucideIcons[iconName];
-    return IconComponent ? <IconComponent className="w-8 h-8" /> : null;
+    // Since we're using emoji icons, just return the emoji as text
+    return <span className="text-2xl">{iconName}</span>;
   };
 
   return (
@@ -45,10 +110,10 @@ const AboutUs = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold mb-4">
-            {t('about.title', 'About Us')}
+            {safeTranslate('about.title', 'About Us')}
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            {t('about.subtitle', 'Connecting talent with opportunity across Rwanda through innovative technology and personalized service.')}
+            {safeTranslate('about.subtitle', 'Connecting talent with opportunity across Rwanda through innovative technology and personalized service.')}
           </p>
         </motion.div>
 
@@ -83,31 +148,6 @@ const AboutUs = () => {
           </motion.div>
         </motion.div>
 
-        {/* Statistics */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20"
-        >
-          {statsData.map((stat, index) => (
-            <motion.div
-              key={stat.id}
-              variants={itemVariants}
-              className="text-center floating-stat"
-            >
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                {renderIcon(stat.icon)}
-              </div>
-              <div className="text-3xl font-bold text-red-400 mb-2 counter" data-target={stat.number.replace(/\D/g, '')}>
-                {stat.number}
-              </div>
-              <div className="text-gray-300">{t(`about.stats.${stat.id}.label`, stat.label)}</div>
-            </motion.div>
-          ))}
-        </motion.div>
-
         {/* Core Values */}
         <motion.div
           variants={containerVariants}
@@ -125,7 +165,7 @@ const AboutUs = () => {
               <motion.div
                 key={value.id}
                 variants={itemVariants}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-colors duration-300"
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-red-600/20 transition-colors duration-300"
               >
                 <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   {renderIcon(value.icon)}

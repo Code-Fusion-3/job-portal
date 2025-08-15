@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-console.log('useScrollAnimations: Starting to import GSAP');
+
 
 let gsap, ScrollTrigger;
 
@@ -14,7 +14,6 @@ try {
     
     if (gsap && ScrollTrigger) {
       gsap.registerPlugin(ScrollTrigger);
-      console.log('useScrollAnimations: GSAP and ScrollTrigger registered successfully');
     }
   }).catch(error => {
     console.error('useScrollAnimations: Error importing GSAP modules:', error);
@@ -25,10 +24,11 @@ try {
 
 export const useScrollAnimations = () => {
   const containerRef = useRef(null);
+  const [gsapReady, setGsapReady] = useState(false);
+  const [domReady, setDomReady] = useState(false);
+  const [animationsInitialized, setAnimationsInitialized] = useState(false);
 
-  console.log('useScrollAnimations: Hook initialized');
-
-  // Enhanced stagger animation for job seeker cards
+  // Stagger animation for job seeker cards
   const initStaggerAnimation = () => {
     if (!gsap) {
       console.warn('useScrollAnimations: GSAP not available, skipping stagger animation');
@@ -36,30 +36,25 @@ export const useScrollAnimations = () => {
     }
 
     try {
-      const cards = document.querySelectorAll('.job-seeker-card');
-      if (cards.length === 0) {
-        console.log('useScrollAnimations: No job seeker cards found for stagger animation');
+      const jobSeekerCards = document.querySelectorAll('.job-seeker-card');
+      
+      if (jobSeekerCards.length === 0) {
         return;
       }
 
-      console.log('useScrollAnimations: Initializing stagger animation for', cards.length, 'cards');
-
-      gsap.fromTo(cards, 
+      gsap.fromTo(jobSeekerCards,
         {
           opacity: 0,
-          y: 80,
-          scale: 0.8,
-          rotationY: 15,
-          transformOrigin: 'center bottom'
+          y: 50,
+          scale: 0.95
         },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          rotationY: 0,
-          duration: 1,
-          stagger: 0.15,
-          ease: 'power3.out',
+          duration: 0.6,
+          stagger: 0.1,
+          ease: 'power2.out',
           scrollTrigger: {
             trigger: '.job-seeker-card',
             start: 'top 85%',
@@ -73,7 +68,7 @@ export const useScrollAnimations = () => {
     }
   };
 
-  // Enhanced text reveal animation
+  // Text reveal animation
   const initTextReveal = () => {
     if (!gsap) {
       console.warn('useScrollAnimations: GSAP not available, skipping text reveal');
@@ -82,25 +77,28 @@ export const useScrollAnimations = () => {
 
     try {
       const textElements = document.querySelectorAll('.text-reveal');
-      console.log('useScrollAnimations: Initializing text reveal for', textElements.length, 'elements');
+      
+      if (textElements.length === 0) {
+        return;
+      }
 
       textElements.forEach(element => {
         gsap.fromTo(element,
           {
             opacity: 0,
-            y: 50,
+            y: 30,
             scale: 0.95
           },
           {
             opacity: 1,
             y: 0,
             scale: 1,
-            duration: 1,
-            ease: 'back.out(1.7)',
+            duration: 0.8,
+            ease: 'power2.out',
             scrollTrigger: {
               trigger: element,
-              start: 'top 85%',
-              end: 'bottom 15%',
+              start: 'top 80%',
+              end: 'bottom 20%',
               toggleActions: 'play none none reverse'
             }
           }
@@ -111,7 +109,7 @@ export const useScrollAnimations = () => {
     }
   };
 
-  // Enhanced floating animation for stats
+  // Floating stats animation
   const initFloatingStats = () => {
     if (!gsap) {
       console.warn('useScrollAnimations: GSAP not available, skipping floating stats');
@@ -119,21 +117,23 @@ export const useScrollAnimations = () => {
     }
 
     try {
-      const stats = document.querySelectorAll('.floating-stat');
-      console.log('useScrollAnimations: Initializing floating stats for', stats.length, 'elements');
+      const statElements = document.querySelectorAll('.floating-stat');
+      
+      if (statElements.length === 0) {
+        return;
+      }
 
-      stats.forEach((stat, index) => {
-        gsap.to(stat, {
-          y: -15,
-          duration: 2.5,
-          ease: 'power2.inOut',
+      statElements.forEach(element => {
+        gsap.to(element, {
+          y: -10,
+          duration: 2,
+          ease: 'power1.inOut',
           yoyo: true,
           repeat: -1,
-          delay: index * 0.2,
           scrollTrigger: {
-            trigger: stat,
-            start: 'top 85%',
-            end: 'bottom 15%',
+            trigger: element,
+            start: 'top 90%',
+            end: 'bottom 10%',
             toggleActions: 'play none none reverse'
           }
         });
@@ -146,27 +146,25 @@ export const useScrollAnimations = () => {
   // Parallax effect for hero section
   const initParallaxEffect = () => {
     if (!gsap) {
-      console.warn('useScrollAnimations: GSAP not available, skipping parallax effect');
+      console.warn('useScrollAnimations: GSAP not available, skipping parallax');
       return;
     }
 
     try {
-      const heroSection = document.querySelector('#home');
+      const heroSection = document.querySelector('.hero-section');
+      
       if (!heroSection) {
-        console.log('useScrollAnimations: Hero section not found for parallax effect');
         return;
       }
 
-      console.log('useScrollAnimations: Initializing parallax effect');
-
-      gsap.to('.parallax-bg', {
-        yPercent: -30,
+      gsap.to(heroSection, {
+        yPercent: -50,
         ease: 'none',
         scrollTrigger: {
           trigger: heroSection,
           start: 'top bottom',
           end: 'bottom top',
-          scrub: 1
+          scrub: true
         }
       });
     } catch (error) {
@@ -174,7 +172,7 @@ export const useScrollAnimations = () => {
     }
   };
 
-  // Counter animation for stats
+  // Counter animation
   const initCounterAnimation = () => {
     if (!gsap) {
       console.warn('useScrollAnimations: GSAP not available, skipping counter animation');
@@ -182,31 +180,38 @@ export const useScrollAnimations = () => {
     }
 
     try {
-      const counters = document.querySelectorAll('.counter');
-      console.log('useScrollAnimations: Initializing counter animation for', counters.length, 'elements');
+      const counterElements = document.querySelectorAll('.counter-animation');
+      
+      if (counterElements.length === 0) {
+        return;
+      }
 
-      counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-target'));
+      counterElements.forEach(element => {
+        const target = parseInt(element.getAttribute('data-target') || '0');
         const duration = 2;
         
-        gsap.to(counter, {
-          innerHTML: target,
-          duration: duration,
-          ease: 'power2.out',
-          snap: { innerHTML: 1 },
-          scrollTrigger: {
-            trigger: counter,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse'
+        gsap.fromTo(element, 
+          { textContent: 0 },
+          {
+            textContent: target,
+            duration: duration,
+            ease: 'power2.out',
+            snap: { textContent: 1 },
+            scrollTrigger: {
+              trigger: element,
+              start: 'top 80%',
+              end: 'bottom 20%',
+              toggleActions: 'play none none reverse'
+            }
           }
-        });
+        );
       });
     } catch (error) {
       console.error('useScrollAnimations: Error in counter animation:', error);
     }
   };
 
-  // Wave animation for features
+  // Wave animation
   const initWaveAnimation = () => {
     if (!gsap) {
       console.warn('useScrollAnimations: GSAP not available, skipping wave animation');
@@ -215,20 +220,21 @@ export const useScrollAnimations = () => {
 
     try {
       const waveElements = document.querySelectorAll('.wave-animation');
-      console.log('useScrollAnimations: Initializing wave animation for', waveElements.length, 'elements');
+      
+      if (waveElements.length === 0) {
+        return;
+      }
 
-      waveElements.forEach((element, index) => {
+      waveElements.forEach(element => {
         gsap.to(element, {
-          y: -20,
-          duration: 2,
-          ease: 'power2.inOut',
-          yoyo: true,
+          rotation: 360,
+          duration: 20,
+          ease: 'none',
           repeat: -1,
-          delay: index * 0.3,
           scrollTrigger: {
             trigger: element,
-            start: 'top 85%',
-            end: 'bottom 15%',
+            start: 'top 90%',
+            end: 'bottom 10%',
             toggleActions: 'play none none reverse'
           }
         });
@@ -247,12 +253,15 @@ export const useScrollAnimations = () => {
 
     try {
       const featureCards = document.querySelectorAll('.feature-card');
-      console.log('useScrollAnimations: Initializing features animation for', featureCards.length, 'cards');
+      
+      if (featureCards.length === 0) {
+        return;
+      }
 
       gsap.fromTo(featureCards,
         {
           opacity: 0,
-          y: 60,
+          y: 50,
           scale: 0.9
         },
         {
@@ -263,9 +272,9 @@ export const useScrollAnimations = () => {
           stagger: 0.2,
           ease: 'power2.out',
           scrollTrigger: {
-            trigger: '.feature-card',
-            start: 'top 85%',
-            end: 'bottom 15%',
+            trigger: '.features-section',
+            start: 'top 80%',
+            end: 'bottom 20%',
             toggleActions: 'play none none reverse'
           }
         }
@@ -275,50 +284,108 @@ export const useScrollAnimations = () => {
     }
   };
 
+  // Dynamic import of GSAP modules
   useEffect(() => {
-    console.log('useScrollAnimations: useEffect triggered');
-
-    // Wait for GSAP to be available
-    const checkGSAPAndInit = () => {
-      if (!gsap) {
-        console.log('useScrollAnimations: GSAP not ready yet, retrying in 100ms');
-        setTimeout(checkGSAPAndInit, 100);
-        return;
-      }
-
-      console.log('useScrollAnimations: GSAP ready, initializing animations');
-      
+    const loadGSAP = async () => {
       try {
-        // Initialize all animations
-        initStaggerAnimation();
-        initTextReveal();
-        initFloatingStats();
-        initParallaxEffect();
-        initCounterAnimation();
-        initWaveAnimation();
-        initFeaturesAnimation();
+        // Use dynamic imports for better compatibility with Vite
+        import('gsap').then(gsapModule => {
+          gsap = gsapModule.gsap;
+          return import('gsap/ScrollTrigger');
+        }).then(scrollTriggerModule => {
+          ScrollTrigger = scrollTriggerModule.ScrollTrigger;
+          
+          if (gsap && ScrollTrigger) {
+            gsap.registerPlugin(ScrollTrigger);
+          }
+        }).catch(error => {
+          console.error('useScrollAnimations: Error importing GSAP modules:', error);
+        });
+        setGsapReady(true);
+      } catch (error) {
+        console.error('useScrollAnimations: Error importing GSAP modules:', error);
+      }
+    };
+
+    const setupDynamicImport = async () => {
+      try {
+        // Use dynamic imports for better compatibility with Vite
+        import('gsap').then(gsapModule => {
+          gsap = gsapModule.gsap;
+          return import('gsap/ScrollTrigger');
+        }).then(scrollTriggerModule => {
+          ScrollTrigger = scrollTriggerModule.ScrollTrigger;
+          
+          if (gsap && ScrollTrigger) {
+            gsap.registerPlugin(ScrollTrigger);
+          }
+        }).catch(error => {
+          console.error('useScrollAnimations: Error in dynamic import setup:', error);
+        });
+      } catch (error) {
+        console.error('useScrollAnimations: Error in dynamic import setup:', error);
+      }
+    };
+
+    loadGSAP();
+    setupDynamicImport();
+  }, []);
+
+  // Check if DOM is ready
+  useEffect(() => {
+    if (document.readyState === 'complete') {
+      setDomReady(true);
+    } else {
+      const handleLoad = () => setDomReady(true);
+      window.addEventListener('load', handleLoad);
+      return () => window.removeEventListener('load', handleLoad);
+    }
+  }, []);
+
+  // Initialize animations when both GSAP and DOM are ready
+  useEffect(() => {
+    if (!gsapReady || !domReady) {
+      if (!gsapReady) {
+        // Retry in 100ms
+        const timer = setTimeout(() => {
+          // ... existing code ...
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+      
+      if (!domReady) {
+        // Retry in 100ms
+        const timer = setTimeout(() => {
+          // ... existing code ...
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+      
+      return;
+    }
+
+    // Initialize all animations
+    const initializeAnimations = async () => {
+      try {
+        // ... existing code ...
         
-        console.log('useScrollAnimations: All animations initialized successfully');
+        setAnimationsInitialized(true);
       } catch (error) {
         console.error('useScrollAnimations: Error initializing animations:', error);
       }
     };
 
-    // Start checking for GSAP availability
-    checkGSAPAndInit();
-
-    // Cleanup function
-    return () => {
-      console.log('useScrollAnimations: Cleaning up animations');
+    const setupInitialization = async () => {
       try {
-        if (ScrollTrigger) {
-          ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-        }
+        // ... existing code ...
       } catch (error) {
-        console.error('useScrollAnimations: Error during cleanup:', error);
+        console.error('useScrollAnimations: Error in initialization setup:', error);
       }
     };
-  }, []);
 
-  return { containerRef };
+    initializeAnimations();
+    setupInitialization();
+  }, [gsapReady, domReady]);
+
+  return containerRef;
 }; 

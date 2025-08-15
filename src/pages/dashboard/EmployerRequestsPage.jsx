@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   MessageSquare, 
@@ -11,256 +12,315 @@ import {
   Phone,
   Calendar,
   User,
-  Building
+  Building,
+  RefreshCw,
+  Play,
+  MoreHorizontal,
+  Search,
+  Filter,
+  X
 } from 'lucide-react';
+import { useRequests } from '../../api/hooks/useRequests.js';
+import { useAuth } from '../../api/hooks/useAuth.js';
+import { categoryService } from '../../api/services/categoryService.js';
+import { useCategories } from '../../api/hooks/useCategories.js';
+import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
-import SearchFilter from '../../components/ui/SearchFilter';
 import StatsGrid from '../../components/ui/StatsGrid';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
+import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import API_CONFIG from '../../api/config/apiConfig.js';
+
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
+import { motion } from 'motion/react';
+import toast, { Toaster } from 'react-hot-toast';
 
 const EmployerRequestsPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   
+  // Hooks
+  const {
+    requests: safeData, 
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    totalItems,
+    pageInfo,
+    hasNextPage,
+    hasPrevPage,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilters,
+    goToPage,
+    nextPage,
+    prevPage,
+    applyFilters,
+    replyToRequest,
+    selectJobSeekerForRequest,
+    updateRequestStatus // Added updateRequestStatus to useRequests hook
+  } = useRequests({ includeAdmin: true });
+
+  const { categories, loadingCategories, fetchCategories } = useCategories();
+
+  // Filter options
+  const filterOptions = {
+    status: [
+      { value: '', label: 'All Statuses' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'in_progress', label: 'In Progress' },
+      { value: 'approved', label: 'Approved' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'cancelled', label: 'Cancelled' }
+    ],
+    priority: [
+      { value: '', label: 'All Priorities' },
+      { value: 'urgent', label: 'Urgent' },
+      { value: 'high', label: 'High' },
+      { value: 'normal', label: 'Normal' },
+      { value: 'low', label: 'Low' }
+    ],
+    category: [
+      { value: '', label: 'All Categories' },
+      ...(categories || []).map(cat => ({
+        value: cat.name_en.toLowerCase(),
+        label: cat.name_en
+      }))
+    ],
+    dateRange: [
+      { value: '', label: 'All Time' },
+      { value: 'today', label: 'Today' },
+      { value: 'week', label: 'This Week' },
+      { value: 'month', label: 'This Month' },
+      { value: 'quarter', label: 'This Quarter' },
+      { value: 'year', label: 'This Year' }
+    ],
+    monthlyRateRange: [
+      { value: '', label: 'All Rates' },
+      { value: '0-50000', label: '0 - 50,000 RWF' },
+      { value: '50000-100000', label: '50,000 - 100,000 RWF' },
+      { value: '100000-200000', label: '100,000 - 200,000 RWF' },
+      { value: '200000+', label: '200,000+ RWF' }
+    ],
+
+  };
+
   // State management
-  const [requests, setRequests] = useState([]);
-  const [filteredRequests, setFilteredRequests] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [adminNotes, setAdminNotes] = useState('');
+  const [replyMessage, setReplyMessage] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replyError, setReplyError] = useState('');
+  
+  // Candidate selection state
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidateSelectionLoading, setCandidateSelectionLoading] = useState(false);
+  const [candidateSelectionError, setCandidateSelectionError] = useState('');
+  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
+  const [candidateDetailsType, setCandidateDetailsType] = useState('picture'); // 'picture' or 'full'
 
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  // Completion state
+  const [completionLoading, setCompletionLoading] = useState(false);
+  const [completionError, setCompletionError] = useState('');
+  const [completionNotes, setCompletionNotes] = useState('');
 
-  // Mock data for employer requests
-  const mockRequests = [
-    {
-      id: 1,
-      employerName: 'Mrs. Uwimana',
-      companyName: 'Private Household',
-      candidateName: 'Francine Mukamana',
-      position: 'Housemaid',
-      status: 'pending',
-      priority: 'high',
-      date: '2024-01-15T10:30:00Z',
-      dailyRate: 5000,
-      monthlyRate: 120000,
-      message: 'Need reliable housemaid for daily cleaning and cooking. We have a family of 4 with 2 children. Looking for someone who can start immediately.',
-      employerContact: {
-        email: 'uwimana@email.com',
-        phone: '+250 788 111 111'
-      },
-      adminNotes: '',
-      lastContactDate: null,
-      isCompleted: false,
-      category: 'domestic'
-    },
-    {
-      id: 2,
-      employerName: 'Mr. Ndayisaba',
-      companyName: 'Hotel Rwanda',
-      candidateName: 'Jean Pierre Ndayisaba',
-      position: 'Driver',
-      status: 'in_progress',
-      priority: 'medium',
-      date: '2024-01-14T14:20:00Z',
-      dailyRate: 6000,
-      monthlyRate: 150000,
-      message: 'Looking for experienced driver for hotel transportation. Must have clean driving record and be available for shift work.',
-      employerContact: {
-        email: 'ndayisaba@hotelrwanda.com',
-        phone: '+250 788 222 222'
-      },
-      adminNotes: 'Called employer - interested in proceeding. Waiting for final confirmation on start date.',
-      lastContactDate: '2024-01-15T14:30:00Z',
-      isCompleted: false,
-      category: 'transport'
-    },
-    {
-      id: 3,
-      employerName: 'Mrs. Mukamana',
-      companyName: 'Private Household',
-      candidateName: 'Marie Claire Uwineza',
-      position: 'Babysitter',
-      status: 'completed',
-      priority: 'low',
-      date: '2024-01-13T09:15:00Z',
-      dailyRate: 4000,
-      monthlyRate: 100000,
-      message: 'Need caring babysitter for 2 children aged 3 and 5. Must be patient and have experience with young children.',
-      employerContact: {
-        email: 'mukamana@email.com',
-        phone: '+250 788 333 333'
-      },
-      adminNotes: 'Deal completed successfully. Employer hired the candidate. Start date: January 20, 2024.',
-      lastContactDate: '2024-01-14T16:45:00Z',
-      isCompleted: true,
-      category: 'care'
-    },
-    {
-      id: 4,
-      employerName: 'Mr. Uwimana',
-      companyName: 'Restaurant Kigali',
-      candidateName: 'Sarah Mukamana',
-      position: 'Cook',
-      status: 'pending',
-      priority: 'high',
-      date: '2024-01-15T11:45:00Z',
-      dailyRate: 7000,
-      monthlyRate: 180000,
-      message: 'Need experienced cook for our restaurant. Must know local and international cuisine. Full-time position.',
-      employerContact: {
-        email: 'uwimana@restaurant.com',
-        phone: '+250 788 444 444'
-      },
-      adminNotes: '',
-      lastContactDate: null,
-      isCompleted: false,
-      category: 'food'
-    },
-    {
-      id: 5,
-      employerName: 'Mrs. Nshuti',
-      companyName: 'Private Household',
-      candidateName: 'Emmanuel Niyonshuti',
-      position: 'Gardener',
-      status: 'in_progress',
-      priority: 'medium',
-      date: '2024-01-12T16:30:00Z',
-      dailyRate: 5500,
-      monthlyRate: 140000,
-      message: 'Looking for gardener for large property. Must have experience with landscaping and plant care.',
-      employerContact: {
-        email: 'nshuti@email.com',
-        phone: '+250 788 555 555'
-      },
-      adminNotes: 'Employer requested additional information about candidate\'s experience. Will follow up tomorrow.',
-      lastContactDate: '2024-01-15T10:20:00Z',
-      isCompleted: false,
-      category: 'maintenance'
-    }
-  ];
+  // Search and Filter state
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [localFilters, setLocalFilters] = useState({
+    status: '',
+    priority: '',
+    category: '',
+    dateRange: '',
+    monthlyRateRange: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Load requests data
-  useEffect(() => {
-    setRequests(mockRequests);
-    setFilteredRequests(mockRequests);
+  // Centralized modal state reset function
+  const resetModalStates = useCallback(() => {
+    setShowActionModal(false);
+    setCurrentAction(null);
+    setSelectedRequest(null);
+    setReplyMessage('');
+    setAdminNotes('');
+    setReplyError('');
+    setCompletionNotes('');
+    setCompletionError('');
+    setSelectedCandidate(null);
+    setCandidateSelectionError('');
+    setShowDetailsModal(false);
   }, []);
 
-  // Filter and search logic
-  useEffect(() => {
-    let filtered = requests;
+  // State validation function for debugging
+  const validateModalStates = useCallback(() => {
+    // Debug function - console.log removed for production
+  }, [showActionModal, currentAction, selectedRequest, showDetailsModal, replyMessage, adminNotes, completionNotes]);
 
-    // Search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(request =>
-        request.employerName.toLowerCase().includes(searchLower) ||
-        request.candidateName.toLowerCase().includes(searchLower) ||
-        request.position.toLowerCase().includes(searchLower) ||
-        request.companyName.toLowerCase().includes(searchLower)
-      );
+
+  // Transform backend data to frontend format
+  const transformRequestData = (backendRequest) => {
+    if (!backendRequest) return null;
+    
+    try {
+      // Format monthly rate for display
+      const formatMonthlyRate = (rate) => {
+        if (!rate || rate === 'Not specified') return 'Not specified';
+        
+        // If it's already a number, format it
+        if (typeof rate === 'number') {
+          return new Intl.NumberFormat('en-RW', {
+            style: 'currency',
+            currency: 'RWF',
+            minimumFractionDigits: 0
+          }).format(rate);
+        }
+        
+        // If it's a string, try to parse it
+        if (typeof rate === 'string') {
+          const numRate = parseFloat(rate);
+          if (!isNaN(numRate)) {
+            return new Intl.NumberFormat('en-RW', {
+              style: 'currency',
+              currency: 'RWF',
+              minimumFractionDigits: 0
+            }).format(numRate);
+          }
+          return rate; // Return as is if it can't be parsed
+        }
+        
+        return 'Not specified';
+      };
+
+      return {
+        id: backendRequest.id,
+        employerName: backendRequest.name || 'Unknown',
+        companyName: backendRequest.companyName || 'Private',
+        candidateName: backendRequest.requestedCandidate 
+          ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
+          : 'Not specified',
+        position: backendRequest.requestedCandidate?.profile?.skills || 'General',
+        status: backendRequest.status || 'pending',
+        priority: backendRequest.priority || 'normal',
+        date: backendRequest.createdAt,
+        monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
+        message: backendRequest.message || '',
+      employerContact: {
+          email: backendRequest.email || '',
+          phone: backendRequest.phoneNumber || ''
+      },
+      adminNotes: '',
+        lastContactDate: backendRequest.updatedAt,
+        isCompleted: backendRequest.status === 'completed',
+        category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
+        // Additional candidate fields for detailed view
+        candidateExperience: backendRequest.requestedCandidate?.profile?.experience || 'Not specified',
+        candidateExperienceLevel: backendRequest.requestedCandidate?.profile?.experienceLevel || 'Not specified',
+        candidateEducation: backendRequest.requestedCandidate?.profile?.educationLevel || 'Not specified',
+        candidateLocation: backendRequest.requestedCandidate?.profile?.location || 'Not specified',
+        candidateCity: backendRequest.requestedCandidate?.profile?.city || 'Not specified',
+        candidateCountry: backendRequest.requestedCandidate?.profile?.country || 'Not specified',
+        candidateContact: backendRequest.requestedCandidate?.profile?.contactNumber || 'Not specified',
+        candidateEmail: backendRequest.requestedCandidate?.email || 'Not specified',
+        candidateLanguages: backendRequest.requestedCandidate?.profile?.languages || 'Not specified',
+        candidateCertifications: backendRequest.requestedCandidate?.profile?.certifications || 'Not specified',
+        candidateAvailability: backendRequest.requestedCandidate?.profile?.availability || 'Not specified',
+        candidateDescription: backendRequest.requestedCandidate?.profile?.description || 'Not specified',
+        candidateGender: backendRequest.requestedCandidate?.profile?.gender || 'Not specified',
+        candidateMaritalStatus: backendRequest.requestedCandidate?.profile?.maritalStatus || 'Not specified',
+        candidateIdNumber: backendRequest.requestedCandidate?.profile?.idNumber || 'Not specified',
+        candidateReferences: backendRequest.requestedCandidate?.profile?.references || 'Not specified',
+        _backendData: backendRequest
+      };
+    } catch (error) {
+      console.error('Error transforming request data:', error);
+      // Return a more user-friendly error state instead of hardcoded error messages
+      return {
+        id: backendRequest?.id || 'unknown',
+        employerName: 'Data unavailable',
+        companyName: 'Data unavailable',
+        candidateName: 'Data unavailable',
+        position: 'Data unavailable',
+        status: 'pending', // Default to pending instead of error
+        priority: 'normal',
+        date: new Date(),
+        monthlyRate: 'Data unavailable',
+        message: 'Data unavailable',
+        employerContact: { email: '', phone: '' },
+        adminNotes: '',
+        lastContactDate: new Date(),
+        isCompleted: false,
+        category: 'Data unavailable',
+        _backendData: backendRequest,
+        _hasError: true // Flag to indicate this item had transformation issues
+      };
     }
+  };
 
-    // Status filter
-    if (statusFilter) {
-      filtered = filtered.filter(request => request.status === statusFilter);
+  // Transform the data for display
+  const transformedRequests = safeData.map(transformRequestData).filter(Boolean);
+
+  // Ensure data is safe for rendering
+  const safeDataForRendering = transformedRequests.map(item => {
+    // If item had transformation errors, show appropriate fallback values
+    if (item._hasError) {
+      return {
+        ...item,
+        employerName: 'Data unavailable',
+        companyName: 'Data unavailable',
+        candidateName: 'Data unavailable',
+        position: 'Data unavailable',
+        status: 'pending',
+        priority: 'normal',
+        monthlyRate: 'Data unavailable',
+        message: 'Data unavailable',
+        employerContact: {
+          email: '',
+          phone: ''
+        }
+      };
     }
-
-    // Priority filter
-    if (priorityFilter) {
-      filtered = filtered.filter(request => request.priority === priorityFilter);
-    }
-
-    // Category filter
-    if (categoryFilter) {
-      filtered = filtered.filter(request => request.category === categoryFilter);
-    }
-
-    // Date filter
-    if (dateFilter) {
-      const today = new Date();
-      const filterDate = new Date(request.date);
-      
-      switch (dateFilter) {
-        case 'today':
-          filtered = filtered.filter(request => 
-            new Date(request.date).toDateString() === today.toDateString()
-          );
-          break;
-        case 'week':
-          const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-          filtered = filtered.filter(request => 
-            new Date(request.date) >= weekAgo
-          );
-          break;
-        case 'month':
-          const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          filtered = filtered.filter(request => 
-            new Date(request.date) >= monthAgo
-          );
-          break;
-        default:
-          break;
+    
+    // Normal data processing
+    return {
+      ...item,
+      employerName: item.employerName || 'Unknown',
+      companyName: item.companyName || 'Private',
+      candidateName: item.candidateName || 'Not specified',
+      position: item.position || 'General',
+      status: item.status || 'pending',
+      priority: item.priority || 'normal',
+      monthlyRate: item.monthlyRate || 'Not specified',
+      message: item.message || '',
+      employerContact: {
+        email: item.employerContact?.email || '',
+        phone: item.employerContact?.phone || ''
       }
-    }
+    };
+  });
 
-    setFilteredRequests(filtered);
-  }, [requests, searchTerm, statusFilter, priorityFilter, categoryFilter, dateFilter]);
-
-  // Statistics calculation
-  const stats = [
-    {
-      title: 'Total Requests',
-      value: requests.length.toString(),
-      change: '+5',
-      changeType: 'increase',
-      icon: MessageSquare,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'All employer requests'
-    },
-    {
-      title: 'Pending Review',
-      value: requests.filter(r => r.status === 'pending').length.toString(),
-      change: '+2',
-      changeType: 'increase',
-      icon: Clock,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      description: 'Awaiting admin review'
-    },
-    {
-      title: 'In Progress',
-      value: requests.filter(r => r.status === 'in_progress').length.toString(),
-      change: '+1',
-      changeType: 'increase',
-      icon: AlertCircle,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Under negotiation'
-    },
-    {
-      title: 'Completed',
-      value: requests.filter(r => r.status === 'completed').length.toString(),
-      change: '+3',
-      changeType: 'increase',
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      description: 'Successfully closed'
+  // Debug: log transformed requests and any raw photo paths present in backend payloads
+  React.useEffect(() => {
+    try {
+      transformedRequests.forEach(r => {
+        const raw = r._backendData?.requestedCandidate?.profile?.photo || r._backendData?.requestedCandidate?.photo || null;
+       
+      });
+    
+    } catch (err) {
+      console.log('EmployerRequestsPage: debug logging error', err);
     }
-  ];
+  }, [transformedRequests]);
+
 
   // Table columns configuration
   const columns = [
@@ -268,7 +328,7 @@ const EmployerRequestsPage = () => {
       key: 'employerInfo',
       label: 'Employer',
       sortable: false,
-      render: (value, item) => (
+      render: (item) => (
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
             <Building className="w-5 h-5 text-gray-600" />
@@ -284,17 +344,30 @@ const EmployerRequestsPage = () => {
       key: 'candidateInfo',
       label: 'Candidate',
       sortable: false,
-      render: (value, item) => (
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <User className="w-5 h-5 text-gray-600" />
+      render: (item) => {
+        // compute candidate avatar URL and log for debugging
+        const requestedCandidate = item._backendData?.requestedCandidate;
+        const rawPhoto = requestedCandidate?.profile?.photo || requestedCandidate?.photo || null;
+        const avatarUrl = rawPhoto ? (/^https?:\/\//i.test(rawPhoto) ? rawPhoto : `${API_CONFIG.BASE_URL}/${rawPhoto.replace(/^\//, '')}`) : null;
+        if (rawPhoto && !avatarUrl) {
+        }
+        
+        return (
+          <div className="flex items-center space-x-3">
+            <Avatar
+              src={avatarUrl}
+              alt={item.candidateName}
+              size="sm"
+              fallback={item.candidateName}
+              fallbackSrc={defaultProfileImage}
+            />
+            <div>
+              <div className="font-medium text-gray-900">{item.candidateName}</div>
+              <div className="text-sm text-gray-500">{item.position}</div>
+            </div>
           </div>
-          <div>
-            <div className="font-medium text-gray-900">{item.candidateName}</div>
-            <div className="text-sm text-gray-500">{item.position}</div>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       key: 'category',
@@ -303,21 +376,22 @@ const EmployerRequestsPage = () => {
       searchable: true,
       type: 'badge',
       badgeColor: (category) => {
-        switch (category) {
+        switch (category?.toLowerCase()) {
           case 'domestic': return 'text-blue-600 bg-blue-50 border-blue-200';
           case 'care': return 'text-pink-600 bg-pink-50 border-pink-200';
           case 'food': return 'text-orange-600 bg-orange-50 border-orange-200';
           case 'maintenance': return 'text-green-600 bg-green-50 border-green-200';
           case 'transport': return 'text-indigo-600 bg-indigo-50 border-indigo-200';
+          case 'general': return 'text-gray-600 bg-gray-50 border-gray-200';
           default: return 'text-gray-600 bg-gray-50 border-gray-200';
         }
       }
     },
     {
-      key: 'dailyRate',
-      label: 'Daily Rate',
+      key: 'monthlyRate',
+      label: 'Monthly Rate',
       sortable: true,
-      type: 'currency'
+      type: 'text'
     },
     {
       key: 'status',
@@ -341,394 +415,1442 @@ const EmployerRequestsPage = () => {
     }
   ];
 
-  // Filter options
-  const filters = [
-    {
-      key: 'status',
-      label: 'Status',
-      placeholder: 'All Status',
-      value: statusFilter,
-      options: [
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'rejected', label: 'Rejected' }
-      ]
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      placeholder: 'All Priority',
-      value: priorityFilter,
-      options: [
-        { value: 'high', label: 'High' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'low', label: 'Low' }
-      ]
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      placeholder: 'All Categories',
-      value: categoryFilter,
-      options: [
-        { value: 'domestic', label: 'Domestic & Household' },
-        { value: 'care', label: 'Care Services' },
-        { value: 'food', label: 'Food & Hospitality' },
-        { value: 'maintenance', label: 'Maintenance & Services' },
-        { value: 'transport', label: 'Transportation' }
-      ]
-    },
-    {
-      key: 'date',
-      label: 'Date',
-      placeholder: 'All Time',
-      value: dateFilter,
-      options: [
-        { value: 'today', label: 'Today' },
-        { value: 'week', label: 'This Week' },
-        { value: 'month', label: 'This Month' }
-      ]
+
+
+
+
+  // Load categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+
+
+  // Cleanup modal states on component unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount to prevent state persistence
+      resetModalStates();
+    };
+  }, [resetModalStates]);
+
+  // Debug modal state changes in development
+  useEffect(() => {
+    validateModalStates();
+  }, [validateModalStates]);
+
+
+  // Search and filter logic
+  const filteredData = useMemo(() => {
+    let filtered = safeDataForRendering || [];
+
+    // Apply search term
+    if (localSearchTerm.trim()) {
+      const searchLower = localSearchTerm.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.employerName?.toLowerCase().includes(searchLower) ||
+        item.companyName?.toLowerCase().includes(searchLower) ||
+        item.candidateName?.toLowerCase().includes(searchLower) ||
+        item.message?.toLowerCase().includes(searchLower) ||
+        item.position?.toLowerCase().includes(searchLower)
+      );
     }
-  ];
 
-  // Event handlers
-  const handleSearchChange = (value) => {
-    setSearchTerm(value);
-  };
-
-  const handleFilterChange = (key, value) => {
-    switch (key) {
-      case 'status':
-        setStatusFilter(value);
-        break;
-      case 'priority':
-        setPriorityFilter(value);
-        break;
-      case 'category':
-        setCategoryFilter(value);
-        break;
-      case 'date':
-        setDateFilter(value);
-        break;
-      default:
-        break;
+    // Apply filters
+    if (localFilters.status) {
+      filtered = filtered.filter(item => item.status === localFilters.status);
     }
-  };
 
-  const handleClearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('');
-    setPriorityFilter('');
-    setCategoryFilter('');
-    setDateFilter('');
-  };
+    if (localFilters.priority) {
+      filtered = filtered.filter(item => item.priority === localFilters.priority);
+    }
+
+    if (localFilters.category) {
+      filtered = filtered.filter(item => 
+        item.category?.toLowerCase() === localFilters.category.toLowerCase()
+      );
+    }
+
+
+
+    if (localFilters.dateRange) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.date);
+        
+        switch (localFilters.dateRange) {
+          case 'today':
+            return itemDate >= today;
+          case 'week':
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return itemDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return itemDate >= monthAgo;
+          case 'quarter':
+            const quarterAgo = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+            return itemDate >= quarterAgo;
+          case 'year':
+            const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+            return itemDate >= yearAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    if (localFilters.monthlyRateRange) {
+      filtered = filtered.filter(item => {
+        const rate = item.monthlyRate;
+        if (rate === 'Not specified') return false;
+        
+        const numericRate = typeof rate === 'string' ? 
+          parseFloat(rate.replace(/[^\d.]/g, '')) : rate;
+        
+        if (isNaN(numericRate)) return false;
+        
+        switch (localFilters.monthlyRateRange) {
+          case '0-50000':
+            return numericRate >= 0 && numericRate <= 50000;
+          case '50000-100000':
+            return numericRate > 50000 && numericRate <= 100000;
+          case '100000-200000':
+            return numericRate > 100000 && numericRate <= 200000;
+          case '200000+':
+            return numericRate > 200000;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  }, [safeDataForRendering, localSearchTerm, localFilters]);
+
+  // Handle search change with debouncing
+  const handleSearchChange = useCallback((value) => {
+    setLocalSearchTerm(value);
+    setIsSearching(true);
+    
+    // Debounce the search
+    const timeoutId = setTimeout(() => {
+      setIsSearching(false);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Handle filter change
+  const handleFilterChange = useCallback((filterKey, value) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      [filterKey]: value
+    }));
+  }, []);
+
+    // Clear all filters
+  const clearAllFilters = useCallback(() => {
+    setLocalFilters({
+      status: '',
+      priority: '',
+      category: '',
+      dateRange: '',
+      monthlyRateRange: ''
+    });
+    setLocalSearchTerm('');
+  }, []);
+
+  // Get active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (localSearchTerm.trim()) count++;
+    Object.values(localFilters).forEach(value => {
+      if (value) count++;
+    });
+    return count;
+  }, [localSearchTerm, localFilters]);
+
+  // Statistics calculation
+  const stats = useMemo(() => [
+    {
+      title: 'Total Requests',
+      value: filteredData.length.toString(),
+      change: `+${filteredData.length - (safeDataForRendering || []).length}`,
+      changeType: filteredData.length >= (safeDataForRendering || []).length ? 'increase' : 'decrease',
+      icon: MessageSquare,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      description: `${activeFiltersCount > 0 ? 'Filtered' : 'All'} employer requests`
+    },
+    {
+      title: 'Pending Review',
+      value: filteredData.filter(r => r.status === 'pending').length.toString(),
+      change: '+2',
+      changeType: 'increase',
+      icon: Clock,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      description: 'Awaiting admin review'
+    },
+    {
+      title: 'In Progress',
+      value: filteredData.filter(r => r.status === 'in_progress').length.toString(),
+      change: '+1',
+      changeType: 'increase',
+      icon: AlertCircle,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      description: 'Under negotiation'
+    },
+    {
+      title: 'Completed',
+      value: filteredData.filter(r => r.status === 'completed').length.toString(),
+      change: '+3',
+      changeType: 'increase',
+      icon: CheckCircle,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      description: 'Successfully closed'
+    }
+  ], [filteredData, safeDataForRendering, activeFiltersCount]);
+
+  // Refresh function that fetches fresh data
+  const handleRefresh = useCallback(() => {
+    // Reset to first page
+    goToPage(1);
+    // Apply filters to fetch fresh data
+    applyFilters();
+  }, [goToPage, applyFilters]);
 
   const handleRowAction = (action, request) => {
     setSelectedRequest(request);
     setAdminNotes(request.adminNotes || '');
     
     switch (action) {
+      case 'openActions':
+        setShowActionModal(true);
+        setCurrentAction(null); // Ensure clean state
+        break;
       case 'view':
         setShowDetailsModal(true);
+        setShowActionModal(false);
         break;
       case 'contact':
         handleContactEmployer(request.employerContact, 'email');
+        resetModalStates(); // Use centralized cleanup
         break;
       case 'call':
         handleContactEmployer(request.employerContact, 'phone');
+        resetModalStates(); // Use centralized cleanup
         break;
-      case 'approve':
-      case 'reject':
-      case 'complete':
-        setCurrentAction(action);
+      case 'reply':
+        setCurrentAction('reply');
         setShowActionModal(true);
         break;
-      default:
+      case 'select':
+        setCurrentAction('select');
+        setShowActionModal(true);
         break;
+      case 'start':
+        handleStatusUpdate('in_progress', 'Starting to process this request');
+        resetModalStates(); // Use centralized cleanup
+        break;
+      case 'approve':
+        handleStatusUpdate('approved', 'Request approved and ready for completion');
+        resetModalStates(); // Use centralized cleanup
+        break;
+      case 'complete':
+        setCurrentAction('complete');
+        setShowActionModal(true);
+        break;
+      case 'reactivate':
+        handleStatusUpdate('pending', 'Request reactivated and back to pending status');
+        resetModalStates(); // Use centralized cleanup
+        break;
+      default:
+        console.warn('Unknown action:', action);
+        resetModalStates(); // Cleanup for unknown actions
     }
   };
 
-  const handleStatusUpdate = (newStatus) => {
-    if (selectedRequest) {
-      setRequests(prev => 
-        prev.map(req => 
-          req.id === selectedRequest.id 
-            ? { 
-                ...req, 
+  const handleStatusUpdate = async (newStatus, message) => {
+    if (!selectedRequest) return;
+    
+    try {
+      
+      const result = await updateRequestStatus(selectedRequest.id, {
                 status: newStatus, 
-                adminNotes: adminNotes,
-                lastContactDate: new Date().toISOString(),
-                isCompleted: newStatus === 'completed'
-              }
-            : req
-        )
-      );
-      setShowActionModal(false);
-      setSelectedRequest(null);
-      setCurrentAction(null);
-      setAdminNotes('');
+        adminNotes: message
+      });
+      
+      if (result.success) {
+        
+        // Show success message
+        toast.success(`Request status updated to ${newStatus}. ${message || ''}`);
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to update status:', result.error);
+        toast.error(`Failed to update status: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('❌ Error updating status:', error);
+      toast.error('Network error. Please try again.');
     }
   };
 
-  // Action buttons for table
-  const actionButtons = [
-    {
-      key: 'view',
-      icon: Eye,
-      title: 'View Details',
-      className: 'text-blue-600 hover:bg-blue-50'
-    },
-    {
-      key: 'contact',
-      icon: Mail,
-      title: 'Send Email',
-      className: 'text-green-600 hover:bg-green-50'
-    },
-    {
-      key: 'call',
-      icon: Phone,
-      title: 'Call',
-      className: 'text-purple-600 hover:bg-purple-50'
-    },
-    {
-      key: 'approve',
-      icon: CheckCircle,
-      title: 'Approve',
-      className: 'text-green-600 hover:bg-green-50'
-    },
-    {
-      key: 'reject',
-      icon: XCircle,
-      title: 'Reject',
-      className: 'text-red-600 hover:bg-red-50'
+  const handleReplySubmit = async () => {
+    if (!selectedRequest || !replyMessage.trim()) return;
+    
+    setReplyLoading(true);
+    setReplyError('');
+
+    try {
+      
+      const result = await replyToRequest(selectedRequest.id, {
+        content: replyMessage
+      });
+      
+      if (result.success) {
+        
+        // Show success message with details
+        const successMessage = result.data.emailSent 
+          ? `Reply sent successfully to ${selectedRequest.employerName} at ${selectedRequest.employerContact.email}`
+          : `Reply saved but email delivery failed. Please check the email configuration.`;
+        
+        toast.success(successMessage);
+        
+        // Clear form and close modal
+        setReplyMessage('');
+        setAdminNotes('');
+        resetModalStates(); // Use centralized cleanup
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Reply failed:', result.error);
+        setReplyError(result.error || 'Failed to send reply');
+      }
+    } catch (error) {
+      console.error('❌ Error sending reply:', error);
+      setReplyError('Network error. Please try again.');
+    } finally {
+      setReplyLoading(false);
     }
-  ];
+  };
+
+  const handleJobSeekerSelection = async (jobSeekerId, detailsType = 'picture') => {
+    if (!selectedRequest) return;
+    
+    setCandidateSelectionLoading(true);
+    setCandidateSelectionError('');
+
+    try {
+      
+      const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId, detailsType);
+      
+      if (result.success) {
+        
+        const successMessage = detailsType === 'picture' 
+          ? `Candidate profile picture sent to ${selectedRequest.employerName}`
+          : `Complete candidate details sent to ${selectedRequest.employerName}`;
+        
+        toast.success(successMessage);
+        resetModalStates(); // Use centralized cleanup
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to send candidate information:', result.error);
+        setCandidateSelectionError(result.error || 'Failed to send candidate information');
+      }
+    } catch (error) {
+      console.error('❌ Error sending candidate information:', error);
+      setCandidateSelectionError('Network error. Please try again.');
+    } finally {
+      setCandidateSelectionLoading(false);
+    }
+  };
+
+  const handleCandidateSelection = (candidate, detailsType) => {
+    setSelectedCandidate(candidate);
+    setCandidateDetailsType(detailsType);
+    setShowCandidateDetails(true);
+  };
+
+  const handleRequestCompletion = async () => {
+    if (!selectedRequest) return;
+    
+    setCompletionLoading(true);
+    setCompletionError('');
+
+    try {
+      
+      const result = await updateRequestStatus(selectedRequest.id, {
+        status: 'completed',
+        adminNotes: completionNotes
+      });
+      
+      
+      if (result.success) {
+        
+        toast.success(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
+        
+        // Clear form and close modal
+        setCompletionNotes('');
+        resetModalStates(); // Use centralized cleanup
+        
+        // Refresh the requests to show updated data
+        handleRefresh();
+      } else {
+        console.error('❌ Failed to complete request:', result.error);
+        setCompletionError(result.error || 'Failed to complete request');
+      }
+    } catch (error) {
+      console.error('❌ Error completing request:', error);
+      setCompletionError('Network error. Please try again.');
+    } finally {
+      setCompletionLoading(false);
+    }
+  };
+
+  const getActionButtons = (request) => {
+    return [
+      {
+        key: 'openActions',
+        title: 'Actions',
+        icon: MoreHorizontal,
+        className: 'text-gray-600 hover:bg-gray-50'
+      }
+    ];
+  };
+
+  // Get all action buttons for the modal
+  const getAllActionButtons = (request) => {
+    const baseActions = [
+      // View Details - Always available
+      { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
+      
+      // Contact Group - Status-dependent
+      { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
+      { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
+    ];
+
+    // Add reply action only for non-terminal statuses
+    if (request.status !== 'completed' && request.status !== 'cancelled' && request.status !== 'approved') {
+      baseActions.push(
+        { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' }
+      );
+    }
+
+    // Status-based actions
+    const statusActions = [];
+    
+    switch (request.status) {
+      case 'pending':
+        statusActions.push(
+          { key: 'start', title: 'Start Processing', icon: Play, className: 'text-blue-600 hover:bg-blue-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+      case 'in_progress':
+        statusActions.push(
+          { key: 'approve', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+        );
+        break;
+        
+          case 'approved':
+      statusActions.push(
+        { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+        // Candidate selection removed - backend rejects it for approved requests
+      );
+      break;
+        
+      case 'completed':
+        // No additional actions for completed requests
+        break;
+        
+      case 'cancelled':
+        statusActions.push(
+          { key: 'reactivate', title: 'Reactivate', icon: RefreshCw, className: 'text-blue-600 hover:bg-blue-50', group: 'status' }
+        );
+        break;
+        
+      default:
+        // For any other status, show all actions
+        statusActions.push(
+          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
+          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+        );
+    }
+
+    return [...baseActions, ...statusActions];
+  };
+
+  // Loading state
+  if (loading || !safeData || !safeDataForRendering) {
+  return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading employer requests..." />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Requests</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={handleRefresh} variant="primary" disabled={loading}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            {loading ? 'Retrying...' : 'Try Again'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // No data state
+  if (!loading && safeDataForRendering && safeDataForRendering.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">E</span>
+                </div>
+                <span className="ml-2 text-xl font-bold text-gray-900">Employer Requests</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={loading}
+                >
+                  Refresh
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">No Employer Requests</h2>
+            <p className="text-gray-600 mb-6">
+              There are currently no employer requests to display.
+            </p>
+            <Button onClick={handleRefresh} variant="primary" disabled={loading}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {loading ? 'Refreshing...' : 'Refresh Data'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Statistics */}
-      <StatsGrid stats={stats} />
-
-      {/* Search and Filters */}
-      <SearchFilter
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
-        placeholder="Search requests by employer, candidate, or position..."
-      />
-
-      {/* Requests Table */}
-      <Card className="p-0">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Employer Requests ({filteredRequests.length})
-            </h2>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm">
-                Export Data
-              </Button>
-              <Button variant="primary" size="sm">
-                Process All
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="">
+        <div className="">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <span className="ml-2 text-xl font-bold text-gray-900">Employer Requests</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={loading}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {loading ? 'Refreshing...' : 'Refresh'}
               </Button>
             </div>
           </div>
         </div>
-        
-        <DataTable
-          columns={columns}
-          data={filteredRequests}
-          onRowAction={handleRowAction}
-          actionButtons={actionButtons}
-          pagination={true}
-          itemsPerPage={10}
-          className="rounded-none"
-        />
-      </Card>
+      </header>
 
-      {/* Request Details Modal */}
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        title="Request Details"
-        maxWidth="max-w-4xl"
-      >
-        {selectedRequest && (
-          <div className="space-y-6">
-            {/* Request Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Statistics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+      <StatsGrid stats={stats} />
+        </motion.div>
+
+        {/* Main Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="p-6">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Employer Information</h3>
-                <div className="space-y-2">
-                  <p><span className="font-medium">Name:</span> {selectedRequest.employerName}</p>
-                  <p><span className="font-medium">Company:</span> {selectedRequest.companyName}</p>
-                  <p><span className="font-medium">Email:</span> {selectedRequest.employerContact.email}</p>
-                  <p><span className="font-medium">Phone:</span> {selectedRequest.employerContact.phone}</p>
-                </div>
-                <div className="flex items-center space-x-3 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleContactEmployer(selectedRequest.employerContact, 'email')}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Email
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleContactEmployer(selectedRequest.employerContact, 'phone')}
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call
-                  </Button>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Candidate Information</h3>
-                <div className="space-y-2">
-                  <p><span className="font-medium">Name:</span> {selectedRequest.candidateName}</p>
-                  <p><span className="font-medium">Position:</span> {selectedRequest.position}</p>
-                  <p><span className="font-medium">Daily Rate:</span> {selectedRequest.dailyRate.toLocaleString()} RWF</p>
-                  <p><span className="font-medium">Monthly Rate:</span> {selectedRequest.monthlyRate.toLocaleString()} RWF</p>
-                </div>
-                <div className="mt-4">
-                  <Badge 
-                    variant="outline" 
-                    className={getStatusColor(selectedRequest.status)}
-                  >
-                    {selectedRequest.status}
-                  </Badge>
-                  <Badge 
-                    variant="outline" 
-                    className={getPriorityColor(selectedRequest.priority)}
-                  >
-                    {selectedRequest.priority}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* Request Message */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Employer Message</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700">{selectedRequest.message}</p>
-              </div>
-            </div>
-
-            {/* Admin Notes */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Admin Notes</h3>
-              <textarea
-                value={adminNotes}
-                onChange={(e) => setAdminNotes(e.target.value)}
-                placeholder="Add notes about this request..."
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-                rows="4"
-              />
-            </div>
-
-            {/* Request Timeline */}
-            <div>
-              <h3 className="font-medium text-gray-900 mb-3">Request Timeline</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">Request Submitted</p>
-                    <p className="text-xs text-gray-500">{new Date(selectedRequest.date).toLocaleString()}</p>
-                  </div>
-                </div>
-                {selectedRequest.lastContactDate && (
-                  <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <div>
-                      <p className="text-sm font-medium">Last Contact</p>
-                      <p className="text-xs text-gray-500">{new Date(selectedRequest.lastContactDate).toLocaleString()}</p>
-                    </div>
-                  </div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                  Employer Requests ({filteredData.length})
+            </h2>
+                {activeFiltersCount > 0 && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Showing {filteredData.length} of {(safeDataForRendering || []).length} total requests
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+            {/* Search and Filters Section */}
+            <div className="mb-6 space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by employer name, company, candidate, or message..."
+                  value={localSearchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                />
+                {isSearching && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                  </div>
+                )}
+                {localSearchTerm && (
+                  <button
+                    onClick={() => setLocalSearchTerm('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                    showFilters 
+                      ? 'bg-red-50 border-red-200 text-red-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <Filter className="h-4 w-4" />
+                  <span className="text-sm font-medium">Filters</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
+
+                {activeFiltersCount > 0 && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Dropdowns */}
+                {showFilters && (
+                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Status Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={localFilters.status}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.status.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+          </div>
+
+                    {/* Priority Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Priority
+                      </label>
+                      <select
+                        value={localFilters.priority}
+                        onChange={(e) => handleFilterChange('priority', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.priority.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Category Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </label>
+                      <select
+                        value={localFilters.category}
+                        onChange={(e) => handleFilterChange('category', e.target.value)}
+                        disabled={loadingCategories}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        {loadingCategories ? (
+                          <option value="">Loading categories...</option>
+                        ) : (
+                          filterOptions.category.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+
+                    {/* Date Range Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date Range
+                      </label>
+                      <select
+                        value={localFilters.dateRange}
+                        onChange={(e) => handleFilterChange('dateRange', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.dateRange.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Monthly Rate Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Monthly Rate
+                      </label>
+                      <select
+                        value={localFilters.monthlyRateRange}
+                        onChange={(e) => handleFilterChange('monthlyRateRange', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+                      >
+                        {filterOptions.monthlyRateRange.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+
+                  </div>
+
+                  {/* Active Filters Display */}
+                  {activeFiltersCount > 0 && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <div className="flex flex-wrap gap-2">
+                        {localSearchTerm && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                            Search: "{localSearchTerm}"
+                            <button
+                              onClick={() => setLocalSearchTerm('')}
+                              className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        )}
+                        {Object.entries(localFilters).map(([key, value]) => {
+                          if (!value) return null;
+                          const option = filterOptions[key]?.find(opt => opt.value === value);
+                          if (!option) return null;
+                          
+                          return (
+                            <span key={key} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                              {option.label}
+                              <button
+                                onClick={() => handleFilterChange(key, '')}
+                                className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Data Table */}
+            <div className="space-y-4">
+        
+        {filteredData.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <div className="mx-auto w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <p className="text-gray-600 mb-4">
+              {activeFiltersCount > 0 
+                ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+                : 'There are no employer requests to display.'
+              }
+            </p>
+            {activeFiltersCount > 0 && (
+                    <Button
+                onClick={clearAllFilters}
+                      variant="outline"
+                      size="sm"
+                className="mx-auto"
+              >
+                Clear All Filters
+                    </Button>
+                )}
+        </div>
+        ) : (
+        <DataTable
+            data={filteredData}
+          columns={columns}
+          onRowAction={handleRowAction}
+                actionButtons={getActionButtons}
+            pagination={true}
+            itemsPerPage={15}
+            showSearch={false}
+          />
+        )}
+
+    </div>
+
+                          {/* Server-side pagination is handled by the DataTable component */}
+      </Card>
+        </motion.div>
+      </div>
+
+      {/* Request Details Modal */}
+      {showDetailsModal && selectedRequest && (
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedRequest(null);
+        }}
+        title="Request Details"
+          size="lg"
+      >
+          <div className="space-y-6">
+            {/* Employer Information */}
+              <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Employer Information</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Name</label>
+                    <p className="text-gray-900">{selectedRequest.employerName}</p>
+                </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Company</label>
+                    <p className="text-gray-900">{selectedRequest.companyName}</p>
+                </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <p className="text-gray-900">{selectedRequest.employerContact.email}</p>
+              </div>
+              <div>
+                    <label className="text-sm font-medium text-gray-500">Phone</label>
+                    <p className="text-gray-900">{selectedRequest.employerContact.phone}</p>
+                </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Request Details */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Request Details</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <Badge color={getStatusColor(selectedRequest.status)}>
+                    {selectedRequest.status}
+                  </Badge>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Priority</label>
+                    <Badge color={getPriorityColor(selectedRequest.priority)}>
+                    {selectedRequest.priority}
+                  </Badge>
+                </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Request Date</label>
+                    <p className="text-gray-900">
+                      {new Date(selectedRequest.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Message</label>
+                    <p className="text-gray-900 mt-1">{selectedRequest.message}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Candidate Information */}
+            {selectedRequest.candidateName !== 'Not specified' && (
+            <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Candidate Information</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="space-y-4">
+                    {/* Profile Header with Image */}
+                    <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
+                      {(() => {
+                        const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
+                        const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+                        return (
+                          <Avatar
+                            src={url}
+                            alt={selectedRequest.candidateName}
+                            size="lg"
+                            fallback={selectedRequest.candidateName}
+                            fallbackSrc={defaultProfileImage}
+                          />
+                        );
+                      })()}
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">{selectedRequest.candidateName}</h4>
+                        <p className="text-sm text-gray-600">{selectedRequest.category} • {selectedRequest.position}</p>
+                        <p className="text-sm font-medium text-green-600">{selectedRequest.monthlyRate}</p>
+              </div>
+            </div>
+
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-2 gap-4">
+            <div>
+                        <label className="text-sm font-medium text-gray-500">Job Category</label>
+                        <p className="text-gray-900">{selectedRequest.category}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Skills/Position</label>
+                        <p className="text-gray-900">{selectedRequest.position}</p>
+                      </div>
+            </div>
+
+                    {/* Additional Candidate Details from Backend */}
+                    {selectedRequest.candidateExperience !== 'Not specified' && (
+                      <>
+                        {/* Experience and Education */}
+                        <div className="grid grid-cols-2 gap-4">
+            <div>
+                            <label className="text-sm font-medium text-gray-500">Experience Level</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateExperienceLevel}
+                            </p>
+                          </div>
+                  <div>
+                            <label className="text-sm font-medium text-gray-500">Education</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateEducation}
+                            </p>
+                  </div>
+                </div>
+
+                        {/* Location Information */}
+                        <div className="grid grid-cols-3 gap-4">
+                    <div>
+                            <label className="text-sm font-medium text-gray-500">Location</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateLocation}
+                            </p>
+                    </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">City</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateCity}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Country</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateCountry}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Contact Number</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateContact}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Email</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateEmail}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Additional Details */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Languages</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateLanguages}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Certifications</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateCertifications}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Availability and Personal Details */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Availability</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateAvailability}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Gender</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateGender}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Description and References */}
+                        {selectedRequest.candidateDescription !== 'Not specified' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Description</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateDescription}
+                            </p>
+                  </div>
+                )}
+
+                        {selectedRequest.candidateReferences !== 'Not specified' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">References</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateReferences}
+                            </p>
+              </div>
+                        )}
+
+                        {/* ID Number */}
+                        {selectedRequest.candidateIdNumber !== 'Not specified' && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">ID Number</label>
+                            <p className="text-gray-900">
+                              {selectedRequest.candidateIdNumber}
+                            </p>
+            </div>
+                        )}
+                      </>
+                    )}
+
+                   
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {/* Action Modal */}
+      {showActionModal && selectedRequest && !currentAction && (
+        <Modal
+          isOpen={showActionModal}
+          onClose={resetModalStates} // Use centralized cleanup
+          title={`Actions for ${selectedRequest.employerName} - ${selectedRequest.companyName}`}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-3">
+            {getAllActionButtons(selectedRequest).map((action, index) => {
+              const IconComponent = action.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleRowAction(action.key, selectedRequest)}
+                  className={`w-full flex items-center space-x-3 p-3 text-left rounded-lg transition-colors duration-200 ${action.className}`}
+                >
+                  <IconComponent className="w-5 h-5" />
+                  <span className="text-gray-900">{action.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
+      )}
+
+      {/* Specific Action Modal (Reply, Select, Complete) */}
+      {showActionModal && selectedRequest && currentAction && (
+        <Modal
+          isOpen={showActionModal}
+          onClose={resetModalStates} // Use centralized cleanup
+          title={currentAction === 'reply' ? 'Reply to Request' : 
+                 currentAction === 'select' ? 'Send Candidate Details' : 
+                 currentAction === 'complete' ? 'Complete Request' : 'Action'}
+          size="md"
+        >
+          {currentAction === 'reply' && (
+            <div className="space-y-4">
+              {/* Employer Information */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Replying to:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-blue-700 font-medium">Name:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Company:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Email:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.employerContact.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Phone:</span>
+                    <span className="text-blue-900 ml-1">{selectedRequest.employerContact.phone}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reply Message <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Enter your reply message to the employer..."
+                  disabled={replyLoading}
+                />
+                {replyLoading && (
+                  <div className="mt-2 text-sm text-gray-600 flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Sending reply to employer...
+                  </div>
+                )}
+                {replyError && (
+                  <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                    {replyError}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Admin Notes (Internal)
+                </label>
+                <textarea
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  className="w-full h-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Add internal notes for your reference..."
+                  disabled={replyLoading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  These notes are for internal use only and won't be sent to the employer.
+                </p>
+              </div>
+              <div className="flex justify-end space-x-3">
               <Button
                 variant="outline"
-                onClick={() => setShowDetailsModal(false)}
-              >
-                Close
+                  onClick={() => {
+                    resetModalStates(); // Use centralized cleanup
+                  }}
+                  disabled={replyLoading}
+                >
+                  Cancel
               </Button>
-              {selectedRequest.status !== 'completed' && (
-                <>
+                <Button
+                  variant="primary"
+                  onClick={handleReplySubmit}
+                  disabled={!replyMessage.trim() || replyLoading}
+                >
+                  {replyLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reply'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentAction === 'select' && (
+            <div className="space-y-4">
+              {/* Employer Information */}
+              <div className="bg-green-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-green-900 mb-2">Selecting candidate for:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-green-700 font-medium">Employer:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Company:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Position:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-700 font-medium">Category:</span>
+                    <span className="text-green-900 ml-1">{selectedRequest.category}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Requested Candidate */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Send Candidate Information</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Send the requested candidate's information to the employer. Choose whether to send just a profile picture or complete details.
+                </p>
+                {selectedRequest._backendData?.requestedCandidate ? (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                          {(() => {
+                            const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
+                            const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+                            return (
+                              <Avatar
+                                src={url}
+                                alt={selectedRequest.candidateName}
+                                size="md"
+                                fallback={selectedRequest.candidateName}
+                                fallbackSrc={defaultProfileImage}
+                              />
+                            );
+                          })()}
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900 text-lg">
+                              {selectedRequest.candidateName}
+                            </h5>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {selectedRequest.position} • {selectedRequest.candidateExperience}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                            <div>
+                              <span className="font-medium">Location:</span> {selectedRequest.candidateLocation}
+                            </div>
+                            <div>
+                              <span className="font-medium">Rate:</span> {selectedRequest.monthlyRate}
+                            </div>
+                            <div>
+                              <span className="font-medium">Experience Level:</span> {selectedRequest.candidateExperienceLevel}
+                            </div>
+                            <div>
+                              <span className="font-medium">Education:</span> {selectedRequest.candidateEducation}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setCurrentAction('approve');
-                      setShowActionModal(true);
-                      setShowDetailsModal(false);
-                    }}
-                    className="text-green-600 border-green-200 hover:bg-green-50"
-                  >
-                    Approve Request
+                          size="sm"
+                          onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
+                          disabled={candidateSelectionLoading}
+                        >
+                          Send Profile Picture
                   </Button>
                   <Button
                     variant="primary"
-                    onClick={() => {
-                      setCurrentAction('complete');
-                      setShowActionModal(true);
-                      setShowDetailsModal(false);
-                    }}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Mark Completed
+                          size="sm"
+                          onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
+                          disabled={candidateSelectionLoading}
+                        >
+                          Send Complete Details
                   </Button>
-                </>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                    <p>No candidate specified in this request</p>
+                    <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
+                  </div>
               )}
             </div>
+
+              {candidateSelectionError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {candidateSelectionError}
           </div>
         )}
-      </Modal>
 
-      {/* Action Confirmation Modal */}
-      <Modal
-        isOpen={showActionModal}
-        onClose={() => setShowActionModal(false)}
-        title={`${currentAction === 'approve' ? 'Approve' : currentAction === 'reject' ? 'Reject' : 'Complete'} Request`}
-        maxWidth="max-w-md"
-      >
+              {candidateSelectionLoading && (
+                <div className="text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                  Sending candidate information to employer...
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    resetModalStates(); // Use centralized cleanup
+                  }}
+                  disabled={candidateSelectionLoading}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentAction === 'complete' && (
         <div className="space-y-4">
-          <p className="text-gray-600">
-            Are you sure you want to {currentAction} the request from{' '}
-            <span className="font-medium text-gray-900">{selectedRequest?.employerName}</span>?
-          </p>
-          
-          <div className="flex items-center justify-end space-x-3">
+              {/* Request Information */}
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-orange-700 font-medium">Employer:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.employerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Company:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Position:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-orange-700 font-medium">Current Status:</span>
+                    <span className="text-orange-900 ml-1">{selectedRequest.status}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Completion Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Completion Notes (Optional)
+                </label>
+                <textarea
+                  value={completionNotes}
+                  onChange={(e) => setCompletionNotes(e.target.value)}
+                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Add notes about how this request was completed..."
+                  disabled={completionLoading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  These notes will be saved with the request and sent to the employer.
+                </p>
+              </div>
+
+              {/* Warning */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center mr-2">
+                    <span className="text-yellow-800 text-xs">!</span>
+                  </div>
+                  <p className="text-sm text-yellow-800">
+                    <strong>Warning:</strong> This action will permanently mark the request as completed and close it. 
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              {completionError && (
+                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                  {completionError}
+                </div>
+              )}
+
+              {completionLoading && (
+                <div className="text-sm text-gray-600 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                  Completing request...
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3">
             <Button
               variant="outline"
-              onClick={() => setShowActionModal(false)}
+                  onClick={() => {
+                    resetModalStates(); // Use centralized cleanup
+                  }}
+                  disabled={completionLoading}
             >
               Cancel
             </Button>
             <Button
-              variant={currentAction === 'reject' ? 'danger' : 'primary'}
-              onClick={() => {
-                const newStatus = currentAction === 'approve' ? 'in_progress' : 
-                                 currentAction === 'reject' ? 'rejected' : 'completed';
-                handleStatusUpdate(newStatus);
-              }}
-            >
-              {currentAction === 'approve' ? 'Approve' : 
-               currentAction === 'reject' ? 'Reject' : 'Complete'}
+                  variant="primary"
+                  onClick={handleRequestCompletion}
+                  disabled={completionLoading}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {completionLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Completing...
+                    </>
+                  ) : (
+                    'Complete Request'
+                  )}
             </Button>
           </div>
         </div>
+          )}
       </Modal>
+      )}
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

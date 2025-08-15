@@ -1,68 +1,86 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { 
-  BarChart3, 
   TrendingUp, 
   TrendingDown, 
   Users, 
+  Briefcase, 
+  DollarSign,
   Calendar,
+  BarChart3,
+  PieChart,
   Download,
   Filter,
   RefreshCw,
-  AlertCircle,
-  FileText,
-  PieChart,
   Activity
 } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { adminService } from '../../api/services/adminService';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
-import { jobSeekersData } from '../../data/mockData';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { 
+  GrowthChart, 
+  CategoriesChart, 
+  LocationsChart, 
+  SkillsChart,
+  SkillsDoughnutChart,
+  CategoriesDoughnutChart
+} from '../../components/ui/Charts';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ReportsPage = () => {
   const { t } = useTranslation();
-  
-  // State management
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [selectedPeriod, setSelectedPeriod] = useState('30');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [dashboardStats, setDashboardStats] = useState(null);
 
-  // Mock data for reports
-  const mockReportData = {
-    overview: {
-      totalJobSeekers: 847,
-      avgRating: 4.7,
-      growthRate: 12.5
-    },
-    performance: {
-      topCategories: [
-        { name: 'Domestic & Household', jobSeekers: 82, growth: 15.2 },
-        { name: 'Care Services', jobSeekers: 58, growth: 12.8 },
-        { name: 'Food & Hospitality', jobSeekers: 47, growth: 8.5 },
-        { name: 'Maintenance & Services', jobSeekers: 28, growth: 18.3 },
-        { name: 'Transportation', jobSeekers: 19, growth: 22.1 }
-      ]
-    },
-    requests: [
-      { id: 1, name: 'John Doe', category: 'Domestic', status: 'pending' },
-      { id: 2, name: 'Jane Smith', category: 'Care', status: 'in_progress' },
-      { id: 3, name: 'Peter Jones', category: 'Food', status: 'completed' },
-      { id: 4, name: 'Mary Brown', category: 'Maintenance', status: 'pending' },
-      { id: 5, name: 'David Lee', category: 'Transport', status: 'in_progress' },
-      { id: 6, name: 'Lisa Wilson', category: 'Domestic', status: 'completed' },
-      { id: 7, name: 'Michael Davis', category: 'Care', status: 'pending' },
-      { id: 8, name: 'Emily White', category: 'Food', status: 'in_progress' },
-      { id: 9, name: 'James Black', category: 'Maintenance', status: 'completed' },
-      { id: 10, name: 'Olivia Green', category: 'Transport', status: 'pending' },
-    ]
-  };
+  // Load report data
+  useEffect(() => {
+    loadReportData();
+  }, [selectedPeriod]);
+
+    const loadReportData = async () => {
+      try {
+        setLoading(true);
+      setError('');
+      
+      // Load both analytics and dashboard stats
+      const [analyticsResult, statsResult] = await Promise.all([
+        adminService.getAnalytics({ period: selectedPeriod }),
+        adminService.getDashboardStats()
+      ]);
+
+      if (analyticsResult.success) {
+        setReportData(analyticsResult.data);
+      } else {
+        setError(analyticsResult.error || 'Failed to load analytics data');
+      }
+
+      if (statsResult.success) {
+        setDashboardStats(statsResult.data);
+      } else {
+        console.error('Failed to load dashboard stats:', statsResult.error);
+      }
+      } catch (error) {
+        console.error('Error loading report data:', error);
+      setError('Network error. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // Period options
   const periodOptions = [
-    { value: 'week', label: 'This Week' },
-    { value: 'month', label: 'This Month' },
-    { value: 'quarter', label: 'This Quarter' },
-    { value: 'year', label: 'This Year' }
+    { value: '7', label: 'Last 7 Days' },
+    { value: '30', label: 'Last 30 Days' },
+    { value: '90', label: 'Last 90 Days' },
+    { value: '365', label: 'Last Year' }
   ];
 
   // Category options
@@ -78,112 +96,182 @@ const ReportsPage = () => {
   // Event handlers
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
-    // In a real app, this would fetch new data
-    console.log('Period changed to:', period);
   };
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     // In a real app, this would filter data
-    console.log('Category changed to:', category);
+    // Category changed
   };
 
-  const handleExportReport = (type) => {
+  const handleExportReport = async (type) => {
     setIsLoading(true);
-    // Simulate export process
-    setTimeout(() => {
-      console.log(`Exporting ${type} report...`);
+    try {
+      const result = await adminService.exportSystemData({ 
+        type, 
+        format: 'pdf',
+        startDate: new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date().toISOString()
+      });
+      
+      if (result.success) {
+        // Create download link for PDF
+        const pdfContent = result.data;
+        const blob = new Blob([pdfContent], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.filename || `report-${type}-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast.success(`${type} report exported successfully as PDF!`);
+      } else {
+        toast.error(`Failed to export report: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      toast.error('Error exporting report. Please try again.');
+    } finally {
       setIsLoading(false);
-      alert(`${type} report exported successfully!`);
-    }, 2000);
+    }
   };
 
-  const handleRefreshData = () => {
+  const handleRefreshData = async () => {
     setIsLoading(true);
-    // Simulate data refresh
-    setTimeout(() => {
-      console.log('Data refreshed');
+    try {
+      await loadReportData();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      setError('Failed to refresh data. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
-  // Simple pie chart component
-  const PieChartComponent = ({ data }) => {
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    let currentAngle = 0;
-    
+  if (loading) {
     return (
-      <div className="relative w-48 h-48 mx-auto">
-        <svg className="w-full h-full" viewBox="0 0 100 100">
-          {data.map((item, index) => {
-            const percentage = (item.value / total) * 100;
-            const angle = (percentage / 100) * 360;
-            const x1 = 50 + 40 * Math.cos((currentAngle * Math.PI) / 180);
-            const y1 = 50 + 40 * Math.sin((currentAngle * Math.PI) / 180);
-            const x2 = 50 + 40 * Math.cos(((currentAngle + angle) * Math.PI) / 180);
-            const y2 = 50 + 40 * Math.sin(((currentAngle + angle) * Math.PI) / 180);
-            
-            const largeArcFlag = angle > 180 ? 1 : 0;
-            
-            currentAngle += angle;
-            
-            return (
-              <path
-                key={index}
-                d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
-                fill={item.color}
-                stroke="white"
-                strokeWidth="0.5"
-              />
-            );
-          })}
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{total}</div>
-            <div className="text-sm text-gray-500">Total</div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <LoadingSpinner size="lg" text="Loading reports..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-red-600" />
+            </div>
           </div>
+          <h3 className="text-lg font-medium text-red-900 mb-2">Error Loading Reports</h3>
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={loadReportData} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
         </div>
       </div>
     );
+  }
+
+  if (!reportData || !dashboardStats) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-gray-600" />
+            </div>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Report Data Available</h3>
+          <p className="text-gray-600">There is no data available for the selected period.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate growth rates
+  const calculateGrowthRate = (data) => {
+    if (!data || data.length < 2) return 0;
+    const recent = data.slice(-7).reduce((sum, item) => sum + item.count, 0);
+    const previous = data.slice(-14, -7).reduce((sum, item) => sum + item.count, 0);
+    if (previous === 0) return recent > 0 ? 100 : 0;
+    return Math.round(((recent - previous) / previous) * 100);
   };
-// fjghjfbhj
+
+  const jobSeekerGrowth = calculateGrowthRate(reportData.growth?.jobSeekers);
+  const requestGrowth = calculateGrowthRate(reportData.growth?.employerRequests);
+
   // Statistics calculation
   const stats = [
     {
       title: 'Total Job Seekers',
-      value: mockReportData.overview.totalJobSeekers.toString(),
-      change: '+12',
-      changeType: 'increase',
+      value: dashboardStats.overview?.totalJobSeekers?.toString() || '0',
+      change: jobSeekerGrowth > 0 ? `+${jobSeekerGrowth}%` : `${jobSeekerGrowth}%`,
+      changeType: jobSeekerGrowth >= 0 ? 'increase' : 'decrease',
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       description: 'All registered job seekers'
     },
     {
-      title: 'Success Rate',
-      value: '92%',
-      change: '+5%',
-      changeType: 'increase',
-      icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      description: 'Successful matches'
+      title: 'Total Requests',
+      value: dashboardStats.overview?.totalEmployerRequests?.toString() || '0',
+      change: requestGrowth > 0 ? `+${requestGrowth}%` : `${requestGrowth}%`,
+      changeType: requestGrowth >= 0 ? 'increase' : 'decrease',
+      icon: Briefcase,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      description: 'All employer requests'
     },
     {
-      title: 'Average Rating',
-      value: mockReportData.overview.avgRating.toString(),
-      change: '+0.2',
-      changeType: 'increase',
+      title: 'Pending Requests',
+      value: dashboardStats.overview?.pendingEmployerRequests?.toString() || '0',
+      change: '',
+      changeType: 'neutral',
+      icon: Calendar,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      description: 'Requests awaiting response'
+    },
+    {
+      title: 'Categories',
+      value: dashboardStats.overview?.totalCategories?.toString() || '0',
+      change: '',
+      changeType: 'neutral',
       icon: BarChart3,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      description: 'Employer satisfaction'
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      description: 'Active job categories'
     }
   ];
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+          <p className="text-gray-600">Comprehensive insights and performance metrics</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleRefreshData}
+            variant="outline"
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
+      </div>
+
       {/* Filters */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -192,23 +280,9 @@ const ReportsPage = () => {
             <select
               value={selectedPeriod}
               onChange={(e) => handlePeriodChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {periodOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            >
-              {categoryOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -220,89 +294,93 @@ const ReportsPage = () => {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
+        {stats.map((stat, index) => {
+          const IconComponent = stat.icon;
+          return (
+            <Card key={index} className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Job Seekers</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.totalJobSeekers}</p>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  {stat.change && (
               <div className="flex items-center mt-2">
+                      {stat.changeType === 'increase' ? (
                 <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+{mockReportData.overview.growthRate}%</span>
+                      ) : stat.changeType === 'decrease' ? (
+                        <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
+                      ) : null}
+                      <span className={`text-sm ${
+                        stat.changeType === 'increase' ? 'text-green-600' : 
+                        stat.changeType === 'decrease' ? 'text-red-600' : 
+                        'text-gray-600'
+                      }`}>
+                        {stat.change}
+                      </span>
               </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
             </div>
-            <Users className="w-8 h-8 text-blue-600" />
+                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                  <IconComponent className={`w-6 h-6 ${stat.color}`} />
+          </div>
           </div>
         </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Growth Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.growthRate}%</p>
-              <div className="flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+2.1%</span>
-              </div>
-            </div>
-            <Activity className="w-8 h-8 text-green-600" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-2xl font-bold text-gray-900">{mockReportData.overview.avgRating}</p>
-              <div className="flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+0.2</span>
-              </div>
-            </div>
-            <BarChart3 className="w-8 h-8 text-yellow-600" />
-          </div>
-        </Card>
+          );
+        })}
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category Distribution */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Job Seekers by Category</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleExportReport('categories')}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {mockReportData.performance.topCategories.map((category, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-blue-600">{index + 1}</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{category.name}</p>
-                    <p className="text-sm text-gray-500">{category.jobSeekers} job seekers</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900">{category.jobSeekers} job seekers</p>
-                  <p className="text-sm text-green-600">+{category.growth}%</p>
-                </div>
+        {/* Growth Charts */}
+        {reportData.growth && (
+          <>
+            {/* Job Seeker Growth Chart */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Job Seeker Growth</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExportReport('job-seekers')}
+                  disabled={isLoading}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export PDF
+                </Button>
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              <div className="h-80">
+                <GrowthChart 
+                  data={reportData.growth.jobSeekers || []} 
+                  title="Job Seeker Growth Trend"
+                />
+              </div>
+            </Card>
 
-      {/* Performance Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Categories */}
+            {/* Employer Request Growth Chart */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Employer Request Growth</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExportReport('employer-requests')}
+                  disabled={isLoading}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export PDF
+                </Button>
+              </div>
+              <div className="h-80">
+                <GrowthChart 
+                  data={reportData.growth.employerRequests || []} 
+                  title="Employer Request Growth Trend"
+                />
+              </div>
+            </Card>
+          </>
+        )}
+
+        {/* Categories Chart */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Top Categories</h3>
@@ -310,35 +388,114 @@ const ReportsPage = () => {
               variant="outline"
               size="sm"
               onClick={() => handleExportReport('categories')}
+              disabled={isLoading}
             >
               <Download className="w-4 h-4 mr-2" />
-              Export
+              Export PDF
             </Button>
           </div>
-          <div className="space-y-4">
-            {mockReportData.performance.topCategories.map((category, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-green-600">{index + 1}</span>
+          <div className="h-80">
+            <CategoriesChart 
+              data={reportData.categories?.top || []} 
+              title="Top Job Categories"
+            />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{category.name}</p>
-                    <p className="text-sm text-gray-500">{category.jobSeekers} job seekers</p>
+        </Card>
+
+        {/* Locations Chart */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Top Locations</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExportReport('locations')}
+              disabled={isLoading}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900">{category.jobSeekers} job seekers</p>
-                  <div className="flex items-center mt-1">
-                    <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
-                    <span className="text-sm text-green-600">+{category.growth}%</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="h-80">
+            <LocationsChart 
+              data={reportData.locations || []} 
+              title="Geographic Distribution"
+            />
+          </div>
+        </Card>
+
+        {/* Skills Chart */}
+        {reportData.skills && reportData.skills.length > 0 && (
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Top Skills in Demand</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExportReport('skills')}
+                disabled={isLoading}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export PDF
+              </Button>
+            </div>
+            <div className="h-80">
+              <SkillsChart 
+                data={reportData.skills.slice(0, 10) || []} 
+                title="Most Requested Skills"
+              />
+            </div>
+          </Card>
+        )}
+
+        {/* Skills Doughnut Chart */}
+        {reportData.skills && reportData.skills.length > 0 && (
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Skills Distribution</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExportReport('skills')}
+                disabled={isLoading}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export PDF
+              </Button>
+            </div>
+            <div className="h-80">
+              <SkillsDoughnutChart 
+                data={reportData.skills.slice(0, 8) || []} 
+                title="Skills Distribution"
+              />
+      </div>
+          </Card>
+        )}
+
+        {/* Categories Doughnut Chart */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Categories Distribution</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExportReport('categories')}
+              disabled={isLoading}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export PDF
+            </Button>
+          </div>
+          <div className="h-80">
+            <CategoriesDoughnutChart 
+              data={reportData.categories?.top?.slice(0, 8) || []} 
+              title="Categories Distribution"
+            />
           </div>
         </Card>
       </div>
+      
+      <Toaster position="top-right" />
     </div>
   );
 };

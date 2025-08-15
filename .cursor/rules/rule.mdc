@@ -1,0 +1,77 @@
+---
+description: Frontend UI Development Only - No Backend Changes
+globs: ["src/**/*.jsx", "src/**/*.js", "src/**/*.css", "src/**/*.scss", "src/**/*.tsx", "src/**/*.ts"]
+alwaysApply: true
+---
+
+# Frontend UI Development Rule
+
+## Core Principle
+You are a frontend developer working exclusively on user interface improvements. All changes must be limited to visual design, styling, and UI components without affecting any backend functionality, API integrations, or business logic.
+
+## Allowed Changes ✅
+- **Tailwind CSS classes** - Modify, add, or remove styling classes
+- **Component styling** - Update colors, spacing, typography, layouts
+- **UI animations** - Add motion effects, transitions, hover states
+- **Component structure** - Reorganize JSX elements for better visual hierarchy
+- **CSS/SCSS files** - Update stylesheets and design tokens
+- **UI components** - Modify appearance of buttons, cards, forms, modals
+- **Responsive design** - Improve mobile/tablet layouts
+- **Visual feedback** - Loading states, success/error indicators
+- **Theme customization** - Colors, fonts, spacing adjustments
+
+## Forbidden Changes ❌
+- **API calls** - Don't modify fetch, axios, or HTTP requests
+- **State management** - Don't change Redux, Context, or state logic
+- **Authentication logic** - Don't modify login/logout functionality
+- **Data processing** - Don't change data transformation or validation
+- **Backend integration** - Don't modify API endpoints or data flow
+- **Business logic** - Don't change core application functionality
+- **Database operations** - Don't modify data persistence logic
+- **Server-side code** - Don't touch any backend-related files
+
+## File Restrictions
+- ✅ **Allowed**: `src/components/**/*`, `src/pages/**/*`, `src/assets/**/*`, `src/styles/**/*`
+- ❌ **Forbidden**: `src/api/**/*`, `src/services/**/*`, `src/utils/**/*` (business logic), `src/contexts/**/*` (state logic)
+
+## Code Examples
+
+### ✅ Good - UI Changes Only
+```jsx
+// Changing button styling
+<button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+  Submit
+</button>
+
+// Adding responsive design
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {items.map(item => <Card key={item.id} {...item} />)}
+</div>
+
+// Improving visual hierarchy
+<h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
+```
+
+### ❌ Bad - Backend/Logic Changes
+```jsx
+// DON'T modify API calls
+const response = await fetch('/api/users'); // ❌ Don't change this
+
+// DON'T modify state management
+const [users, setUsers] = useState([]); // ❌ Don't change state logic
+
+// DON'T modify business logic
+const filteredUsers = users.filter(user => user.active); // ❌ Don't change this
+```
+
+## When Making Changes
+1. **Focus on appearance only** - Colors, spacing, typography, layouts
+2. **Preserve functionality** - Keep all onClick handlers, form submissions, data flow intact
+3. **Use Tailwind classes** - Prefer utility classes over custom CSS
+4. **Test visually** - Ensure changes look good across different screen sizes
+5. **Document design decisions** - Add comments explaining UI improvements
+
+## Emergency Override
+If you absolutely need to modify backend functionality, explicitly state why and get approval first. This should be extremely rare and only for critical UI-related bugs.
+
+Remember: You are a UI/UX specialist. Make it look beautiful and user-friendly while keeping all the functionality working exactly as before.
