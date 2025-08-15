@@ -41,6 +41,8 @@ const AddJobSeekerForm = ({
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   // Skills selection state
   const [selectedSkills, setSelectedSkills] = useState([]);
@@ -288,7 +290,8 @@ const AddJobSeekerForm = ({
 
 
 
-        await onSubmit(jobSeekerData);
+  // Pass photoFile as second arg if present
+  await onSubmit(jobSeekerData, photoFile);
         onClose();
       } catch (error) {
         console.error('Form submission error:', error);
@@ -372,8 +375,31 @@ const AddJobSeekerForm = ({
         setSelectedLanguages([]);
       }
       setErrors({});
+      setPhotoFile(null);
+      setPhotoPreview(null);
     }
   }, [isOpen, isEdit]);
+
+  // Photo input handler
+  const handlePhotoChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    // Basic validation: type and size
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setErrors(prev => ({ ...prev, photo: 'Invalid file type. Use JPEG/PNG/GIF/WEBP.' }));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, photo: 'Photo must be less than 5MB.' }));
+      return;
+    }
+
+    setErrors(prev => ({ ...prev, photo: '' }));
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
 
   return (
     <Modal
@@ -480,6 +506,32 @@ const AddJobSeekerForm = ({
                   <option value="Other">Other</option>
                   <option value="Prefer not to say">Prefer not to say</option>
                 </select>
+              </div>
+
+              {/* Photo input */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Photo (optional)</label>
+                <div className="flex items-center space-x-4">
+                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {photoPreview ? (
+                      <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-gray-500">No photo</div>
+                    )}
+                  </div>
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="block"
+                    />
+                    {errors.photo && (
+                      <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">Max 5MB. JPEG/PNG/GIF/WEBP.</p>
+                  </div>
+                </div>
               </div>
 
               <div>

@@ -371,9 +371,9 @@ const JobSeekersPage = () => {
 
 
   // Handle add job seeker
-  const handleAddJobSeeker = async (jobSeekerData) => {
+  const handleAddJobSeeker = async (jobSeekerData, photoFile = null) => {
     try {
-      const result = await createJobSeeker(jobSeekerData);
+      const result = await createJobSeeker(jobSeekerData, photoFile);
       if (result.success) {
         setShowAddForm(false);
         setSuccessMessage('Job seeker created successfully!');
@@ -390,11 +390,11 @@ const JobSeekersPage = () => {
   };
 
   // Handle update job seeker
-  const handleUpdateJobSeeker = async (jobSeekerData) => {
+  const handleUpdateJobSeeker = async (jobSeekerData, photoFile = null) => {
     if (!selectedJobSeeker) return;
     
     try {
-      const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData);
+      const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData, photoFile);
       if (result.success) {
         setShowEditModal(false);
         setSelectedJobSeeker(null);
@@ -1114,6 +1114,34 @@ const JobSeekersPage = () => {
                 <p className="mt-1 text-gray-900">
                   {selectedJobSeeker.createdAt ? new Date(selectedJobSeeker.createdAt).toLocaleDateString() : 'Not available'}
                 </p>
+              </div>
+            </div>
+
+            {/* Photo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Photo</label>
+              <div className="mt-2">
+                {(function(){
+                  const photoPath = selectedJobSeeker?.profile?.photo || selectedJobSeeker?.photo || null;
+                  const photoUrl = photoPath ? (/^https?:\/\//i.test(photoPath) ? photoPath : `${API_CONFIG.BASE_URL}/${photoPath.replace(/^\//, '')}`) : null;
+                  if (photoUrl) {
+                    return (
+                      <img
+                        src={photoUrl}
+                        alt={`${selectedJobSeeker?.profile?.firstName || ''} ${selectedJobSeeker?.profile?.lastName || ''}`}
+                        className="w-48 h-48 rounded-lg object-cover"
+                        onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                      />
+                    );
+                  }
+
+                  const initials = ((selectedJobSeeker?.profile?.firstName || selectedJobSeeker?.firstName || '').charAt(0) || '') + ((selectedJobSeeker?.profile?.lastName || selectedJobSeeker?.lastName || '').charAt(0) || '');
+                  return (
+                    <div className="w-48 h-48 rounded-lg bg-gray-400 flex items-center justify-center text-3xl font-semibold text-white">
+                      {initials.toUpperCase() || 'U'}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
