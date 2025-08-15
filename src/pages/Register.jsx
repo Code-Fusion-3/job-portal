@@ -183,7 +183,6 @@ const Register = () => {
     if (!selectedSkills.includes(skill)) {
       setSelectedSkills(prev => {
         const newSkills = [...prev, skill];
-        console.log('Adding skill:', skill, 'New skills array:', newSkills);
         updateSkillsField(newSkills);
         return newSkills;
       });
@@ -193,7 +192,6 @@ const Register = () => {
   const handleSkillRemove = (skill) => {
     setSelectedSkills(prev => {
       const updatedSkills = prev.filter(s => s !== skill);
-      console.log('Removing skill:', skill, 'Updated skills array:', updatedSkills);
       updateSkillsField(updatedSkills);
       return updatedSkills;
     });
@@ -203,7 +201,6 @@ const Register = () => {
     if (customSkill.trim() && !selectedSkills.includes(customSkill.trim())) {
       setSelectedSkills(prev => {
         const newSkills = [...prev, customSkill.trim()];
-        console.log('Adding custom skill:', customSkill.trim(), 'New skills array:', newSkills);
         updateSkillsField(newSkills);
         return newSkills;
       });
@@ -212,7 +209,6 @@ const Register = () => {
   };
 
   const updateSkillsField = (skills) => {
-    console.log('Updating skills field with:', skills);
     setFormData(prev => ({ ...prev, skills: skills.join(', ') }));
   };
 
@@ -221,7 +217,6 @@ const Register = () => {
     if (!selectedLanguages.includes(language)) {
       setSelectedLanguages(prev => {
         const newLanguages = [...prev, language];
-        console.log('Adding language:', language, 'New languages array:', newLanguages);
         updateLanguagesField(newLanguages);
         return newLanguages;
       });
@@ -231,7 +226,6 @@ const Register = () => {
   const handleLanguageRemove = (language) => {
     setSelectedLanguages(prev => {
       const updatedLanguages = prev.filter(l => l !== language);
-      console.log('Removing language:', language, 'Updated languages array:', updatedLanguages);
       updateLanguagesField(updatedLanguages);
       return updatedLanguages;
     });
@@ -241,7 +235,6 @@ const Register = () => {
     if (customLanguage.trim() && !selectedLanguages.includes(customLanguage.trim())) {
       setSelectedLanguages(prev => {
         const newLanguages = [...prev, customLanguage.trim()];
-        console.log('Adding custom language:', customLanguage.trim(), 'New languages array:', newLanguages);
         updateLanguagesField(newLanguages);
         return newLanguages;
       });
@@ -250,17 +243,11 @@ const Register = () => {
   };
 
   const updateLanguagesField = (languages) => {
-    console.log('Updating languages field with:', languages);
     setFormData(prev => ({ ...prev, languages: languages.join(', ') }));
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    // Debug logging for specific fields
-    if (name === 'educationLevel' || name === 'availability') {
-      console.log(`Updating ${name}:`, value);
-    }
     
     setFormData(prev => ({
       ...prev,
@@ -303,8 +290,6 @@ const Register = () => {
 
   // Initialize skills and languages when form loads
   React.useEffect(() => {
-    console.log('Form initialized with formData:', formData);
-    
     // Initialize skills from formData if they exist
     if (formData.skills) {
       const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
@@ -317,11 +302,6 @@ const Register = () => {
       setSelectedLanguages(languagesArray);
     }
   }, []); // Only run once when component mounts
-
-  // Debug: Log formData changes
-  React.useEffect(() => {
-    console.log('formData changed:', formData);
-  }, [formData]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -446,23 +426,7 @@ const Register = () => {
         }
       });
 
-      // Debug: Log the data being sent
-      console.log('Current formData state:', formData);
-      console.log('Selected skills:', selectedSkills);
-      console.log('Selected languages:', selectedLanguages);
-      console.log('Form Data being sent to API:', userData);
-      console.log('Photo file:', photo);
-      
-      // All fields are now supported by the backend!
-      console.log('✅ All fields are now being sent to the backend:', {
-        educationLevel: formData.educationLevel,
-        availability: formData.availability,
-        jobCategoryId: formData.jobCategoryId,
-        languages: formData.languages,
-        certifications: formData.certifications,
-        experienceLevel: formData.experienceLevel,
-        monthlyRate: formData.monthlyRate
-      });
+
 
       const result = await authService.registerJobSeeker(userData, photo);
       if (result.success && result.user) {
@@ -521,37 +485,9 @@ const Register = () => {
           onChange={handleUserTypeChange}
         />
 
-        {/* Field Support Summary */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <h3 className="text-sm font-semibold text-green-900 mb-2">✅ Complete Form - All Fields Supported!</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span className="text-green-700">All fields will be saved to profile</span>
-            </div>
-          </div>
-          <p className="text-xs text-green-700 mt-2">
-            Perfect! The form now includes ALL fields that the backend supports, including Monthly Rate. 
-            Everything you fill out will be properly saved to your profile.
-          </p>
-        </div>
 
-        {/* Debug Button - Remove this after testing */}
-        <button
-          type="button"
-          onClick={() => {
-            console.log('=== DEBUG FORM STATE ===');
-            console.log('formData:', formData);
-            console.log('selectedSkills:', selectedSkills);
-            console.log('selectedLanguages:', selectedLanguages);
-            console.log('Education Level:', formData.educationLevel);
-            console.log('Availability:', formData.availability);
-            console.log('=======================');
-          }}
-          className="mb-4 px-4 py-2 bg-yellow-500 text-white rounded text-sm"
-        >
-          Debug Form State
-        </button>
+
+
 
           {/* Left Column - Required Information */}
           <div className="space-y-6">
@@ -1079,12 +1015,7 @@ const Register = () => {
                   />
                 </div>
 
-                {/* Note about Monthly Rate */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> All fields in this form are now fully supported by the backend and will be saved to your profile!
-                  </p>
-                </div>
+
               </div>
             </div>
           </motion.div>

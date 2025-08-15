@@ -31,11 +31,7 @@ const EmployerRequestForm = ({
 
   // Update form data when jobSeekerId prop changes
   useEffect(() => {
-    console.log('EmployerRequestForm: jobSeekerId prop changed:', jobSeekerId);
-    console.log('EmployerRequestForm: Current formData.jobSeekerId:', formData.jobSeekerId);
-    
     if (jobSeekerId && jobSeekerId !== formData.jobSeekerId) {
-      console.log('EmployerRequestForm: Updating jobSeekerId from', formData.jobSeekerId, 'to', jobSeekerId);
       setFormData(prev => ({
         ...prev,
         jobSeekerId: jobSeekerId
@@ -48,13 +44,10 @@ const EmployerRequestForm = ({
       const urlId = urlParams.get('id') || window.location.pathname.split('/').pop();
       
       if (urlId && urlId !== 'undefined' && urlId !== 'null') {
-        console.log('EmployerRequestForm: Fallback - extracting ID from URL:', urlId);
-        
         // Convert JS prefix to numeric ID if needed
         let numericId = urlId;
         if (typeof urlId === 'string' && urlId.startsWith('JS')) {
           numericId = parseInt(urlId.replace(/^JS/, ''), 10);
-          console.log('EmployerRequestForm: Converted URL JS prefix to numeric ID:', numericId);
         }
         
         setFormData(prev => ({
@@ -68,7 +61,6 @@ const EmployerRequestForm = ({
     if (jobSeekerId && typeof jobSeekerId === 'string' && jobSeekerId.startsWith('JS')) {
       const numericId = parseInt(jobSeekerId.replace(/^JS/, ''), 10);
       if (!isNaN(numericId) && numericId !== formData.jobSeekerId) {
-        console.log('EmployerRequestForm: Converting JS-prefixed prop to numeric ID:', jobSeekerId, '->', numericId);
         setFormData(prev => ({
           ...prev,
           jobSeekerId: numericId
@@ -76,11 +68,6 @@ const EmployerRequestForm = ({
       }
     }
   }, [jobSeekerId, formData.jobSeekerId]);
-
-  // Debug effect to log form data changes
-  useEffect(() => {
-    console.log('EmployerRequestForm: Form data updated:', formData);
-  }, [formData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -114,7 +101,7 @@ const EmployerRequestForm = ({
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
     } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Please enter a valid phone number (25 ---)';
+      newErrors.phone = 'Please enter a valid phone number';
     }
     
     if (!formData.message.trim()) {
@@ -125,7 +112,7 @@ const EmployerRequestForm = ({
     
     // Add validation for jobSeekerId
     if (!formData.jobSeekerId || formData.jobSeekerId === '') {
-      newErrors.general = `Candidate ID is missing (current value: ${formData.jobSeekerId}). This is required to submit the request. Please refresh the page and try again.`;
+      newErrors.general = 'Candidate ID is missing. This is required to submit the request. Please refresh the page and try again.';
     }
     
     setErrors(newErrors);
@@ -135,14 +122,7 @@ const EmployerRequestForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('=== FORM SUBMISSION START ===');
-    console.log('Form data being submitted:', formData);
-    console.log('jobSeekerId value:', formData.jobSeekerId);
-    console.log('jobSeekerId type:', typeof formData.jobSeekerId);
-    console.log('jobSeekerId truthy check:', !!formData.jobSeekerId);
-    
     if (!validateForm()) {
-      console.log('Form validation failed');
       return;
     }
     
@@ -165,7 +145,6 @@ const EmployerRequestForm = ({
           
           if (typeof candidateId === 'string' && candidateId.startsWith('JS')) {
             const numericId = parseInt(candidateId.replace(/^JS/, ''), 10);
-            console.log('Converting JS prefix ID:', candidateId, 'to numeric ID:', numericId);
             return numericId;
           }
           
@@ -176,7 +155,6 @@ const EmployerRequestForm = ({
           
           // If it's a string number, convert it
           const parsedId = parseInt(candidateId, 10);
-          console.log('Converting string ID:', candidateId, 'to numeric ID:', parsedId);
           return parsedId;
         })(),
         priority: formData.priority
@@ -184,16 +162,8 @@ const EmployerRequestForm = ({
       
       // Validate that requestedCandidateId is a valid number
       if (isNaN(requestBody.requestedCandidateId) || !requestBody.requestedCandidateId) {
-        console.error('❌ Invalid requestedCandidateId:', requestBody.requestedCandidateId);
         throw new Error('Invalid candidate ID. Please refresh the page and try again.');
       }
-      
-      console.log('Request body being sent:', requestBody);
-      console.log('API endpoint:', endpoint);
-      console.log('requestedCandidateId in requestBody:', requestBody.requestedCandidateId);
-      console.log('requestedCandidateId type:', typeof requestBody.requestedCandidateId);
-      console.log('Original jobSeekerId:', formData.jobSeekerId);
-      console.log('Original jobSeekerId type:', typeof formData.jobSeekerId);
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -203,18 +173,10 @@ const EmployerRequestForm = ({
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Response not OK:', { status: response.status, statusText: response.statusText, body: errorText });
         throw new Error(`Request failed: ${response.status} ${response.statusText}`);
       }
       
       const responseData = await response.json();
-      console.log('Response received:', responseData);
-      
-      // Log the successful submission details
-      console.log('✅ Request submitted successfully!');
-      console.log('Sent requestedCandidateId:', requestBody.requestedCandidateId);
-      console.log('Response requestedCandidateId:', responseData.request?.requestedCandidateId);
-      console.log('Response selectedUserId:', responseData.request?.selectedUserId);
       
       onSuccess();
       setFormData({
@@ -227,8 +189,6 @@ const EmployerRequestForm = ({
         priority: 'normal',
       });
     } catch (error) {
-      console.error('=== FORM SUBMISSION FAILED ===');
-      console.error('Request error:', error);
       onError(error);
     } finally {
       setLoading(false);
@@ -253,28 +213,6 @@ const EmployerRequestForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Debug Information */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <div className="text-xs text-blue-800 font-medium mb-2">Debug Information:</div>
-          <div className="text-xs text-blue-700 space-y-1">
-            <div>Prop jobSeekerId: <span className="font-mono bg-blue-100 px-1 rounded">{String(jobSeekerId)}</span> (type: {typeof jobSeekerId})</div>
-            <div>Form jobSeekerId: <span className="font-mono bg-blue-100 px-1 rounded">{String(formData.jobSeekerId)}</span> (type: {typeof formData.jobSeekerId})</div>
-            <div>jobSeekerName: <span className="font-mono bg-blue-100 px-1 rounded">{String(jobSeekerName)}</span></div>
-            <div>Will send as requestedCandidateId: <span className="font-mono bg-blue-100 px-1 rounded">{(() => {
-              let candidateId = formData.jobSeekerId;
-              if (typeof candidateId === 'string' && candidateId.startsWith('JS')) {
-                return parseInt(candidateId.replace(/^JS/, ''), 10);
-              }
-              if (typeof candidateId === 'number') return candidateId;
-              return parseInt(candidateId, 10);
-            })()}</span></div>
-          </div>
-        </div>
-        
-        <div className="text-xs text-gray-500 mb-2">
-          Form ID: employer-request-form | onSubmit handler: {handleSubmit ? 'Attached' : 'Missing'}
-        </div>
-        
         <div>
           <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
             {t('employerRequest.priority', 'Priority')}
@@ -292,21 +230,12 @@ const EmployerRequestForm = ({
             <option value="high">{t('employerRequest.priorityHigh', 'High')}</option>
           </select>
         </div>
+        
         {errors.general && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-red-600 text-sm font-medium">{errors.general}</p>
             <p className="text-red-500 text-xs mt-1">
               This form requires a valid candidate ID to submit. Please contact support if this issue persists.
-            </p>
-          </div>
-        )}
-
-        {/* Warning if jobSeekerId is missing */}
-        {!formData.jobSeekerId && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-yellow-700 text-sm font-medium">⚠️ Candidate ID Missing</p>
-            <p className="text-yellow-600 text-xs mt-1">
-              The candidate ID is required to submit this request. Current value: <span className="font-mono bg-yellow-100 px-1 rounded">{String(formData.jobSeekerId)}</span>
             </p>
           </div>
         )}
@@ -411,41 +340,6 @@ const EmployerRequestForm = ({
             </>
           )}
         </Button>
-
-        {/* Test Button for Debugging */}
-        <button
-          type="button"
-          onClick={() => {
-            console.log('=== TEST BUTTON CLICKED ===');
-            console.log('Current formData:', formData);
-            console.log('jobSeekerId prop:', jobSeekerId);
-            console.log('Form validation result:', validateForm());
-            
-            // Calculate what will actually be sent
-            const actualCandidateId = (() => {
-              let candidateId = formData.jobSeekerId;
-              if (typeof candidateId === 'string' && candidateId.startsWith('JS')) {
-                return parseInt(candidateId.replace(/^JS/, ''), 10);
-              }
-              if (typeof candidateId === 'number') return candidateId;
-              return parseInt(candidateId, 10);
-            })();
-            
-            console.log('What would be sent:', {
-              name: formData.employerName,
-              companyName: formData.companyName,
-              email: formData.email,
-              phoneNumber: formData.phone,
-              message: formData.message,
-              requestedCandidateId: actualCandidateId,
-              priority: formData.priority
-            });
-            console.log('Actual numeric candidate ID:', actualCandidateId);
-          }}
-          className="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm"
-        >
-          🧪 Test Form Data (Debug)
-        </button>
 
         <p className="text-center text-sm text-gray-500">
           {t('employerRequest.disclaimer', 'Your request will be sent to our admin team for review. We\'ll get back to you within 24 hours.')}

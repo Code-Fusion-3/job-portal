@@ -88,7 +88,7 @@ export const jobSeekerService = {
         data: response.data.users || [],
         pagination: response.data.pagination || {}
       };
-      
+      console.log('getAllJobSeekers result:', result);
       return result;
     } catch (error) {
       console.error('❌ getAllJobSeekers error:', error);
