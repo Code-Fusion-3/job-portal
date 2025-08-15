@@ -32,6 +32,7 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
+import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import API_CONFIG from '../../api/config/apiConfig.js';
 
@@ -367,6 +368,7 @@ const EmployerRequestsPage = () => {
               alt={item.candidateName}
               size="sm"
               fallback={item.candidateName}
+              fallbackSrc={defaultProfileImage}
             />
             <div>
               <div className="font-medium text-gray-900">{item.candidateName}</div>
@@ -1358,6 +1360,7 @@ const EmployerRequestsPage = () => {
                             alt={selectedRequest.candidateName}
                             size="lg"
                             fallback={selectedRequest.candidateName}
+                            fallbackSrc={defaultProfileImage}
                           />
                         );
                       })()}
@@ -1682,6 +1685,7 @@ const EmployerRequestsPage = () => {
                                 alt={selectedRequest.candidateName}
                                 size="md"
                                 fallback={selectedRequest.candidateName}
+                                fallbackSrc={defaultProfileImage}
                               />
                             );
                           })()}
