@@ -30,6 +30,8 @@ import {
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
+import API_CONFIG from '../../api/config/apiConfig.js';
+import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -369,9 +371,9 @@ const JobSeekersPage = () => {
 
 
   // Handle add job seeker
-  const handleAddJobSeeker = async (jobSeekerData) => {
+  const handleAddJobSeeker = async (jobSeekerData, photoFile = null) => {
     try {
-      const result = await createJobSeeker(jobSeekerData);
+      const result = await createJobSeeker(jobSeekerData, photoFile);
       if (result.success) {
         setShowAddForm(false);
         setSuccessMessage('Job seeker created successfully!');
@@ -388,11 +390,11 @@ const JobSeekersPage = () => {
   };
 
   // Handle update job seeker
-  const handleUpdateJobSeeker = async (jobSeekerData) => {
+  const handleUpdateJobSeeker = async (jobSeekerData, photoFile = null) => {
     if (!selectedJobSeeker) return;
     
     try {
-      const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData);
+      const result = await updateJobSeeker(selectedJobSeeker.id, jobSeekerData, photoFile);
       if (result.success) {
         setShowEditModal(false);
         setSelectedJobSeeker(null);
@@ -501,10 +503,38 @@ const JobSeekersPage = () => {
         const lastName = jobSeeker.profile?.lastName || jobSeeker.lastName || '';
         const email = jobSeeker.email || 'No email';
         
+        // Resolve photo URL: backend stores relative path like "uploads/profiles/..."
+        const photoPath = jobSeeker.profile?.photo || jobSeeker.photo || null;
+        const resolvePhotoUrl = (path) => {
+          if (!path) return null;
+          if (/^https?:\/\//i.test(path)) return path;
+          return `${API_CONFIG.BASE_URL}/${path.replace(/^\//, '')}`;
+        };
+
+        const photoUrl = resolvePhotoUrl(photoPath);
+        const getInitials = (f, l) => {
+          const a = (f || '').trim();
+          const b = (l || '').trim();
+          const first = a ? a.charAt(0).toUpperCase() : '';
+          const last = b ? b.charAt(0).toUpperCase() : '';
+          return `${first}${last}` || ((a || b) ? (a || b).charAt(0).toUpperCase() : '');
+        };
+
         return (
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-              <Users className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={`${firstName} ${lastName}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-sm font-semibold text-white">
+                  {getInitials(firstName, lastName)}
+                </div>
+              )}
             </div>
             <div>
               <div className="font-medium">
@@ -702,6 +732,38 @@ const JobSeekersPage = () => {
 
   return (
     <div className="space-y-6">
+      {selectedJobSeeker && (
+        // Avatar
+        <div className="flex items-center space-x-4">
+          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+            {(function(){
+              const photoPath = selectedJobSeeker?.profile?.photo || selectedJobSeeker?.photo || null;
+              const photoUrl = photoPath && (/^https?:\/\//i.test(photoPath) ? photoPath : `${API_CONFIG.BASE_URL}/${photoPath.replace(/^\//, '')}`);
+              if (photoUrl) {
+                return (
+                  <img
+                    src={photoUrl}
+                    alt={`${selectedJobSeeker?.profile?.firstName || ''} ${selectedJobSeeker?.profile?.lastName || ''}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                  />
+                );
+              }
+
+              const initials = ((selectedJobSeeker?.profile?.firstName || selectedJobSeeker?.firstName || '').charAt(0) || '') + ((selectedJobSeeker?.profile?.lastName || selectedJobSeeker?.lastName || '').charAt(0) || '');
+              return (
+                <div className="w-full h-full flex items-center justify-center bg-gray-400 text-2xl font-semibold text-white">
+                  {initials.toUpperCase() || 'U'}
+                </div>
+              );
+            })()}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{selectedJobSeeker?.profile?.firstName || selectedJobSeeker?.firstName || 'Unknown'} {selectedJobSeeker?.profile?.lastName || selectedJobSeeker?.lastName || ''}</h3>
+            <p className="text-sm text-gray-500">{selectedJobSeeker?.email || 'Not provided'}</p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
@@ -1052,6 +1114,34 @@ const JobSeekersPage = () => {
                 <p className="mt-1 text-gray-900">
                   {selectedJobSeeker.createdAt ? new Date(selectedJobSeeker.createdAt).toLocaleDateString() : 'Not available'}
                 </p>
+              </div>
+            </div>
+
+            {/* Photo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Photo</label>
+              <div className="mt-2">
+                {(function(){
+                  const photoPath = selectedJobSeeker?.profile?.photo || selectedJobSeeker?.photo || null;
+                  const photoUrl = photoPath ? (/^https?:\/\//i.test(photoPath) ? photoPath : `${API_CONFIG.BASE_URL}/${photoPath.replace(/^\//, '')}`) : null;
+                  if (photoUrl) {
+                    return (
+                      <img
+                        src={photoUrl}
+                        alt={`${selectedJobSeeker?.profile?.firstName || ''} ${selectedJobSeeker?.profile?.lastName || ''}`}
+                        className="w-48 h-48 rounded-lg object-cover"
+                        onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                      />
+                    );
+                  }
+
+                  const initials = ((selectedJobSeeker?.profile?.firstName || selectedJobSeeker?.firstName || '').charAt(0) || '') + ((selectedJobSeeker?.profile?.lastName || selectedJobSeeker?.lastName || '').charAt(0) || '');
+                  return (
+                    <div className="w-48 h-48 rounded-lg bg-gray-400 flex items-center justify-center text-3xl font-semibold text-white">
+                      {initials.toUpperCase() || 'U'}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 

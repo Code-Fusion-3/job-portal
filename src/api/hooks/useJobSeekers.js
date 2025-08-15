@@ -54,13 +54,13 @@ export const useJobSeekers = (options = {}) => {
     }
   }, [includePrivate]);
 
-  // Create new job seeker
-  const createJobSeeker = useCallback(async (jobSeekerData) => {
+  // Create new job seeker (supports optional photo File)
+  const createJobSeeker = useCallback(async (jobSeekerData, photo = null) => {
     setLoading(true);
     setError(null);
     
     try {
-      const result = await jobSeekerService.createJobSeeker(jobSeekerData);
+      const result = await jobSeekerService.createJobSeeker(jobSeekerData, photo);
       if (result.success) {
         // Refresh the list after creation
         await fetchJobSeekers();
@@ -80,13 +80,13 @@ export const useJobSeekers = (options = {}) => {
     }
   }, [fetchJobSeekers]);
 
-  // Update job seeker
-  const updateJobSeeker = useCallback(async (id, updateData) => {
+  // Update job seeker (supports optional photo File)
+  const updateJobSeeker = useCallback(async (id, updateData, photo = null) => {
     setLoading(true);
     setError(null);
     
     try {
-      const result = await jobSeekerService.updateJobSeeker(id, updateData);
+      const result = await jobSeekerService.updateJobSeeker(id, updateData, photo);
       if (result.success) {
         // console.log('✅ Job seeker updated:', result.data);
 
