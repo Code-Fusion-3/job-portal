@@ -31,6 +31,7 @@ import {
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { adminService } from '../../api/services/adminService.js';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
+import API_CONFIG from '../../api/config/apiConfig.js';
 import { useAdminRequests } from '../../api/hooks/useRequests.js';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
 import { useLiveUpdates } from '../../contexts/LiveUpdateContext';
@@ -413,24 +414,37 @@ const AdminDashboard = () => {
               <div className="space-y-3">
                 {(dashboardStatsData.recentActivity?.recentJobSeekers || recentJobSeekers || [])
                   .slice(0, 5) // Limit to 5 to prevent duplicates
-                  .map((jobSeeker, index) => (
-                  <JobSeekerCard
-                    key={jobSeeker.id || index}
-                    jobSeeker={{
-                      id: jobSeeker.id,
-                      name: jobSeeker.name,
-                      title: 'Job Seeker',
-                      category: jobSeeker.skills?.split(',')[0] || 'General', // Use first skill as category
-                      avatar: jobSeeker.avatar,
-                      location: 'Unknown',
-                      dailyRate: jobSeeker.dailyRate,
-                      monthlyRate: jobSeeker.monthlyRate
-                    }}
-                    onViewDetails={handleRequestAction}
-                    getCategoryColor={getCategoryColor}
-                    compact={true}
-                  />
-                ))}
+                  .map((jobSeeker, index) => {
+                  // Dashboard API sometimes returns minimal objects (id, name, skills).
+                  // Try to find a fuller record from the hook `recentJobSeekers` if available.
+                  const fullRecord = (recentJobSeekers || []).find(s => s.id === jobSeeker.id) || jobSeeker;
+                  const avatarPath = fullRecord?.profile?.photo || fullRecord?.avatar || fullRecord?.photo || null;
+                  const resolvePhotoUrl = (path) => {
+                    if (!path) return null;
+                    if (/^https?:\/\//i.test(path)) return path;
+                    return `${API_CONFIG.BASE_URL}/${path.replace(/^\//, '')}`;
+                  };
+                  const avatarUrl = resolvePhotoUrl(avatarPath);
+
+                  return (
+                    <JobSeekerCard
+                      key={jobSeeker.id || index}
+                      jobSeeker={{
+                        id: jobSeeker.id,
+                        name: jobSeeker.name || `${jobSeeker?.profile?.firstName || ''} ${jobSeeker?.profile?.lastName || ''}`.trim() || 'Unknown',
+                        title: 'Job Seeker',
+                        category: jobSeeker.skills?.split(',')[0] || 'General', // Use first skill as category
+                        avatar: avatarUrl,
+                        location: jobSeeker.location || jobSeeker?.profile?.location || 'Unknown',
+                        dailyRate: jobSeeker.dailyRate,
+                        monthlyRate: jobSeeker.monthlyRate
+                      }}
+                      onViewDetails={handleRequestAction}
+                      getCategoryColor={getCategoryColor}
+                      compact={true}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
