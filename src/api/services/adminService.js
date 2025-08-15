@@ -7,6 +7,11 @@ import { apiClient } from '../client/apiClient.js';
 import { handleError } from '../utils/errorHandler.js';
 import { getAuthHeaders } from '../config/apiConfig.js';
 
+// Cache for admin profile to prevent unnecessary API calls
+let adminProfileCache = null;
+let adminProfileCacheTime = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Dashboard Statistics Data Structure
  * Matches the backend API response format
@@ -199,14 +204,30 @@ export const adminService = {
   },
 
   /**
-   * Get admin profile (Admin)
-   * GET /admin/profile
+   * Get admin profile (Admin) - Optimized with caching
+   * GET /profile/me (correct endpoint from Postman collection)
    */
-  getAdminProfile: async () => {
+  getAdminProfile: async (forceRefresh = false) => {
     try {
-      const response = await apiClient.get('/admin/profile', {
+      // Check cache first (unless force refresh is requested)
+      if (!forceRefresh && adminProfileCache && adminProfileCacheTime) {
+        const now = Date.now();
+        if (now - adminProfileCacheTime < CACHE_DURATION) {
+          return {
+            success: true,
+            data: adminProfileCache,
+            fromCache: true
+          };
+        }
+      }
+
+      const response = await apiClient.get('/profile/me', {
         headers: getAuthHeaders()
       });
+
+      // Update cache
+      adminProfileCache = response.data;
+      adminProfileCacheTime = Date.now();
 
       return {
         success: true,
@@ -225,13 +246,17 @@ export const adminService = {
 
   /**
    * Update admin profile (Admin)
-   * PUT /admin/profile
+   * PUT /profile/me (correct endpoint from Postman collection)
    */
   updateAdminProfile: async (profileData) => {
     try {
-      const response = await apiClient.put('/admin/profile', profileData, {
+      const response = await apiClient.put('/profile/me', profileData, {
         headers: getAuthHeaders()
       });
+
+      // Invalidate cache after update
+      adminProfileCache = null;
+      adminProfileCacheTime = null;
 
       return {
         success: true,
@@ -269,11 +294,11 @@ export const adminService = {
 
   /**
    * Change admin password (Admin)
-   * PUT /admin/password
+   * PUT /security/change-password (correct endpoint from Postman collection)
    */
   changeAdminPassword: async (passwordData) => {
     try {
-      const response = await apiClient.put('/admin/password', passwordData, {
+      const response = await apiClient.put('/security/change-password', passwordData, {
         headers: getAuthHeaders()
       });
 
@@ -438,43 +463,7 @@ export const adminService = {
     }
   },
 
-  // Admin Profile Management
-  async getAdminProfile() {
-    try {
-      const response = await apiClient.get('/admin/profile', {
-        headers: getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching admin profile:', error);
-      throw error;
-    }
-  },
-
-  async updateAdminProfile(profileData) {
-    try {
-      const response = await apiClient.put('/admin/profile', profileData, {
-        headers: getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error updating admin profile:', error);
-      throw error;
-    }
-  },
-
-  async changeAdminPassword(passwordData) {
-    try {
-      const response = await apiClient.put('/admin/change-password', passwordData, {
-        headers: getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error changing admin password:', error);
-      throw error;
-    }
-  },
-
+  // Additional utility methods for profile management
   async updateAdminAvatar(avatarFile) {
     try {
       const formData = new FormData();
@@ -486,6 +475,11 @@ export const adminService = {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      // Invalidate cache after avatar update
+      adminProfileCache = null;
+      adminProfileCacheTime = null;
+
       return response.data;
     } catch (error) {
       console.error('Error updating admin avatar:', error);
@@ -493,7 +487,7 @@ export const adminService = {
     }
   },
 
-  // System Settings
+  // System Settings methods
   async getSystemSettings() {
     try {
       const response = await apiClient.get('/admin/settings', {
@@ -516,6 +510,24 @@ export const adminService = {
       console.error('Error updating system settings:', error);
       throw error;
     }
+  },
+
+  // Cache management utilities
+  clearProfileCache() {
+    adminProfileCache = null;
+    adminProfileCacheTime = null;
+  },
+
+  getProfileCacheStatus() {
+    if (!adminProfileCache || !adminProfileCacheTime) {
+      return { cached: false, age: null };
+    }
+    const age = Date.now() - adminProfileCacheTime;
+    return { 
+      cached: true, 
+      age, 
+      valid: age < CACHE_DURATION 
+    };
   }
 };
 

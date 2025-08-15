@@ -8,16 +8,16 @@ const API_CONFIG = {
   // Base URLs - Updated to use the correct environment variable
   BASE_URL: import.meta.env.VITE_DEV_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000',
   
-  // Timeouts (in milliseconds)
-  TIMEOUT: 30000, // 30 seconds
-  UPLOAD_TIMEOUT: 60000, // 60 seconds for file uploads
+  // Timeouts (in milliseconds) - Optimized for better UX
+  TIMEOUT: 15000, // Reduced from 30s to 15s for better responsiveness
+  UPLOAD_TIMEOUT: 30000, // Reduced from 60s to 30s for file uploads
   
-  // Retry configuration
-  MAX_RETRIES: 3,
-  RETRY_DELAY: 1000, // 1 second
+  // Retry configuration - Optimized for performance
+  MAX_RETRIES: 2, // Reduced from 3 to 2 for faster failure detection
+  RETRY_DELAY: 500, // Reduced from 1s to 500ms for faster retries
   
-  // Rate limiting
-  RATE_LIMIT_DELAY: 1000, // 1 second between requests
+  // Rate limiting - Optimized for better performance
+  RATE_LIMIT_DELAY: 500, // Reduced from 1s to 500ms between requests
   
   // Headers
   DEFAULT_HEADERS: {
@@ -49,7 +49,7 @@ const API_CONFIG = {
 if (import.meta.env.DEV) {
   // Use VITE_DEV_API_URL as the primary source for development
   API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
-  API_CONFIG.TIMEOUT = 10000; // Shorter timeout for development
+  API_CONFIG.TIMEOUT = 8000; // Reduced from 10s to 8s for development
   API_CONFIG.LOG_REQUESTS = true;
   API_CONFIG.LOG_RESPONSES = true;
 }
@@ -96,8 +96,8 @@ export const isTokenExpired = () => {
     return false;
   }
   
-  // Add 5 minute buffer before expiry
-  const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+  // Add 3 minute buffer before expiry (reduced from 5 minutes)
+  const bufferTime = 3 * 60 * 1000; // 3 minutes in milliseconds
   return new Date().getTime() > (expiry.getTime() - bufferTime);
 };
 
