@@ -12,6 +12,7 @@ import FormLayout from '../components/ui/FormLayout';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import HeroSection from '../components/ui/HeroSection';
+import Modal from '../components/ui/Modal';
 import { authService } from '../api/index.js';
 import { usePublicCategories } from '../api/hooks/useCategories';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
@@ -19,78 +20,78 @@ import React from 'react'; // Added missing import
 
 // Job categories will be loaded dynamically from the API
 
-// Sample education levels data - replace with API call later
+// Education levels data - using translation keys
 const sampleEducationLevels = [
-  'No Formal Education',
-  'Primary School',
-  'Secondary School',
-  'High School',
-  'Vocational Training',
-  'Associate Degree',
-  'Bachelor\'s Degree',
-  'Master\'s Degree',
-  'PhD',
-  'Other'
+  'education.noFormal',
+  'education.primarySchool',
+  'education.secondarySchool',
+  'education.highSchool',
+  'education.vocationalTraining',
+  'education.associateDegree',
+  'education.bachelorsDegree',
+  'education.mastersDegree',
+  'education.phd',
+  'education.other'
 ];
 
-// Sample availability options data - replace with API call later
+// Availability options data - using translation keys
 const sampleAvailabilityOptions = [
-  'Available',
-  'Part-time',
-  'Contract',
-  'Freelance',
-  'Not Available',
-  'Open to Opportunities'
+  'availability.available',
+  'availability.partTime',
+  'availability.contract',
+  'availability.freelance',
+  'availability.notAvailable',
+  'availability.openToOpportunities'
 ];
 
-// Predefined skills options - House maid skills first, then others
+// Predefined skills options - using translation keys
 const predefinedSkills = [
   // House Maid & Domestic Skills (Priority)
-  'House Cleaning', 'Laundry', 'Ironing', 'Cooking', 'Meal Preparation', 'Kitchen Management',
-  'Childcare', 'Elderly Care', 'Pet Care', 'First Aid', 'Safety', 'Educational Activities',
-  'Gardening', 'Plant Care', 'Basic Repairs', 'Security Monitoring', 'Access Control',
+  'skills.houseCleaning', 'skills.laundry', 'skills.ironing', 'skills.cooking', 'skills.mealPreparation', 'skills.kitchenManagement',
+  'skills.childcare', 'skills.elderlyCare', 'skills.petCare', 'skills.firstAid', 'skills.safety', 'skills.educationalActivities',
+  'skills.gardening', 'skills.plantCare', 'skills.basicRepairs', 'skills.securityMonitoring', 'skills.accessControl',
   
   // Hospitality & Service Skills
-  'Food Service', 'Table Setting', 'Order Taking', 'Cash Handling', 'Customer Service',
-  'Bartending', 'Food Delivery', 'Housekeeping', 'Reception', 'Secretarial Work',
+  'skills.foodService', 'skills.tableSetting', 'skills.orderTaking', 'skills.cashHandling', 'skills.customerService',
+  'skills.bartending', 'skills.foodDelivery', 'skills.housekeeping', 'skills.reception', 'skills.secretarialWork',
   
   // Trade Skills
-  'Carpentry', 'Plumbing', 'Electrical Work', 'Masonry', 'Painting', 'Welding', 'Machining',
-  'Landscaping', 'Baking',
+  'skills.carpentry', 'skills.plumbing', 'skills.electricalWork', 'skills.masonry', 'skills.painting', 'skills.welding', 'skills.machining',
+  'skills.landscaping', 'skills.baking',
   
   // Transportation Skills
-  'Safe Driving', 'Vehicle Maintenance', 'Route Planning', 'GPS Navigation',
-  'Defensive Driving', 'Passenger Safety',
+  'skills.safeDriving', 'skills.vehicleMaintenance', 'skills.routePlanning', 'skills.gpsNavigation',
+  'skills.defensiveDriving', 'skills.passengerSafety',
   
   // Business Skills
-  'Accounting', 'Bookkeeping', 'Marketing', 'Sales', 'Business Development', 'Financial Analysis',
-  'Human Resources', 'Operations Management', 'Supply Chain Management',
-  'Inventory Management', 'Negotiation', 'Product Knowledge', 'Market Knowledge',
+  'skills.accounting', 'skills.bookkeeping', 'skills.marketing', 'skills.sales', 'skills.businessDevelopment', 'skills.financialAnalysis',
+  'skills.humanResources', 'skills.operationsManagement', 'skills.supplyChainManagement',
+  'skills.inventoryManagement', 'skills.negotiation', 'skills.productKnowledge', 'skills.marketKnowledge',
   
   // Technical Skills
-  'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'PHP', 'Ruby', 'Go', 'Rust',
-  'HTML/CSS', 'TypeScript', 'Angular', 'Vue.js', 'Django', 'Flask', 'Laravel', 'Express.js',
-  'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP',
+  'skills.javascript', 'skills.react', 'skills.nodejs', 'skills.python', 'skills.java', 'skills.cpp', 'skills.php', 'skills.ruby', 'skills.go', 'skills.rust',
+  'skills.htmlcss', 'skills.typescript', 'skills.angular', 'skills.vuejs', 'skills.django', 'skills.flask', 'skills.laravel', 'skills.expressjs',
+  'skills.mongodb', 'skills.postgresql', 'skills.mysql', 'skills.redis', 'skills.docker', 'skills.kubernetes', 'skills.aws', 'skills.azure', 'skills.gcp',
   
   // Professional Skills
-  'Project Management', 'Agile/Scrum', 'Leadership', 'Team Management', 'Communication',
-  'Problem Solving', 'Critical Thinking', 'Time Management',
+  'skills.projectManagement', 'skills.agileScrum', 'skills.leadership', 'skills.teamManagement', 'skills.communication',
+  'skills.problemSolving', 'skills.criticalThinking', 'skills.timeManagement',
   
   // Creative Skills
-  'Graphic Design', 'Web Design', 'Video Editing', 'Photography', 'Content Writing',
-  'Social Media Management', 'Digital Marketing', 'SEO', 'Copywriting',
+  'skills.graphicDesign', 'skills.webDesign', 'skills.videoEditing', 'skills.photography', 'skills.contentWriting',
+  'skills.socialMediaManagement', 'skills.digitalMarketing', 'skills.seo', 'skills.copywriting',
   
   // Healthcare Skills
-  'Nursing', 'Medical Assistance', 'Pharmacy', 'Laboratory Work', 'Patient Care',
-  'Medical Records', 'Health Administration',
+  'skills.nursing', 'skills.medicalAssistance', 'skills.pharmacy', 'skills.laboratoryWork', 'skills.patientCare',
+  'skills.medicalRecords', 'skills.healthAdministration',
   
   // Education Skills
-  'Teaching', 'Tutoring', 'Curriculum Development', 'Student Assessment', 'Classroom Management',
-  'Special Education', 'ESL Teaching',
+  'skills.teaching', 'skills.tutoring', 'skills.curriculumDevelopment', 'skills.studentAssessment', 'skills.classroomManagement',
+  'skills.specialEducation', 'skills.eslTeaching',
   
   // Other Skills
-  'Security', 'Event Planning', 'Tourism', 'Translation', 'Interpretation',
-  'Data Entry', 'Administrative Work'
+  'skills.security', 'skills.eventPlanning', 'skills.tourism', 'skills.translation', 'skills.interpretation',
+  'skills.dataEntry', 'skills.administrativeWork'
 ];
 
 const Register = () => {
@@ -137,6 +138,10 @@ const Register = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  // Validation modal state
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
 
   // Collapsible sections state
   const [expandedSections, setExpandedSections] = useState({
@@ -167,10 +172,10 @@ const Register = () => {
     skill.toLowerCase().includes(skillSearch.toLowerCase())
   );
 
-  // Predefined languages
+  // Predefined languages - using translation keys
   const predefinedLanguages = [
-    'Kinyarwanda', 'English', 'French', 'Swahili', 'German', 'Spanish', 'Chinese', 'Arabic',
-    'Portuguese', 'Italian', 'Dutch', 'Russian', 'Japanese', 'Korean', 'Hindi', 'Turkish'
+    'languages.kinyarwanda', 'languages.english', 'languages.french', 'languages.swahili', 'languages.german', 'languages.spanish', 'languages.chinese', 'languages.arabic',
+    'languages.portuguese', 'languages.italian', 'languages.dutch', 'languages.russian', 'languages.japanese', 'languages.korean', 'languages.hindi', 'languages.turkish'
   ];
 
   // Filter languages based on search
@@ -261,6 +266,11 @@ const Register = () => {
         [name]: ''
       }));
     }
+    
+    // Clear validation modal when user starts fixing errors
+    if (showValidationModal) {
+      setShowValidationModal(false);
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -268,13 +278,13 @@ const Register = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setErrors(prev => ({ ...prev, photo: 'Please select an image file' }));
+        setErrors(prev => ({ ...prev, photo: t('register.errors.photo') }));
         return;
       }
       
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, photo: 'File size must be less than 5MB' }));
+        setErrors(prev => ({ ...prev, photo: t('register.errors.photoSize') }));
         return;
       }
       
@@ -303,64 +313,176 @@ const Register = () => {
     }
   }, []); // Only run once when component mounts
 
+  // Helper function to group errors by section
+  const groupErrorsBySection = (errors) => {
+    const grouped = {};
+    errors.forEach(error => {
+      if (!grouped[error.section]) {
+        grouped[error.section] = [];
+      }
+      grouped[error.section].push(error);
+    });
+    return grouped;
+  };
+
+  // Helper function to scroll to a specific field
+  const scrollToField = (fieldName) => {
+    const element = document.getElementById(fieldName);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.focus();
+      // Add a brief highlight effect
+      element.classList.add('ring-2', 'ring-red-500', 'ring-opacity-50');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-50');
+      }, 2000);
+    }
+    setShowValidationModal(false);
+  };
+
   const validateForm = () => {
     const newErrors = {};
+    const errorList = [];
 
     // First Name
     if (!formData.firstName.trim()) {
-      newErrors.firstName = t('register.errors.firstNameRequired', 'First name is required');
+      newErrors.firstName = t('register.errors.firstNameRequired');
+      errorList.push({
+        field: 'firstName',
+        message: t('register.errors.firstNameRequired'),
+        section: 'required',
+        label: t('register.firstName')
+      });
     } else if (formData.firstName.trim().length < 2) {
-      newErrors.firstName = t('register.errors.firstNameLength', 'First name must be at least 2 characters');
+      newErrors.firstName = t('register.errors.firstNameLength');
+      errorList.push({
+        field: 'firstName',
+        message: t('register.errors.firstNameLength'),
+        section: 'required',
+        label: t('register.firstName')
+      });
     }
 
     // Last Name
     if (!formData.lastName.trim()) {
-      newErrors.lastName = t('register.errors.lastNameRequired', 'Last name is required');
+      newErrors.lastName = t('register.errors.lastNameRequired');
+      errorList.push({
+        field: 'lastName',
+        message: t('register.errors.lastNameRequired'),
+        section: 'required',
+        label: t('register.lastName')
+      });
     } else if (formData.lastName.trim().length < 2) {
-      newErrors.lastName = t('register.errors.lastNameLength', 'Last name must be at least 2 characters');
+      newErrors.lastName = t('register.errors.lastNameLength');
+      errorList.push({
+        field: 'lastName',
+        message: t('register.errors.lastNameLength'),
+        section: 'required',
+        label: t('register.lastName')
+      });
     }
 
     // Phone Number
     if (!formData.contactNumber) {
-      newErrors.contactNumber = t('register.errors.phoneRequired', 'Please provide a valid contact number');
+      newErrors.contactNumber = t('register.errors.phoneRequired');
+      errorList.push({
+        field: 'contactNumber',
+        message: t('register.errors.phoneRequired'),
+        section: 'required',
+        label: t('register.phone')
+      });
     } else if (!/^(078|079|072|073)\d{7}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = t('register.errors.phoneInvalid', 'Contact number format is invalid. Enter a valid Rwandan phone number (078XXXXXXXX, 079XXXXXXXX, 072XXXXXXXX, 073XXXXXXXX)');
+      newErrors.contactNumber = t('register.errors.phoneInvalid');
+      errorList.push({
+        field: 'contactNumber',
+        message: t('register.errors.phoneInvalid'),
+        section: 'required',
+        label: t('register.phone')
+      });
     }
 
     // Password
     if (!formData.password) {
-      newErrors.password = t('register.errors.passwordRequired', 'Password is required');
+      newErrors.password = t('register.errors.passwordRequired');
+      errorList.push({
+        field: 'password',
+        message: t('register.errors.passwordRequired'),
+        section: 'required',
+        label: t('register.password')
+      });
     } else if (formData.password.length < 6) {
-      newErrors.password = t('register.errors.passwordLength', 'Password must be at least 6 characters');
+      newErrors.password = t('register.errors.passwordLength');
+      errorList.push({
+        field: 'password',
+        message: t('register.errors.passwordLength'),
+        section: 'required',
+        label: t('register.password')
+      });
     }
 
     // Confirm Password
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = t('register.errors.confirmPasswordRequired', 'Please confirm your password');
+      newErrors.confirmPassword = t('register.errors.confirmPasswordRequired');
+      errorList.push({
+        field: 'confirmPassword',
+        message: t('register.errors.confirmPasswordRequired'),
+        section: 'required',
+        label: t('register.confirmPassword')
+      });
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('register.errors.passwordMismatch', 'Passwords do not match');
+      newErrors.confirmPassword = t('register.errors.passwordMismatch');
+      errorList.push({
+        field: 'confirmPassword',
+        message: t('register.errors.passwordMismatch'),
+        section: 'required',
+        label: t('register.confirmPassword')
+      });
     }
 
     // Skills - make it more lenient
     if (!formData.skills || formData.skills.trim().length === 0) {
-      newErrors.skills = t('register.errors.skillsRequired', 'At least one skill is required');
+      newErrors.skills = t('register.errors.skillsRequired');
+      errorList.push({
+        field: 'skills',
+        message: t('register.errors.skillsRequired'),
+        section: 'additional',
+        label: t('register.skills')
+      });
     }
 
     // Experience Level - now required
     if (!formData.experienceLevel || formData.experienceLevel.trim().length === 0) {
-      newErrors.experienceLevel = t('register.errors.experienceLevelRequired', 'Experience level is required');
+      newErrors.experienceLevel = t('register.errors.experienceLevelRequired');
+      errorList.push({
+        field: 'experienceLevel',
+        message: t('register.errors.experienceLevelRequired'),
+        section: 'professional',
+        label: t('register.experienceLevel')
+      });
     }
 
     // Terms agreement
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = t('register.errors.termsRequired', 'You must agree to the terms and conditions');
+      newErrors.agreeToTerms = t('register.errors.termsRequired');
+      errorList.push({
+        field: 'agreeToTerms',
+        message: t('register.errors.termsRequired'),
+        section: 'required',
+        label: t('register.terms')
+      });
     }
 
     // Optional fields: friendly validation
     if (formData.email && formData.email.trim().length > 0) {
       // Only validate if provided
       if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,})$/.test(formData.email)) {
-        newErrors.email = t('register.errors.emailInvalid', 'Please provide a valid email address');
+        newErrors.email = t('register.errors.emailInvalid');
+        errorList.push({
+          field: 'email',
+          message: t('register.errors.emailInvalid'),
+          section: 'additional',
+          label: t('register.email')
+        });
       }
     }
 
@@ -374,11 +496,24 @@ const Register = () => {
         age--;
       }
       if (age < 18) {
-        newErrors.dateOfBirth = t('register.errors.ageLimit', 'You must be at least 18 years old');
+        newErrors.dateOfBirth = t('register.errors.ageLimit');
+        errorList.push({
+          field: 'dateOfBirth',
+          message: t('register.errors.ageLimit'),
+          section: 'additional',
+          label: t('register.dateOfBirth')
+        });
       }
     }
 
     setErrors(newErrors);
+    setValidationErrors(errorList);
+    
+    // Show validation modal if there are errors
+    if (errorList.length > 0) {
+      setShowValidationModal(true);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -432,6 +567,8 @@ const Register = () => {
       if (result.success && result.user) {
         // Always clear errors after successful registration
         setErrors({});
+        setValidationErrors([]);
+        setShowValidationModal(false);
         // Always redirect jobseeker to update-profile
         if (result.user.role === 'jobseeker') {
           navigate('/update-profile');
@@ -446,10 +583,89 @@ const Register = () => {
       
     } catch (error) {
       console.error('Registration error:', error);
-      setErrors({ general: t('register.errors.general', 'Registration failed. Please try again.') });
+      setErrors({ general: t('register.errors.general') });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Validation Error List Component
+  const ValidationErrorList = ({ errors, onClose, onScrollToField }) => {
+    const groupedErrors = groupErrorsBySection(errors);
+    
+    const getSectionTitle = (section) => {
+      switch (section) {
+        case 'required':
+          return t('register.sections.required');
+        case 'additional':
+          return t('register.sections.additional');
+        case 'professional':
+          return t('register.sections.professional');
+        default:
+          return section;
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-lg font-semibold text-gray-900 mb-2">
+            {t('register.validationErrors.title')}
+          </p>
+          <p className="text-lg text-gray-600 mb-1">
+            {t('register.validationErrors.found', { count: errors.length })}
+          </p>
+          <p className="text-sm text-gray-500">
+            {t('register.validationErrors.pleaseFix')}
+          </p>
+        </div>
+        
+        {Object.entries(groupedErrors).map(([section, sectionErrors]) => (
+          <div key={section} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              {getSectionTitle(section)}
+              <span className="ml-2 text-sm text-gray-500">({sectionErrors.length})</span>
+            </h3>
+            <div className="space-y-2">
+              {sectionErrors.map((error, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-900">{error.label}:</span>
+                    <span className="text-red-600 ml-2">{error.message}</span>
+                  </div>
+                  <button
+                    onClick={() => onScrollToField(error.field)}
+                    className="ml-3 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center gap-1"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {t('register.validationErrors.goToField')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        
+        <div className="flex justify-center pt-4 border-t border-gray-200">
+          <Button 
+            variant="primary" 
+            onClick={onClose}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700"
+          >
+            {t('register.validationErrors.fixErrors')}
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -461,8 +677,8 @@ const Register = () => {
       
       {/* Hero Section */}
       <HeroSection 
-        title="Create Your Account"
-        description="Join thousands of job seekers and start your career journey"
+        title={t('register.title')}
+        description={t('register.subtitle')}
       />
 
       {/* Main Content */}
@@ -491,17 +707,17 @@ const Register = () => {
 
           {/* Left Column - Required Information */}
           <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-blue-900 mb-4">
-                {t('register.requiredFields', 'Required Information')}
+                {t('register.requiredFields')}
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormInput
                   id="firstName"
                   name="firstName"
-                  label={t('register.firstName', 'First Name')}
-                  placeholder={t('register.firstNamePlaceholder', 'First name')}
+                  label={t('register.firstName')}
+                  placeholder={t('register.firstNamePlaceholder')}
                   value={formData.firstName}
                   onChange={handleInputChange}
                   error={errors.firstName}
@@ -511,8 +727,8 @@ const Register = () => {
                 <FormInput
                   id="lastName"
                   name="lastName"
-                  label={t('register.lastName', 'Last Name')}
-                  placeholder={t('register.lastNamePlaceholder', 'Last name')}
+                  label={t('register.lastName')}
+                  placeholder={t('register.lastNamePlaceholder')}
                   value={formData.lastName}
                   onChange={handleInputChange}
                   error={errors.lastName}
@@ -523,8 +739,8 @@ const Register = () => {
                 id="contactNumber"
                 name="contactNumber"
                 type="tel"
-                label={t('register.phone', 'Phone Number')}
-                placeholder={t('register.phonePlaceholder', 'e.g. 078XXXXXXXX')}
+                label={t('register.phone')}
+                placeholder={t('register.phonePlaceholder')}
                 value={formData.contactNumber}
                 onChange={e => {
                   // Only allow digits, max 10
@@ -548,8 +764,8 @@ const Register = () => {
               <PasswordInput
                 id="password"
                 name="password"
-                label={t('register.password', 'Password')}
-                placeholder={t('register.passwordPlaceholder', 'Create a password')}
+                label={t('register.password')}
+                placeholder={t('register.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleInputChange}
                 error={errors.password}
@@ -560,8 +776,8 @@ const Register = () => {
               <PasswordInput
                 id="confirmPassword"
                 name="confirmPassword"
-                label={t('register.confirmPassword', 'Confirm Password')}
-                placeholder={t('register.confirmPasswordPlaceholder', 'Confirm your password')}
+                label={t('register.confirmPassword')}
+                placeholder={t('register.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 error={errors.confirmPassword}
@@ -570,7 +786,7 @@ const Register = () => {
               {/* Photo Upload */}
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('register.photo', 'Profile Photo')}
+                  {t('register.profilePhoto')}
                 </label>
                 <div className="flex items-center space-x-4">
                   <div className="relative">
@@ -598,7 +814,7 @@ const Register = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-600">
-                      {t('register.photoHelp', 'Upload a professional photo (max 5MB)')}
+                      {t('register.photoHelp')}
                     </p>
                     {errors.photo && (
                       <p className="text-sm text-red-600 mt-1">{errors.photo}</p>
@@ -625,10 +841,10 @@ const Register = () => {
               >
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {t('register.optionalFields', 'Additional Information (Optional)')}
+                    {t('register.additionalInfo')}
                   </h3>
                   <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    Optional
+                    {t('register.optional')}
                   </span>
                 </div>
                 <motion.div
@@ -656,8 +872,8 @@ const Register = () => {
                   id="email"
                   name="email"
                   type="email"
-                  label={t('register.email', 'Email Address')}
-                  placeholder={t('register.emailPlaceholder', 'Enter your email')}
+                  label={t('register.email')}
+                  placeholder={t('register.emailPlaceholder')}
                   value={formData.email}
                   onChange={handleInputChange}
                   error={errors.email}
@@ -666,8 +882,8 @@ const Register = () => {
                 <FormInput
                   id="idNumber"
                   name="idNumber"
-                  label={t('register.idNumber', 'ID Number')}
-                  placeholder={t('register.idNumberPlaceholder', 'National ID number')}
+                  label={t('register.idNumber')}
+                  placeholder={t('register.idNumberPlaceholder')}
                   value={formData.idNumber}
                   onChange={handleInputChange}
                   error={errors.idNumber}
@@ -677,7 +893,7 @@ const Register = () => {
                   id="dateOfBirth"
                   name="dateOfBirth"
                   type="date"
-                  label={t('register.dateOfBirth', 'Date of Birth')}
+                  label={t('register.dateOfBirth')}
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   error={errors.dateOfBirth}
@@ -687,7 +903,7 @@ const Register = () => {
                 {/* Gender Select */}
                 <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.gender', 'Gender')}
+                    {t('register.gender')}
                   </label>
                   <select
                     id="gender"
@@ -696,11 +912,11 @@ const Register = () => {
                     onChange={handleInputChange}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                   >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="">{t('register.selectGender')}</option>
+                    <option value="Male">{t('gender.male')}</option>
+                    <option value="Female">{t('gender.female')}</option>
+                    <option value="Other">{t('gender.other')}</option>
+                    <option value="Prefer not to say">{t('gender.preferNotToSay')}</option>
                   </select>
                   {errors.gender && (
                     <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
@@ -710,7 +926,7 @@ const Register = () => {
                 {/* Marital Status Select */}
                 <div>
                   <label htmlFor="maritalStatus" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.maritalStatus', 'Marital Status')}
+                    {t('register.maritalStatus')}
                   </label>
                   <select
                     id="maritalStatus"
@@ -719,10 +935,10 @@ const Register = () => {
                     onChange={handleInputChange}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                   >
-                    <option value="">Select Marital Status</option>
-                    <option value="Single">Single</option>
-                    <option value="Married">Married</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="">{t('register.selectMaritalStatus')}</option>
+                    <option value="Single">{t('maritalStatus.single')}</option>
+                    <option value="Married">{t('maritalStatus.married')}</option>
+                    <option value="Prefer not to say">{t('maritalStatus.preferNotToSay')}</option>
                   </select>
                   {errors.maritalStatus && (
                     <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
@@ -731,7 +947,7 @@ const Register = () => {
                 {/* Job Category */}
                 <div>
                   <label htmlFor="jobCategoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.jobCategory', 'Job Category')}
+                    {t('register.jobCategory')}
                   </label>
                   <select
                     id="jobCategoryId"
@@ -743,8 +959,8 @@ const Register = () => {
                   >
                     <option value="">
                       {categoriesLoading 
-                        ? 'Loading categories...' 
-                        : t('register.jobCategoryPlaceholder', 'Select your job category')
+                        ? t('register.loadingCategories') 
+                        : t('register.selectJobCategory')
                       }
                     </option>
                     {!categoriesLoading && jobCategories.map(category => (
@@ -757,14 +973,14 @@ const Register = () => {
                     <p className="mt-1 text-sm text-red-600">{errors.jobCategoryId}</p>
                   )}
                   {categoriesError && (
-                    <p className="mt-1 text-sm text-red-600">Error loading categories: {categoriesError}</p>
+                    <p className="mt-1 text-sm text-red-600">{t('register.errorLoadingCategories')} {categoriesError}</p>
                   )}
                 </div>
-                  {/* Education Level */}
-                <div>
-                  <label htmlFor="educationLevel" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.educationLevel', 'Education Level')}
-                  </label>
+                                    {/* Education Level */}
+                  <div>
+                    <label htmlFor="educationLevel" className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('register.educationLevel')}
+                    </label>
                   <select
                     id="educationLevel"
                     name="educationLevel"
@@ -772,10 +988,10 @@ const Register = () => {
                     onChange={handleInputChange}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                   >
-                    <option value="">{t('register.educationLevelPlaceholder', 'Select your education level')}</option>
+                    <option value="">{t('register.selectEducationLevel')}</option>
                     {sampleEducationLevels.map(level => (
                       <option key={level} value={level}>
-                        {level}
+                        {t(level)}
                       </option>
                     ))}
                   </select>
@@ -786,7 +1002,7 @@ const Register = () => {
                 {/* Availability */}
                 <div>
                   <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.availability', 'Availability')}
+                    {t('register.availability')}
                   </label>
                   <select
                     id="availability"
@@ -795,10 +1011,10 @@ const Register = () => {
                     onChange={handleInputChange}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                   >
-                    <option value="">{t('register.availabilityPlaceholder', 'Select your availability')}</option>
+                    <option value="">{t('register.selectAvailability')}</option>
                     {sampleAvailabilityOptions.map(option => (
                       <option key={option} value={option}>
-                        {option}
+                        {t(option)}
                       </option>
                     ))}
                   </select>
@@ -810,8 +1026,8 @@ const Register = () => {
                 <FormInput
                   id="location"
                   name="location"
-                  label={t('register.location', 'Location')}
-                  placeholder={t('register.locationPlaceholder', 'Kigali, Rwanda')}
+                  label={t('register.location')}
+                  placeholder={t('register.locationPlaceholder')}
                   value={formData.location}
                   onChange={handleInputChange}
                   error={errors.location}
@@ -823,8 +1039,8 @@ const Register = () => {
                 <FormInput
                   id="city"
                   name="city"
-                  label={t('register.city', 'City')}
-                  placeholder={t('register.cityPlaceholder', 'Kigali')}
+                  label={t('register.city')}
+                  placeholder={t('register.cityPlaceholder')}
                   value={formData.city}
                   onChange={handleInputChange}
                   error={errors.city}
@@ -832,8 +1048,8 @@ const Register = () => {
                 <FormInput
                   id="country"
                   name="country"
-                  label={t('register.country', 'Country')}
-                  placeholder={t('register.countryPlaceholder', 'Rwanda')}
+                  label={t('register.country')}
+                  placeholder={t('register.countryPlaceholder')}
                   value={formData.country}
                   onChange={handleInputChange}
                   error={errors.country}
@@ -841,7 +1057,7 @@ const Register = () => {
               {/* Skills Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.skills', 'Skills')} *
+                    {t('register.skills')} *
                   </label>
                   <div className="space-y-3">
                     {/* Selected Skills Display */}
@@ -852,7 +1068,7 @@ const Register = () => {
                             key={index}
                             className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
                           >
-                            {skill}
+                            {t(skill)}
                             <button
                               type="button"
                               onClick={() => handleSkillRemove(skill)}
@@ -871,7 +1087,7 @@ const Register = () => {
                         type="text"
                         value={skillSearch}
                         onChange={(e) => setSkillSearch(e.target.value)}
-                        placeholder="Search skills..."
+                        placeholder={t('register.searchSkills')}
                         className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                       />
                     </div>
@@ -890,7 +1106,7 @@ const Register = () => {
                               : 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-200'
                           }`}
                         >
-                          {skill}
+                          {t(skill)}
                         </button>
                       ))}
                     </div>
@@ -901,7 +1117,7 @@ const Register = () => {
                         type="text"
                         value={customSkill}
                         onChange={(e) => setCustomSkill(e.target.value)}
-                        placeholder="Add custom skill..."
+                        placeholder={t('register.addCustomSkill')}
                         className="col-span-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomSkillAdd())}
                       />
@@ -910,19 +1126,19 @@ const Register = () => {
                         onClick={handleCustomSkillAdd}
                         className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-800 text-sm transition-colors duration-200"
                       >
-                        Add
+                        {t('register.addButton')}
                       </button>
                     </div>
                   </div>
                   {errors.skills && (
-                    <p className="mt-1 text-sm text-red-600">{errors.skills}</p>
+                    <p className="mt-1 text-sm text-red-600">{t('register.errors.skillsRequired')}</p>
                   )}
                 </div>
 
                 {/* Languages Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.languages', 'Languages')}
+                    {t('register.languages')}
                   </label>
                   <div className="space-y-3">
                     {/* Selected Languages Display */}
@@ -933,7 +1149,7 @@ const Register = () => {
                             key={index}
                             className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
                           >
-                            {language}
+                            {t(language)}
                             <button
                               type="button"
                               onClick={() => handleLanguageRemove(language)}
@@ -952,7 +1168,7 @@ const Register = () => {
                         type="text"
                         value={languageSearch}
                         onChange={(e) => setLanguageSearch(e.target.value)}
-                        placeholder="Search languages..."
+                        placeholder={t('register.searchLanguages')}
                         className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                       />
                     </div>
@@ -971,7 +1187,7 @@ const Register = () => {
                               : 'bg-white hover:bg-green-50 text-gray-700 border border-gray-200'
                           }`}
                         >
-                          {language}
+                          {t(language)}
                         </button>
                       ))}
                     </div>
@@ -982,7 +1198,7 @@ const Register = () => {
                         type="text"
                         value={customLanguage}
                         onChange={(e) => setCustomLanguage(e.target.value)}
-                        placeholder="Add custom language..."
+                        placeholder={t('register.addCustomLanguage')}
                         className="col-span-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomLanguageAdd())}
                       />
@@ -991,26 +1207,26 @@ const Register = () => {
                         onClick={handleCustomLanguageAdd}
                         className="px-3 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm transition-colors duration-200"
                       >
-                        Add
+                        {t('register.addButton')}
                       </button>
                     </div>
                   </div>
                   {errors.languages && (
-                    <p className="mt-1 text-sm text-red-600">{errors.languages}</p>
+                    <p className="mt-1 text-sm text-red-600">{t('register.errors.languagesRequired')}</p>
                   )}
                 </div>
 
                 {/* Certifications */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Certifications
+                    {t('register.certifications')}
                   </label>
                   <textarea
                     name="certifications"
                     value={formData.certifications}
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="List any certifications or licenses"
+                    placeholder={t('register.certificationsPlaceholder')}
                     rows="2"
                   />
                 </div>
@@ -1037,12 +1253,12 @@ const Register = () => {
             className="w-full p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
           >
             <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Professional Information
-              </h3>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                Optional
-              </span>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                    {t('register.professionalInfo')}
+                  </h3>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    {t('register.optional')}
+                  </span>
             </div>
             <motion.div
               animate={{ rotate: expandedSections.professionalInfo ? 180 : 0 }}
@@ -1067,7 +1283,7 @@ const Register = () => {
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Experience Level *
+                        {t('register.experienceLevel')} *
                       </label>
                       <select
                         name="experienceLevel"
@@ -1078,42 +1294,42 @@ const Register = () => {
                         }`}
                         required
                       >
-                        <option value="">Select Experience Level</option>
-                        <option value="no_experience">No Experience (0 years)</option>
-                        <option value="beginner">Beginner (1-2 years)</option>
-                        <option value="intermediate">Intermediate (3-5 years)</option>
-                        <option value="experienced">Experienced (6-10 years)</option>
-                        <option value="expert">Expert (10+ years)</option>
+                        <option value="">{t('register.selectExperienceLevel')}</option>
+                        <option value="no_experience">{t('experience.noExperience')}</option>
+                        <option value="beginner">{t('experience.beginner')}</option>
+                        <option value="intermediate">{t('experience.intermediate')}</option>
+                        <option value="experienced">{t('experience.experienced')}</option>
+                        <option value="expert">{t('experience.expert')}</option>
                       </select>
                       {errors.experienceLevel && (
-                        <p className="mt-1 text-sm text-red-600">{errors.experienceLevel}</p>
+                        <p className="mt-1 text-sm text-red-600">{t('register.errors.experienceLevelRequired')}</p>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Experience Details (Optional)
+                        {t('register.experienceDetails')}
                       </label>
                       <textarea
                         name="experience"
                         value={formData.experience}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Describe your specific work experience, previous jobs, or relevant background"
+                        placeholder={t('register.experienceDetailsPlaceholder')}
                         rows="3"
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Description
+                        {t('register.description')}
                       </label>
                       <textarea
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Brief description about yourself"
+                        placeholder={t('register.descriptionPlaceholder')}
                         rows="3"
                       />
                     </div>
@@ -1121,7 +1337,7 @@ const Register = () => {
                     {/* Monthly Rate */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Monthly Rate (Optional)
+                        {t('register.monthlyRate')}
                       </label>
                       <div className="relative">
                         <input
@@ -1130,12 +1346,12 @@ const Register = () => {
                           value={formData.monthlyRate}
                           onChange={handleInputChange}
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pl-8"
-                          placeholder="e.g., $500, €800, RWF 100,000"
+                          placeholder={t('register.monthlyRatePlaceholder')}
                         />
                         <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Enter your expected monthly salary or rate. You can specify currency.
+                        {t('register.monthlyRateHelp')}
                       </p>
                     </div>
                   </div>
@@ -1144,8 +1360,8 @@ const Register = () => {
                       id="references"
                       name="references"
                       type="textarea"
-                      label={t('register.references', 'References')}
-                      placeholder={t('register.referencesPlaceholder', 'Professional references or previous employers...')}
+                      label={t('register.references')}
+                      placeholder={t('register.referencesPlaceholder')}
                       value={formData.references}
                       onChange={handleInputChange}
                       error={errors.references}
@@ -1165,13 +1381,13 @@ const Register = () => {
             name="agreeToTerms"
             label={
               <span>
-                {t('register.agreeToTerms', 'I agree to the')}{' '}
+                {t('register.agreeToTerms')}{' '}
                 <Link to="/terms" className="text-blue-600 hover:underline">
-                  {t('register.terms', 'Terms of Service')}
+                  {t('register.terms')}
                 </Link>{' '}
-                {t('register.and', 'and')}{' '}
+                {t('register.and')}{' '}
                 <Link to="/privacy" className="text-blue-600 hover:underline">
-                  {t('register.privacy', 'Privacy Policy')}
+                  {t('register.privacy')}
                 </Link>
               </span>
             }
@@ -1184,7 +1400,7 @@ const Register = () => {
           <FormCheckbox
             id="agreeToMarketing"
             name="agreeToMarketing"
-            label={t('register.agreeToMarketing', 'I agree to receive marketing communications and updates')}
+            label={t('register.agreeToMarketing')}
             checked={formData.agreeToMarketing}
             onChange={handleInputChange}
           />
@@ -1199,11 +1415,11 @@ const Register = () => {
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                {t('register.creating', 'Creating account...')}
+                {t('register.creating')}
               </>
             ) : (
               <>
-                {t('register.createAccount', 'Create Account')}
+                {t('register.createAccount')}
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
@@ -1215,13 +1431,13 @@ const Register = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+                <span className="px-2 bg-white text-gray-500">{t('register.alreadyHaveAccount')}</span>
               </div>
             </div>
             
             <p className="text-gray-600">
               <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
-              {t('register.signIn', 'Sign in')}
+              {t('register.signIn')}
             </Link>
           </p>
         </div>
@@ -1229,6 +1445,22 @@ const Register = () => {
       </form>
     </motion.div>
   </div>
+      
+      {/* Validation Error Modal */}
+      <Modal
+        isOpen={showValidationModal}
+        onClose={() => setShowValidationModal(false)}
+        title=""
+        maxWidth="max-w-2xl"
+        showCloseButton={false}
+      >
+        <ValidationErrorList 
+          errors={validationErrors}
+          onClose={() => setShowValidationModal(false)}
+          onScrollToField={scrollToField}
+        />
+      </Modal>
+      
       <Footer />
     </div>
   );
