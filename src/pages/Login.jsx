@@ -37,7 +37,7 @@ const Login = () => {
       // Clear the message from location state
       navigate(location.pathname, { replace: true });
     } else if (location.search.includes('session=expired')) {
-      setSessionMessage('Your session has expired. Please log in again.');
+      setSessionMessage(t('login.sessionExpired'));
       // Clear the URL parameter
       navigate(location.pathname, { replace: true });
     }
@@ -62,19 +62,19 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.identifier) {
-      newErrors.identifier = t('login.errors.identifierRequired', 'Email or phone number is required');
+      newErrors.identifier = t('login.errors.identifierRequired');
     } else {
       // Check if it's an email or phone
       const isEmail = /\S+@\S+\.\S+/.test(formData.identifier);
       const isPhone = /^\+?\d{10,15}$/.test(formData.identifier);
       if (!isEmail && !isPhone) {
-        newErrors.identifier = t('login.errors.identifierInvalid', 'Enter a valid email or phone number');
+        newErrors.identifier = t('login.errors.identifierInvalid');
       }
     }
     if (!formData.password) {
-      newErrors.password = t('login.errors.passwordRequired', 'Password is required');
+      newErrors.password = t('login.errors.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = t('login.errors.passwordLength', 'Password must be at least 6 characters');
+      newErrors.password = t('login.errors.passwordLength');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,11 +97,11 @@ const Login = () => {
           navigate('/');
         }
       } else {
-        setErrors({ general: result.error || t('login.errors.general', 'Login failed. Please try again.') });
+        setErrors({ general: result.error || t('login.errors.general') });
       }
     } catch (error) {
       console.error('Login error:', error);
-      setErrors({ general: t('login.errors.general', 'Login failed. Please try again.') });
+      setErrors({ general: t('login.errors.general') });
     } finally {
       setLoading(false);
     }
@@ -116,8 +116,8 @@ const Login = () => {
       
       {/* Hero Section */}
       <HeroSection 
-        title="Welcome Back"
-        description="Sign in to your job seeker account and continue your career journey"
+        title={t('login.hero.title')}
+        description={t('login.hero.description')}
       />
 
       {/* Main Content */}
@@ -161,10 +161,10 @@ const Login = () => {
                 type="text"
                 id="identifier"
                 name="identifier"
-                label={t('login.identifier', 'Email or Phone Number')}
+                label={t('login.identifier')}
                 value={formData.identifier}
                 onChange={handleInputChange}
-                placeholder={t('login.identifierPlaceholder', 'Enter your email or phone number')}
+                placeholder={t('login.identifierPlaceholder')}
                 error={errors.identifier}
                 icon={Mail}
                 required
@@ -173,10 +173,10 @@ const Login = () => {
               <PasswordInput
                 id="password"
                 name="password"
-                label={t('login.password', 'Password')}
+                label={t('login.password')}
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder={t('login.passwordPlaceholder', 'Enter your password')}
+                placeholder={t('login.passwordPlaceholder')}
                 error={errors.password}
                 required
               />
@@ -185,7 +185,7 @@ const Login = () => {
                 <FormCheckbox
                   id="rememberMe"
                   name="rememberMe"
-                  label={t('login.rememberMe', 'Remember me')}
+                  label={t('login.rememberMe')}
                   checked={formData.rememberMe}
                   onChange={handleInputChange}
                 />
@@ -193,7 +193,7 @@ const Login = () => {
                   to="/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200 font-medium"
                 >
-                  {t('login.forgotPassword', 'Forgot password?')}
+                  {t('login.forgotPassword')}
                 </Link>
               </div>
 
@@ -207,11 +207,11 @@ const Login = () => {
                 {loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {t('login.signingIn', 'Signing in...')}
+                    {t('login.signingIn')}
                   </>
                 ) : (
                   <>
-                    {t('login.signIn', 'Sign In')}
+                    {t('login.signIn')}
                     <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
                   </>
                 )}
@@ -223,17 +223,17 @@ const Login = () => {
                     <div className="w-full border-t border-gray-300"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">New to our platform?</span>
+                    <span className="px-2 bg-white text-gray-500">{t('login.newToPlatform')}</span>
                   </div>
                 </div>
                 
                 <p className="text-gray-600">
-                  {t('login.noAccount', "Don't have an account?")}{' '}
+                  {t('login.noAccount')}{' '}
                   <Link
                     to="/register"
                     className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
                   >
-                    {t('login.signUp', 'Sign up')}
+                    {t('login.signUp')}
                   </Link>
                 </p>
               </div>
