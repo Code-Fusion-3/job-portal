@@ -81,7 +81,7 @@ const DataTable = ({
     if (column.type === 'currency') {
       return new Intl.NumberFormat('en-RW', {
         style: 'currency',
-        currency: 'RWF',
+        currency: 'frw',
         minimumFractionDigits: 0
       }).format(item[column.key]);
     }

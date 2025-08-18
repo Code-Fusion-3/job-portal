@@ -76,7 +76,7 @@ export const getCategoryColor = (category) => {
   }
 };
 
-export const formatCurrency = (amount, currency = 'RWF') => {
+export const formatCurrency = (amount, currency = 'frw') => {
   if (!amount || isNaN(amount)) return 'Rate not specified';
   return `${amount.toLocaleString()} ${currency}`;
 };

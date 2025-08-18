@@ -124,8 +124,8 @@ const JobSeekerCard = ({
           </Badge>
         </div>
         <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-          <span>Daily: {jobSeeker?.dailyRate?.toLocaleString() || '0'} RWF</span>
-          <span>Monthly: {jobSeeker?.monthlyRate?.toLocaleString() || '0'} RWF</span>
+                          <span>Daily: {jobSeeker?.dailyRate?.toLocaleString() || '0'} frw</span>
+                <span>Monthly: {jobSeeker?.monthlyRate?.toLocaleString() || '0'} frw</span>
         </div>
       </div>
       <Button 

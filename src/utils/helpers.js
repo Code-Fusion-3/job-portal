@@ -155,25 +155,25 @@ export const formatExperience = (years) => {
 // Format daily rate
 export const formatDailyRate = (rate) => {
   if (!rate || isNaN(rate)) return 'Rate not specified';
-  return `${rate.toLocaleString()} RWF/day`;
+  return `${rate.toLocaleString()} frw/day`;
 };
 
 // Format monthly rate
 export const formatMonthlyRate = (rate) => {
   if (!rate || isNaN(rate)) return 'Rate not specified';
-  return `${rate.toLocaleString()} RWF/month`;
+  return `${rate.toLocaleString()} frw/month`;
 };
 
 // Format rate display (shows both daily and monthly)
 export const formatRateDisplay = (dailyRate, monthlyRate) => {
   const daily = dailyRate && !isNaN(dailyRate) ? dailyRate.toLocaleString() : 'Not specified';
   const monthly = monthlyRate && !isNaN(monthlyRate) ? monthlyRate.toLocaleString() : 'Not specified';
-  return `${daily} RWF/day • ${monthly} RWF/month`;
+  return `${daily} frw/day • ${monthly} frw/month`;
 };
 
 // Format hourly rate (for backward compatibility)
 export const formatHourlyRate = (rate) => {
-  return `$${rate}/hr`;
+  return `${rate} frw/hr`;
 };
 
 // Generate initials from name

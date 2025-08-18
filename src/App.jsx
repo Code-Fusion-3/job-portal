@@ -155,7 +155,7 @@ const HomePage = () => {
           <Hero />
           <Features />
           <LatestJobSeekers />
-          <Statistics />
+          {/* <Statistics /> */}
         </main>
         <Footer />
       </motion.div>

@@ -1178,7 +1178,7 @@ const JobSeekersPage = () => {
                 <label className="block text-sm font-medium text-gray-700">Monthly Rate</label>
                 <p className="mt-1 text-gray-900">
                   {selectedJobSeeker.profile?.monthlyRate ? 
-                    `${selectedJobSeeker.profile.monthlyRate} RWF` : 
+                    `${selectedJobSeeker.profile.monthlyRate} frw` : 
                     'Not specified'
                   }
                 </p>

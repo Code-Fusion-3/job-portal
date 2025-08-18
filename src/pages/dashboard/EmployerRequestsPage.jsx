@@ -104,10 +104,10 @@ const EmployerRequestsPage = () => {
     ],
     monthlyRateRange: [
       { value: '', label: 'All Rates' },
-      { value: '0-50000', label: '0 - 50,000 RWF' },
-      { value: '50000-100000', label: '50,000 - 100,000 RWF' },
-      { value: '100000-200000', label: '100,000 - 200,000 RWF' },
-      { value: '200000+', label: '200,000+ RWF' }
+              { value: '0-50000', label: '0 - 50,000 frw' },
+        { value: '50000-100000', label: '50,000 - 100,000 frw' },
+        { value: '100000-200000', label: '100,000 - 200,000 frw' },
+        { value: '200000+', label: '200,000+ frw' }
     ],
 
   };
@@ -180,7 +180,7 @@ const EmployerRequestsPage = () => {
         if (typeof rate === 'number') {
           return new Intl.NumberFormat('en-RW', {
             style: 'currency',
-            currency: 'RWF',
+            currency: 'frw',
             minimumFractionDigits: 0
           }).format(rate);
         }
@@ -191,7 +191,7 @@ const EmployerRequestsPage = () => {
           if (!isNaN(numRate)) {
             return new Intl.NumberFormat('en-RW', {
               style: 'currency',
-              currency: 'RWF',
+              currency: 'frw',
               minimumFractionDigits: 0
             }).format(numRate);
           }
