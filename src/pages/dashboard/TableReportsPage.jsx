@@ -239,7 +239,7 @@ const TableReportsPage = () => {
       if (typeof rate === 'number') {
         return new Intl.NumberFormat('en-RW', {
           style: 'currency',
-          currency: 'RWF',
+          currency: 'frw',
           minimumFractionDigits: 0
         }).format(rate);
       }
@@ -248,7 +248,7 @@ const TableReportsPage = () => {
         if (!isNaN(numRate)) {
           return new Intl.NumberFormat('en-RW', {
             style: 'currency',
-            currency: 'RWF',
+            currency: 'frw',
             minimumFractionDigits: 0
           }).format(numRate);
         }

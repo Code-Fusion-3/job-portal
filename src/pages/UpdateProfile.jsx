@@ -1060,7 +1060,7 @@ const UpdateProfile = () => {
               />
 
               <FormInput
-                label="Monthly Rate (RWF)"
+                label="Monthly Rate (frw)"
                 type="number"
                 value={formData.monthlyRate}
                 onChange={(e) => handleInputChange('monthlyRate', e.target.value)}

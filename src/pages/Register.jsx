@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
 import PasswordInput from '../components/ui/PasswordInput';
+import PhoneInput from '../components/ui/PhoneInput';
 import FormCheckbox from '../components/ui/FormCheckbox';
 import UserTypeSelector from '../components/ui/UserTypeSelector';
 import FormLayout from '../components/ui/FormLayout';
@@ -391,7 +392,7 @@ const Register = () => {
         section: 'required',
         label: t('register.phone')
       });
-    } else if (!/^(078|079|072|073)\d{7}$/.test(formData.contactNumber)) {
+    } else if (!/^\d{1,3}\d{9}$/.test(formData.contactNumber)) {
       newErrors.contactNumber = t('register.errors.phoneInvalid');
       errorList.push({
         field: 'contactNumber',
@@ -735,30 +736,14 @@ const Register = () => {
                   icon={User}
                   required
                 />
-              <FormInput
+              <PhoneInput
                 id="contactNumber"
                 name="contactNumber"
-                type="tel"
                 label={t('register.phone')}
-                placeholder={t('register.phonePlaceholder')}
                 value={formData.contactNumber}
-                onChange={e => {
-                  // Only allow digits, max 10
-                  const value = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
-                  handleInputChange({
-                    target: {
-                      name: 'contactNumber',
-                      value,
-                      type: 'text',
-                    }
-                  });
-                }}
+                onChange={handleInputChange}
                 error={errors.contactNumber}
-                icon={Phone}
                 required
-                maxLength={10}
-                pattern="^(078|079|072|073)\d{7}$"
-                inputMode="numeric"
               />
 
               <PasswordInput
@@ -1348,7 +1333,7 @@ const Register = () => {
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pl-8"
                           placeholder={t('register.monthlyRatePlaceholder')}
                         />
-                        <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
+                        <span className="absolute left-3 top-2.5 text-gray-500 text-sm">frw</span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {t('register.monthlyRateHelp')}

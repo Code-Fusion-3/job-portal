@@ -668,7 +668,7 @@ const AddJobSeekerForm = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Monthly Rate (RWF)
+                  Monthly Rate (frw)
                 </label>
                 <input
                   type="number"
