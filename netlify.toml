@@ -1,0 +1,9 @@
+[build]
+  publish = "dist"
+  command = ""
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Disable plugins when doing folder-only deploys
+[plugins]

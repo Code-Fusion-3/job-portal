@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -12,26 +12,26 @@ import LatestJobSeekers from './components/sections/LatestJobSeekers';
 import Statistics from './components/sections/Statistics';
 
 import Footer from './components/layout/Footer';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import JobSeekers from './pages/JobSeekers';
-import Login from './pages/Login';
-import AdminLogin from './pages/AdminLogin';
-import Register from './pages/Register';
-import EmployerRequest from './pages/EmployerRequest';
-import JobSeekerDashboard from './pages/dashboard/JobSeekerDashboard';
-import AdminDashboard from './pages/dashboard/AdminDashboard';
-import JobSeekersPage from './pages/dashboard/JobSeekersPage';
-import JobCategoriesPage from './pages/dashboard/JobCategoriesPage';
-import EmployerRequestsPage from './pages/dashboard/EmployerRequestsPage';
-import ReportsPage from './pages/dashboard/ReportsPage';
-import ViewProfile from './pages/ViewProfile';
-import UpdateProfile from './pages/UpdateProfile';
-import AboutUsPage from './pages/AboutUs';
-import ContactUsPage from './pages/ContactUs';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import NotFound from './pages/NotFound';
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const JobSeekers = lazy(() => import('./pages/JobSeekers'));
+const Login = lazy(() => import('./pages/Login'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const Register = lazy(() => import('./pages/Register'));
+const EmployerRequest = lazy(() => import('./pages/EmployerRequest'));
+const JobSeekerDashboard = lazy(() => import('./pages/dashboard/JobSeekerDashboard'));
+const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'));
+const JobSeekersPage = lazy(() => import('./pages/dashboard/JobSeekersPage'));
+const JobCategoriesPage = lazy(() => import('./pages/dashboard/JobCategoriesPage'));
+const EmployerRequestsPage = lazy(() => import('./pages/dashboard/EmployerRequestsPage'));
+const ReportsPage = lazy(() => import('./pages/dashboard/ReportsPage'));
+const ViewProfile = lazy(() => import('./pages/ViewProfile'));
+const UpdateProfile = lazy(() => import('./pages/UpdateProfile'));
+const AboutUsPage = lazy(() => import('./pages/AboutUs'));
+const ContactUsPage = lazy(() => import('./pages/ContactUs'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
@@ -236,6 +236,7 @@ function App() {
           <LiveUpdateProvider>
             <Router>
               <SessionMonitor />
+              <Suspense fallback={<LoadingSpinner />}> 
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/job-seekers" element={<JobSeekers />} />
@@ -285,10 +286,9 @@ function App() {
                     <UpdateProfile />
                   </ProtectedRoute>
                 } />
-           
-                {/* Catch-all route for 404 errors */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </Router>
           </LiveUpdateProvider>
         </AuthProvider>
