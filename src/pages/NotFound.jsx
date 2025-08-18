@@ -166,7 +166,7 @@ const NotFound = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-gray-600">
-              © 2024 Job Portal Rwanda. All rights reserved.
+              © 2025 Job Portal Rwanda. All rights reserved.
             </p>
             <div className="mt-4 space-x-4">
               <Link to="/" className="text-gray-600 hover:text-gray-900">Home</Link>
