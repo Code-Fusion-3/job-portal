@@ -25,17 +25,22 @@ import {
   Award,
   AlertCircle,
   CheckCircle,
-  Briefcase
+  Briefcase,
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
+import { useApprovalManagement } from '../../api/hooks/useApprovalManagement.js';
 import API_CONFIG from '../../api/config/apiConfig.js';
 import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import ProfileImage from '../../components/ui/ProfileImage';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
+import StatusBadge from '../../components/ui/StatusBadge';
+
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import DataTable from '../../components/ui/DataTable';
 import SearchFilter from '../../components/ui/SearchFilter';
@@ -129,6 +134,12 @@ const filterOptions = {
     { value: 'Male', label: 'Male' },
     { value: 'Female', label: 'Female' },
     { value: 'Other', label: 'Other' }
+  ],
+  approvalStatus: [
+    { value: '', label: 'All Approval Statuses' },
+    { value: 'pending', label: 'Pending Review' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' }
   ]
 };
 
@@ -143,6 +154,7 @@ const JobSeekersPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
   
   // Professional filter states
   const [localSearchTerm, setLocalSearchTerm] = useState('');
@@ -150,7 +162,8 @@ const JobSeekersPage = () => {
     experienceLevel: '',
     category: '',
     location: '',
-    gender: ''
+    gender: '',
+    approvalStatus: '' // Add approval status filter
   });
   const [showFilters, setShowFilters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -196,6 +209,23 @@ const JobSeekersPage = () => {
     itemsPerPage: 10
   });
 
+  // Approval management hook
+  const {
+    pendingProfiles,
+    approvedProfiles,
+    rejectedProfiles,
+    loading: approvalLoading,
+    error: approvalError,
+    approveProfile,
+    rejectProfile,
+    bulkApprove,
+    bulkReject,
+    fetchProfilesByStatus
+  } = useApprovalManagement({
+    autoFetch: false,
+    itemsPerPage: 10
+  });
+
   useEffect(() => {
     if (!user) {
       return;
@@ -207,6 +237,26 @@ const JobSeekersPage = () => {
     
     fetchJobSeekers();
   }, [user, fetchJobSeekers]);
+
+  // Fetch approval data when component mounts
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      // Fetch profiles by status to populate the statistics
+      const fetchApprovalData = async () => {
+        try {
+          await Promise.all([
+            fetchProfilesByStatus('pending', 1),
+            fetchProfilesByStatus('approved', 1),
+            fetchProfilesByStatus('rejected', 1)
+          ]);
+        } catch (error) {
+          console.error('Error fetching approval data:', error);
+        }
+      };
+      
+      fetchApprovalData();
+    }
+  }, [user, fetchProfilesByStatus]);
 
   // Auto-hide success message
   useEffect(() => {
@@ -269,7 +319,8 @@ const JobSeekersPage = () => {
       experienceLevel: '',
       category: '',
       location: '',
-      gender: ''
+      gender: '',
+      approvalStatus: ''
     });
     setLocalSearchTerm('');
   };
@@ -313,6 +364,14 @@ const JobSeekersPage = () => {
         return false;
       }
 
+      // Approval status filter
+      if (localFilters.approvalStatus) {
+        const profileApprovalStatus = jobSeeker.profile?.approvalStatus || jobSeeker.approvalStatus || 'pending';
+        if (profileApprovalStatus !== localFilters.approvalStatus) {
+          return false;
+        }
+      }
+
       return true;
     });
   }, [jobSeekers, localSearchTerm, localFilters]);
@@ -342,6 +401,61 @@ const JobSeekersPage = () => {
     }
   }, [jobCategories]);
 
+  // Handle manual refresh
+  const handleManualRefresh = async () => {
+    try {
+      setSuccessMessage('Refreshing data...');
+      setShowSuccess(true);
+      
+      // Refresh both job seekers and approval data
+      await Promise.all([
+        fetchJobSeekers(),
+        fetchProfilesByStatus('pending', 1),
+        fetchProfilesByStatus('approved', 1),
+        fetchProfilesByStatus('rejected', 1)
+      ]);
+      
+      setSuccessMessage('Data refreshed successfully!');
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+    } catch (error) {
+      setErrorMessage('Failed to refresh data');
+      setShowError(true);
+      console.error('Manual refresh error:', error);
+    }
+  };
+
+  // Handle card filter clicks
+  const handleCardFilter = (filterType) => {
+    switch (filterType) {
+      case 'total':
+        // Show all profiles - clear approval status filter
+        setLocalFilters(prev => ({ ...prev, approvalStatus: '' }));
+        break;
+      case 'pending':
+        // Filter to show only pending profiles
+        setLocalFilters(prev => ({ ...prev, approvalStatus: 'pending' }));
+        break;
+      case 'approved':
+        // Filter to show only approved profiles
+        setLocalFilters(prev => ({ ...prev, approvalStatus: 'approved' }));
+        break;
+      case 'rejected':
+        // Filter to show only rejected profiles
+        setLocalFilters(prev => ({ ...prev, approvalStatus: 'rejected' }));
+        break;
+      case 'clear':
+        // Clear all filters
+        clearAllLocalFilters();
+        break;
+      default:
+        break;
+    }
+  };
+
   // Handle row actions
   const handleRowAction = (action, jobSeeker) => {
     switch (action) {
@@ -357,6 +471,16 @@ const JobSeekersPage = () => {
       case 'edit':
         setSelectedJobSeeker(jobSeeker);
         setShowEditModal(true);
+        setShowActionModal(false);
+        break;
+      case 'approve':
+        handleApprovalChange(jobSeeker.id, 'approved');
+        setShowActionModal(false);
+        break;
+      case 'reject':
+        // For rejection, we need to show a rejection reason modal
+        setSelectedJobSeeker(jobSeeker);
+        setShowRejectionModal(true);
         setShowActionModal(false);
         break;
       case 'delete':
@@ -431,6 +555,58 @@ const JobSeekersPage = () => {
       setErrorMessage('Failed to delete job seeker');
       setShowError(true);
       console.error('Delete job seeker error:', error);
+    }
+  };
+
+  // Handle approval changes
+  const handleApprovalChange = async (profileId, newStatus, reason = null) => {
+    try {
+      let result;
+      
+      if (newStatus === 'approved') {
+        result = await approveProfile(profileId);
+      } else if (newStatus === 'rejected') {
+        if (!reason) {
+          setErrorMessage('Rejection reason is required');
+          setShowError(true);
+          return;
+        }
+        result = await rejectProfile(profileId, reason);
+      }
+      
+      if (result && result.success) {
+        setSuccessMessage(result.message || `Profile ${newStatus} successfully - refreshing data...`);
+        setShowSuccess(true);
+        
+        try {
+          // Refresh the job seekers list to show updated status
+          await fetchJobSeekers();
+          
+          // Refresh approval data to update statistics
+          await Promise.all([
+            fetchProfilesByStatus('pending', 1),
+            fetchProfilesByStatus('approved', 1),
+            fetchProfilesByStatus('rejected', 1)
+          ]);
+          
+          // Update success message to indicate refresh completed
+          setSuccessMessage(result.message || `Profile ${newStatus} successfully - data refreshed!`);
+          
+          // Clear selected job seeker to close any open modals
+          setSelectedJobSeeker(null);
+        } catch (refreshError) {
+          console.error('Error refreshing data after approval change:', refreshError);
+          setErrorMessage('Action completed but failed to refresh data. Please refresh the page manually.');
+          setShowError(true);
+        }
+      } else if (result) {
+        setErrorMessage(result.error || `Failed to ${newStatus} profile`);
+        setShowError(true);
+      }
+    } catch (error) {
+      setErrorMessage(`Failed to ${newStatus} profile`);
+      setShowError(true);
+      console.error(`Approval change error:`, error);
     }
   };
 
@@ -662,6 +838,21 @@ const JobSeekersPage = () => {
         );
       }
     },
+    {
+      key: 'approvalStatus',
+      label: 'Approval Status',
+      render: (jobSeeker) => {
+        if (!jobSeeker) return <div className="text-gray-500">No data</div>;
+        
+        // Get approval status from the profile or user object
+        const approvalStatus = jobSeeker.profile?.approvalStatus || jobSeeker.approvalStatus || 'pending';
+        
+        return (
+          <StatusBadge status={approvalStatus} size="sm" />
+        );
+      }
+    },
+
 
   ];
 
@@ -741,10 +932,21 @@ const JobSeekersPage = () => {
             Manage all registered job seekers ({totalItems} total)
           </p>
         </div>
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={handleManualRefresh}
+            variant="outline"
+            disabled={loading || approvalLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${(loading || approvalLoading) ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         <Button onClick={() => setShowAddForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Job Seeker
         </Button>
+        </div>
       </div>
 
       {/* Success Notification */}
@@ -778,52 +980,131 @@ const JobSeekersPage = () => {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {/* Total Job Seekers Card - Click to show all profiles */}
+        <Card 
+          className={`p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
+            !localFilters.approvalStatus 
+              ? 'border-blue-400 bg-blue-50 shadow-lg' 
+              : 'hover:border-blue-300'
+          }`}
+          onClick={() => handleCardFilter('total')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Job Seekers</p>
-              <p className="text-2xl font-bold text-gray-900">{filteredData.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{jobSeekers.length}</p>
+              <p className="text-xs text-gray-500">
+                {localFilters.approvalStatus ? `${filteredData.length} currently showing` : 'All profiles visible'}
+              </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-blue-600" />
             </div>
           </div>
+          <div className="mt-2 text-xs text-blue-600 font-medium">
+            {!localFilters.approvalStatus ? '✓ Showing all profiles' : 'Click to show all profiles'}
+          </div>
         </Card>
 
-        <Card className="p-6">
+        {/* Pending Review Card - Click to filter pending profiles */}
+        <Card 
+          className={`p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
+            localFilters.approvalStatus === 'pending' 
+              ? 'border-yellow-400 bg-yellow-50' 
+              : 'hover:border-yellow-300'
+          }`}
+          onClick={() => handleCardFilter('pending')}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Pending Review</p>
+              <p className="text-2xl font-bold text-gray-900">{pendingProfiles.length}</p>
+              <p className="text-xs text-gray-500">
+                {localFilters.approvalStatus === 'pending' ? `${filteredData.length} currently showing` : 'Click to filter pending profiles'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-yellow-600 font-medium">
+            {localFilters.approvalStatus === 'pending' ? '✓ Active filter' : 'Click to filter pending'}
+          </div>
+        </Card>
+
+        {/* Approved Card - Click to filter approved profiles */}
+        <Card 
+          className={`p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
+            localFilters.approvalStatus === 'approved' 
+              ? 'border-green-400 bg-green-50' 
+              : 'hover:border-green-300'
+          }`}
+          onClick={() => handleCardFilter('approved')}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Approved</p>
+              <p className="text-2xl font-bold text-gray-900">{approvedProfiles.length}</p>
+              <p className="text-xs text-gray-500">
+                {localFilters.approvalStatus === 'approved' ? `${filteredData.length} currently showing` : 'Click to filter approved profiles'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-green-600 font-medium">
+            {localFilters.approvalStatus === 'approved' ? '✓ Active filter' : 'Click to filter approved'}
+          </div>
+        </Card>
+
+        {/* Rejected Card - Click to filter rejected profiles */}
+        <Card 
+          className={`p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
+            localFilters.approvalStatus === 'rejected' 
+              ? 'border-red-400 bg-red-50' 
+              : 'hover:border-red-300'
+          }`}
+          onClick={() => handleCardFilter('rejected')}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Rejected</p>
+              <p className="text-2xl font-bold text-gray-900">{rejectedProfiles.length}</p>
+              <p className="text-xs text-gray-500">
+                {localFilters.approvalStatus === 'rejected' ? `${filteredData.length} currently showing` : 'Click to filter rejected profiles'}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+              <XCircle className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-red-600 font-medium">
+            {localFilters.approvalStatus === 'rejected' ? '✓ Active filter' : 'Click to filter rejected'}
+          </div>
+        </Card>
+
+        {/* Active Filters Card - Click to clear all filters */}
+        <Card 
+          className={`p-6 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
+            activeFiltersCount > 0 
+              ? 'border-purple-400 bg-purple-50' 
+              : 'hover:border-purple-300'
+          }`}
+          onClick={() => handleCardFilter('clear')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Active Filters</p>
               <p className="text-2xl font-bold text-gray-900">{activeFiltersCount}</p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Filter className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Categories</p>
-              <p className="text-2xl font-bold text-gray-900">{jobCategories?.length || 0}</p>
-            </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Briefcase className="w-6 h-6 text-purple-600" />
+              <Filter className="w-6 h-6 text-purple-600" />
             </div>
           </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Search Results</p>
-              <p className="text-2xl font-bold text-gray-900">{filteredData.length}</p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Search className="w-6 h-6 text-orange-600" />
-            </div>
+          <div className="mt-2 text-xs text-purple-600 font-medium">
+            {activeFiltersCount > 0 ? 'Click to clear all filters' : 'No active filters'}
           </div>
         </Card>
       </div>
@@ -934,6 +1215,22 @@ const JobSeekersPage = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {filterOptions.gender.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Approval Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Approval Status</label>
+                <select
+                  value={localFilters.approvalStatus}
+                  onChange={(e) => handleLocalFilterChange('approvalStatus', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {filterOptions.approvalStatus.map(option => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -1263,6 +1560,28 @@ const JobSeekersPage = () => {
               <span className="text-gray-900">Edit Job Seeker</span>
             </button>
             
+            {/* Approval Actions - Only show if profile is not already approved */}
+            {selectedJobSeeker && (selectedJobSeeker.profile?.approvalStatus || selectedJobSeeker.approvalStatus) !== 'approved' && (
+              <button
+                onClick={() => handleRowAction('approve', selectedJobSeeker)}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-green-50 transition-colors duration-200"
+              >
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="text-gray-900">Approve Profile</span>
+              </button>
+            )}
+            
+            {/* Reject Action - Show for pending and approved profiles */}
+            {selectedJobSeeker && (selectedJobSeeker.profile?.approvalStatus || selectedJobSeeker.approvalStatus) !== 'rejected' && (
+              <button
+                onClick={() => handleRowAction('reject', selectedJobSeeker)}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-red-50 transition-colors duration-200"
+              >
+                <XCircle className="w-5 h-5 text-red-600" />
+                <span className="text-gray-900">Reject Profile</span>
+              </button>
+            )}
+            
             <button
               onClick={() => handleRowAction('delete', selectedJobSeeker)}
               className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-red-50 transition-colors duration-200"
@@ -1270,6 +1589,52 @@ const JobSeekersPage = () => {
               <Trash2 className="w-5 h-5 text-red-600" />
               <span className="text-gray-900">Delete Job Seeker</span>
             </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Rejection Reason Modal */}
+      {showRejectionModal && selectedJobSeeker && (
+        <Modal
+          isOpen={showRejectionModal}
+          onClose={() => setShowRejectionModal(false)}
+          title={`Reject Profile - ${selectedJobSeeker.profile?.firstName || selectedJobSeeker.firstName || 'Unknown'} ${selectedJobSeeker.profile?.lastName || selectedJobSeeker.lastName || ''}`}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Please provide a reason for rejecting this profile. This will help the job seeker understand why their profile was not approved.
+            </p>
+            <textarea
+              placeholder="Enter rejection reason (minimum 10 characters)..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+              rows={4}
+              minLength={10}
+              maxLength={500}
+              id="rejectionReason"
+            />
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowRejectionModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  const reason = document.getElementById('rejectionReason').value.trim();
+                  if (reason.length >= 10) {
+                    handleApprovalChange(selectedJobSeeker.id, 'rejected', reason);
+                    setShowRejectionModal(false);
+                  } else {
+                    alert('Please provide a rejection reason (minimum 10 characters)');
+                  }
+                }}
+              >
+                Reject Profile
+              </Button>
+            </div>
           </div>
         </Modal>
       )}

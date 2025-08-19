@@ -29,7 +29,8 @@ import {
   Award,
   Globe,
   Heart,
-  Calendar
+  Calendar,
+  Clock
 } from 'lucide-react';
 
 // Static data moved from mockData.js
@@ -664,6 +665,65 @@ const UpdateProfile = () => {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Approval Status Banner */}
+        {user?.profile?.approvalStatus && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card className={`p-4 border-l-4 ${
+              user.profile.approvalStatus === 'approved' 
+                ? 'border-l-green-500 bg-green-50' 
+                : user.profile.approvalStatus === 'rejected'
+                ? 'border-l-red-500 bg-red-50'
+                : 'border-l-yellow-500 bg-yellow-50'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {user.profile.approvalStatus === 'approved' ? (
+                    <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
+                  ) : user.profile.approvalStatus === 'rejected' ? (
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
+                  ) : (
+                    <Clock className="w-5 h-5 text-yellow-600 mr-3" />
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      {user.profile.approvalStatus === 'approved' 
+                        ? 'Profile Approved!' 
+                        : user.profile.approvalStatus === 'rejected'
+                        ? 'Profile Rejected'
+                        : 'Profile Under Review'
+                      }
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {user.profile.approvalStatus === 'approved' 
+                        ? 'Your profile is now visible to potential employers.'
+                        : user.profile.approvalStatus === 'rejected'
+                        ? user.profile.rejectionReason 
+                          ? `Reason: ${user.profile.rejectionReason}`
+                          : 'Your profile was not approved. Please contact support for details.'
+                        : 'Our team is reviewing your profile. This usually takes 24-48 hours.'
+                      }
+                    </p>
+                  </div>
+                </div>
+                {user.profile.approvalStatus === 'rejected' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/contact')}
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    Contact Support
+                  </Button>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Profile Completion Scale */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

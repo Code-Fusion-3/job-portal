@@ -248,8 +248,6 @@ const JobSeekers = () => {
     setFilteredSeekers(filtered);
   }, [jobSeekers, searchTerm, selectedExperienceLevel, selectedCategory, selectedLocation, selectedGender, sortBy]);
 
-
-
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedLocation('');
@@ -262,8 +260,6 @@ const JobSeekers = () => {
   const handleViewProfile = (seeker) => {
     navigate(`/view-profile/${seeker.id}`);
   };
-
-
 
   const handleFavorite = (seekerId) => {
     // Implement favorite functionality
@@ -289,7 +285,8 @@ const JobSeekers = () => {
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <LoadingSpinner />
-            <p className="text-white/80">Loading job seekers...</p>
+            <p className="text-white/80">Loading approved job seekers...</p>
+            <p className="text-white/60 text-sm mt-2">Only verified profiles are displayed</p>
           </div>
         </div>
       </div>
@@ -330,33 +327,33 @@ const JobSeekers = () => {
       
       <Header />
       
-        {/* Page Header */}
-        <div className="relative z-10 mt-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <h1 className="text-4xl font-bold text-white mb-4">
-                {t('jobSeekers.pageTitle', 'All Job Seekers')}
-              </h1>
-              <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
-              </p>
-            </motion.div>
-          </div>
-        </div>
-
-        <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Search and Filters */}
+      {/* Page Header */}
+      <div className="relative z-10 mt-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
+            transition={{ duration: 0.6 }}
+            className="text-center"
           >
+            <h1 className="text-4xl font-bold text-white mb-4">
+              {t('jobSeekers.pageTitle', 'All Job Seekers')}
+            </h1>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Search and Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
+        >
           {/* Search Bar */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -387,14 +384,14 @@ const JobSeekers = () => {
                 {viewMode === 'grid' ? 'List' : 'Grid'}
               </Button>
               {getActiveFiltersCount() > 0 && (
-              <Button
-                variant="outline"
-                onClick={clearFilters}
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
                   className="flex items-center gap-2 text-red-600 hover:text-red-700"
-              >
-                <Eye className="w-4 h-4" />
+                >
+                  <Eye className="w-4 h-4" />
                   Clear All
-              </Button>
+                </Button>
               )}
             </div>
           </div>
@@ -440,7 +437,7 @@ const JobSeekers = () => {
                       filterOptions.category.map(option => (
                         <option key={option.value} value={option.value}>
                           {option.label}
-                      </option>
+                        </option>
                       ))
                     )}
                   </select>
@@ -497,9 +494,8 @@ const JobSeekers = () => {
                     ))}
                   </select>
                 </div>
-                  </div>
-                </div>
-
+              </div>
+            </div>
           )}
         </motion.div>
 
@@ -515,7 +511,6 @@ const JobSeekers = () => {
             </p>
           </div>
         )}
-
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -562,10 +557,14 @@ const JobSeekers = () => {
         {filteredSeekers.length === 0 && getActiveFiltersCount() === 0 && jobSeekers.length === 0 && !jobSeekersLoading && (
           <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No job seekers available</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No approved job seekers available</h3>
             <p className="text-gray-600 mb-4">
-              There are currently no job seekers registered in the system.
+              There are currently no approved job seeker profiles available for public viewing. 
+              New registrations are being reviewed by our team.
             </p>
+            <div className="text-sm text-blue-600 bg-blue-50 rounded-lg p-3 mt-4 max-w-md mx-auto">
+              💡 Job seeker profiles are reviewed and approved to ensure quality and authenticity.
+            </div>
           </div>
         )}
 
@@ -578,91 +577,82 @@ const JobSeekers = () => {
             }
           >
             {filteredSeekers.map((seeker, index) => {
-      
               return (
-                <div
-                  key={seeker.id}
-                >
+                <div key={seeker.id}>
                   <Card className="h-[380px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 overflow-hidden group">
                     <div className="h-full flex flex-col">
                       {/* Header Section */}
                       <div className="p-6 pb-4">
                         <div className="flex items-start justify-between mb-4">
-                                                     <div className="flex items-center">
-                             <div className="mr-4">
-                               <ProfileImage 
-                                 size="lg"
-                                 variant="rounded"
-                                 showBorder={true}
-                                 borderColor="border-blue-200"
-                                 showShadow={true}
-                               />
-                             </div>
+                          <div className="flex items-center">
+                            <div className="mr-4">
+                              <ProfileImage 
+                                size="lg"
+                                variant="rounded"
+                                showBorder={true}
+                                borderColor="border-blue-200"
+                                showShadow={true}
+                              />
+                            </div>
                             <div className="flex-1">
-                                                         <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                              {maskName(seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || 'Unknown')} {maskName(seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '')}
-                           </h3>
+                              <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                                {maskName(seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || 'Unknown')} {maskName(seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '')}
+                              </h3>
                               <div className="flex items-center gap-2">
                                 <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
-                                   {seeker.jobCategory?.name_en || seeker.profile?.jobCategory?.name_en || seeker.user?.jobCategory?.name_en || seeker.category || 'No Category'}
+                                  {seeker.jobCategory?.name_en || seeker.profile?.jobCategory?.name_en || seeker.user?.jobCategory?.name_en || seeker.category || 'No Category'}
                                 </span>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                               </div>
                             </div>
                           </div>
-                                                     <button
-                             onClick={() => handleViewProfile(seeker)}
-                             className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
-                           >
-                             <Eye className="w-4 h-4" />
-                             View Profile
-                           </button>
+                          <button
+                            onClick={() => handleViewProfile(seeker)}
+                            className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Profile
+                          </button>
                         </div>
                       </div>
 
                       {/* Content Section */}
                       <div className="px-6 flex-1 space-y-4">
-                                                 {(seeker.location || seeker.profile?.location || seeker.city) && (
+                        {(seeker.location || seeker.profile?.location || seeker.city) && (
                           <div className="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg">
                             <MapPin className="w-4 h-4 mr-2 text-blue-500" />
-                             <span className="font-medium">
-                               {seeker.location || seeker.profile?.location || seeker.city}
-                               {seeker.city && seeker.city !== (seeker.location || seeker.profile?.location) && `, ${seeker.city}`}
-                             </span>
+                            <span className="font-medium">
+                              {seeker.location || seeker.profile?.location || seeker.city}
+                              {seeker.city && seeker.city !== (seeker.location || seeker.profile?.location) && `, ${seeker.city}`}
+                            </span>
                           </div>
                         )}
 
-                                                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
-                           <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
-                           <p className="text-sm text-gray-700 font-medium">
-                             {(() => {
-                               console.log('Seeker data:', seeker);
-                               console.log('Experience Level:', seeker.experienceLevel);
-                               console.log('Profile Experience Level:', seeker.profile?.experienceLevel);
-                               console.log('User Experience Level:', seeker.user?.experienceLevel);
-                               return seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel || 'Not specified';
-                             })()}
-                           </p>
-                         </div>
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
+                          <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
+                          <p className="text-sm text-gray-700 font-medium">
+                            {seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel || 'Not specified'}
+                          </p>
+                        </div>
 
-                         {(seeker.skills || seeker.profile?.skills || seeker.user?.skills) && (
+                        {(seeker.skills || seeker.profile?.skills || seeker.user?.skills) && (
                           <div>
                             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills</h4>
                             <div className="flex flex-wrap gap-1.5">
-                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
-                                 .split(',')
-                                 .slice(0, 4)
-                                 .map((skill, index) => (
-                                <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
-                                  {skill.trim()}
-                                </span>
-                              ))}
-                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
-                                 .split(',').length > 4 && (
-                                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
-                                     +{(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').split(',').length - 4} more
-                                </span>
-                              )}
+                              {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
+                                .split(',')
+                                .slice(0, 4)
+                                .map((skill, index) => (
+                                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+                                    {skill.trim()}
+                                  </span>
+                                ))}
+                              {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
+                                .split(',').length > 4 && (
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
+                                    +{(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').split(',').length - 4} more
+                                  </span>
+                                )}
                             </div>
                           </div>
                         )}

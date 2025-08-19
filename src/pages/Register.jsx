@@ -570,9 +570,9 @@ const Register = () => {
         setErrors({});
         setValidationErrors([]);
         setShowValidationModal(false);
-        // Always redirect jobseeker to update-profile
+        // Redirect jobseeker to pending approval page
         if (result.user.role === 'jobseeker') {
-          navigate('/update-profile');
+          navigate('/pending-approval');
         } else if (result.user.role === 'admin') {
           navigate('/dashboard/admin');
         } else {

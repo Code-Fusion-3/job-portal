@@ -48,6 +48,7 @@ const ViewProfile = () => {
   const navigate = useNavigate();
   const [jobSeeker, setJobSeeker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showContact, setShowContact] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { user } = useAuth();
@@ -71,11 +72,11 @@ const ViewProfile = () => {
         if (result && result.success) {
           setJobSeeker(result.data);
         } else {
-          navigate('/job-seekers');
+          setError(result?.error || 'Profile not found or not available for public viewing');
         }
       } catch (error) {
         console.error('Error fetching job seeker:', error);
-        navigate('/job-seekers');
+        setError('Failed to load profile. This profile may not be approved for public viewing.');
       } finally {
         setLoading(false);
       }
@@ -120,6 +121,33 @@ const ViewProfile = () => {
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
           <LoadingSpinner size="lg" text="Loading profile..." />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${jobseekerBackground})` }}
+      >
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 max-w-md mx-4">
+            <div className="text-orange-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile Not Available</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <div className="text-sm text-blue-600 bg-blue-50 rounded-lg p-3 mb-6">
+              💡 This profile may be under review or not approved for public viewing yet.
+            </div>
+            <BackButton />
+          </div>
         </div>
         <Footer />
       </div>
@@ -221,6 +249,32 @@ const ViewProfile = () => {
                         ? jobSeeker.jobCategory?.name_en || 'Job Seeker'
                         : jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
                     </p>
+                    
+                    {/* Approval Status Indicator */}
+                    {isPublic && jobSeeker.approvalStatus && (
+                      <div className="mb-4">
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
+                          jobSeeker.approvalStatus === 'approved'
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : jobSeeker.approvalStatus === 'rejected'
+                            ? 'bg-red-100 text-red-800 border border-red-200'
+                            : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                        }`}>
+                          {jobSeeker.approvalStatus === 'approved' ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : jobSeeker.approvalStatus === 'rejected' ? (
+                            <AlertCircle className="w-4 h-4" />
+                          ) : (
+                            <Clock className="w-4 h-4" />
+                          )}
+                          {jobSeeker.approvalStatus === 'approved'
+                            ? 'Verified Profile'
+                            : jobSeeker.approvalStatus === 'rejected'
+                            ? 'Profile Not Available'
+                            : 'Profile Under Review'}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Key Info Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

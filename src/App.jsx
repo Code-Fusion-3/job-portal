@@ -32,6 +32,9 @@ import ContactUsPage from './pages/ContactUs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import NotFound from './pages/NotFound';
+import ApprovalComponentsTest from './components/admin/ApprovalComponentsTest';
+import ApprovalQueue from './pages/dashboard/ApprovalQueue';
+import PendingApproval from './pages/PendingApproval';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
 import './App.css';
 
@@ -249,6 +252,8 @@ function App() {
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/test-approval" element={<ApprovalComponentsTest />} />
+                <Route path="/pending-approval" element={<PendingApproval />} />
               <Route path="/dashboard/jobseeker" element={
                   <ProtectedRoute requiredRole="jobseeker">
                     <JobSeekerDashboard />
@@ -277,6 +282,11 @@ function App() {
                 <Route path="/dashboard/reports" element={
                   <ProtectedRoute requiredRole="admin">
                     <ReportsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/approval-queue" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ApprovalQueue />
                   </ProtectedRoute>
                 } />
                 <Route path="/view-profile/:id" element={<ViewProfile />} />
