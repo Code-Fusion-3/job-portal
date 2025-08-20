@@ -31,12 +31,17 @@ const ImageSlideshow = ({ children }) => {
     <div className="relative w-full h-screen overflow-hidden">
       {/* Background Slideshow */}
       <div className="absolute inset-0">
-        <img
-          src={images[currentIndex]}
-          alt={`Slide ${currentIndex + 1}`}
-          className="w-full h-full object-cover object-center transition-opacity duration-1000"
-          style={{ minWidth: '100%', minHeight: '100%' }}
-        />
+        <picture>
+          <source srcSet={`./optimized/img${currentIndex+1}-800w.webp 800w, ./optimized/img${currentIndex+1}-1200w.webp 1200w, ./optimized/img${currentIndex+1}-1600w.webp 1600w`} type="image/webp" />
+          <source srcSet={`./optimized/img${currentIndex+1}-800w.jpg 800w, ./optimized/img${currentIndex+1}-1200w.jpg 1200w, ./optimized/img${currentIndex+1}-1600w.jpg 1600w`} type="image/jpeg" />
+          <img
+            src={images[currentIndex]}
+            alt={`Slide ${currentIndex + 1}`}
+            className="w-full h-full object-cover object-center transition-opacity duration-1000"
+            style={{ minWidth: '100%', minHeight: '100%' }}
+            loading="lazy"
+          />
+        </picture>
         
         {/* Overlay for better text readability */}
         <div className="absolute inset-0 bg-black/70 pointer-events-none" />
@@ -52,4 +57,4 @@ const ImageSlideshow = ({ children }) => {
   );
 };
 
-export default ImageSlideshow; 
+export default ImageSlideshow;
