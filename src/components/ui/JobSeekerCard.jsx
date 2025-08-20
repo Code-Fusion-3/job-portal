@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import Avatar from './Avatar';
 import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import Badge from './Badge';
@@ -79,6 +79,32 @@ const JobSeekerCard = ({
             </Badge>
             <span className="text-xs text-gray-500">{jobSeeker?.location || 'Unknown'}</span>
           </div>
+          
+          {/* Approval Status Indicator */}
+          {jobSeeker?.approvalStatus && (
+            <div className="mt-1">
+              <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                jobSeeker.approvalStatus === 'approved'
+                  ? 'bg-green-100 text-green-700 border border-green-200'
+                  : jobSeeker.approvalStatus === 'rejected'
+                  ? 'bg-red-100 text-red-700 border border-red-200'
+                  : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+              }`}>
+                {jobSeeker.approvalStatus === 'approved' ? (
+                  <CheckCircle className="w-3 h-3" />
+                ) : jobSeeker.approvalStatus === 'rejected' ? (
+                  <AlertCircle className="w-3 h-3" />
+                ) : (
+                  <Clock className="w-3 h-3" />
+                )}
+                {jobSeeker.approvalStatus === 'approved'
+                  ? 'Verified'
+                  : jobSeeker.approvalStatus === 'rejected'
+                  ? 'Rejected'
+                  : 'Pending'}
+              </div>
+            </div>
+          )}
           {/* Display skills as small badges */}
           {jobSeeker?.category && jobSeeker.category.includes(',') && (
             <div className="flex flex-wrap gap-1 mt-1">
@@ -123,6 +149,32 @@ const JobSeekerCard = ({
             {jobSeeker?.category || 'General'}
           </Badge>
         </div>
+        
+        {/* Approval Status Indicator */}
+        {jobSeeker?.approvalStatus && (
+          <div className="mt-2">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+              jobSeeker.approvalStatus === 'approved'
+                ? 'bg-green-100 text-green-700 border border-green-200'
+                : jobSeeker.approvalStatus === 'rejected'
+                ? 'bg-red-100 text-red-700 border border-red-200'
+                : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+            }`}>
+              {jobSeeker.approvalStatus === 'approved' ? (
+                <CheckCircle className="w-3.5 h-3.5" />
+              ) : jobSeeker.approvalStatus === 'rejected' ? (
+                <AlertCircle className="w-3.5 h-3.5" />
+              ) : (
+                <Clock className="w-3.5 h-3.5" />
+              )}
+              {jobSeeker.approvalStatus === 'approved'
+                ? 'Verified Profile'
+                : jobSeeker.approvalStatus === 'rejected'
+                ? 'Profile Rejected'
+                : 'Under Review'}
+            </div>
+          </div>
+        )}
         <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
                           <span>Daily: {jobSeeker?.dailyRate?.toLocaleString() || '0'} frw</span>
                 <span>Monthly: {jobSeeker?.monthlyRate?.toLocaleString() || '0'} frw</span>

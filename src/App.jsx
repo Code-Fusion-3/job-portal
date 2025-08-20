@@ -32,8 +32,12 @@ const ContactUsPage = lazy(() => import('./pages/ContactUs'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-import { useScrollAnimations } from './hooks/useScrollAnimations';
+const ApprovalComponentsTest = lazy(() => import('./components/admin/ApprovalComponentsTest'));
+const ApprovalQueue = lazy(() => import('./pages/dashboard/ApprovalQueue'));
+const PendingApproval = lazy(() => import('./pages/PendingApproval'));
+const useScrollAnimations = lazy(() => import('./hooks/useScrollAnimations'));
 import './App.css';
+
 
   // Starting full application
 
@@ -250,6 +254,8 @@ function App() {
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/test-approval" element={<ApprovalComponentsTest />} />
+                <Route path="/pending-approval" element={<PendingApproval />} />
               <Route path="/dashboard/jobseeker" element={
                   <ProtectedRoute requiredRole="jobseeker">
                     <JobSeekerDashboard />
@@ -278,6 +284,11 @@ function App() {
                 <Route path="/dashboard/reports" element={
                   <ProtectedRoute requiredRole="admin">
                     <ReportsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/approval-queue" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <ApprovalQueue />
                   </ProtectedRoute>
                 } />
                 <Route path="/view-profile/:id" element={<ViewProfile />} />

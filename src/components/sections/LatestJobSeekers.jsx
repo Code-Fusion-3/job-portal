@@ -105,7 +105,10 @@ const LatestJobSeekers = () => {
     return (
       <section id="job-seekers" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <LoadingSpinner />
+          <div className="text-center">
+            <LoadingSpinner />
+            <p className="text-gray-600 mt-4">Loading verified job seekers...</p>
+          </div>
         </div>
       </section>
     );
@@ -125,7 +128,19 @@ const LatestJobSeekers = () => {
     return (
       <section id="job-seekers" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-gray-600">No job seekers found.</p>
+          <div className="text-center">
+            <div className="bg-white rounded-lg shadow-sm border p-8 max-w-md mx-auto">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No approved profiles yet</h3>
+              <p className="text-gray-600 text-sm">
+                We're currently reviewing new job seeker registrations. Approved profiles will appear here soon.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -144,9 +159,15 @@ const LatestJobSeekers = () => {
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             {t('jobSeekers.title')}
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-2">
             {t('jobSeekers.subtitle')}
           </p>
+          <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Verified & Approved Profiles
+          </div>
         </motion.div>
 
         <motion.div

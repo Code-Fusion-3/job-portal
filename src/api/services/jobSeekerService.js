@@ -463,6 +463,92 @@ export const jobSeekerService = {
       const apiError = handleError(error, { context: 'get_latest_job_seekers' });
       return { success: false, error: apiError.userMessage };
     }
+  },
+
+  /**
+   * Approve job seeker profile (Admin only)
+   * PUT /profile/{id}/approve
+   */
+  approveJobSeeker: async (id) => {
+    try {
+      const response = await apiClient.put(`/profile/${id}/approve`, {}, {
+        headers: getAuthHeaders()
+      });
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Profile approved successfully'
+      };
+    } catch (error) {
+      // Handle specific backend error cases
+      if (error.response?.data?.error) {
+        return { success: false, error: error.response.data.error };
+      }
+      
+      const apiError = handleError(error, { context: 'approve_job_seeker' });
+      return { success: false, error: apiError.userMessage };
+    }
+  },
+
+  /**
+   * Reject job seeker profile with reason (Admin only)
+   * PUT /profile/{id}/reject
+   */
+  rejectJobSeeker: async (id, reason) => {
+    try {
+      const response = await apiClient.put(`/profile/${id}/reject`, { reason }, {
+        headers: getAuthHeaders()
+      });
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Profile rejected successfully'
+      };
+    } catch (error) {
+      // Handle specific backend error cases
+      if (error.response?.data?.error) {
+        return { success: false, error: error.response.data.error };
+      }
+      
+      const apiError = handleError(error, { context: 'reject_job_seeker' });
+      return { success: false, error: apiError.userMessage };
+    }
+  },
+
+  /**
+   * Get profiles by approval status (Admin only)
+   * GET /profile/status/{status}
+   */
+  getProfilesByStatus: async (status, params = {}) => {
+    try {
+      const { page = 1, limit = 10, ...otherParams } = params;
+      
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...otherParams
+      });
+
+      const response = await apiClient.get(`/profile/status/${status}?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      
+      return {
+        success: true,
+        data: response.data.profiles || [],
+        pagination: response.data.pagination || {}
+      };
+    } catch (error) {
+      // Handle specific backend error cases
+      if (error.response?.data?.error) {
+        return { success: false, error: error.response.data.error };
+      }
+      
+      const apiError = handleError(error, { context: 'get_profiles_by_status' });
+      return { success: false, error: apiError.userMessage };
+    }
   }
 };
 
