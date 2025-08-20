@@ -32,11 +32,12 @@ const ContactUsPage = lazy(() => import('./pages/ContactUs'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-import ApprovalComponentsTest from './components/admin/ApprovalComponentsTest';
-import ApprovalQueue from './pages/dashboard/ApprovalQueue';
-import PendingApproval from './pages/PendingApproval';
-import { useScrollAnimations } from './hooks/useScrollAnimations';
+const ApprovalComponentsTest = lazy(() => import('./components/admin/ApprovalComponentsTest'));
+const ApprovalQueue = lazy(() => import('./pages/dashboard/ApprovalQueue'));
+const PendingApproval = lazy(() => import('./pages/PendingApproval'));
+const useScrollAnimations = lazy(() => import('./hooks/useScrollAnimations'));
 import './App.css';
+
 
   // Starting full application
 
