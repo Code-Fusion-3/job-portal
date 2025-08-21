@@ -30,49 +30,50 @@ import { filterJobSeekers, sortJobSeekers, maskName, formatExperienceDisplay } f
 import useDebounce from '../hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
 
-// Professional filter options from JobSeekersPage.jsx
-const filterOptions = {
-  experienceLevel: [
-    { value: '', label: 'All Experience Levels' },
-    { value: 'no_experience', label: 'No Experience (0 years)' },
-    { value: 'beginner', label: 'Beginner (1-2 years)' },
-    { value: 'intermediate', label: 'Intermediate (3-5 years)' },
-    { value: 'experienced', label: 'Experienced (6-10 years)' },
-    { value: 'expert', label: 'Expert (10+ years)' }
-  ],
-  category: [
-    { value: '', label: 'All Categories' }
-    // Will be populated dynamically from jobCategories
-  ],
-  location: [
-    { value: '', label: 'All Locations' },
-    { value: 'kigali', label: 'Kigali' },
-    { value: 'butare', label: 'Butare' },
-    { value: 'gisenyi', label: 'Gisenyi' },
-    { value: 'ruhengeri', label: 'Ruhengeri' },
-    { value: 'kibuye', label: 'Kibuye' },
-    { value: 'cyangugu', label: 'Cyangugu' },
-    { value: 'kibungo', label: 'Kibungo' },
-    { value: 'rwamagana', label: 'Rwamagana' }
-  ],
-  gender: [
-    { value: '', label: 'All Genders' },
-    { value: 'Male', label: 'Male' },
-    { value: 'Female', label: 'Female' },
-    { value: 'Other', label: 'Other' }
-  ],
-  sortBy: [
-    'Most Recent',
-    'Highest Rated',
-    'Most Experienced',
-    'Name A-Z',
-    'Lowest Rate',
-    'Highest Rate'
-  ]
-};
-
 const JobSeekers = () => {
   const { t } = useTranslation();
+  
+  // Professional filter options - moved inside component where t function is available
+  const filterOptions = {
+    experienceLevel: [
+      { value: '', label: t('jobSeekers.filters.allExperienceLevels', 'All Experience Levels') },
+      { value: 'no_experience', label: t('jobSeekers.filters.noExperience', 'No Experience (0 years)') },
+      { value: 'beginner', label: t('jobSeekers.filters.beginner', 'Beginner (1-2 years)') },
+      { value: 'intermediate', label: t('jobSeekers.filters.intermediate', 'Intermediate (3-5 years)') },
+      { value: 'experienced', label: t('jobSeekers.filters.experienced', 'Experienced (6-10 years)') },
+      { value: 'expert', label: t('jobSeekers.filters.expert', 'Expert (10+ years)') }
+    ],
+    category: [
+      { value: '', label: t('jobSeekers.filters.allCategories', 'All Categories') }
+      // Will be populated dynamically from jobCategories
+    ],
+    location: [
+      { value: '', label: t('jobSeekers.filters.allLocations', 'All Locations') },
+      { value: 'kigali', label: t('jobSeekers.filters.kigali', 'Kigali') },
+      { value: 'butare', label: t('jobSeekers.filters.butare', 'Butare') },
+      { value: 'gisenyi', label: t('jobSeekers.filters.gisenyi', 'Gisenyi') },
+      { value: 'ruhengeri', label: t('jobSeekers.filters.ruhengeri', 'Ruhengeri') },
+      { value: 'kibuye', label: t('jobSeekers.filters.kibuye', 'Kibuye') },
+      { value: 'cyangugu', label: t('jobSeekers.filters.cyangugu', 'Cyangugu') },
+      { value: 'kibungo', label: t('jobSeekers.filters.kibungo', 'Kibungo') },
+      { value: 'rwamagana', label: t('jobSeekers.filters.rwamagana', 'Rwamagana') }
+    ],
+    gender: [
+      { value: '', label: t('jobSeekers.filters.allGenders', 'All Genders') },
+      { value: 'Male', label: t('jobSeekers.filters.male', 'Male') },
+      { value: 'Female', label: t('jobSeekers.filters.female', 'Female') },
+      { value: 'Other', label: t('jobSeekers.filters.other', 'Other') }
+    ],
+    sortBy: [
+      t('jobSeekers.filters.mostRecent', 'Most Recent'),
+      t('jobSeekers.filters.highestRated', 'Highest Rated'),
+      t('jobSeekers.filters.mostExperienced', 'Most Experienced'),
+      t('jobSeekers.filters.name', 'Name A-Z'),
+      t('jobSeekers.filters.lowestRate', 'Lowest Rate'),
+      t('jobSeekers.filters.highestRate', 'Highest Rate')
+    ]
+  };
+
   const [jobSeekers, setJobSeekers] = useState([]);
   const [filteredSeekers, setFilteredSeekers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -95,7 +96,7 @@ const JobSeekers = () => {
   useEffect(() => {
     if (jobCategories && jobCategories.length > 0) {
       const categoryOptions = [
-        { value: '', label: 'All Categories' },
+        { value: '', label: t('jobSeekers.filters.allCategories', 'All Categories') },
         ...jobCategories.map(cat => ({
           value: cat.name_en.toLowerCase(),
           label: cat.name_en
@@ -106,7 +107,7 @@ const JobSeekers = () => {
     } else if (categoriesError) {
       // Handle categories API error gracefully without fallback data
       filterOptions.category = [
-        { value: '', label: 'All Categories' }
+        { value: '', label: t('jobSeekers.filters.allCategories', 'All Categories') }
       ];
       // Clear any selected category when API fails
       setSelectedCategory('');
@@ -285,8 +286,8 @@ const JobSeekers = () => {
         <div className="relative z-10 flex items-center justify-center min-h-screen">
           <div className="text-center">
             <LoadingSpinner />
-            <p className="text-white/80">Loading approved job seekers...</p>
-            <p className="text-white/60 text-sm mt-2">Only verified profiles are displayed</p>
+            <p className="text-white/80">{t('jobSeekers.loading.approvedSeekers', 'Loading approved job seekers...')}</p>
+            <p className="text-white/60 text-sm mt-2">{t('jobSeekers.loading.verifiedProfiles', 'Only verified profiles are displayed')}</p>
           </div>
         </div>
       </div>
@@ -305,11 +306,11 @@ const JobSeekers = () => {
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
               <div className="flex items-center space-x-2 mb-4">
                 <AlertCircle className="w-5 h-5 text-red-500" />
-                <span className="text-red-700 font-medium">Error Loading Job Seekers</span>
+                <span className="text-red-700 font-medium">{t('jobSeekers.errors.loadingJobSeekers', 'Error Loading Job Seekers')}</span>
               </div>
               <p className="text-red-600 mb-4">{jobSeekersError}</p>
               <Button onClick={() => window.location.reload()} variant="outline">
-                Try Again
+                {t('jobSeekers.errors.tryAgain', 'Try Again')}
               </Button>
             </div>
           </div>
@@ -373,7 +374,7 @@ const JobSeekers = () => {
                 className="flex items-center gap-2"
               >
                 <Filter className="w-4 h-4" />
-                Filters {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
+                {t('jobSeekers.filters.filters', 'Filters')} {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
               </Button>
               <Button
                 variant="outline"
@@ -381,7 +382,7 @@ const JobSeekers = () => {
                 className="flex items-center gap-2"
               >
                 {viewMode === 'grid' ? <Briefcase className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                {viewMode === 'grid' ? 'List' : 'Grid'}
+                {viewMode === 'grid' ? t('jobSeekers.filters.list', 'List') : t('jobSeekers.filters.grid', 'Grid')}
               </Button>
               {getActiveFiltersCount() > 0 && (
                 <Button
@@ -390,7 +391,7 @@ const JobSeekers = () => {
                   className="flex items-center gap-2 text-red-600 hover:text-red-700"
                 >
                   <Eye className="w-4 h-4" />
-                  Clear All
+                  {t('jobSeekers.filters.clearAll', 'Clear All')}
                 </Button>
               )}
             </div>
@@ -430,9 +431,9 @@ const JobSeekers = () => {
                     disabled={loadingCategories}
                   >
                     {loadingCategories ? (
-                      <option>Loading categories...</option>
+                      <option>{t('jobSeekers.loading.categories', 'Loading categories...')}</option>
                     ) : categoriesError ? (
-                      <option>Error loading categories</option>
+                      <option>{t('jobSeekers.errors.categoriesLoad', 'Error loading categories')}</option>
                     ) : (
                       filterOptions.category.map(option => (
                         <option key={option.value} value={option.value}>
@@ -504,10 +505,10 @@ const JobSeekers = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2">
               <AlertCircle className="w-5 h-5 text-red-500" />
-              <span className="text-red-700 font-medium">Unable to load job categories</span>
+              <span className="text-red-700 font-medium">{t('jobSeekers.errors.categoriesLoad', 'Unable to load job categories')}</span>
             </div>
             <p className="text-red-600 text-sm mt-1">
-              There was an error loading job categories. Category filtering is temporarily unavailable.
+              {t('jobSeekers.errors.categoriesUnavailable', 'There was an error loading job categories. Category filtering is temporarily unavailable.')}
             </p>
           </div>
         )}
@@ -518,7 +519,7 @@ const JobSeekers = () => {
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
               <Users className="w-6 h-6 text-blue-600" />
             </div>
-            <p className="text-sm font-medium text-gray-600">Total Job Seekers</p>
+            <p className="text-sm font-medium text-gray-600">{t('jobSeekers.stats.totalJobSeekers', 'Total Job Seekers')}</p>
             <p className="text-2xl font-bold text-gray-900">{jobSeekers.length}</p>
           </div>
 
@@ -526,7 +527,7 @@ const JobSeekers = () => {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
               <Search className="w-6 h-6 text-green-600" />
             </div>
-            <p className="text-sm font-medium text-gray-600">Search Results</p>
+            <p className="text-sm font-medium text-gray-600">{t('jobSeekers.stats.searchResults', 'Search Results')}</p>
             <p className="text-2xl font-bold text-gray-900">{filteredSeekers.length}</p>
           </div>
 
@@ -534,7 +535,7 @@ const JobSeekers = () => {
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
               <Filter className="w-6 h-6 text-purple-600" />
             </div>
-            <p className="text-sm font-medium text-gray-600">Active Filters</p>
+            <p className="text-sm font-medium text-gray-600">{t('jobSeekers.stats.activeFilters', 'Active Filters')}</p>
             <p className="text-2xl font-bold text-gray-900">{getActiveFiltersCount()}</p>
           </div>
         </div>
@@ -543,12 +544,12 @@ const JobSeekers = () => {
         {filteredSeekers.length === 0 && getActiveFiltersCount() > 0 && (
           <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('jobSeekers.noResults.noResultsFound', 'No results found')}</h3>
             <p className="text-gray-600 mb-4">
-              Try adjusting your search criteria or filters to find more job seekers.
+              {t('jobSeekers.noResults.adjustCriteria', 'Try adjusting your search criteria or filters to find more job seekers.')}
             </p>
             <Button onClick={clearFilters} variant="outline">
-              Clear All Filters
+              {t('jobSeekers.noResults.clearFilters', 'Clear All Filters')}
             </Button>
           </div>
         )}
@@ -557,13 +558,12 @@ const JobSeekers = () => {
         {filteredSeekers.length === 0 && getActiveFiltersCount() === 0 && jobSeekers.length === 0 && !jobSeekersLoading && (
           <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No approved job seekers available</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('jobSeekers.noResults.noApprovedSeekers', 'No approved job seekers available')}</h3>
             <p className="text-gray-600 mb-4">
-              There are currently no approved job seeker profiles available for public viewing. 
-              New registrations are being reviewed by our team.
+              {t('jobSeekers.noResults.noProfilesAvailable', 'There are currently no approved job seeker profiles available for public viewing. New registrations are being reviewed by our team.')}
             </p>
             <div className="text-sm text-blue-600 bg-blue-50 rounded-lg p-3 mt-4 max-w-md mx-auto">
-              💡 Job seeker profiles are reviewed and approved to ensure quality and authenticity.
+              {t('jobSeekers.noResults.profilesReviewed', '💡 Job seeker profiles are reviewed and approved to ensure quality and authenticity.')}
             </div>
           </div>
         )}
@@ -596,11 +596,11 @@ const JobSeekers = () => {
                             </div>
                             <div className="flex-1">
                               <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                                {maskName(seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || 'Unknown')} {maskName(seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '')}
+                                {maskName(seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || t('jobSeekers.card.unknown', 'Unknown'))} {maskName(seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '')}
                               </h3>
                               <div className="flex items-center gap-2">
                                 <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
-                                  {seeker.jobCategory?.name_en || seeker.profile?.jobCategory?.name_en || seeker.user?.jobCategory?.name_en || seeker.category || 'No Category'}
+                                  {seeker.jobCategory?.name_en || seeker.profile?.jobCategory?.name_en || seeker.user?.jobCategory?.name_en || seeker.category || t('jobSeekers.card.noCategory', 'No Category')}
                                 </span>
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                               </div>
@@ -611,7 +611,7 @@ const JobSeekers = () => {
                             className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
                           >
                             <Eye className="w-4 h-4" />
-                            View Profile
+                            {t('jobSeekers.actions.viewProfile', 'View Profile')}
                           </button>
                         </div>
                       </div>
@@ -629,15 +629,15 @@ const JobSeekers = () => {
                         )}
 
                         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-100">
-                          <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">Experience Level *</span>
+                          <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1 block">{t('jobSeekers.card.experienceLevel', 'Experience Level')} *</span>
                           <p className="text-sm text-gray-700 font-medium">
-                            {seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel || 'Not specified'}
+                            {seeker.experienceLevel || seeker.profile?.experienceLevel || seeker.user?.experienceLevel || t('jobSeekers.card.notSpecified', 'Not specified')}
                           </p>
                         </div>
 
                         {(seeker.skills || seeker.profile?.skills || seeker.user?.skills) && (
                           <div>
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills</h4>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('jobSeekers.card.skills', 'Skills')}</h4>
                             <div className="flex flex-wrap gap-1.5">
                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
                                 .split(',')
@@ -650,7 +650,7 @@ const JobSeekers = () => {
                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
                                 .split(',').length > 4 && (
                                   <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-md">
-                                    +{(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').split(',').length - 4} more
+                                    +{(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').split(',').length - 4} {t('jobSeekers.card.more', 'more')}
                                   </span>
                                 )}
                             </div>
