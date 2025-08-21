@@ -186,8 +186,9 @@ const SettingsPage = () => {
       newErrors.email = 'Email is invalid';
     }
     
-    if (profile.phone && !/^\+?[\d\s\-\(\)]+$/.test(profile.phone)) {
-      newErrors.phone = 'Phone number is invalid';
+    // Phone validation removed - only check minimum 9 digits if provided
+    if (profile.phone && profile.phone.replace(/\D/g, '').length < 9) {
+      newErrors.phone = 'Phone number must be at least 9 digits';
     }
 
     setErrors(newErrors);

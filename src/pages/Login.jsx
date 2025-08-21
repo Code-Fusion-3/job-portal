@@ -66,7 +66,7 @@ const Login = () => {
     } else {
       // Check if it's an email or phone
       const isEmail = /\S+@\S+\.\S+/.test(formData.identifier);
-      const isPhone = /^\+?\d{10,15}$/.test(formData.identifier);
+      const isPhone = formData.identifier.replace(/\D/g, '').length >= 9;
       if (!isEmail && !isPhone) {
         newErrors.identifier = t('login.errors.identifierInvalid');
       }

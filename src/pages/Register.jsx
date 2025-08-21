@@ -383,20 +383,12 @@ const Register = () => {
       });
     }
 
-    // Phone Number
-    if (!formData.contactNumber) {
-      newErrors.contactNumber = t('register.errors.phoneRequired');
+    // Phone Number - Only validate minimum 9 digits if provided
+    if (formData.contactNumber && formData.contactNumber.replace(/\D/g, '').length < 9) {
+      newErrors.contactNumber = 'Phone number must be at least 9 digits';
       errorList.push({
         field: 'contactNumber',
-        message: t('register.errors.phoneRequired'),
-        section: 'required',
-        label: t('register.phone')
-      });
-    } else if (!/^\d{1,3}\d{9}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = t('register.errors.phoneInvalid');
-      errorList.push({
-        field: 'contactNumber',
-        message: t('register.errors.phoneInvalid'),
+        message: 'Phone number must be at least 9 digits',
         section: 'required',
         label: t('register.phone')
       });
