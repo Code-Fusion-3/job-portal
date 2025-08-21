@@ -793,6 +793,34 @@ const resources = {
       'employerRequest.backToJobSeekers': 'Back to Job Seekers',
       'employerRequest.backToProfile': 'Back to Profile',
 
+      // Additional EmployerRequest Component Translations
+      'employerRequest.loading.candidateInfo': 'Loading candidate information...',
+      'employerRequest.errors.loadingProfile': 'Error Loading Profile',
+      'employerRequest.success.whatHappensNext': 'What happens next?',
+      'employerRequest.success.reviewTimeline': 'Our team will review your request within 24 hours',
+      'employerRequest.success.emailConfirmation': 'You\'ll receive an email confirmation',
+      'employerRequest.success.contactNextSteps': 'We\'ll contact you to discuss next steps',
+      'employerRequest.hero.title': 'Request Candidate',
+      'employerRequest.hero.subtitle': 'Fill out the form below to request this candidate for your position',
+      'employerRequest.candidate.location': 'Location',
+      'employerRequest.candidate.locationNotSpecified': 'Location not specified',
+      'employerRequest.candidate.experience': 'Experience',
+      'employerRequest.candidate.notSpecified': 'Not specified',
+      'employerRequest.candidate.availability': 'Availability',
+      'employerRequest.candidate.monthlyRate': 'Monthly Rate',
+      'employerRequest.candidate.skillsExpertise': 'Skills & Expertise',
+      'employerRequest.candidate.noSkillsListed': 'No skills listed',
+      'employerRequest.candidate.viewFullProfile': 'View Full Profile',
+      'employerRequest.candidate.jobSeeker': 'Job Seeker',
+
+      // Additional missing EmployerRequest form translations
+      'employerRequest.sendRequest': 'Send Request',
+      'employerRequest.disclaimer': 'Your request will be sent to our admin team for review. We\'ll get back to you within 24 hours.',
+      'employerRequest.priority': 'Priority',
+      'employerRequest.priorityLow': 'Low',
+      'employerRequest.priorityNormal': 'Normal',
+      'employerRequest.priorityHigh': 'High',
+
       // Profile Page
       'profile.title': 'My Profile',
       'profile.subtitle': 'Manage your professional profile and settings',
@@ -933,7 +961,48 @@ const resources = {
       'admin.dashboard.atLeastOneSkillIsRequired': 'At least one skill is required',
       'admin.dashboard.emailIsRequired': 'Email is required',
       'admin.dashboard.phoneIsRequired': 'Phone is required',
-      'admin.dashboard.bioIsRequired': 'Bio is required'
+      'admin.dashboard.bioIsRequired': 'Bio is required',
+
+      // ViewProfile Component Translations
+      'viewProfile.loading.title': 'Loading profile...',
+      'viewProfile.errors.profileNotAvailable': 'Profile Not Available',
+      'viewProfile.errors.profileNotFound': 'Profile Not Found',
+      'viewProfile.errors.profileNotExist': "The profile you're looking for doesn't exist.",
+      'viewProfile.errors.underReview': '💡 This profile may be under review or not approved for public viewing yet.',
+      'viewProfile.errors.loadFailed': 'Failed to load profile. This profile may not be approved for public viewing.',
+      'viewProfile.errors.notAvailable': 'Profile not found or not available for public viewing',
+
+      'viewProfile.hero.jobSeeker': 'Job Seeker',
+      'viewProfile.hero.verifiedProfile': 'Verified Profile',
+      'viewProfile.hero.profileNotAvailable': 'Profile Not Available',
+      'viewProfile.hero.profileUnderReview': 'Profile Under Review',
+      'viewProfile.info.locationNotSpecified': 'Location not specified',
+      'viewProfile.info.experienceNotSpecified': 'Experience not specified',
+      'viewProfile.info.availabilityNotSpecified': 'Availability not specified',
+      'viewProfile.info.memberSince': 'Member since',
+      'viewProfile.info.monthlyRate': 'Monthly Rate',
+
+      'viewProfile.sections.profileInformation': 'Profile Information',
+      'viewProfile.sections.about': 'About',
+      'viewProfile.sections.noDescription': 'No description available',
+      'viewProfile.sections.skillsAndExpertise': 'Skills & Expertise',
+      'viewProfile.sections.noSkillsListed': 'No skills listed',
+      'viewProfile.sections.references': 'References',
+      'viewProfile.sections.educationAndCertifications': 'Education & Certifications',
+      'viewProfile.sections.education': 'Education',
+      'viewProfile.sections.certifications': 'Certifications',
+      'viewProfile.sections.noCertificationsListed': 'No certifications listed',
+      'viewProfile.sections.languages': 'Languages',
+      'viewProfile.sections.noLanguagesListed': 'No languages listed',
+
+      'viewProfile.contact.contactInformation': 'Contact Information',
+      'viewProfile.contact.hidden': 'Contact information is hidden',
+      'viewProfile.contact.clickToReveal': 'Click to reveal',
+
+      'viewProfile.sections.actions': 'Actions',
+      'viewProfile.actions.requestCandidate': 'Request Candidate',
+
+      'viewProfile.share.text': "Check out {name}'s profile on Job Portal"
     }
   },
   rw: {
@@ -1563,6 +1632,34 @@ const resources = {
       'employerRequest.backToJobSeekers': 'Subira ku Bashaka Akazi',
       'employerRequest.backToProfile': 'Subira ku Profile',
 
+      // Additional EmployerRequest Component Translations in Kinyarwanda
+      'employerRequest.loading.candidateInfo': 'Turimo kurukurikirana amakuru y\'umukandida...',
+      'employerRequest.errors.loadingProfile': 'Ikibazo mu Kurukurikirana Umwirondoro',
+      'employerRequest.success.whatHappensNext': 'Icyo kiba gikurikira?',
+      'employerRequest.success.reviewTimeline': 'Itsinda ryawe rizagenzura ubusabe bwawe mu masaha 24',
+      'employerRequest.success.emailConfirmation': 'Uzakira imeyili yo kwemeza',
+      'employerRequest.success.contactNextSteps': 'Tuzakwandikira kugira ngo tuzaganire ibikurikira',
+      'employerRequest.hero.title': 'Saba Umukandida',
+      'employerRequest.hero.subtitle': 'Uzuza urupapuro ruri munsi kugira ngo usabe uyu mukandida ku kazi kawe',
+      'employerRequest.candidate.location': 'Aho Aherereye',
+      'employerRequest.candidate.locationNotSpecified': 'Aho ntibigaragaritse',
+      'employerRequest.candidate.experience': 'Uburambe',
+      'employerRequest.candidate.notSpecified': 'Ntibigaragaritse',
+      'employerRequest.candidate.availability': 'Kuboneka',
+      'employerRequest.candidate.monthlyRate': 'Igiciro cy\'Ukwezi',
+      'employerRequest.candidate.skillsExpertise': 'Ubumenyi & Inzozi',
+      'employerRequest.candidate.noSkillsListed': 'Nta ubumenyi buhagaze',
+      'employerRequest.candidate.viewFullProfile': 'Reba Umwirondoro Wuzuye',
+      'employerRequest.candidate.jobSeeker': 'Umushaka Akazi',
+
+      // Additional missing EmployerRequest form translations in Kinyarwanda
+      'employerRequest.sendRequest': 'Ohereza Ubusabe',
+      'employerRequest.disclaimer': 'Ubusabe bwawe buzajyana ku bayobozi bacu kugira ngo babugenzure. Tuzagusubiza mu masaha 24.',
+      'employerRequest.priority': 'Intego',
+      'employerRequest.priorityLow': 'Ntoya',
+      'employerRequest.priorityNormal': 'Bisanzwe',
+      'employerRequest.priorityHigh': 'Icyo Urugero',
+
       // Privacy Policy Page
       'privacyPolicy.title': 'Politiki y\'ibanga',
       'privacyPolicy.subtitle': 'Ibanga ryawe n\'umutekano w\'amakuru yawe ni iby\'ingenzi',
@@ -1865,7 +1962,48 @@ const resources = {
       'admin.dashboard.atLeastOneSkillIsRequired': 'Ubumenyi bumwe bukenewe',
       'admin.dashboard.emailIsRequired': 'Imeri ikenewe',
       'admin.dashboard.phoneIsRequired': 'Telefone ikenewe',
-      'admin.dashboard.bioIsRequired': 'Amakuru akenewe'
+      'admin.dashboard.bioIsRequired': 'Amakuru akenewe',
+
+      // ViewProfile Component Translations in Kinyarwanda
+      'viewProfile.loading.title': 'Turimo kurukurikirana umwirondoro...',
+      'viewProfile.errors.profileNotAvailable': 'Umwirondoro Ntibihagaze',
+      'viewProfile.errors.profileNotFound': 'Umwirondoro Ntabonetse',
+      'viewProfile.errors.profileNotExist': 'Umwirondoro ushaka ntibihagaze.',
+      'viewProfile.errors.underReview': '💡 Umwirondoro urashobora kuba uri mu gusuzuma cyangwa ntukemewe kugira ngo abantu babye.',
+      'viewProfile.errors.loadFailed': 'Ntibyashoboye kurukurikirana umwirondoro. Umwirondoro urashobora kuba ntukemewe kugira ngo abantu babye.',
+      'viewProfile.errors.notAvailable': 'Umwirondoro ntabonetse cyangwa ntibihagaze kugira ngo abantu babye',
+
+      'viewProfile.hero.jobSeeker': 'Umushaka Akazi',
+      'viewProfile.hero.verifiedProfile': 'Umwirondoro Wemejwe',
+      'viewProfile.hero.profileNotAvailable': 'Umwirondoro Ntibihagaze',
+      'viewProfile.hero.profileUnderReview': 'Umwirondoro Uri mu Gusuzuma',
+      'viewProfile.info.locationNotSpecified': 'Aho ntibigaragaritse',
+      'viewProfile.info.experienceNotSpecified': 'Uburambe ntibugaragaritse',
+      'viewProfile.info.availabilityNotSpecified': 'Kuboneka ntibigaragaritse',
+      'viewProfile.info.memberSince': 'Umuryango kuva',
+      'viewProfile.info.monthlyRate': 'Igiciro cy\'Ukwezi',
+
+      'viewProfile.sections.profileInformation': 'Amakuru y\'Umwirondoro',
+      'viewProfile.sections.about': 'Ibyerekeye',
+      'viewProfile.sections.noDescription': 'Nta bisobanura bihagaze',
+      'viewProfile.sections.skillsAndExpertise': 'Ubumenyi & Inzozi',
+      'viewProfile.sections.noSkillsListed': 'Nta ubumenyi buhagaze',
+      'viewProfile.sections.references': 'Abashinze',
+      'viewProfile.sections.educationAndCertifications': 'Amashuri & Impamyabumenyi',
+      'viewProfile.sections.education': 'Amashuri',
+      'viewProfile.sections.certifications': 'Impamyabumenyi',
+      'viewProfile.sections.noCertificationsListed': 'Nta mpamyabumenyi ihagaze',
+      'viewProfile.sections.languages': 'Indimi',
+      'viewProfile.sections.noLanguagesListed': 'Nta ndimi ihagaze',
+
+      'viewProfile.contact.contactInformation': 'Amakuru yo Kumenya',
+      'viewProfile.contact.hidden': 'Amakuru yo kumenya yihishijwe',
+      'viewProfile.contact.clickToReveal': 'Kanda kugira ngo ubone',
+
+      'viewProfile.sections.actions': 'Ibikorwa',
+      'viewProfile.actions.requestCandidate': 'Saba Umukandida',
+
+      'viewProfile.share.text': 'Sura umwirondoro wa {name} ku Rubuga rwa Job Portal'
     }
   }
 };

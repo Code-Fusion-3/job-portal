@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { CheckCircle, User, MapPin, Briefcase, Star, Clock, DollarSign, MessageSquare } from 'lucide-react';
+import { CheckCircle, User, MapPin, Briefcase, Star, Clock, MessageSquare } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -76,7 +76,7 @@ const EmployerRequest = () => {
       >
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <LoadingSpinner size="lg" text="Loading candidate information..." />
+          <LoadingSpinner size="lg" text={t('employerRequest.loading.candidateInfo')} />
         </div>
         <Footer />
       </div>
@@ -96,7 +96,7 @@ const EmployerRequest = () => {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-red-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Profile</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('employerRequest.errors.loadingProfile')}</h2>
               <p className="text-gray-600 mb-6">{t('employerRequest.error.message', 'Failed to load job seeker profile.')}</p>
               <BackButton to="/job-seekers" text="Back to Job Seekers" />
             </div>
@@ -131,11 +131,11 @@ const EmployerRequest = () => {
                 {t('employerRequest.success.message', 'Your request has been sent to our admin team. We\'ll review it and get back to you within 24 hours.')}
               </p>
               <div className="bg-green-50 rounded-xl p-6 mb-8">
-                <h3 className="font-semibold text-green-800 mb-2">What happens next?</h3>
+                <h3 className="font-semibold text-green-800 mb-2">{t('employerRequest.success.whatHappensNext')}</h3>
                 <ul className="text-sm text-green-700 space-y-1">
-                  <li>• Our team will review your request within 24 hours</li>
-                  <li>• You'll receive an email confirmation</li>
-                  <li>• We'll contact you to discuss next steps</li>
+                  <li>• {t('employerRequest.success.reviewTimeline')}</li>
+                  <li>• {t('employerRequest.success.emailConfirmation')}</li>
+                  <li>• {t('employerRequest.success.contactNextSteps')}</li>
                 </ul>
               </div>
               <div className="space-y-4">
@@ -181,8 +181,8 @@ const EmployerRequest = () => {
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <MessageSquare className="w-8 h-8 text-white" />
                   </div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Request Candidate</h1>
-                  <p className="text-gray-600 text-lg">Fill out the form below to request this candidate for your position</p>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('employerRequest.hero.title')}</h1>
+                  <p className="text-gray-600 text-lg">{t('employerRequest.hero.subtitle')}</p>
                 </div>
               </motion.div>
             </div>
@@ -227,7 +227,7 @@ const EmployerRequest = () => {
                         {jobSeeker?.profile?.lastName ? jobSeeker.profile.lastName.charAt(0) + '*'.repeat(jobSeeker.profile.lastName.length - 1) : ''}
                       </h3>
                       <Badge variant="primary" size="lg" className="mt-2 bg-blue-500 text-white border-0">
-                        {jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
+                        {jobSeeker?.profile?.jobCategory?.name_en || t('employerRequest.candidate.jobSeeker')}
                       </Badge>
                     </div>
 
@@ -236,32 +236,31 @@ const EmployerRequest = () => {
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                         <MapPin className="w-5 h-5 text-blue-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Location</p>
-                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.location || (jobSeeker?.profile?.city ? jobSeeker.profile.city : '') || 'Location not specified'}</p>
+                          <p className="text-sm font-medium text-gray-900">{t('employerRequest.candidate.location')}</p>
+                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.location || (jobSeeker?.profile?.city ? jobSeeker.profile.city : '') || t('employerRequest.candidate.locationNotSpecified')}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                         <Briefcase className="w-5 h-5 text-green-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Experience</p>
-                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.experience || 'Not specified'}</p>
+                          <p className="text-sm font-medium text-gray-900">{t('employerRequest.candidate.experience')}</p>
+                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.experience || t('employerRequest.candidate.notSpecified')}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                         <Clock className="w-5 h-5 text-purple-500" />
                         <div>
-                          <p className="text-sm font-medium text-gray-900">Availability</p>
-                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.availability || 'Not specified'}</p>
+                          <p className="text-sm font-medium text-gray-900">{t('employerRequest.candidate.availability')}</p>
+                          <p className="text-sm text-gray-600">{jobSeeker?.profile?.availability || t('employerRequest.candidate.notSpecified')}</p>
                         </div>
                       </div>
 
                       {jobSeeker?.profile?.monthlyRate && (
                         <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-xl">
-                          <DollarSign className="w-5 h-5 text-blue-600" />
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Monthly Rate</p>
+                            <p className="text-sm font-medium text-gray-900">{t('employerRequest.candidate.monthlyRate')}</p>
                             <p className="text-sm font-semibold text-blue-600">{jobSeeker.profile.monthlyRate}</p>
                           </div>
                         </div>
@@ -272,14 +271,14 @@ const EmployerRequest = () => {
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
                         <Star className="w-4 h-4 text-orange-500" />
-                        <h4 className="text-sm font-semibold text-gray-900">Skills & Expertise</h4>
+                        <h4 className="text-sm font-semibold text-gray-900">{t('employerRequest.candidate.skillsExpertise')}</h4>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {jobSeeker?.profile?.skills ? jobSeeker.profile.skills.split(',').map((skill, idx) => (
                           <Badge key={idx} variant="outline" size="sm" className="px-3 py-1 text-xs font-medium border-gray-200 text-gray-700 bg-gray-50">
                             {skill.trim()}
                           </Badge>
-                        )) : <span className="text-gray-400 text-sm">No skills listed</span>}
+                        )) : <span className="text-gray-400 text-sm">{t('employerRequest.candidate.noSkillsListed')}</span>}
                       </div>
                     </div>
 
@@ -289,7 +288,7 @@ const EmployerRequest = () => {
                         to={`/view-profile/${id}`}
                         className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-xl transition-colors"
                       >
-                        View Full Profile
+                        {t('employerRequest.candidate.viewFullProfile')}
                       </Link>
                     </div>
                   </div>
@@ -299,17 +298,6 @@ const EmployerRequest = () => {
 
             {/* Request Form */}
             <div className="lg:col-span-2">
-              {/* Debug Section */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                <div className="text-xs text-yellow-800 font-medium mb-2">Debug: Job Seeker Data</div>
-                <div className="text-xs text-yellow-700 space-y-1">
-                  <div>URL ID: <span className="font-mono bg-yellow-100 px-1 rounded">{String(id)}</span></div>
-                  <div>jobSeeker exists: <span className="font-mono bg-yellow-100 px-1 rounded">{String(!!jobSeeker)}</span></div>
-                  <div>jobSeeker.id: <span className="font-mono bg-yellow-100 px-1 rounded">{String(jobSeeker?.id)}</span></div>
-                  <div>jobSeeker.profile?.userId: <span className="font-mono bg-yellow-100 px-1 rounded">{String(jobSeeker?.profile?.userId)}</span></div>
-                  <div>jobSeeker.userId: <span className="font-mono bg-yellow-100 px-1 rounded">{String(jobSeeker?.userId)}</span></div>
-                </div>
-              </div>
               
               <motion.div 
                 initial={{ opacity: 0, x: 20 }} 

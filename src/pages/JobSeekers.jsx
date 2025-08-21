@@ -5,7 +5,6 @@ import {
   Search, 
   Filter, 
   MapPin, 
-  DollarSign, 
   Star, 
   Users, 
   Eye,
@@ -287,7 +286,6 @@ const JobSeekers = () => {
           <div className="text-center">
             <LoadingSpinner />
             <p className="text-white/80">{t('jobSeekers.loading.approvedSeekers', 'Loading approved job seekers...')}</p>
-            <p className="text-white/60 text-sm mt-2">{t('jobSeekers.loading.verifiedProfiles', 'Only verified profiles are displayed')}</p>
           </div>
         </div>
       </div>

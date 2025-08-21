@@ -17,7 +17,6 @@ import {
   Trash2,
   ArrowRight,
   TrendingDown,
-  DollarSign,
   Calendar,
   Clock,
   CheckCircle,
