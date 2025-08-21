@@ -211,11 +211,9 @@ const AddJobSeekerForm = ({
       newErrors.lastName = 'Last name must be at least 2 characters';
     }
 
-    // Contact number is now required
-    if (!formData.contactNumber.trim()) {
-      newErrors.contactNumber = 'Phone number is required';
-    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.contactNumber.trim())) {
-      newErrors.contactNumber = 'Please enter a valid phone number (25 ---)';
+    // Contact number - Only validate minimum 9 digits if provided
+    if (formData.contactNumber && formData.contactNumber.replace(/\D/g, '').length < 9) {
+      newErrors.contactNumber = 'Phone number must be at least 9 digits';
     }
 
     // Experience level is required
