@@ -98,11 +98,7 @@ const EmployerRequestForm = ({
       newErrors.email = 'Please enter a valid email address';
     }
     
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Please enter a valid phone number';
-    }
+    // Phone number is now optional - no validation needed
     
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required';
@@ -284,12 +280,11 @@ const EmployerRequestForm = ({
             name="phone"
             type="tel"
             label={t('employerRequest.phone', 'Phone Number')}
-            placeholder={t('employerRequest.phonePlaceholder', 'Enter your phone number')}
+            placeholder={t('employerRequest.phonePlaceholder', 'Enter your phone number (optional)')}
             value={formData.phone}
             onChange={handleInputChange}
             error={errors.phone}
             icon={MessageSquare}
-            required
           />
         </div>
 

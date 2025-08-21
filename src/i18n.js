@@ -17,21 +17,21 @@ const resources = {
       'nav.viewJobSeekers': 'View Job Seekers',
       
       // Hero Section
-      'hero.title': 'Connect Talent with Opportunity',
-      'hero.subtitle': 'A platform that connects employers with workers in Rwanda for basic, semi-skilled, and skilled jobs — from cleaners and house helpers to builders, mechanics, technicians, and more.',
-      'hero.cta.primary': 'Get Started',
-      'hero.cta.secondary': 'Browse Candidates',
-      'hero.tour': '360° PLATFORM TOUR',
+      'hero.title': "Huza Impano n'Amahirwe",
+      'hero.subtitle': "Urubuga ruhuza abakoresha n'abakozi mu Rwanda mu mirimo iciriritse ni iyisumbuye — kuva ku bakora isuku, abakozi bo mu rugo, abubatsi, abakanishi, kugeza ku ba tekinisiye n'abandi.",
+      'hero.cta.primary': 'Tangira Ubu',
+      'hero.cta.secondary': 'Reba Abakandida',
+      'hero.tour': 'SURA URUBUGA 360°',
       
       // Features Section
-      'features.title': 'Why Choose Our Platform',
-      'features.subtitle': 'Empowering job seekers and employers with innovative solutions',
-      'features.jobSeekers.title': 'For Job Seekers',
-      'features.jobSeekers.desc': 'Create your professional profile and connect with top employers',
-      'features.employers.title': 'For Employers',
-      'features.employers.desc': 'Find qualified candidates and streamline your hiring process',
-      'features.privacy.title': 'Privacy First',
-      'features.privacy.desc': 'Your data is protected with industry-leading security measures',
+      'features.title': 'Impamvu Zoguhitamo Urubuga Rwacu',
+      'features.subtitle': "Duhuza abashaka akazi n'abakoresha binyuze mu bisubizo by'ikoranabuhanga",
+      'features.jobSeekers.title': 'Ku Bashaka Akazi',
+      'features.jobSeekers.desc': "Kora konti yawe y'umwuga uhuze n'abakoresha beza",
+      'features.employers.title': 'Ku Bakoresha',
+      'features.employers.desc': 'Shaka abakandida babishoboye woroshye uburyo bwo kubakoresha',
+      'features.privacy.title': 'Ibigenga Umutekano',
+      'features.privacy.desc': "Amakuru yawe arinzwe n'ingamba zizewe z'umutekano",
       
       // Individual Features
       'features.1.title': 'Smart Matching',
@@ -100,6 +100,73 @@ const resources = {
       'jobSeekers.actions.viewProfile': 'View Profile',
       'jobSeekers.actions.requestCandidate': 'Request Candidate',
 
+      // Filter Options - Experience Levels
+      'jobSeekers.filters.experienceLevel': 'Experience Level',
+      'jobSeekers.filters.allExperienceLevels': 'All Experience Levels',
+      'jobSeekers.filters.noExperience': 'No Experience (0 years)',
+      'jobSeekers.filters.beginner': 'Beginner (1-2 years)',
+      'jobSeekers.filters.intermediate': 'Intermediate (3-5 years)',
+      'jobSeekers.filters.experienced': 'Experienced (6-10 years)',
+      'jobSeekers.filters.expert': 'Expert (10+ years)',
+
+      // Filter Options - Categories
+      'jobSeekers.filters.allCategories': 'All Categories',
+
+      // Filter Options - Locations
+      'jobSeekers.filters.kigali': 'Kigali',
+      'jobSeekers.filters.butare': 'Butare',
+      'jobSeekers.filters.gisenyi': 'Gisenyi',
+      'jobSeekers.filters.ruhengeri': 'Ruhengeri',
+      'jobSeekers.filters.kibuye': 'Kibuye',
+      'jobSeekers.filters.cyangugu': 'Cyangugu',
+      'jobSeekers.filters.kibungo': 'Kibungo',
+      'jobSeekers.filters.rwamagana': 'Rwamagana',
+
+      // Filter Options - Gender
+      'jobSeekers.filters.allGenders': 'All Genders',
+      'jobSeekers.filters.male': 'Male',
+      'jobSeekers.filters.female': 'Female',
+      'jobSeekers.filters.other': 'Other',
+
+      // Filter Options - Sort By
+      'jobSeekers.filters.lowestRate': 'Lowest Rate',
+      'jobSeekers.filters.highestRate': 'Highest Rate',
+
+      // Filter UI Elements
+      'jobSeekers.filters.filters': 'Filters',
+      'jobSeekers.filters.list': 'List',
+      'jobSeekers.filters.grid': 'Grid',
+      'jobSeekers.filters.clearAll': 'Clear All',
+
+      // Loading and Error States
+      'jobSeekers.loading.approvedSeekers': 'Loading approved job seekers...',
+      'jobSeekers.loading.verifiedProfiles': 'Only verified profiles are displayed',
+      'jobSeekers.loading.categories': 'Loading categories...',
+      'jobSeekers.errors.loadingJobSeekers': 'Error Loading Job Seekers',
+      'jobSeekers.errors.tryAgain': 'Try Again',
+      'jobSeekers.errors.categoriesLoad': 'Unable to load job categories',
+      'jobSeekers.errors.categoriesUnavailable': 'There was an error loading job categories. Category filtering is temporarily unavailable.',
+
+      // Statistics Cards
+      'jobSeekers.stats.totalJobSeekers': 'Total Job Seekers',
+      'jobSeekers.stats.searchResults': 'Search Results',
+      'jobSeekers.stats.activeFilters': 'Active Filters',
+
+      // No Results States
+      'jobSeekers.noResults.noResultsFound': 'No results found',
+      'jobSeekers.noResults.adjustCriteria': 'Try adjusting your search criteria or filters to find more job seekers.',
+      'jobSeekers.noResults.noApprovedSeekers': 'No approved job seekers available',
+      'jobSeekers.noResults.noProfilesAvailable': 'There are currently no approved job seeker profiles available for public viewing. New registrations are being reviewed by our team.',
+      'jobSeekers.noResults.profilesReviewed': '💡 Job seeker profiles are reviewed and approved to ensure quality and authenticity.',
+
+      // Job Seeker Card Content
+      'jobSeekers.card.experienceLevel': 'Experience Level',
+      'jobSeekers.card.notSpecified': 'Not specified',
+      'jobSeekers.card.skills': 'Skills',
+      'jobSeekers.card.more': 'more',
+      'jobSeekers.card.noCategory': 'No Category',
+      'jobSeekers.card.unknown': 'Unknown',
+
       // Contact Us Section
       'contact.title': 'Contact Us',
       'contact.subtitle': 'Get in touch, we\'d love to hear from you.',
@@ -121,12 +188,12 @@ const resources = {
       'contact.info.email.desc': 'Contact us anytime',
       'contact.info.phone.title': 'Phone',
       'contact.info.phone.details': '+250 788 123 456',
-      'contact.info.phone.desc': 'Monday to Friday, 8 AM to 6 PM',
+      'contact.info.phone.desc': "Kuwa mbere kugeza kuva saa 2 kugeza saa 12 z'umugoroba",
       'contact.info.office.title': 'Office',
       'contact.info.office.details': 'Kigali, Rwanda',
       'contact.info.office.desc': 'Visit our office',
       'contact.info.title': 'Get in Touch',
-      'contact.info.description': 'Whether you have questions about our services, suggestions to improve the platform, feedback from your experience, requests for new features, or any ideas on how we can better serve you, we’re here to listen and assist. Your input is invaluable in helping us create a more effective and user-friendly job portal for everyone.',
+      'contact.info.description': 'Whether you have questions about our services, suggestions to improve the platform, feedback from your experience, requests for new features, or any ideas on how we can better serve you, we\'re here to listen and assist. Your input is invaluable in helping us create a more effective and user-friendly job portal for everyone.',
       'contact.form.namePlaceholder': 'Enter your full name',
       'contact.form.emailPlaceholder': 'Enter your email address',
       'contact.form.subjectPlaceholder': 'Enter subject',
@@ -702,12 +769,12 @@ const resources = {
       'employerRequest.employerName': 'Your Name',
       'employerRequest.companyName': 'Company Name',
       'employerRequest.email': 'Email Address',
-      'employerRequest.phone': 'Phone Number',
+      'employerRequest.phone': 'Phone Number (Optional)',
       'employerRequest.message': 'Message',
       'employerRequest.employerNamePlaceholder': 'Enter your full name',
       'employerRequest.companyNamePlaceholder': 'Enter company name',
       'employerRequest.emailPlaceholder': 'Enter your email address',
-      'employerRequest.phonePlaceholder': 'Enter your phone number',
+      'employerRequest.phonePlaceholder': 'Enter your phone number (optional)',
       'employerRequest.messagePlaceholder': 'Tell us about your requirements and how this candidate can help...',
       'employerRequest.submit': 'Send Request',
       'employerRequest.sending': 'Sending request...',
@@ -725,6 +792,34 @@ const resources = {
       'employerRequest.errors.general': 'Request failed. Please try again.',
       'employerRequest.backToJobSeekers': 'Back to Job Seekers',
       'employerRequest.backToProfile': 'Back to Profile',
+
+      // Additional EmployerRequest Component Translations
+      'employerRequest.loading.candidateInfo': 'Loading candidate information...',
+      'employerRequest.errors.loadingProfile': 'Error Loading Profile',
+      'employerRequest.success.whatHappensNext': 'What happens next?',
+      'employerRequest.success.reviewTimeline': 'Our team will review your request within 24 hours',
+      'employerRequest.success.emailConfirmation': 'You\'ll receive an email confirmation',
+      'employerRequest.success.contactNextSteps': 'We\'ll contact you to discuss next steps',
+      'employerRequest.hero.title': 'Request Candidate',
+      'employerRequest.hero.subtitle': 'Fill out the form below to request this candidate for your position',
+      'employerRequest.candidate.location': 'Location',
+      'employerRequest.candidate.locationNotSpecified': 'Location not specified',
+      'employerRequest.candidate.experience': 'Experience',
+      'employerRequest.candidate.notSpecified': 'Not specified',
+      'employerRequest.candidate.availability': 'Availability',
+      'employerRequest.candidate.monthlyRate': 'Monthly Rate',
+      'employerRequest.candidate.skillsExpertise': 'Skills & Expertise',
+      'employerRequest.candidate.noSkillsListed': 'No skills listed',
+      'employerRequest.candidate.viewFullProfile': 'View Full Profile',
+      'employerRequest.candidate.jobSeeker': 'Job Seeker',
+
+      // Additional missing EmployerRequest form translations
+      'employerRequest.sendRequest': 'Send Request',
+      'employerRequest.disclaimer': 'Your request will be sent to our admin team for review. We\'ll get back to you within 24 hours.',
+      'employerRequest.priority': 'Priority',
+      'employerRequest.priorityLow': 'Low',
+      'employerRequest.priorityNormal': 'Normal',
+      'employerRequest.priorityHigh': 'High',
 
       // Profile Page
       'profile.title': 'My Profile',
@@ -866,7 +961,48 @@ const resources = {
       'admin.dashboard.atLeastOneSkillIsRequired': 'At least one skill is required',
       'admin.dashboard.emailIsRequired': 'Email is required',
       'admin.dashboard.phoneIsRequired': 'Phone is required',
-      'admin.dashboard.bioIsRequired': 'Bio is required'
+      'admin.dashboard.bioIsRequired': 'Bio is required',
+
+      // ViewProfile Component Translations
+      'viewProfile.loading.title': 'Loading profile...',
+      'viewProfile.errors.profileNotAvailable': 'Profile Not Available',
+      'viewProfile.errors.profileNotFound': 'Profile Not Found',
+      'viewProfile.errors.profileNotExist': "The profile you're looking for doesn't exist.",
+      'viewProfile.errors.underReview': '💡 This profile may be under review or not approved for public viewing yet.',
+      'viewProfile.errors.loadFailed': 'Failed to load profile. This profile may not be approved for public viewing.',
+      'viewProfile.errors.notAvailable': 'Profile not found or not available for public viewing',
+
+      'viewProfile.hero.jobSeeker': 'Job Seeker',
+      'viewProfile.hero.verifiedProfile': 'Verified Profile',
+      'viewProfile.hero.profileNotAvailable': 'Profile Not Available',
+      'viewProfile.hero.profileUnderReview': 'Profile Under Review',
+      'viewProfile.info.locationNotSpecified': 'Location not specified',
+      'viewProfile.info.experienceNotSpecified': 'Experience not specified',
+      'viewProfile.info.availabilityNotSpecified': 'Availability not specified',
+      'viewProfile.info.memberSince': 'Member since',
+      'viewProfile.info.monthlyRate': 'Monthly Rate',
+
+      'viewProfile.sections.profileInformation': 'Profile Information',
+      'viewProfile.sections.about': 'About',
+      'viewProfile.sections.noDescription': 'No description available',
+      'viewProfile.sections.skillsAndExpertise': 'Skills & Expertise',
+      'viewProfile.sections.noSkillsListed': 'No skills listed',
+      'viewProfile.sections.references': 'References',
+      'viewProfile.sections.educationAndCertifications': 'Education & Certifications',
+      'viewProfile.sections.education': 'Education',
+      'viewProfile.sections.certifications': 'Certifications',
+      'viewProfile.sections.noCertificationsListed': 'No certifications listed',
+      'viewProfile.sections.languages': 'Languages',
+      'viewProfile.sections.noLanguagesListed': 'No languages listed',
+
+      'viewProfile.contact.contactInformation': 'Contact Information',
+      'viewProfile.contact.hidden': 'Contact information is hidden',
+      'viewProfile.contact.clickToReveal': 'Click to reveal',
+
+      'viewProfile.sections.actions': 'Actions',
+      'viewProfile.actions.requestCandidate': 'Request Candidate',
+
+      'viewProfile.share.text': "Check out {name}'s profile on Job Portal"
     }
   },
   rw: {
@@ -882,63 +1018,63 @@ const resources = {
       'nav.viewJobSeekers': 'Reba abashaka akazi',
 
       // Hero Section
-      'hero.title': 'Huza Impano n’Amahirwe',
-      'hero.subtitle': 'Urubuga ruhuza abakoresha n’abakozi mu Rwanda mu mirimo iciriritse ni iyisumbuye — kuva ku bakora isuku, abakozi bo mu rugo, abubatsi, abakanishi, kugeza ku ba tekinisiye n’abandi.',
+      'hero.title': "Huza Impano n'Amahirwe",
+      'hero.subtitle': "Urubuga ruhuza abakoresha n'abakozi mu Rwanda mu mirimo iciriritse ni iyisumbuye — kuva ku bakora isuku, abakozi bo mu rugo, abubatsi, abakanishi, kugeza ku ba tekinisiye n'abandi.",
       'hero.cta.primary': 'Tangira Ubu',
       'hero.cta.secondary': 'Reba Abakandida',
       'hero.tour': 'SURA URUBUGA 360°',
 
       // Features Section
       'features.title': 'Impamvu Zoguhitamo Urubuga Rwacu',
-      'features.subtitle': 'Duhuza abashaka akazi n’abakoresha binyuze mu bisubizo by’ikoranabuhanga',
+      'features.subtitle': "Duhuza abashaka akazi n'abakoresha binyuze mu bisubizo by'ikoranabuhanga",
       'features.jobSeekers.title': 'Ku Bashaka Akazi',
-      'features.jobSeekers.desc': 'Kora konti yawe y’umwuga uhuze n’abakoresha beza',
+      'features.jobSeekers.desc': "Kora konti yawe y'umwuga uhuze n'abakoresha beza",
       'features.employers.title': 'Ku Bakoresha',
       'features.employers.desc': 'Shaka abakandida babishoboye woroshye uburyo bwo kubakoresha',
       'features.privacy.title': 'Ibigenga Umutekano',
-      'features.privacy.desc': 'Amakuru yawe arinzwe n’ingamba zizewe z’umutekano',
-
+      'features.privacy.desc': "Amakuru yawe arinzwe n'ingamba zizewe z'umutekano",
+      
       // Individual Features
       'features.1.title': 'Guhuza Binyuze mu Bucukumbuzi',
-      'features.1.description': 'Porogaramu ya mudasobwa ishingiye kuri AI ihuza abakandida beza n’ibyo ukeneye',
+      'features.1.description': "Porogaramu ya mudasobwa ishingiye kuri AI ihuza abakandida beza n'ibyo ukeneye",
       'features.2.title': 'Umwirondoro Wemejwe',
       'features.2.description': 'Abakandida bose bagenzurwa neza kandi dosiye zabo zigasuzumwa',
       'features.3.title': 'Bona umukozi Byihuse',
       'features.3.description': 'Uburyo bworoshye bwo kubona umukandida ubereye mu masaha 48',
       'features.4.title': 'Zenguruka amahanga',
-      'features.4.description': 'Geraho impano zituruka hose mu Rwanda n’ahandi',
+      'features.4.description': "Geraho impano zituruka hose mu Rwanda n'ahandi",
       'features.5.title': 'Itumanaho Ritaziguye',
-      'features.5.description': 'Uburyo bwo gutumanaho hagati y’umukoresha n’umukandida butabangamiye',
-      'features.6.title': 'Dashboard y’Ibisubizo',
-      'features.6.description': 'Ubusesenguzi n’amakuru y’ingenzi agufasha gufata ibyemezo byiza',
+      'features.5.description': "Uburyo bwo gutumanaho hagati y'umukoresha n'umukandida butabangamiye",
+      'features.6.title': "Dashboard y'Ibisubizo",
+      'features.6.description': "Ubusesenguzi n'amakuru y'ingenzi agufasha gufata ibyemezo byiza",
 
       // About Us Section
       'about.title': 'Ibyerekeye Twebwe',
-      'about.subtitle': 'Duhuza impano n’amahirwe mu Rwanda hifashishijwe ikoranabuhanga n’uburyo bwihariye bwo gutanga serivisi.',
+      'about.subtitle': "Duhuza impano n'amahirwe mu Rwanda hifashishijwe ikoranabuhanga n'uburyo bwihariye bwo gutanga serivisi.",
       'about.mission.title': 'Intego Yacu',
-      'about.mission.desc': 'Guhuza inzobere n’abakoresha bifuza gutera imbere mu Rwanda, no guteza imbere iterambere ry’ubukungu n’ibyishimo by’umuntu. Twemera ko buri wese akwiye kubona amahirwe yo kugera ku kazi kamubereye.',
+      'about.mission.desc': "Guhuza inzobere n'abakoresha bifuza gutera imbere mu Rwanda, no guteza imbere iterambere ry'ubukungu n'ibyishimo by'umuntu. Twemera ko buri wese akwiye kubona amahirwe yo kugera ku kazi kamubereye.",
       'about.vision.title': 'Icyerekezo Cyacu',
-      'about.vision.desc': 'Kuba urubuga rwa mbere mu Rwanda mu iterambere ry’umwuga no gushaka abakozi, dufasha abantu n’imiryango kugera ku bushobozi bwabo bwuzuye binyuze mu ikoranabuhanga n’ubufasha bwihariye.',
+      'about.vision.desc': "Kuba urubuga rwa mbere mu Rwanda mu iterambere ry'umwuga no gushaka abakozi, dufasha abantu n'imiryango kugera ku bushobozi bwabo bwuzuye binyuze mu ikoranabuhanga n'ubufasha bwihariye.",
       'about.stats.jobSeekers': 'Abashaka Akazi',
       'about.stats.companies': 'Kompanyi',
-      'about.stats.successRate': 'Igipimo cy’intsinzi',
-      'about.stats.experience': 'Imyaka y’Ubunararibonye',
+      'about.stats.successRate': "Igipimo cy'intsinzi",
+      'about.stats.experience': "Imyaka y'Ubunararibonye",
       'about.values.passion.title': 'Urukundo ku Bantu',
-      'about.values.passion.desc': 'Twemera imbaraga z’umuntu kandi twiyemeje kumufasha kugera ku nzozi ze z’umwuga.',
-      'about.values.trust.title': 'Kwizera n’Umutekano',
-      'about.values.trust.desc': 'Ubuzima bw’ibanga n’umutekano w’amakuru yawe ni iby’ingenzi kuri twe.',
+      'about.values.passion.desc': "Twemera imbaraga z'umuntu kandi twiyemeje kumufasha kugera ku nzozi ze z'umwuga.",
+      'about.values.trust.title': "Kwizera n'Umutekano",
+      'about.values.trust.desc': "Ubuzima bw'ibanga n'umutekano w'amakuru yawe ni iby'ingenzi kuri twe.",
       'about.values.excellence.title': 'Ubuhanga',
-      'about.values.excellence.desc': 'Duharanira ubuhanga mu byo dukora byose, kuva ku ikoranabuhanga kugeza kuri serivisi z’abakiriya.',
+      'about.values.excellence.desc': "Duharanira ubuhanga mu byo dukora byose, kuva ku ikoranabuhanga kugeza kuri serivisi z'abakiriya.",
       'about.values.community.title': 'Umuryango',
-      'about.values.community.desc': 'Kubaka umuryango ukomeye w’ababigize umwuga n’abakoresha mu Rwanda.',
-
+      'about.values.community.desc': "Kubaka umuryango ukomeye w'ababigize umwuga n'abakoresha mu Rwanda.",
+      
       // Latest Job Seekers Section
       'jobSeekers.title': 'Abashaka Akazi Bashya',
       'jobSeekers.subtitle': 'Menya inzobere ziteguye gutanga umusanzu ku bigo byanyu',
       'jobSeekers.viewMore': 'Reba Byinshi',
       'jobSeekers.experience': 'imyaka',
       'jobSeekers.location': 'Kigali, Rwanda',
-
+      
       // Job Seekers Page
       'jobSeekers.pageTitle': 'Abashaka Akazi Bose',
       'jobSeekers.pageSubtitle': 'Menya inzobere ziteguye gutanga umusanzu ku kigo cyawe',
@@ -954,26 +1090,83 @@ const resources = {
       'jobSeekers.filters.name': 'Izina A-Z',
       'jobSeekers.filters.skills': 'Ubumenyi',
       'jobSeekers.filters.category': 'Umutekano',
-      'jobSeekers.filters.dailyRate': 'Igiciro cy\'Umunsi',
-      'jobSeekers.filters.monthlyRate': 'Igiciro cy\'Ukwezi',
+      'jobSeekers.filters.dailyRate': "Igiciro cy'Umunsi",
+      'jobSeekers.filters.monthlyRate': "Igiciro cy'Ukwezi",
       'jobSeekers.filters.availability': 'Kuboneka',
       'jobSeekers.filters.education': 'Amashuri',
-      'updateProfile.title': 'Hindura Umwirondoro',
-      'updateProfile.basicInfo': 'Amakuru y\'ibanze',
-      'updateProfile.ratesAvailability': 'Ibiciro & Kuboneka',
-      'updateProfile.skillsLanguages': 'Ubumenyi & Indimi',
-      'updateProfile.aboutYou': 'Ibyerekeye',
-      'updateProfile.contactInfo': 'Amakuru yo Kwandikira',
-      'updateProfile.profileCompletion': 'Kuzuza Umwirondoro',
-      'updateProfile.saveProfile': 'Bika Umwirondoro',
-      'updateProfile.cancel': 'Hagarika',
-      'updateProfile.backToDashboard': 'Subira ku Dashboard',
       'jobSeekers.results': 'ibyavuye',
       'jobSeekers.noResults.title': 'Nta bashaka akazi babonetse',
       'jobSeekers.noResults.message': 'Hindura uburyo bwo gushakisha cyangwa imipaka washyizemo',
       'jobSeekers.noResults.clearFilters': 'Siba Imipaka Yose',
       'jobSeekers.actions.viewProfile': 'Reba Umwirondoro',
       'jobSeekers.actions.requestCandidate': 'Saba Umukandida',
+
+      // Filter Options - Experience Levels
+      'jobSeekers.filters.experienceLevel': "Urupapuro rw'Uburambe",
+      'jobSeekers.filters.allExperienceLevels': 'Uburambe Bwose',
+      'jobSeekers.filters.noExperience': 'Nta Uburambe (0 imyaka)',
+      'jobSeekers.filters.beginner': 'Utangira (1-2 imyaka)',
+      'jobSeekers.filters.intermediate': 'Ufite Uburambe (3-5 imyaka)',
+      'jobSeekers.filters.experienced': 'Ufite Uburambe Bwinshi (6-10 imyaka)',
+      'jobSeekers.filters.expert': 'Ufite Uburambe Bwinshi (10+ imyaka)',
+
+      // Filter Options - Categories
+      'jobSeekers.filters.allCategories': 'Ibice Byose',
+
+      // Filter Options - Locations
+      'jobSeekers.filters.kigali': 'Kigali',
+      'jobSeekers.filters.butare': 'Butare',
+      'jobSeekers.filters.gisenyi': 'Gisenyi',
+      'jobSeekers.filters.ruhengeri': 'Ruhengeri',
+      'jobSeekers.filters.kibuye': 'Kibuye',
+      'jobSeekers.filters.cyangugu': 'Cyangugu',
+      'jobSeekers.filters.kibungo': 'Kibungo',
+      'jobSeekers.filters.rwamagana': 'Rwamagana',
+
+      // Filter Options - Gender
+      'jobSeekers.filters.allGenders': 'Igitsina Cyose',
+      'jobSeekers.filters.male': 'Umugabo',
+      'jobSeekers.filters.female': 'Umugore',
+      'jobSeekers.filters.other': 'Ibindi',
+
+      // Filter Options - Sort By
+      'jobSeekers.filters.lowestRate': 'Igiciro Gito',
+      'jobSeekers.filters.highestRate': 'Igiciro Kinini',
+
+      // Filter UI Elements
+      'jobSeekers.filters.filters': 'Imipaka',
+      'jobSeekers.filters.list': 'Urutonde',
+      'jobSeekers.filters.grid': 'Urubuga',
+      'jobSeekers.filters.clearAll': 'Siba Byose',
+
+      // Loading and Error States
+      'jobSeekers.loading.approvedSeekers': 'Turimo kurukurikirana abashaka akazi bemewe...',
+      'jobSeekers.loading.verifiedProfiles': 'Imirondoro yemewe gusa niyo igaragara',
+      'jobSeekers.loading.categories': 'Turimo kurukurikirana ibice...',
+      'jobSeekers.errors.loadingJobSeekers': 'Ikibazo mu Kurukurikirana Abashaka Akazi',
+      'jobSeekers.errors.tryAgain': 'Ongera Ugerageze',
+      'jobSeekers.errors.categoriesLoad': "Ntibishoboye kurukurikirana ibice by'akazi",
+      'jobSeekers.errors.categoriesUnavailable': "Hari ikibazo mu kurukurikirana ibice by'akazi. Gushungura ibice ntibishoboye kugeza ubu.",
+
+      // Statistics Cards
+      'jobSeekers.stats.totalJobSeekers': 'Abashaka Akazi Bose',
+      'jobSeekers.stats.searchResults': 'Ibivuye mu Gushakisha',
+      'jobSeekers.stats.activeFilters': 'Imipaka Ikora',
+
+      // No Results States
+      'jobSeekers.noResults.noResultsFound': 'Nta ibyavuye babonetse',
+      'jobSeekers.noResults.adjustCriteria': 'Hindura uburyo bwo gushakisha cyangwa imipaka washyizemo kugira ngo usangire abashaka akazi benshi.',
+      'jobSeekers.noResults.noApprovedSeekers': 'Nta bashaka akazi bemewe bihagaze',
+      'jobSeekers.noResults.noProfilesAvailable': "Nta mirondoro y'abashaka akazi bemewe bihagaze kugira ngo abantu babye. Kwiyandikisha gushya kuri gusuzumwa n'itsinda ryawe.",
+      'jobSeekers.noResults.profilesReviewed': "💡 Imirondoro y'abashaka akazi igenzurwa kandi ikemewe kugira ngo haboneke ubwiza n'ukuri.",
+
+      // Job Seeker Card Content
+      'jobSeekers.card.experienceLevel': "Urupapuro rw'Uburambe",
+      'jobSeekers.card.notSpecified': 'Ntibigaragaritse',
+      'jobSeekers.card.skills': 'Ubumenyi',
+      'jobSeekers.card.more': 'byinshi',
+      'jobSeekers.card.noCategory': 'Nta Mutekano',
+      'jobSeekers.card.unknown': 'Ntibizwi',
 
       // Contact Us Section
       'contact.title': 'Twandikire',
@@ -996,12 +1189,12 @@ const resources = {
       'contact.info.email.desc': 'Twandikire igihe icyo ari cyo cyose',
       'contact.info.phone.title': 'Telefone',
       'contact.info.phone.details': '+250 788 123 456',
-      'contact.info.phone.desc': 'Kuwa mbere kugeza kuva saa 2 kugeza saa 12 z’umugoroba',
+      'contact.info.phone.desc': "Kuwa mbere kugeza kuva saa 2 kugeza saa 12 z'umugoroba",
       'contact.info.office.title': 'Ibiro',
       'contact.info.office.details': 'Kigali, Rwanda',
       'contact.info.office.desc': 'Sura ibiro byacu',
       'contact.info.title': 'Twandikire',
-      'contact.info.description': 'Niba ufite ibibazo ku bijyanye na serivisi zacu, inama zo kunoza urubuga, ibitekerezo by’uko wakoresheje sisitemu, ibyifuzo by’ibindi bikorwa cyangwa serivisi tudafite, cyangwa ibitekerezo by’uko twagufasha neza, turi hano kugufasha no kukumva. Ibitekerezo byawe ni ingenzi mu kudufasha gukora urubuga rworoshye kandi rwiza kuri bose.',
+      'contact.info.description': 'Niba ufite ibibazo ku bijyanye na serivisi zacu, inama zo kunoza urubuga, ibitekerezo by\'uko wakoresheje sisitemu, ibyifuzo by\'ibindi bikorwa cyangwa serivisi tudafite, cyangwa ibitekerezo by\'uko twagufasha neza, turi hano kugufasha no kukumva. Ibitekerezo byawe ni ingenzi mu kudufasha gukora urubuga rworoshye kandi rwiza kuri bose.',
       'contact.form.namePlaceholder': 'Andika amazina yawe yuzuye',
       'contact.form.emailPlaceholder': 'Andika aderesi yawe ya email',
       'contact.form.subjectPlaceholder': 'Andika insanganyamatsiko',
@@ -1012,10 +1205,10 @@ const resources = {
       'contact.info.businessHours.desc': 'Turimo kumufasha',
       
       // Stats Section
-      'stats.title': 'Ingaruka z’Urubuga',
+      'stats.title': 'Ingaruka z\'Urubuga',
       'stats.jobSeekers': 'Abashaka Akazi',
       'stats.employers': 'Abakoresha',
-      'stats.successRate': 'Igipimo cy’intsinzi',
+      'stats.successRate': 'Igipimo cy\'intsinzi',
       'stats.companies': 'Kompanyi',
       'statistics.title': 'Ibisubizo by\'Urubuga',
       'statistics.subtitle': 'Menya ingaruka twakoze mu guhuza impano n\'amahirwe mu Rwanda hose.',
@@ -1031,7 +1224,7 @@ const resources = {
       'cta.contact': 'Twandikire',
 
       // Footer
-      'footer.description': 'Duhuza impano n’amahirwe mu Rwanda',
+      'footer.description': 'Duhuza impano n\'amahirwe mu Rwanda',
       'footer.quickLinks': 'Amahoro yihuse',
       'footer.contact': 'Twandikire',
       'footer.privacy': 'Politiki y\'ibanga',
@@ -1043,7 +1236,7 @@ const resources = {
 
       // Register Page
       'register.title': 'Fungura Konti Yawe',
-      'register.subtitle': 'Jya hamwe n’abashaka akazi benshi utangire urugendo rwawe rw’umwuga',
+      'register.subtitle': 'Jya hamwe n\'abashaka akazi benshi utangire urugendo rwawe rw\'umwuga',
       'register.userType': 'Ndi',
       'register.jobseeker': 'Umushaka Akazi',
       'register.jobseekerDesc': 'Nshaka amahirwe',
@@ -1051,8 +1244,8 @@ const resources = {
       'register.lastName': 'Izina rya Nyuma',
       'register.email': 'Aderesi ya Email',
       'register.phone': 'Numero ya Telefoni y\'U Rwanda',
-      'register.password': 'Ijambo ry’ibanga',
-      'register.confirmPassword': 'Emeza Ijambo ry’ibanga',
+      'register.password': 'Ijambo ry\'ibanga',
+      'register.confirmPassword': 'Emeza Ijambo ry\'ibanga',
       'register.createAccount': 'Fungura Konti',
       'register.creating': 'Turimo gufungura konti...',
       'register.haveAccount': 'Usanzwe ufite konti?',
@@ -1061,8 +1254,8 @@ const resources = {
       'register.lastNamePlaceholder': 'Andika izina rya nyuma',
       'register.emailPlaceholder': 'Andika email yawe',
       'register.phonePlaceholder': 'Hitamo kode y\'igihugu hanyuma andika numero ya telefoni',
-      'register.passwordPlaceholder': 'Hanga ijambo ry’ibanga',
-      'register.confirmPasswordPlaceholder': 'Emeza ijambo ry’ibanga',
+      'register.passwordPlaceholder': 'Hanga ijambo ry\'ibanga',
+      'register.confirmPasswordPlaceholder': 'Emeza ijambo ry\'ibanga',
       'register.passwordRequirements': 'Igomba kugira inyuguti nini, nto, imibare kandi ibe nibura inyuguti 8',
       'register.agreeToTerms': 'Nemeza',
       'register.terms': 'Amabwiriza',
@@ -1079,12 +1272,12 @@ const resources = {
       'register.errors.emailInvalid': 'Injiza email yemewe',
       'register.errors.phoneRequired': 'Numero ya telefoni y\'U Rwanda irakenewe',
       'register.errors.phoneInvalid': 'Injiza numero ya telefoni yemewe (kode y\'igihugu + imibare 9)',
-      'register.errors.passwordRequired': 'Ijambo ry’ibanga rirakenewe',
-      'register.errors.passwordLength': 'Ijambo ry’ibanga rigomba kuba nibura inyuguti 8',
-      'register.errors.passwordComplexity': 'Ijambo ry’ibanga rigomba kugira inyuguti nini, nto, n’imibare',
-      'register.errors.confirmPasswordRequired': 'Emeza ijambo ry’ibanga',
-      'register.errors.passwordMismatch': 'Amagambo y’ibanga ntahura',
-      'register.errors.termsRequired': 'Ugomba kwemera amabwiriza n’amategeko',
+      'register.errors.passwordRequired': 'Ijambo ry\'ibanga rirakenewe',
+      'register.errors.passwordLength': 'Ijambo ry\'ibanga rigomba kuba nibura inyuguti 8',
+      'register.errors.passwordComplexity': 'Ijambo ry\'ibanga rigomba kugira inyuguti nini, nto, n\'imibare',
+      'register.errors.confirmPasswordRequired': 'Emeza ijambo ry\'ibanga',
+      'register.errors.passwordMismatch': 'Amagambo y\'ibanga ntahura',
+      'register.errors.termsRequired': 'Ugomba kwemera amabwiriza n\'amategeko',
       'register.errors.general': 'Iyandikishirizwa ryanze. Ongera ugerageze.',
 
       // Education Levels
@@ -1365,11 +1558,11 @@ const resources = {
       'register.sections.professional': 'Amakuru y\'umwuga',
       
       'register.hero.title': 'Jya mu Muryango Wacu',
-      'register.hero.subtitle': 'Hura n’abakoresha beza n’amahirwe. Tangira urugendo rwawe uyu munsi ubonereho byinshi.',
+      'register.hero.subtitle': 'Hura n\'abakoresha beza n\'amahirwe. Tangira urugendo rwawe uyu munsi ubonereho byinshi.',
       'register.hero.benefit1': 'Ugeraho ku mahirwe y\'akazi ibihumbi',
-      'register.hero.benefit2': 'Hura n’abakoresha beza n’impano',
+      'register.hero.benefit2': 'Hura n\'abakoresha beza n\'impano',
       'register.hero.benefit3': 'Porogaramu zihuta zo guhuza neza',
-      'register.hero.benefit4': 'Gucunga umwirondoro w’umwuga',
+      'register.hero.benefit4': 'Gucunga umwirondoro w\'umwuga',
 
       // Login Page
       'login.title': 'Murakaza Neza',
@@ -1381,18 +1574,18 @@ const resources = {
       'login.adminDesc': 'Genura urubuga',
       'login.email': 'Aderesi ya Email',
       'login.emailPlaceholder': 'Andika email yawe',
-      'login.password': 'Ijambo ry’ibanga',
-      'login.passwordPlaceholder': 'Andika ijambo ry’ibanga',
+      'login.password': 'Ijambo ry\'ibanga',
+      'login.passwordPlaceholder': 'Andika ijambo ry\'ibanga',
       'login.rememberMe': 'Njyana n\'ibihe byose',
-      'login.forgotPassword': 'Wibagiwe ijambo ry’ibanga?',
+      'login.forgotPassword': 'Wibagiwe ijambo ry\'ibanga?',
       'login.signIn': 'Injira',
       'login.signingIn': 'Kwinjira...',
       'login.noAccount': 'Nta konti ufite?',
       'login.signUp': 'Iyandikishe',
       'login.errors.emailRequired': 'Email irakenewe',
-      'login.errors.emailInvalid': 'Injiza email yemewe',
-      'login.errors.passwordRequired': 'Ijambo ry’ibanga rirakenewe',
-      'login.errors.passwordLength': 'Ijambo ry’ibanga rigomba kuba nibura inyuguti 6',
+      'login.errors.emailInvalid': 'Please enter a valid email',
+      'login.errors.passwordRequired': 'Ijambo ry\'ibanga rirakenewe',
+      'login.errors.passwordLength': 'Ijambo ry\'ibanga rigomba kuba nibura inyuguti 6',
       'login.errors.general': 'Kwinjira byanze. Ongera ugerageze.',
       
       // Additional missing login translation keys in Kinyarwanda
@@ -1406,28 +1599,28 @@ const resources = {
       'login.newToPlatform': 'Mushya ku rubuga rwacu?',
       
       'login.hero.subtitle': 'Hura n\'abakoresha beza usangire amahirwe akwiranye n\'ubumenyi n\'inzozi zawe.',
-      'login.hero.subtitle': 'Hura n’abakoresha beza usangire amahirwe akwiranye n’ubumenyi n’inzozi zawe.',
+      'login.hero.subtitle': 'Hura n\'abakoresha beza usangire amahirwe akwiranye n\'ubumenyi n\'inzozi zawe.',
 
       // Employer Request Form
       'employerRequest.title': 'Saba Umukandida',
-      'employerRequest.subtitle': 'Ohereza ubusabe bwo guhuza n’uyu mukandida',
+      'employerRequest.subtitle': 'Ohereza ubusabe bwo guhuza n\'uyu mukandida',
       'employerRequest.subtitleWithName': 'Saba guhuza na {{name}}',
       'employerRequest.employerName': 'Amazina Yawe',
       'employerRequest.companyName': 'Izina rya Kampani',
       'employerRequest.email': 'Aderesi ya Email',
-      'employerRequest.phone': 'Numero ya Telefoni',
+      'employerRequest.phone': 'Numero ya Telefoni (Ntibirakenewe)',
       'employerRequest.message': 'Ubutumwa',
       'employerRequest.employerNamePlaceholder': 'Andika amazina yawe yose',
       'employerRequest.companyNamePlaceholder': 'Andika izina rya kampani',
       'employerRequest.emailPlaceholder': 'Andika email yawe',
-      'employerRequest.phonePlaceholder': 'Andika numero ya telefoni',
-      'employerRequest.messagePlaceholder': 'Tumenyeshe ibyo ukeneye n’impamvu wifuza uyu mukandida...',
+      'employerRequest.phonePlaceholder': 'Andika numero ya telefoni (ntibirakenewe)',
+      'employerRequest.messagePlaceholder': 'Tumenyeshe ibyo ukeneye n\'impamvu wifuza uyu mukandida...',
       'employerRequest.submit': 'Ohereza Ubusabe',
       'employerRequest.sending': 'Kohereza ubusabe...',
       'employerRequest.success': 'Ubusabe Bwoherejwe Neza!',
       'employerRequest.success.title': 'Ubusabe Bwoherejwe!',
       'employerRequest.success.message': 'Ubusabe bwawe bwageze ku bayobozi bacu. Tuzabugenzura kandi tuzagusubiza mu masaha 24.',
-      'employerRequest.errors.employerNameRequired': 'Amazina y’umukoresha arakenewe',
+      'employerRequest.errors.employerNameRequired': 'Amazina y\'umukoresha arakenewe',
       'employerRequest.errors.companyNameRequired': 'Izina rya kampani rirakenewe',
       'employerRequest.errors.emailRequired': 'Email irakenewe',
       'employerRequest.errors.emailInvalid': 'Injiza email yemewe',
@@ -1438,6 +1631,34 @@ const resources = {
       'employerRequest.errors.general': 'Iyandikishirizwa ryanze. Ongera ugerageze.',
       'employerRequest.backToJobSeekers': 'Subira ku Bashaka Akazi',
       'employerRequest.backToProfile': 'Subira ku Profile',
+
+      // Additional EmployerRequest Component Translations in Kinyarwanda
+      'employerRequest.loading.candidateInfo': 'Turimo kurukurikirana amakuru y\'umukandida...',
+      'employerRequest.errors.loadingProfile': 'Ikibazo mu Kurukurikirana Umwirondoro',
+      'employerRequest.success.whatHappensNext': 'Icyo kiba gikurikira?',
+      'employerRequest.success.reviewTimeline': 'Itsinda ryawe rizagenzura ubusabe bwawe mu masaha 24',
+      'employerRequest.success.emailConfirmation': 'Uzakira imeyili yo kwemeza',
+      'employerRequest.success.contactNextSteps': 'Tuzakwandikira kugira ngo tuzaganire ibikurikira',
+      'employerRequest.hero.title': 'Saba Umukandida',
+      'employerRequest.hero.subtitle': 'Uzuza urupapuro ruri munsi kugira ngo usabe uyu mukandida ku kazi kawe',
+      'employerRequest.candidate.location': 'Aho Aherereye',
+      'employerRequest.candidate.locationNotSpecified': 'Aho ntibigaragaritse',
+      'employerRequest.candidate.experience': 'Uburambe',
+      'employerRequest.candidate.notSpecified': 'Ntibigaragaritse',
+      'employerRequest.candidate.availability': 'Kuboneka',
+      'employerRequest.candidate.monthlyRate': 'Igiciro cy\'Ukwezi',
+      'employerRequest.candidate.skillsExpertise': 'Ubumenyi & Inzozi',
+      'employerRequest.candidate.noSkillsListed': 'Nta ubumenyi buhagaze',
+      'employerRequest.candidate.viewFullProfile': 'Reba Umwirondoro Wuzuye',
+      'employerRequest.candidate.jobSeeker': 'Umushaka Akazi',
+
+      // Additional missing EmployerRequest form translations in Kinyarwanda
+      'employerRequest.sendRequest': 'Ohereza Ubusabe',
+      'employerRequest.disclaimer': 'Ubusabe bwawe buzajyana ku bayobozi bacu kugira ngo babugenzure. Tuzagusubiza mu masaha 24.',
+      'employerRequest.priority': 'Intego',
+      'employerRequest.priorityLow': 'Ntoya',
+      'employerRequest.priorityNormal': 'Bisanzwe',
+      'employerRequest.priorityHigh': 'Icyo Urugero',
 
       // Privacy Policy Page
       'privacyPolicy.title': 'Politiki y\'ibanga',
@@ -1603,7 +1824,7 @@ const resources = {
 
       // Profile Page
       'profile.title': 'Umwirondoro Wawe',
-      'profile.subtitle': 'Hindura umwirondoro wanyu w’umwuga n’ibyerekeye byose',
+      'profile.subtitle': 'Hindura umwirondoro wanyu w\'umwuga n\'ibyerekeye byose',
       'profile.editProfile': 'Hindura Umwirondoro',
       'profile.updateProfile': 'Hindura Umwirondoro',
       'profile.saveChanges': 'Bika Umwirondoro',
@@ -1741,7 +1962,48 @@ const resources = {
       'admin.dashboard.atLeastOneSkillIsRequired': 'Ubumenyi bumwe bukenewe',
       'admin.dashboard.emailIsRequired': 'Imeri ikenewe',
       'admin.dashboard.phoneIsRequired': 'Telefone ikenewe',
-      'admin.dashboard.bioIsRequired': 'Amakuru akenewe'
+      'admin.dashboard.bioIsRequired': 'Amakuru akenewe',
+
+      // ViewProfile Component Translations in Kinyarwanda
+      'viewProfile.loading.title': 'Turimo kurukurikirana umwirondoro...',
+      'viewProfile.errors.profileNotAvailable': 'Umwirondoro Ntibihagaze',
+      'viewProfile.errors.profileNotFound': 'Umwirondoro Ntabonetse',
+      'viewProfile.errors.profileNotExist': 'Umwirondoro ushaka ntibihagaze.',
+      'viewProfile.errors.underReview': '💡 Umwirondoro urashobora kuba uri mu gusuzuma cyangwa ntukemewe kugira ngo abantu babye.',
+      'viewProfile.errors.loadFailed': 'Ntibyashoboye kurukurikirana umwirondoro. Umwirondoro urashobora kuba ntukemewe kugira ngo abantu babye.',
+      'viewProfile.errors.notAvailable': 'Umwirondoro ntabonetse cyangwa ntibihagaze kugira ngo abantu babye',
+
+      'viewProfile.hero.jobSeeker': 'Umushaka Akazi',
+      'viewProfile.hero.verifiedProfile': 'Umwirondoro Wemejwe',
+      'viewProfile.hero.profileNotAvailable': 'Umwirondoro Ntibihagaze',
+      'viewProfile.hero.profileUnderReview': 'Umwirondoro Uri mu Gusuzuma',
+      'viewProfile.info.locationNotSpecified': 'Aho ntibigaragaritse',
+      'viewProfile.info.experienceNotSpecified': 'Uburambe ntibugaragaritse',
+      'viewProfile.info.availabilityNotSpecified': 'Kuboneka ntibigaragaritse',
+      'viewProfile.info.memberSince': 'Umuryango kuva',
+      'viewProfile.info.monthlyRate': 'Igiciro cy\'Ukwezi',
+
+      'viewProfile.sections.profileInformation': 'Amakuru y\'Umwirondoro',
+      'viewProfile.sections.about': 'Ibyerekeye',
+      'viewProfile.sections.noDescription': 'Nta bisobanura bihagaze',
+      'viewProfile.sections.skillsAndExpertise': 'Ubumenyi & Inzozi',
+      'viewProfile.sections.noSkillsListed': 'Nta ubumenyi buhagaze',
+      'viewProfile.sections.references': 'Abashinze',
+      'viewProfile.sections.educationAndCertifications': 'Amashuri & Impamyabumenyi',
+      'viewProfile.sections.education': 'Amashuri',
+      'viewProfile.sections.certifications': 'Impamyabumenyi',
+      'viewProfile.sections.noCertificationsListed': 'Nta mpamyabumenyi ihagaze',
+      'viewProfile.sections.languages': 'Indimi',
+      'viewProfile.sections.noLanguagesListed': 'Nta ndimi ihagaze',
+
+      'viewProfile.contact.contactInformation': 'Amakuru yo Kumenya',
+      'viewProfile.contact.hidden': 'Amakuru yo kumenya yihishijwe',
+      'viewProfile.contact.clickToReveal': 'Kanda kugira ngo ubone',
+
+      'viewProfile.sections.actions': 'Ibikorwa',
+      'viewProfile.actions.requestCandidate': 'Saba Umukandida',
+
+      'viewProfile.share.text': 'Sura umwirondoro wa {name} ku Rubuga rwa Job Portal'
     }
   }
 };

@@ -25,7 +25,6 @@ import {
   BookmarkPlus,
   CheckCircle,
   ExternalLink,
-  DollarSign,
   UserCheck
 } from 'lucide-react';
 import { jobSeekerService } from '../api/index.js';
@@ -72,11 +71,11 @@ const ViewProfile = () => {
         if (result && result.success) {
           setJobSeeker(result.data);
         } else {
-          setError(result?.error || 'Profile not found or not available for public viewing');
+          setError(result?.error || t('viewProfile.errors.notAvailable'));
         }
       } catch (error) {
         console.error('Error fetching job seeker:', error);
-        setError('Failed to load profile. This profile may not be approved for public viewing.');
+        setError(t('viewProfile.errors.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -100,7 +99,7 @@ const ViewProfile = () => {
     if (navigator.share) {
       navigator.share({
         title: `${jobSeeker?.name} - ${jobSeeker?.title}`,
-        text: `Check out ${jobSeeker?.name}'s profile on Job Portal`,
+        text: t('viewProfile.share.text', { name: jobSeeker?.name }),
         url: window.location.href,
       });
     } else {
@@ -120,7 +119,7 @@ const ViewProfile = () => {
       >
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <LoadingSpinner size="lg" text="Loading profile..." />
+          <LoadingSpinner size="lg" text={t('viewProfile.loading.title')} />
         </div>
         <Footer />
       </div>
@@ -141,10 +140,10 @@ const ViewProfile = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile Not Available</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('viewProfile.errors.profileNotAvailable')}</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <div className="text-sm text-blue-600 bg-blue-50 rounded-lg p-3 mb-6">
-              💡 This profile may be under review or not approved for public viewing yet.
+              💡 {t('viewProfile.errors.underReview')}
             </div>
             <BackButton />
           </div>
@@ -163,8 +162,8 @@ const ViewProfile = () => {
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile Not Found</h2>
-            <p className="text-gray-600 mb-6">The profile you're looking for doesn't exist.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('viewProfile.errors.profileNotFound')}</h2>
+            <p className="text-gray-600 mb-6">{t('viewProfile.errors.profileNotExist')}</p>
             <BackButton />
           </div>
         </div>
@@ -246,8 +245,8 @@ const ViewProfile = () => {
                     
                     <p className="text-xl text-blue-600 font-semibold mb-4">
                       {isPublic
-                        ? jobSeeker.jobCategory?.name_en || 'Job Seeker'
-                        : jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
+                        ? jobSeeker.jobCategory?.name_en || t('viewProfile.hero.jobSeeker')
+                        : jobSeeker?.profile?.jobCategory?.name_en || t('viewProfile.hero.jobSeeker')}
                     </p>
                     
                     {/* Approval Status Indicator */}
@@ -268,10 +267,10 @@ const ViewProfile = () => {
                             <Clock className="w-4 h-4" />
                           )}
                           {jobSeeker.approvalStatus === 'approved'
-                            ? 'Verified Profile'
+                            ? t('viewProfile.hero.verifiedProfile')
                             : jobSeeker.approvalStatus === 'rejected'
-                            ? 'Profile Not Available'
-                            : 'Profile Under Review'}
+                            ? t('viewProfile.hero.profileNotAvailable')
+                            : t('viewProfile.hero.profileUnderReview')}
                         </div>
                       </div>
                     )}
@@ -281,26 +280,26 @@ const ViewProfile = () => {
                       <div className="flex items-center space-x-2 text-gray-600">
                         <MapPin className="w-4 h-4 text-blue-500" />
                         <span className="text-sm font-medium">
-                          {isPublic ? jobSeeker.location : jobSeeker?.profile?.location || 'Location not specified'}
+                          {isPublic ? jobSeeker.location : jobSeeker?.profile?.location || t('viewProfile.info.locationNotSpecified')}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Briefcase className="w-4 h-4 text-green-500" />
                         <span className="text-sm font-medium">
-                          {isPublic ? jobSeeker.experience : jobSeeker?.profile?.experience || 'Experience not specified'}
+                          {isPublic ? jobSeeker.experience : jobSeeker?.profile?.experience || t('viewProfile.info.experienceNotSpecified')}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Clock className="w-4 h-4 text-purple-500" />
                         <span className="text-sm font-medium">
-                          {isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability || 'Availability not specified'}
+                                                    {isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability || t('viewProfile.info.availabilityNotSpecified')}
                         </span>
                       </div>
                       {isPublic && jobSeeker.memberSince && (
                         <div className="flex items-center space-x-2 text-gray-600">
                           <Calendar className="w-4 h-4 text-orange-500" />
                           <span className="text-sm font-medium">
-                            Member since {new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                            {t('viewProfile.info.memberSince')} {new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'short', year: 'numeric' })}
                           </span>
                         </div>
                       )}
@@ -310,8 +309,7 @@ const ViewProfile = () => {
                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                        <div className="flex items-center justify-between">
                          <div className="flex items-center space-x-2">
-                           <DollarSign className="w-5 h-5 text-blue-600" />
-                           <span className="text-sm font-medium text-gray-700">Monthly Rate</span>
+                           <span className="text-sm font-medium text-gray-700">{t('viewProfile.info.monthlyRate')}</span>
                          </div>
                          <span className="text-2xl font-bold text-blue-600">
                            {formatMonthlyRate(isPublic ? jobSeeker.monthlyRate : jobSeeker?.profile?.monthlyRate)}
@@ -338,7 +336,7 @@ const ViewProfile = () => {
                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                      <UserCheck className="w-6 h-6 text-white" />
                    </div>
-                   <h2 className="text-3xl font-bold text-gray-900">Profile Information</h2>
+                   <h2 className="text-3xl font-bold text-gray-900">{t('viewProfile.sections.profileInformation')}</h2>
                  </div>
 
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -350,11 +348,11 @@ const ViewProfile = () => {
                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                            <UserCheck className="w-4 h-4 text-blue-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">About</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.about')}</h3>
                        </div>
                        <div className="bg-gray-50 rounded-xl p-4">
                          <p className="text-gray-700 leading-relaxed">
-                           {isPublic ? jobSeeker.description : jobSeeker?.profile?.description || 'No description available'}
+                           {isPublic ? jobSeeker.description : jobSeeker?.profile?.description || t('viewProfile.sections.noDescription')}
                          </p>
                        </div>
                      </div>
@@ -365,7 +363,7 @@ const ViewProfile = () => {
                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                            <Star className="w-4 h-4 text-purple-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">Skills & Expertise</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.skillsAndExpertise')}</h3>
                        </div>
                        <div className="flex flex-wrap gap-2">
                          {(isPublic ? jobSeeker.skills : jobSeeker?.profile?.skills)
@@ -374,7 +372,7 @@ const ViewProfile = () => {
                                  {skill.trim()}
                                </Badge>
                              ))
-                           : <p className="text-gray-500">No skills listed</p>}
+                           : <p className="text-gray-500">{t('viewProfile.sections.noSkillsListed')}</p>}
                        </div>
                      </div>
 
@@ -385,7 +383,7 @@ const ViewProfile = () => {
                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                              <Users className="w-4 h-4 text-green-600" />
                            </div>
-                           <h3 className="text-xl font-semibold text-gray-900">References</h3>
+                           <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.references')}</h3>
                          </div>
                          <div className="bg-gray-50 rounded-xl p-4">
                            <p className="text-gray-700 leading-relaxed text-sm">{jobSeeker.references}</p>
@@ -402,20 +400,20 @@ const ViewProfile = () => {
                          <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                            <GraduationCap className="w-4 h-4 text-indigo-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">Education & Certifications</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.educationAndCertifications')}</h3>
                        </div>
                        <div className="space-y-4">
                          <div className="bg-blue-50 rounded-xl p-4">
                            <div className="flex items-center mb-2">
                              <GraduationCap className="w-4 h-4 mr-2 text-blue-600" />
-                             <span className="font-semibold text-gray-900 text-sm">Education</span>
+                             <span className="font-semibold text-gray-900 text-sm">{t('viewProfile.sections.education')}</span>
                            </div>
                            <p className="text-gray-700 text-sm">{isPublic ? jobSeeker.educationLevel : jobSeeker?.profile?.educationLevel}</p>
                          </div>
                          <div className="bg-green-50 rounded-xl p-4">
                            <div className="flex items-center mb-2">
                              <Award className="w-4 h-4 mr-2 text-green-600" />
-                             <span className="font-semibold text-gray-900 text-sm">Certifications</span>
+                             <span className="font-semibold text-gray-900 text-sm">{t('viewProfile.sections.certifications')}</span>
                            </div>
                            <div className="space-y-1">
                              {(() => {
@@ -429,7 +427,7 @@ const ViewProfile = () => {
                                    <p key={index} className="text-gray-700 text-sm">{cert.trim()}</p>
                                  ));
                                } else {
-                                 return <p className="text-gray-500 text-sm">No certifications listed</p>;
+                                 return <p className="text-gray-500 text-sm">{t('viewProfile.sections.noCertificationsListed')}</p>;
                                }
                              })()}
                            </div>
@@ -443,7 +441,7 @@ const ViewProfile = () => {
                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
                            <Globe className="w-4 h-4 text-orange-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">Languages</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.languages')}</h3>
                        </div>
                        <div className="flex flex-wrap gap-2">
                          {(() => {
@@ -460,9 +458,9 @@ const ViewProfile = () => {
                                  {language.trim()}
                                </Badge>
                              ));
-                           } else {
-                             return <p className="text-gray-500 text-sm">No languages listed</p>;
-                           }
+                                                          } else {
+                                 return <p className="text-gray-500 text-sm">{t('viewProfile.sections.noLanguagesListed')}</p>;
+                               }
                          })()}
                        </div>
                      </div>
@@ -483,7 +481,7 @@ const ViewProfile = () => {
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <Mail className="w-4 h-4 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900">Contact Information</h3>
+                      <h3 className="text-lg font-bold text-gray-900">{t('viewProfile.sections.contactInformation')}</h3>
                     </div>
                     {user?.role === 'admin' && (
                       <Button 
@@ -526,8 +524,8 @@ const ViewProfile = () => {
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Eye className="w-8 h-8 text-gray-400" />
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">Contact information is hidden</p>
-                      <p className="text-xs text-gray-400">Click to reveal</p>
+                      <p className="text-sm text-gray-600 mb-2">{t('viewProfile.contact.hidden')}</p>
+                      <p className="text-xs text-gray-400">{t('viewProfile.contact.clickToReveal')}</p>
                     </div>
                   )}
                 </Card>
@@ -537,7 +535,7 @@ const ViewProfile = () => {
             {/* Action Buttons - Sticky */}
                          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
                <Card className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border-0 sticky top-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">{t('viewProfile.sections.actions')}</h3>
                 <div className="space-y-3">
                                      <Button 
                      variant="primary" 
@@ -546,7 +544,7 @@ const ViewProfile = () => {
                      onClick={handleRequestCandidate}
                    >
                     <MessageSquare className="w-5 h-5 mr-2" />
-                    Request Candidate
+                    {t('viewProfile.actions.requestCandidate')}
                   </Button>
                  
                 </div>

@@ -17,7 +17,6 @@ import {
   Phone,
   MapPin,
   Calendar,
-  DollarSign,
   Star,
   Clock,
   GraduationCap,
