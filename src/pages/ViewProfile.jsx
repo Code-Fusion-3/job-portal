@@ -310,7 +310,6 @@ const ViewProfile = () => {
                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                        <div className="flex items-center justify-between">
                          <div className="flex items-center space-x-2">
-                           <DollarSign className="w-5 h-5 text-blue-600" />
                            <span className="text-sm font-medium text-gray-700">Monthly Rate</span>
                          </div>
                          <span className="text-2xl font-bold text-blue-600">
