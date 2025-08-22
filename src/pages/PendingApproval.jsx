@@ -136,12 +136,6 @@ const PendingApproval = () => {
                   Contact Support
                 </Link>
                 <span className="text-gray-300">•</span>
-                <Link 
-                  to="/faq" 
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  FAQ
-                </Link>
               </div>
             </motion.div>
           </div>
