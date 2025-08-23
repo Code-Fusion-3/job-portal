@@ -17,6 +17,7 @@ const Button = forwardRef(({
     outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500',
     ghost: 'text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg hover:shadow-xl',
+    red: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg hover:shadow-xl',
   };
   
   const sizes = {

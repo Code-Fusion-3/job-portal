@@ -16,6 +16,7 @@ const resources = {
       'nav.language': 'Language',
       'nav.viewJobSeekers': 'View Job Seekers',
       'nav.adminInfo': 'Admin Info',
+      'nav.account': 'Account',
       
       // Hero Section
       'hero.title': 'Connect Talent with Opportunity',
@@ -1153,6 +1154,7 @@ const resources = {
       'nav.login': 'Injira',
       'nav.language': 'Ururimi',
       'nav.viewJobSeekers': 'Reba abashaka akazi',
+      'nav.account': 'Konti',
 
       // Hero Section
       'hero.title': "Huza Impano n'Amahirwe",

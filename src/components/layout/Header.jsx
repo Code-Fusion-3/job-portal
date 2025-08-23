@@ -56,7 +56,7 @@ const Header = () => {
 
   return (
     <motion.header 
-      className="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-20 backdrop-blur-md border-b border-white border-opacity-20"
+      className="fixed top-0 left-0 right-0 z-[9999] bg-black bg-opacity-20 backdrop-blur-md border-b border-white border-opacity-20"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6 }}
@@ -157,7 +157,7 @@ const Header = () => {
                 </Button>
               </Link>
               <Link to="/register">
-                <Button as="div" variant="primary" size="sm" className="bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700">
+                <Button as="div" variant="red" size="sm">
                   {t('nav.register')}
                 </Button>
               </Link>
@@ -167,10 +167,11 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <motion.button
             ref={buttonRef}
-            className="md:hidden p-2 rounded-lg text-white hover:bg-red-600 hover:bg-opacity-20 transition-colors duration-200"
+            className="md:hidden p-3 rounded-lg text-white hover:bg-red-600 hover:bg-opacity-20 transition-colors duration-200 border border-white border-opacity-20"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            aria-label="Toggle mobile menu"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </motion.button>
@@ -181,13 +182,13 @@ const Header = () => {
           {isMenuOpen && (
             <motion.div
               ref={menuRef}
-              className="md:hidden border-t border-white border-opacity-20 py-4"
+              className="md:hidden border-t border-white border-opacity-20 py-4 bg-black bg-opacity-95 backdrop-blur-md overflow-hidden"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <nav className="flex flex-col space-y-4">
+              <nav className="flex flex-col space-y-4 px-4">
                 {navItems.map((item) => (
                   item.isExternal ? (
                     <motion.a
@@ -248,16 +249,38 @@ const Header = () => {
                   </div>
                 </div>
                 
-                {/* Admin Link */}
-                <div className="pt-2 border-t border-white border-opacity-20">
-                  <Link
-                    to="/admin"
-                    className="text-sm text-white text-opacity-60 hover:text-opacity-100 transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Admin Login
-                  </Link>
+                {/* Login/Register Buttons for Mobile */}
+                <div className="pt-4 border-t border-white border-opacity-20">
+                  <div className="space-y-3">
+                    <div className="text-center mb-2">
+                      <span className="text-sm text-white text-opacity-70">{t('nav.account') || 'Account'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                        <Button 
+                          as="div" 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20 border border-white border-opacity-30 py-3"
+                        >
+                          {t('nav.login')}
+                        </Button>
+                      </Link>
+                      <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                        <Button 
+                          as="div" 
+                          variant="red" 
+                          size="sm" 
+                          className="w-full text-white font-medium py-3"
+                        >
+                          {t('nav.register')}
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
+                
+                
               </nav>
             </motion.div>
           )}
