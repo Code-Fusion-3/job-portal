@@ -42,76 +42,88 @@ const AdminInfo = () => {
   };
 
   const skills = [
-    { category: 'Frontend', items: ['React.js', 'Vue.js', 'Angular', 'TypeScript', 'Tailwind CSS', 'Next.js'] },
-    { category: 'Backend', items: ['Node.js', 'Express.js', 'Python', 'Django', 'PHP', 'Laravel'] },
-    { category: 'Database', items: ['PostgreSQL', 'MongoDB', 'MySQL', 'Redis', 'Prisma ORM'] },
-    { category: 'DevOps', items: ['Docker', 'AWS', 'CI/CD', 'Git', 'Linux', 'Nginx'] }
+    { category: 'frontend', items: ['React.js', 'Vue.js', 'Angular', 'TypeScript', 'Tailwind CSS', 'Next.js'] },
+    { category: 'backend', items: ['Node.js', 'Express.js', 'Python', 'Django', 'PHP', 'Laravel'] },
+    { category: 'database', items: ['PostgreSQL', 'MongoDB', 'MySQL', 'Redis', 'Prisma ORM'] },
+    { category: 'devops', items: ['Docker', 'AWS', 'CI/CD', 'Git', 'Linux', 'Nginx'] }
   ];
 
   const experience = [
     {
-      company: 'Job Portal Rwanda',
-      position: 'Lead Developer & System Administrator',
-      period: '2023 - Present',
-      description: 'Architected and developed a comprehensive job portal platform serving 500+ job seekers and 50+ companies. Implemented secure authentication, real-time messaging, and admin approval workflows.',
-      achievements: ['Reduced system downtime by 95%', 'Improved user engagement by 40%', 'Implemented automated approval system']
+      company: t('adminInfo.cv.experience.jobPortal.company'),
+      position: t('adminInfo.cv.experience.jobPortal.title'),
+      period: t('adminInfo.cv.experience.jobPortal.period'),
+      description: t('adminInfo.cv.experience.jobPortal.description'),
+      achievements: [
+        t('adminInfo.cv.experience.jobPortal.achievement1'), 
+        t('adminInfo.cv.experience.jobPortal.achievement2'), 
+        t('adminInfo.cv.experience.jobPortal.achievement3')
+      ]
     },
     {
-      company: 'Tech Solutions Rwanda',
-      position: 'Senior Software Engineer',
-      period: '2021 - 2023',
-      description: 'Led development of enterprise applications and provided technical leadership to junior developers.',
-      achievements: ['Led 5+ major projects', 'Mentored 8 junior developers', 'Improved code quality by 60%']
+      company: t('adminInfo.cv.experience.techSolutions.company'),
+      position: t('adminInfo.cv.experience.techSolutions.title'),
+      period: t('adminInfo.cv.experience.techSolutions.period'),
+      description: t('adminInfo.cv.experience.techSolutions.description'),
+      achievements: [
+        t('adminInfo.cv.experience.techSolutions.achievement1'), 
+        t('adminInfo.cv.experience.techSolutions.achievement2'), 
+        t('adminInfo.cv.experience.techSolutions.achievement3')
+      ]
     },
     {
-      company: 'Digital Innovations Ltd',
-      position: 'Full-Stack Developer',
-      period: '2019 - 2021',
-      description: 'Developed web applications and mobile apps using modern technologies and best practices.',
-      achievements: ['Built 10+ client applications', 'Implemented CI/CD pipelines', 'Reduced deployment time by 70%']
+      company: t('adminInfo.cv.experience.digitalInnovations.company'),
+      position: t('adminInfo.cv.experience.digitalInnovations.title'),
+      period: t('adminInfo.cv.experience.digitalInnovations.period'),
+      description: t('adminInfo.cv.experience.digitalInnovations.description'),
+      achievements: [
+        t('adminInfo.cv.experience.digitalInnovations.achievement1'), 
+        t('adminInfo.cv.experience.digitalInnovations.achievement2'), 
+        t('adminInfo.cv.experience.digitalInnovations.achievement3')
+      ]
     }
   ];
 
   const education = [
     {
-      degree: 'Master of Computer Science',
-      school: 'University of Rwanda',
-      period: '2017 - 2019',
-      description: 'Specialized in Software Engineering and Distributed Systems'
+      degree: t('adminInfo.cv.education.masters.degree'),
+      school: t('adminInfo.cv.education.masters.school'),
+      period: t('adminInfo.cv.education.masters.period'),
+      description: t('adminInfo.cv.education.masters.description')
     },
     {
-      degree: 'Bachelor of Computer Science',
-      school: 'University of Rwanda',
-      period: '2013 - 2017',
-      description: 'Major in Computer Science with minor in Mathematics'
+      degree: t('adminInfo.cv.education.bachelors.degree'),
+      school: t('adminInfo.cv.education.bachelors.school'),
+      period: t('adminInfo.cv.education.bachelors.period'),
+      description: t('adminInfo.cv.education.bachelors.description')
     }
   ];
 
   const certifications = [
-    { name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', year: '2023' },
-    { name: 'Microsoft Certified: Azure Developer', issuer: 'Microsoft', year: '2022' },
-    { name: 'Certified Scrum Master (CSM)', issuer: 'Scrum Alliance', year: '2021' },
-    { name: 'MongoDB Certified Developer', issuer: 'MongoDB University', year: '2020' }
+    { name: t('adminInfo.cv.certifications.aws.name'), issuer: t('adminInfo.cv.certifications.aws.issuer'), year: t('adminInfo.cv.certifications.aws.year') },
+    { name: t('adminInfo.cv.certifications.azure.name'), issuer: t('adminInfo.cv.certifications.azure.issuer'), year: t('adminInfo.cv.certifications.azure.year') },
+    { name: t('adminInfo.cv.certifications.scrum.name'), issuer: t('adminInfo.cv.certifications.scrum.issuer'), year: t('adminInfo.cv.certifications.scrum.year') },
+    { name: t('adminInfo.cv.certifications.mongodb.name'), issuer: t('adminInfo.cv.certifications.mongodb.issuer'), year: t('adminInfo.cv.certifications.mongodb.year') }
   ];
 
   const projects = [
     {
-      name: 'Job Portal Platform',
-      description: 'Full-stack job portal with real-time messaging, admin approval workflows, and advanced search capabilities.',
-      tech: ['React', 'Node.js', 'PostgreSQL', 'Socket.io', 'Redis'],
-      status: 'Live Production'
+      name: t('adminInfo.cv.projects.jobPortal.name'),
+      description: t('adminInfo.cv.projects.jobPortal.description'),
+      tech: t('adminInfo.cv.projects.jobPortal.tech').split(', '),
+      status: 'live'
     },
     {
-      name: 'E-Learning Management System',
-      description: 'Comprehensive LMS platform supporting 1000+ students with course management and progress tracking.',
-      tech: ['Vue.js', 'Django', 'PostgreSQL', 'Celery', 'Docker'],
-      status: 'Live Production'
+      name: t('adminInfo.cv.projects.elearning.name'),
+      description: t('adminInfo.cv.projects.elearning.description'),
+      tech: t('adminInfo.cv.projects.elearning.tech').split(', '),
+      status: 'live'
     },
     {
-      name: 'Inventory Management System',
-      description: 'Enterprise inventory solution with barcode scanning, reporting, and multi-warehouse support.',
-      tech: ['React Native', 'Node.js', 'MongoDB', 'Express', 'JWT'],
-      status: 'Live Production'
+      name: t('adminInfo.cv.projects.inventory.name'),
+      description: t('adminInfo.cv.projects.inventory.description'),
+      tech: t('adminInfo.cv.projects.inventory.tech').split(', '),
+      status: 'live'
     }
   ];
 
@@ -353,11 +365,11 @@ const AdminInfo = () => {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          project.status === 'Live Production' 
+                          project.status === 'live' 
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {t(`adminInfo.cv.projectStatus.${project.status === 'Live Production' ? 'live' : 'development'}`)}
+                          {t(`adminInfo.cv.projectStatus.${project.status}`)}
                         </span>
                 </div>
                       <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>

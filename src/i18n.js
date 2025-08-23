@@ -1066,14 +1066,8 @@ const resources = {
       'adminInfo.cv.projectStatus.live': 'Live Production',
       'adminInfo.cv.projectStatus.development': 'In Development',
 
-      // Skills categories translations
-      'adminInfo.cv.skills.frontend': 'Frontend',
-      'adminInfo.cv.skills.backend': 'Backend', 
-      'adminInfo.cv.skills.database': 'Database',
-      'adminInfo.cv.skills.devops': 'DevOps',
-
       // Personal info translations
-      'adminInfo.cv.personal.name': 'Jean Pierre Uwimana',
+      'adminInfo.cv.personal.name': 'Flaubert HARUBWIRA',
       'adminInfo.cv.personal.location': 'Kigali, Rwanda',
       'adminInfo.cv.personal.email': 'jean.uwimana@jobportal.rw',
       'adminInfo.cv.personal.phone': '+250 788 123 456',
@@ -1128,6 +1122,8 @@ const resources = {
       'adminInfo.cv.projects.inventory.name': 'Inventory Management System',
       'adminInfo.cv.projects.inventory.description': 'Enterprise inventory solution with barcode scanning, reporting, and multi-warehouse support.',
       'adminInfo.cv.projects.inventory.tech': 'React Native, Node.js, MongoDB, Express, JWT',
+
+
 
     }
   },
@@ -2192,19 +2188,81 @@ const resources = {
       'adminInfo.cv.projectStatus.live': 'Bikora Nonaha',
       'adminInfo.cv.projectStatus.development': 'Mu Gukora',
 
-      // Skills categories translations in Kinyarwanda
-      'adminInfo.cv.skills.frontend': 'Urupapuro rwo mu Maso',
-      'adminInfo.cv.skills.backend': 'Urupapuro rwo mu Ntambwe',
-      'adminInfo.cv.skills.database': 'Ububiko bw\'Amakuru',
-      'adminInfo.cv.skills.devops': 'Gucunga Ibikorwa',
+
 
       // Personal info translations in Kinyarwanda
-      'adminInfo.cv.personal.name': 'Jean Pierre Uwimana',
+      'adminInfo.cv.personal.name': 'Flaubert HARUBWIRA',
       'adminInfo.cv.personal.location': 'Kigali, Rwanda',
       'adminInfo.cv.personal.email': 'jean.uwimana@jobportal.rw',
       'adminInfo.cv.personal.phone': '+250 788 123 456',
       'adminInfo.cv.personal.linkedin': 'linkedin.com/in/jean-uwimana',
       'adminInfo.cv.personal.github': 'github.com/jean-uwimana',
+
+      // Experience translations in Kinyarwanda
+      'adminInfo.cv.experience.jobPortal.title': 'Umuyobozi w\'Ububatsi & Umuyobozi w\'Sisitemu',
+      'adminInfo.cv.experience.jobPortal.company': 'Job Portal Rwanda',
+      'adminInfo.cv.experience.jobPortal.period': '2023 - Nonaha',
+      'adminInfo.cv.experience.jobPortal.description': 'Nabubatse kandi nabashyizeho urubuga rwuzuye rwo gushaka akazi rufasha abashaka akazi 500+ n\'amakompanyi 50+. Nashyizeho ingamba z\'umutekano, gutumanaho mu gihe gisanzwe, n\'uburyo bwo gusuzuma y\'ikoranabuhanga.',
+      'adminInfo.cv.experience.jobPortal.achievement1': 'Nkuraho igihe sisitemu itakora kuri 95%',
+      'adminInfo.cv.experience.jobPortal.achievement2': 'Nakuraho uko abantu bakoresha sisitemu kuri 40%',
+      'adminInfo.cv.experience.jobPortal.achievement3': 'Nashyizeho sisitemu yo gusuzuma y\'ikoranabuhanga',
+
+      'adminInfo.cv.experience.techSolutions.title': 'Umubatsi w\'Ikoranabuhanga Ufite Uburambe',
+      'adminInfo.cv.experience.techSolutions.company': 'Tech Solutions Rwanda',
+      'adminInfo.cv.experience.techSolutions.period': '2021 - 2023',
+      'adminInfo.cv.experience.techSolutions.description': 'Nayoboye ububatsi bw\'ibikoresho by\'amakompanyi kandi nagufashaga abandi mu gubatsi.',
+      'adminInfo.cv.experience.techSolutions.achievement1': 'Nayoboye ibikorwa 5+ by\'ingenzi',
+      'adminInfo.cv.experience.techSolutions.achievement2': 'Nagufashaga abandi 8',
+      'adminInfo.cv.experience.techSolutions.achievement3': 'Nakuraho ubwiza bw\'ikode kuri 60%',
+
+      'adminInfo.cv.experience.digitalInnovations.title': 'Umubatsi w\'Urubuga',
+      'adminInfo.cv.experience.digitalInnovations.company': 'Digital Innovations Ltd',
+      'adminInfo.cv.experience.digitalInnovations.period': '2019 - 2021',
+      'adminInfo.cv.experience.digitalInnovations.description': 'Nabubatse ibikoresho by\'urubuga n\'ibikoresho by\'amagambo binyuze mu ikoranabuhanga bishya.',
+      'adminInfo.cv.experience.digitalInnovations.achievement1': 'Nabubatse ibikoresho 10+ by\'abakiriya',
+      'adminInfo.cv.experience.digitalInnovations.achievement2': 'Nashyizeho uburyo bwo gutanga',
+      'adminInfo.cv.experience.digitalInnovations.achievement3': 'Nkuraho igihe cyo gutanga kuri 70%',
+
+      // Education translations in Kinyarwanda
+      'adminInfo.cv.education.masters.degree': 'Impamyabumenyi y\'Icyiciro cya Kane mu Ikoranabuhanga',
+      'adminInfo.cv.education.masters.school': 'Kaminuza y\'u Rwanda',
+      'adminInfo.cv.education.masters.period': '2017 - 2019',
+      'adminInfo.cv.education.masters.description': 'Ufite ubumenyi bw\'ububatsi bw\'ikoranabuhanga n\'ububatsi bw\'ibikoresho',
+
+      'adminInfo.cv.education.bachelors.degree': 'Impamyabumenyi y\'Icyiciro cya Gatatu mu Ikoranabuhanga',
+      'adminInfo.cv.education.bachelors.school': 'Kaminuza y\'u Rwanda',
+      'adminInfo.cv.education.bachelors.period': '2013 - 2017',
+      'adminInfo.cv.education.bachelors.description': 'Ufite ubumenyi bw\'ikoranabuhanga n\'ubumenyi bw\'imibare',
+
+      // Projects translations in Kinyarwanda
+      'adminInfo.cv.projects.jobPortal.name': 'Urubuga rwo Gushaka Akazi',
+      'adminInfo.cv.projects.jobPortal.description': 'Urubuga ruzuye rwo gushaka akazi rufite gutumanaho mu gihe gisanzwe, uburyo bwo gusuzuma, n\'uburyo bwo gushakisha.',
+      'adminInfo.cv.projects.jobPortal.tech': 'React, Node.js, PostgreSQL, Socket.io, Redis',
+
+      'adminInfo.cv.projects.elearning.name': 'Sisitemu yo Gucunga Amashuri',
+      'adminInfo.cv.projects.elearning.description': 'Urubuga ruzuye rwo gucunga amashuri rufasha abanyeshuri 1000+ n\'uburyo bwo gucunga n\'uburyo bwo gukurikirana.',
+      'adminInfo.cv.projects.elearning.tech': 'Vue.js, Django, PostgreSQL, Celery, Docker',
+
+      'adminInfo.cv.projects.inventory.name': 'Sisitemu yo Gucunga Ibikoresho',
+      'adminInfo.cv.projects.inventory.description': 'Ibisubizo by\'ibikoresho by\'amakompanyi bifite gusuzuma, gutanga amakuru, n\'ubufasha bw\'ibubiko byinshi.',
+      'adminInfo.cv.projects.inventory.tech': 'React Native, Node.js, MongoDB, Express, JWT',
+
+      // Certifications translations in Kinyarwanda
+      'adminInfo.cv.certifications.aws.name': 'AWS Certified Solutions Architect',
+      'adminInfo.cv.certifications.aws.issuer': 'Amazon Web Services',
+      'adminInfo.cv.certifications.aws.year': '2023',
+
+      'adminInfo.cv.certifications.azure.name': 'Microsoft Certified: Azure Developer',
+      'adminInfo.cv.certifications.azure.issuer': 'Microsoft',
+      'adminInfo.cv.certifications.azure.year': '2022',
+
+      'adminInfo.cv.certifications.scrum.name': 'Certified Scrum Master (CSM)',
+      'adminInfo.cv.certifications.scrum.issuer': 'Scrum Alliance',
+      'adminInfo.cv.certifications.scrum.year': '2021',
+
+      'adminInfo.cv.certifications.mongodb.name': 'MongoDB Certified Developer',
+      'adminInfo.cv.certifications.mongodb.issuer': 'MongoDB University',
+      'adminInfo.cv.certifications.mongodb.year': '2020',
     }
   }
 };
