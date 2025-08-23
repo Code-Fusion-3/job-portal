@@ -1123,7 +1123,22 @@ const resources = {
       'adminInfo.cv.projects.inventory.description': 'Enterprise inventory solution with barcode scanning, reporting, and multi-warehouse support.',
       'adminInfo.cv.projects.inventory.tech': 'React Native, Node.js, MongoDB, Express, JWT',
 
+      // Certifications translations
+      'adminInfo.cv.certifications.aws.name': 'AWS Certified Solutions Architect',
+      'adminInfo.cv.certifications.aws.issuer': 'Amazon Web Services',
+      'adminInfo.cv.certifications.aws.year': '2023',
 
+      'adminInfo.cv.certifications.azure.name': 'Microsoft Certified: Azure Developer',
+      'adminInfo.cv.certifications.azure.issuer': 'Microsoft',
+      'adminInfo.cv.certifications.azure.year': '2022',
+
+      'adminInfo.cv.certifications.scrum.name': 'Certified Scrum Master (CSM)',
+      'adminInfo.cv.certifications.scrum.issuer': 'Scrum Alliance',
+      'adminInfo.cv.certifications.scrum.year': '2021',
+
+      'adminInfo.cv.certifications.mongodb.name': 'MongoDB Certified Developer',
+      'adminInfo.cv.certifications.mongodb.issuer': 'MongoDB University',
+      'adminInfo.cv.certifications.mongodb.year': '2020',
 
     }
   },
