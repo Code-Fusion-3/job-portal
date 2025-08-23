@@ -32,13 +32,13 @@ const AdminInfo = () => {
   const { t } = useTranslation();
 
   const personalInfo = {
-    name: 'Jean Pierre Uwimana',
-    title: 'Senior Full-Stack Developer & System Administrator',
-    location: 'Kigali, Rwanda',
-    email: 'jean.uwimana@jobportal.rw',
-    phone: '+250 788 123 456',
-    linkedin: 'linkedin.com/in/jean-uwimana',
-    github: 'github.com/jean-uwimana'
+    name: t('adminInfo.cv.personal.name'),
+    title: t('adminInfo.cv.title'),
+    location: t('adminInfo.cv.personal.location'),
+    email: t('adminInfo.cv.personal.email'),
+    phone: t('adminInfo.cv.personal.phone'),
+    linkedin: t('adminInfo.cv.personal.linkedin'),
+    github: t('adminInfo.cv.personal.github')
   };
 
   const skills = [
@@ -138,7 +138,7 @@ const AdminInfo = () => {
               <Shield className="w-12 h-12 text-white" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{personalInfo.name}</h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-6">{personalInfo.title}</p>
+            <p className="text-xl md:text-2xl text-blue-100 mb-6">{t('adminInfo.cv.title')}</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
@@ -167,23 +167,21 @@ const AdminInfo = () => {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
-                  About Me
-                </h2>
+                  {t('adminInfo.cv.aboutMe.title')}
+            </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  Passionate full-stack developer with 5+ years of experience building scalable web applications. 
-                  Specialized in modern JavaScript frameworks, cloud architecture, and DevOps practices. 
-                  Committed to writing clean, maintainable code and mentoring junior developers.
-                </p>
+                  {t('adminInfo.cv.aboutMe.description')}
+            </p>
               </Card>
             </motion.div>
-
+          
             {/* Skills */}
-            <motion.div
+              <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
@@ -191,12 +189,12 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-blue-600" />
-                  Technical Skills
+                  {t('adminInfo.cv.skills.title')}
                 </h2>
                 <div className="space-y-4">
                   {skills.map((skillGroup, index) => (
                     <div key={index}>
-                      <h3 className="font-semibold text-gray-800 mb-2">{skillGroup.category}</h3>
+                      <h3 className="font-semibold text-gray-800 mb-2">{t(`adminInfo.cv.skills.${skillGroup.category.toLowerCase()}`)}</h3>
                       <div className="flex flex-wrap gap-2">
                         {skillGroup.items.map((skill, skillIndex) => (
                           <span 
@@ -205,9 +203,9 @@ const AdminInfo = () => {
                           >
                             {skill}
                           </span>
-                        ))}
-                      </div>
-                    </div>
+            ))}
+          </div>
+        </div>
                   ))}
                 </div>
               </Card>
@@ -217,23 +215,23 @@ const AdminInfo = () => {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
+        transition={{ duration: 0.8, delay: 0.8 }}
+      >
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Award className="w-5 h-5 text-blue-600" />
-                  Certifications
-                </h2>
+                  {t('adminInfo.cv.certifications.title')}
+            </h2>
                 <div className="space-y-3">
                   {certifications.map((cert, index) => (
                     <div key={index} className="border-l-4 border-blue-500 pl-3">
                       <h4 className="font-semibold text-gray-800">{cert.name}</h4>
                       <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
-                    </div>
+          </div>
                   ))}
-                </div>
-              </Card>
-            </motion.div>
+                  </div>
+                </Card>
+              </motion.div>
 
             {/* Contact & Social */}
             <motion.div
@@ -244,7 +242,7 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Phone className="w-5 h-5 text-blue-600" />
-                  Contact & Social
+                  {t('adminInfo.cv.contact.title')}
                 </h2>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -268,8 +266,8 @@ const AdminInfo = () => {
                     <a href={`https://${personalInfo.github}`} className="text-blue-600 hover:text-blue-800">
                       {personalInfo.github}
                     </a>
-                  </div>
                 </div>
+              </div>
               </Card>
             </motion.div>
           </div>
@@ -286,7 +284,7 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Briefcase className="w-6 h-6 text-blue-600" />
-                  Professional Experience
+                  {t('adminInfo.cv.experience.title')}
                 </h2>
                 <div className="space-y-6">
                   {experience.map((exp, index) => (
@@ -304,23 +302,23 @@ const AdminInfo = () => {
                           <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
                         ))}
                       </ul>
-                    </div>
-                  ))}
                 </div>
+                  ))}
+              </div>
               </Card>
             </motion.div>
 
             {/* Education */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <GraduationCap className="w-6 h-6 text-blue-600" />
-                  Education
-                </h2>
+                  {t('adminInfo.cv.education.title')}
+            </h2>
                 <div className="space-y-4">
                   {education.map((edu, index) => (
                     <div key={index} className="border-l-4 border-green-500 pl-4">
@@ -334,20 +332,20 @@ const AdminInfo = () => {
                       <p className="text-gray-700 text-sm">{edu.description}</p>
                     </div>
                   ))}
-                </div>
+          </div>
               </Card>
             </motion.div>
-
+          
             {/* Key Projects */}
-            <motion.div
+              <motion.div
               initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Code className="w-6 h-6 text-blue-600" />
-                  Key Projects
+                  {t('adminInfo.cv.projects.title')}
                 </h2>
                 <div className="space-y-4">
                   {projects.map((project, index) => (
@@ -359,9 +357,9 @@ const AdminInfo = () => {
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {project.status}
+                          {t(`adminInfo.cv.projectStatus.${project.status === 'Live Production' ? 'live' : 'development'}`)}
                         </span>
-                      </div>
+                </div>
                       <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
                       <div className="flex flex-wrap gap-2">
                         {project.tech.map((tech, techIndex) => (
@@ -371,9 +369,9 @@ const AdminInfo = () => {
                           >
                             {tech}
                           </span>
-                        ))}
-                      </div>
-                    </div>
+            ))}
+          </div>
+        </div>
                   ))}
                 </div>
               </Card>
@@ -388,24 +386,24 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Server className="w-6 h-6 text-blue-600" />
-                  System Performance
+                  {t('adminInfo.cv.systemPerformance.title')}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600 mb-1">500+</div>
-                    <div className="text-sm text-gray-600">Job Seekers</div>
+                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.jobSeekers')}</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600 mb-1">98%</div>
-                    <div className="text-sm text-gray-600">Uptime</div>
+                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.uptime')}</div>
                   </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <div className="text-2xl font-bold text-purple-600 mb-1">50+</div>
-                    <div className="text-sm text-gray-600">Companies</div>
+                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.companies')}</div>
                   </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600 mb-1">5+</div>
-                    <div className="text-sm text-gray-600">Years Experience</div>
+                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.experience')}</div>
                   </div>
                 </div>
               </Card>
@@ -422,9 +420,9 @@ const AdminInfo = () => {
         transition={{ duration: 0.8, delay: 1.2 }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Work Together?</h2>
+          <h2 className="text-3xl font-bold mb-6">{t('adminInfo.cv.cta.title')}</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            I'm always open to discussing new opportunities, interesting projects, and innovative ideas.
+            {t('adminInfo.cv.cta.description')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <motion.button
@@ -433,7 +431,7 @@ const AdminInfo = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
             >
-              Get In Touch
+              {t('adminInfo.cv.cta.getInTouch')}
             </motion.button>
             <motion.button
               onClick={() => window.location.href = '/job-seekers'}
@@ -441,7 +439,7 @@ const AdminInfo = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors duration-200"
             >
-              View Platform
+              {t('adminInfo.cv.cta.viewPlatform')}
             </motion.button>
           </div>
         </div>

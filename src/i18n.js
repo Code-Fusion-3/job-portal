@@ -1020,7 +1020,7 @@ const resources = {
       'admin.features.security.title': 'Platform Security',
       'admin.features.security.description': 'Advanced security measures to protect user data and maintain platform integrity.',
       'admin.features.management.title': 'User Management',
-      'admin.features.management.description': 'Efficient management of job seekers, employers, and platform users.',
+      'admin.features.security.description': 'Efficient management of job seekers, employers, and platform users.',
       'admin.features.quality.title': 'Quality Assurance',
       'admin.features.quality.description': 'Rigorous verification processes to ensure only qualified candidates are presented.',
       'admin.features.support.title': '24/7 Support',
@@ -1039,6 +1039,95 @@ const resources = {
       'admin.cta.description': 'Our dedicated administrative team is here to help with any platform-related questions or concerns.',
       'admin.cta.contact': 'Contact Admin',
       'admin.cta.learnMore': 'Learn More',
+
+      // AdminInfo CV Page - English
+      'adminInfo.cv.title': 'Senior Full-Stack Developer & System Administrator',
+      'adminInfo.cv.aboutMe.title': 'About Me',
+      'adminInfo.cv.aboutMe.description': 'Passionate full-stack developer with 5+ years of experience building scalable web applications. Specialized in modern JavaScript frameworks, cloud architecture, and DevOps practices. Committed to writing clean, maintainable code and mentoring junior developers.',
+      'adminInfo.cv.skills.title': 'Technical Skills',
+      'adminInfo.cv.skills.frontend': 'Frontend',
+      'adminInfo.cv.skills.backend': 'Backend',
+      'adminInfo.cv.skills.database': 'Database',
+      'adminInfo.cv.skills.devops': 'DevOps',
+      'adminInfo.cv.certifications.title': 'Certifications',
+      'adminInfo.cv.contact.title': 'Contact & Social',
+      'adminInfo.cv.experience.title': 'Professional Experience',
+      'adminInfo.cv.education.title': 'Education',
+      'adminInfo.cv.projects.title': 'Key Projects',
+      'adminInfo.cv.systemPerformance.title': 'System Performance',
+      'adminInfo.cv.cta.title': 'Ready to Work Together?',
+      'adminInfo.cv.cta.description': 'I\'m always open to discussing new opportunities, interesting projects, and innovative ideas.',
+      'adminInfo.cv.cta.getInTouch': 'Get In Touch',
+      'adminInfo.cv.cta.viewPlatform': 'View Platform',
+      'adminInfo.cv.stats.jobSeekers': 'Job Seekers',
+      'adminInfo.cv.stats.uptime': 'Uptime',
+      'adminInfo.cv.stats.companies': 'Companies',
+      'adminInfo.cv.stats.experience': 'Years Experience',
+      'adminInfo.cv.projectStatus.live': 'Live Production',
+      'adminInfo.cv.projectStatus.development': 'In Development',
+
+      // Skills categories translations
+      'adminInfo.cv.skills.frontend': 'Frontend',
+      'adminInfo.cv.skills.backend': 'Backend', 
+      'adminInfo.cv.skills.database': 'Database',
+      'adminInfo.cv.skills.devops': 'DevOps',
+
+      // Personal info translations
+      'adminInfo.cv.personal.name': 'Jean Pierre Uwimana',
+      'adminInfo.cv.personal.location': 'Kigali, Rwanda',
+      'adminInfo.cv.personal.email': 'jean.uwimana@jobportal.rw',
+      'adminInfo.cv.personal.phone': '+250 788 123 456',
+      'adminInfo.cv.personal.linkedin': 'linkedin.com/in/jean-uwimana',
+      'adminInfo.cv.personal.github': 'github.com/jean-uwimana',
+
+      // Experience translations
+      'adminInfo.cv.experience.jobPortal.title': 'Lead Developer & System Administrator',
+      'adminInfo.cv.experience.jobPortal.company': 'Job Portal Rwanda',
+      'adminInfo.cv.experience.jobPortal.period': '2023 - Present',
+      'adminInfo.cv.experience.jobPortal.description': 'Architected and developed a comprehensive job portal platform serving 500+ job seekers and 50+ companies. Implemented secure authentication, real-time messaging, and admin approval workflows.',
+      'adminInfo.cv.experience.jobPortal.achievement1': 'Reduced system downtime by 95%',
+      'adminInfo.cv.experience.jobPortal.achievement2': 'Improved user engagement by 40%',
+      'adminInfo.cv.experience.jobPortal.achievement3': 'Implemented automated approval system',
+
+      'adminInfo.cv.experience.techSolutions.title': 'Senior Software Engineer',
+      'adminInfo.cv.experience.techSolutions.company': 'Tech Solutions Rwanda',
+      'adminInfo.cv.experience.techSolutions.period': '2021 - 2023',
+      'adminInfo.cv.experience.techSolutions.description': 'Led development of enterprise applications and provided technical leadership to junior developers.',
+      'adminInfo.cv.experience.techSolutions.achievement1': 'Led 5+ major projects',
+      'adminInfo.cv.experience.techSolutions.achievement2': 'Mentored 8 junior developers',
+      'adminInfo.cv.experience.techSolutions.achievement3': 'Improved code quality by 60%',
+
+      'adminInfo.cv.experience.digitalInnovations.title': 'Full-Stack Developer',
+      'adminInfo.cv.experience.digitalInnovations.company': 'Digital Innovations Ltd',
+      'adminInfo.cv.experience.digitalInnovations.period': '2019 - 2021',
+      'adminInfo.cv.experience.digitalInnovations.description': 'Developed web applications and mobile apps using modern technologies and best practices.',
+      'adminInfo.cv.experience.digitalInnovations.achievement1': 'Built 10+ client applications',
+      'adminInfo.cv.experience.digitalInnovations.achievement2': 'Implemented CI/CD pipelines',
+      'adminInfo.cv.experience.digitalInnovations.achievement3': 'Reduced deployment time by 70%',
+
+      // Education translations
+      'adminInfo.cv.education.masters.degree': 'Master of Computer Science',
+      'adminInfo.cv.education.masters.school': 'University of Rwanda',
+      'adminInfo.cv.education.masters.period': '2017 - 2019',
+      'adminInfo.cv.education.masters.description': 'Specialized in Software Engineering and Distributed Systems',
+
+      'adminInfo.cv.education.bachelors.degree': 'Bachelor of Computer Science',
+      'adminInfo.cv.education.bachelors.school': 'University of Rwanda',
+      'adminInfo.cv.education.bachelors.period': '2013 - 2017',
+      'adminInfo.cv.education.bachelors.description': 'Major in Computer Science with minor in Mathematics',
+
+      // Projects translations
+      'adminInfo.cv.projects.jobPortal.name': 'Job Portal Platform',
+      'adminInfo.cv.projects.jobPortal.description': 'Full-stack job portal with real-time messaging, admin approval workflows, and advanced search capabilities.',
+      'adminInfo.cv.projects.jobPortal.tech': 'React, Node.js, PostgreSQL, Socket.io, Redis',
+
+      'adminInfo.cv.projects.elearning.name': 'E-Learning Management System',
+      'adminInfo.cv.projects.elearning.description': 'Comprehensive LMS platform supporting 1000+ students with course management and progress tracking.',
+      'adminInfo.cv.projects.elearning.tech': 'Vue.js, Django, PostgreSQL, Celery, Docker',
+
+      'adminInfo.cv.projects.inventory.name': 'Inventory Management System',
+      'adminInfo.cv.projects.inventory.description': 'Enterprise inventory solution with barcode scanning, reporting, and multi-warehouse support.',
+      'adminInfo.cv.projects.inventory.tech': 'React Native, Node.js, MongoDB, Express, JWT',
 
     }
   },
@@ -2075,7 +2164,47 @@ const resources = {
       'admin.cta.title': 'Ukeneye Ubufasha bwo mu Buyobozi?',
       'admin.cta.description': 'Itsinda ryawe ryo mu buyobozi riri hano kugufasha ku gusaba cyo ari cyo cyose cyerekeye urubuga cyangwa ibibazo.',
       'admin.cta.contact': 'Twandikire Umuyobozi',
-      'admin.cta.learnMore': 'Menya Byinshi'
+      'admin.cta.learnMore': 'Menya Byinshi',
+
+      // AdminInfo CV Page - Kinyarwanda
+      'adminInfo.cv.title': 'Umubatsi w\'Urubuga & Umuyobozi w\'Sisitemu',
+      'adminInfo.cv.aboutMe.title': 'Ibyerekeye',
+      'adminInfo.cv.aboutMe.description': 'Umubatsi w\'urubuga ufite uburambe bw\'imyaka 5+ mu gubaka porogaramu z\'urubuga zikomeye. Ufite ubumenyi bw\'ububatsi bw\'urubuga, ububatsi bw\'ikirere, n\'uburyo bwo gukoresha ikoranabuhanga. Uyiyemeje kwandika kode yoroshye, ikomeye, no gufasha abandi.',
+      'adminInfo.cv.skills.title': 'Ubumenyi bw\'Ikoranabuhanga',
+      'adminInfo.cv.skills.frontend': 'Urupapuro rwo mu Maso',
+      'adminInfo.cv.skills.backend': 'Urupapuro rwo mu Ntambwe',
+      'adminInfo.cv.skills.database': 'Ububiko bw\'Amakuru',
+      'adminInfo.cv.skills.devops': 'Gucunga Ibikorwa',
+      'adminInfo.cv.certifications.title': 'Impamyabumenyi',
+      'adminInfo.cv.contact.title': 'Twandikire & Ibikorwa',
+      'adminInfo.cv.experience.title': 'Uburambe bw\'Umwuga',
+      'adminInfo.cv.education.title': 'Amashuri',
+      'adminInfo.cv.projects.title': 'Ibikorwa by\'Ingenzi',
+      'adminInfo.cv.systemPerformance.title': 'Ubwiza bw\'Sisitemu',
+      'adminInfo.cv.cta.title': 'Witeguye Gukora Hamwe?',
+      'adminInfo.cv.cta.description': 'Nshya amahirwe, ibikorwa binyuze, n\'ibitekerezo bishya.',
+      'adminInfo.cv.cta.getInTouch': 'Twandikire',
+      'adminInfo.cv.cta.viewPlatform': 'Sura Urubuga',
+      'adminInfo.cv.stats.jobSeekers': 'Abashaka Akazi',
+      'adminInfo.cv.stats.uptime': 'Igihe Gikora',
+      'adminInfo.cv.stats.companies': 'Kompanyi',
+      'adminInfo.cv.stats.experience': 'Imyaka y\'Uburambe',
+      'adminInfo.cv.projectStatus.live': 'Bikora Nonaha',
+      'adminInfo.cv.projectStatus.development': 'Mu Gukora',
+
+      // Skills categories translations in Kinyarwanda
+      'adminInfo.cv.skills.frontend': 'Urupapuro rwo mu Maso',
+      'adminInfo.cv.skills.backend': 'Urupapuro rwo mu Ntambwe',
+      'adminInfo.cv.skills.database': 'Ububiko bw\'Amakuru',
+      'adminInfo.cv.skills.devops': 'Gucunga Ibikorwa',
+
+      // Personal info translations in Kinyarwanda
+      'adminInfo.cv.personal.name': 'Jean Pierre Uwimana',
+      'adminInfo.cv.personal.location': 'Kigali, Rwanda',
+      'adminInfo.cv.personal.email': 'jean.uwimana@jobportal.rw',
+      'adminInfo.cv.personal.phone': '+250 788 123 456',
+      'adminInfo.cv.personal.linkedin': 'linkedin.com/in/jean-uwimana',
+      'adminInfo.cv.personal.github': 'github.com/jean-uwimana',
     }
   }
 };
