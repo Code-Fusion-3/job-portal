@@ -17,14 +17,40 @@ export const authService = {
         
         // Handle validation errors with field details
         if (data.details && Array.isArray(data.details)) {
-          const fieldErrors = data.details
-            .map(detail => `${detail.field}: ${detail.message}`)
-            .join(', ');
-          return { success: false, error: fieldErrors };
+          // Return backend errors in the format expected by the modal
+          return { 
+            success: false, 
+            backendErrors: data.details,
+            error: 'Validation failed. Please check the details below.'
+          };
         }
         
-        // Handle simple error messages
+        // Handle simple error messages - convert to modal format for specific errors
         if (data.error) {
+          // Check if this is a field-specific error that should be shown in modal
+          const fieldSpecificErrors = [
+            'Email already registered.',
+            'Phone number already registered.',
+            'ID number already registered.'
+          ];
+          
+          if (fieldSpecificErrors.includes(data.error)) {
+            // Convert simple error to modal format
+            let field = 'email'; // default
+            if (data.error.includes('Phone')) field = 'contactnumber';
+            if (data.error.includes('ID')) field = 'idnumber';
+            
+            return {
+              success: false,
+              backendErrors: [{
+                field: field,
+                message: data.error
+              }],
+              error: 'Please check the details below.'
+            };
+          }
+          
+          // For other errors, show as general error
           return { success: false, error: data.error };
         }
         
