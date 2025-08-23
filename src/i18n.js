@@ -18,21 +18,21 @@ const resources = {
       'nav.adminInfo': 'Admin Info',
       
       // Hero Section
-      'hero.title': "Huza Impano n'Amahirwe",
-      'hero.subtitle': "Urubuga ruhuza abakoresha n'abakozi mu Rwanda mu mirimo iciriritse ni iyisumbuye — kuva ku bakora isuku, abakozi bo mu rugo, abubatsi, abakanishi, kugeza ku ba tekinisiye n'abandi.",
-      'hero.cta.primary': 'Tangira Ubu',
-      'hero.cta.secondary': 'Reba Abakandida',
-      'hero.tour': 'SURA URUBUGA 360°',
+      'hero.title': 'Connect Talent with Opportunity',
+      'hero.subtitle': 'A platform that connects employers with workers in Rwanda for basic, semi-skilled, and skilled jobs — from cleaners and house helpers to builders, mechanics, technicians, and more.',
+      'hero.cta.primary': 'Get Started',
+      'hero.cta.secondary': 'Browse Candidates',
+      'hero.tour': '360° PLATFORM TOUR',
       
       // Features Section
-      'features.title': 'Impamvu Zoguhitamo Urubuga Rwacu',
-      'features.subtitle': "Duhuza abashaka akazi n'abakoresha binyuze mu bisubizo by'ikoranabuhanga",
-      'features.jobSeekers.title': 'Ku Bashaka Akazi',
-      'features.jobSeekers.desc': "Kora konti yawe y'umwuga uhuze n'abakoresha beza",
-      'features.employers.title': 'Ku Bakoresha',
-      'features.employers.desc': 'Shaka abakandida babishoboye woroshye uburyo bwo kubakoresha',
-      'features.privacy.title': 'Ibigenga Umutekano',
-      'features.privacy.desc': "Amakuru yawe arinzwe n'ingamba zizewe z'umutekano",
+      'features.title': 'Why Choose Our Platform',
+      'features.subtitle': 'Empowering job seekers and employers with innovative solutions',
+      'features.jobSeekers.title': 'For Job Seekers',
+      'features.jobSeekers.desc': 'Create your professional profile and connect with top employers',
+      'features.employers.title': 'For Employers',
+      'features.employers.desc': 'Find qualified candidates and streamline your hiring process',
+      'features.privacy.title': 'Privacy First',
+      'features.privacy.desc': 'Your data is protected with industry-leading security measures',
       
       // Individual Features
       'features.1.title': 'Smart Matching',

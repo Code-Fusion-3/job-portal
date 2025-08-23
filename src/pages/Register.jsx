@@ -14,6 +14,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import HeroSection from '../components/ui/HeroSection';
 import Modal from '../components/ui/Modal';
+import BackendErrorModal from '../components/ui/BackendErrorModal';
 import { authService } from '../api/index.js';
 import { usePublicCategories } from '../api/hooks/useCategories';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
@@ -143,6 +144,10 @@ const Register = () => {
   // Validation modal state
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
+  
+  // Backend error modal state
+  const [showBackendErrorModal, setShowBackendErrorModal] = useState(false);
+  const [backendErrors, setBackendErrors] = useState([]);
 
   // Collapsible sections state
   const [expandedSections, setExpandedSections] = useState({
@@ -339,6 +344,7 @@ const Register = () => {
       }, 2000);
     }
     setShowValidationModal(false);
+    setShowBackendErrorModal(false);
   };
 
   const validateForm = () => {
@@ -562,6 +568,8 @@ const Register = () => {
         setErrors({});
         setValidationErrors([]);
         setShowValidationModal(false);
+        setBackendErrors([]);
+        setShowBackendErrorModal(false);
         // Redirect jobseeker to pending approval page
         if (result.user.role === 'jobseeker') {
           navigate('/pending-approval');
@@ -571,7 +579,13 @@ const Register = () => {
           navigate('/');
         }
       } else {
-        setErrors({ general: result.error });
+        // Handle backend validation errors
+        if (result.backendErrors && Array.isArray(result.backendErrors)) {
+          setBackendErrors(result.backendErrors);
+          setShowBackendErrorModal(true);
+        } else {
+          setErrors({ general: result.error });
+        }
       }
       
     } catch (error) {
@@ -1436,6 +1450,14 @@ const Register = () => {
           onScrollToField={scrollToField}
         />
       </Modal>
+      
+      {/* Backend Error Modal */}
+      <BackendErrorModal
+        isOpen={showBackendErrorModal}
+        onClose={() => setShowBackendErrorModal(false)}
+        errors={backendErrors}
+        onScrollToField={scrollToField}
+      />
       
       <Footer />
     </div>
