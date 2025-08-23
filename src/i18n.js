@@ -15,6 +15,7 @@ const resources = {
       'nav.login': 'Login',
       'nav.language': 'Language',
       'nav.viewJobSeekers': 'View Job Seekers',
+      'nav.adminInfo': 'Admin Info',
       
       // Hero Section
       'hero.title': "Huza Impano n'Amahirwe",
@@ -1002,7 +1003,43 @@ const resources = {
       'viewProfile.sections.actions': 'Actions',
       'viewProfile.actions.requestCandidate': 'Request Candidate',
 
-      'viewProfile.share.text': "Check out {name}'s profile on Job Portal"
+      'viewProfile.share.text': "Check out {name}'s profile on Job Portal", 
+
+
+      // Admin Info Page
+      'admin.hero.title': 'Professional Administration & Management',
+      'admin.hero.subtitle': 'Dedicated to maintaining the highest standards of service quality, security, and user experience across our job portal platform.',
+      'admin.stats.title': 'Administrative Excellence',
+      'admin.stats.subtitle': 'Our commitment to quality service delivery and platform management excellence.',
+      'admin.stats.jobSeekers': 'Job Seekers Managed',
+      'admin.stats.successRate': 'Success Rate',
+      'admin.stats.companies': 'Companies Served',
+      'admin.stats.yearsExperience': 'Years Experience',
+      'admin.features.title': 'Administrative Capabilities',
+      'admin.features.subtitle': 'Comprehensive platform management and quality assurance features.',
+      'admin.features.security.title': 'Platform Security',
+      'admin.features.security.description': 'Advanced security measures to protect user data and maintain platform integrity.',
+      'admin.features.management.title': 'User Management',
+      'admin.features.management.description': 'Efficient management of job seekers, employers, and platform users.',
+      'admin.features.quality.title': 'Quality Assurance',
+      'admin.features.quality.description': 'Rigorous verification processes to ensure only qualified candidates are presented.',
+      'admin.features.support.title': '24/7 Support',
+      'admin.features.support.description': 'Round-the-clock administrative support and platform monitoring.',
+      'admin.mission.title': 'Our Administrative Mission',
+      'admin.mission.description': 'To provide exceptional administrative oversight, ensuring the highest standards of service quality, user experience, and platform security while maintaining transparency and trust with all stakeholders.',
+      'admin.vision.title': 'Our Administrative Vision',
+      'admin.vision.description': 'To establish JobPortal as the most trusted and efficiently managed job platform in Rwanda, setting industry standards for administrative excellence and user satisfaction.',
+      'admin.contact.title': 'Administrative Contact',
+      'admin.contact.subtitle': 'Get in touch with our administrative team for any platform-related inquiries or support needs.',
+      'admin.contact.email': 'Administrative Email',
+      'admin.contact.phone': 'Administrative Phone',
+      'admin.contact.address': 'Administrative Office',
+      'admin.contact.hours': 'Business Hours',
+      'admin.cta.title': 'Need Administrative Support?',
+      'admin.cta.description': 'Our dedicated administrative team is here to help with any platform-related questions or concerns.',
+      'admin.cta.contact': 'Contact Admin',
+      'admin.cta.learnMore': 'Learn More',
+
     }
   },
   rw: {
@@ -1963,7 +2000,8 @@ const resources = {
       'admin.dashboard.emailIsRequired': 'Imeri ikenewe',
       'admin.dashboard.phoneIsRequired': 'Telefone igomba kuba nibura imibare 9 iyo yatanzwe',
       'admin.dashboard.bioIsRequired': 'Amakuru akenewe',
-
+      
+     
       // ViewProfile Component Translations in Kinyarwanda
       'viewProfile.loading.title': 'Turimo kurukurikirana umwirondoro...',
       'viewProfile.errors.profileNotAvailable': 'Umwirondoro Ntibihagaze',
@@ -2003,7 +2041,41 @@ const resources = {
       'viewProfile.sections.actions': 'Ibikorwa',
       'viewProfile.actions.requestCandidate': 'Saba Umukandida',
 
-      'viewProfile.share.text': 'Sura umwirondoro wa {name} ku Rubuga rwa Job Portal'
+      'viewProfile.share.text': 'Sura umwirondoro wa {name} ku Rubuga rwa Job Portal',
+      
+      // Admin Info Page - Kinyarwanda translations
+      'admin.hero.title': 'Ubuyobozi n\'Ucunga bw\'Umwuga',
+      'admin.hero.subtitle': 'Tuyiyemeje kurinda ingamba zizewe z\'ubwiza, umutekano, n\'uburyo bwo gukoresha urubuga rwacu rwo gushaka akazi.',
+      'admin.stats.title': 'Ubuhanga mu Buyobozi',
+      'admin.stats.subtitle': 'Icyemezo cyacu cyo gutanga serivisi y\'ubwiza n\'ubuhanga mu gucunga urubuga.',
+      'admin.stats.jobSeekers': 'Abashaka Akazi Bacungwa',
+      'admin.stats.successRate': 'Igipimo cy\'Intsinzi',
+      'admin.stats.companies': 'Kompanyi Zigufashwa',
+      'admin.stats.yearsExperience': 'Imyaka y\'Uburambe',
+      'admin.features.title': 'Ubushobozi bwo mu Buyobozi',
+      'admin.features.subtitle': 'Ibikorwa by\'ubwiza mu gucunga urubuga n\'ingamba z\'ubwiza.',
+      'admin.features.security.title': 'Umutekano w\'Urubuga',
+      'admin.features.security.description': 'Ingamba z\'umutekano z\'ingenzi zo kurinda amakuru y\'abakoresha no kugenzura ubwiza bw\'urubuga.',
+      'admin.features.management.title': 'Gucunga Abakoresha',
+      'admin.features.management.description': 'Gucunga neza abashaka akazi, abakoresha, n\'abakoresha urubuga.',
+      'admin.features.quality.title': 'Ubwiza bw\'Ingamba',
+      'admin.features.quality.description': 'Ingamba z\'ubwiza zo kugenzura ko abakandida bemewe gusa ni bo bagaragara.',
+      'admin.features.support.title': 'Ubufasha 24/7',
+      'admin.features.support.description': 'Ubufasha bw\'ubuyobozi n\'ugukurikirana urubuga buri gihe.',
+      'admin.mission.title': 'Intego Yacu yo mu Buyobozi',
+      'admin.mission.description': 'Gutanga ubuyobozi bw\'ingenzi, dukugenzura ingamba zizewe z\'ubwiza bw\'ubufasha, uburyo bwo gukoresha, n\'umutekano w\'urubuga mugihe dukugenzura ubwiza n\'ukwizera.',
+      'admin.vision.title': 'Icyerekezo Cyacu cyo mu Buyobozi',
+      'admin.vision.description': 'Guteza imbere JobPortal nk\'urubuga rwo gushaka akazi rwizewe cyane no gucungwa neza mu Rwanda, dushyiraho ingamba z\'ubuhanga mu buyobozi n\'ubwishime bw\'abakoresha.',
+      'admin.contact.title': 'Twandikire mu Buyobozi',
+      'admin.contact.subtitle': 'Twandikire itsinda ryawe ryo mu buyobozi ku gusaba cyo ari cyo cyose cyerekeye urubuga cyangwa ubufasha.',
+      'admin.contact.email': 'Imeyili yo mu Buyobozi',
+      'admin.contact.phone': 'Telefone yo mu Buyobozi',
+      'admin.contact.address': 'Ibiro byo mu Buyobozi',
+      'admin.contact.hours': 'Amasaha y\'Ubucuruzi',
+      'admin.cta.title': 'Ukeneye Ubufasha bwo mu Buyobozi?',
+      'admin.cta.description': 'Itsinda ryawe ryo mu buyobozi riri hano kugufasha ku gusaba cyo ari cyo cyose cyerekeye urubuga cyangwa ibibazo.',
+      'admin.cta.contact': 'Twandikire Umuyobozi',
+      'admin.cta.learnMore': 'Menya Byinshi'
     }
   }
 };

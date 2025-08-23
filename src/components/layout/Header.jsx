@@ -50,6 +50,7 @@ const Header = () => {
   const navItems = [
     { key: 'nav.home', href: '/', isExternal: false },
     { key: 'nav.jobSeekers', href: '/job-seekers', isExternal: false },
+    { key: 'nav.adminInfo', href: '/admin-info', isExternal: false },
     { key: 'nav.contact', href: '/contact', isExternal: false },
   ];
 

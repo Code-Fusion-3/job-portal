@@ -27,8 +27,23 @@ const Button = forwardRef(({
   
   const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
   
-  const Component = as === 'button' ? motion.button : motion.div;
+  // Handle different component types properly
+  if (as === 'button') {
+    return (
+      <motion.button
+        ref={ref}
+        className={classes}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        {...props}
+      >
+        {children}
+      </motion.button>
+    );
+  }
   
+  // For Link components and other custom components
+  const Component = as;
   return (
     <Component
       ref={ref}

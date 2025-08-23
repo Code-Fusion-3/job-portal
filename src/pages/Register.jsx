@@ -798,11 +798,10 @@ const Register = () => {
                     )}
                   </div>
                 </div>
-              </div>
-          </div>
+                </div>
+                </div>
               </div>
             </div>
-
 
           {/* Additional Information Section - Collapsible */}
           <div className="space-y-6 pb-4">

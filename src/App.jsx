@@ -17,6 +17,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const JobSeekers = lazy(() => import('./pages/JobSeekers'));
 const Login = lazy(() => import('./pages/Login'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminInfo = lazy(() => import('./pages/AdminInfo'));
 const Register = lazy(() => import('./pages/Register'));
 const EmployerRequest = lazy(() => import('./pages/EmployerRequest'));
 const JobSeekerDashboard = lazy(() => import('./pages/dashboard/JobSeekerDashboard'));
@@ -249,6 +250,7 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/employer-request/:id" element={<EmployerRequest />} />
                 <Route path="/about" element={<AboutUsPage />} />
+                <Route path="/admin-info" element={<AdminInfo />} />
                 <Route path="/contact" element={<ContactUsPage />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
