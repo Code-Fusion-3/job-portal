@@ -27,6 +27,7 @@ import {
 import Card from '../components/ui/Card';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import defaultProfileImage from '../assets/defaultProfileImage.jpeg';
 
 const AdminInfo = () => {
   const { t } = useTranslation();
@@ -146,9 +147,27 @@ const AdminInfo = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-center"
           >
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-white bg-opacity-20 rounded-full mb-6">
-              <Shield className="w-12 h-12 text-white" />
-            </div>
+            <motion.div
+              className="inline-flex items-center justify-center mb-6"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="relative">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white border-opacity-30 shadow-2xl">
+                  <img 
+                    src={defaultProfileImage} 
+                    alt={`${personalInfo.name} - ${t('adminInfo.cv.title')}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = defaultProfileImage;
+                    }}
+                  />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </motion.div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{personalInfo.name}</h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-6">{t('adminInfo.cv.title')}</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
@@ -215,10 +234,10 @@ const AdminInfo = () => {
                           >
                             {skill}
                           </span>
-            ))}
-          </div>
-        </div>
-                  ))}
+                        ))}
+                      </div>
+                    </div>
+                              ))}
                 </div>
               </Card>
             </motion.div>
