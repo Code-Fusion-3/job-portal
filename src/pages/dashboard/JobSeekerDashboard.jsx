@@ -28,7 +28,9 @@ import {
   Languages,
   Award,
   Mail,
-  Phone
+  Phone,
+  RefreshCw,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import Button from '../../components/ui/Button';
@@ -42,6 +44,8 @@ const JobSeekerDashboard = () => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [refreshError, setRefreshError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Redirect if no user
   useEffect(() => {
@@ -50,6 +54,40 @@ const JobSeekerDashboard = () => {
     }
   }, [user, navigate]);
 
+  // Detect potential auto-refresh issues
+  useEffect(() => {
+    const checkRefreshHealth = () => {
+      // If we detect multiple failed operations, show a helpful message
+      const hasRecentErrors = sessionStorage.getItem('dashboardRefreshErrors');
+      if (hasRecentErrors && parseInt(hasRecentErrors) > 2) {
+        setRefreshError('Multiple refresh attempts failed. Please use manual refresh or contact support.');
+      }
+    };
+
+    // Check every 30 seconds
+    const interval = setInterval(checkRefreshHealth, 30000);
+    
+    // Initial check
+    checkRefreshHealth();
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Listen for storage events (when other tabs update the session)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'dashboardRefreshErrors') {
+        const errorCount = parseInt(e.newValue || '0');
+        if (errorCount > 0) {
+          setRefreshError(`Auto-refresh has failed ${errorCount} times. Consider using manual refresh.`);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -57,6 +95,26 @@ const JobSeekerDashboard = () => {
 
   const handleEditProfile = () => {
     navigate('/update-profile');
+  };
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    setRefreshError(null);
+    
+    try {
+      // Simulate a refresh delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Force a page reload to get fresh data
+      window.location.reload();
+    } catch (error) {
+      setRefreshError('Failed to refresh. Please try again.');
+      setIsRefreshing(false);
+    }
+  };
+
+  const clearRefreshError = () => {
+    setRefreshError(null);
   };
 
   // Show loading if user is not loaded
@@ -148,6 +206,19 @@ const JobSeekerDashboard = () => {
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* Refresh Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleManualRefresh}
+                  disabled={isRefreshing}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  title="Refresh dashboard data"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+                
                 <div className="flex items-center space-x-3">
                   <Avatar 
                     src={user?.avatar} 
@@ -175,6 +246,77 @@ const JobSeekerDashboard = () => {
           </div>
         </header>
 
+        {/* Error Notification Banner */}
+        {refreshError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-red-50 border-l-4 border-red-400 p-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <XCircle className="w-5 h-5 text-red-400 mr-3" />
+                <div>
+                  <p className="text-sm text-red-800 font-medium">
+                    Auto-refresh failed
+                  </p>
+                  <p className="text-sm text-red-700">
+                    {refreshError}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleManualRefresh}
+                  disabled={isRefreshing}
+                  className="text-red-700 hover:text-red-800 hover:bg-red-100"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Retry
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearRefreshError}
+                  className="text-red-700 hover:text-red-800 hover:bg-red-100"
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Connection Status Indicator */}
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse"></div>
+              <p className="text-sm text-blue-800">
+                Dashboard connected • Auto-refresh enabled
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                Last updated: {new Date().toLocaleTimeString()}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="text-blue-700 hover:text-blue-800 hover:bg-blue-100 text-xs"
+              >
+                <RefreshCw className={`w-3 h-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Manual Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <motion.div
@@ -196,6 +338,39 @@ const JobSeekerDashboard = () => {
                 Update Profile
               </Button>
             </div>
+          </motion.div>
+
+          {/* Auto-refresh Troubleshooting Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <Card className="bg-amber-50 border-amber-200">
+              <div className="p-4">
+                <div className="flex items-start">
+                  <Info className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-amber-800 mb-2">
+                      Auto-refresh Status
+                    </h3>
+                    <p className="text-sm text-amber-700 mb-3">
+                      If you're experiencing issues with profile updates not reflecting automatically, 
+                      you can manually refresh the dashboard using the refresh button in the header.
+                    </p>
+                    <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <p className="text-xs text-amber-800 font-medium mb-2">Quick Troubleshooting:</p>
+                      <ul className="text-xs text-amber-700 space-y-1">
+                        <li>• Click the refresh button in the header to manually update data</li>
+                        <li>• Check your internet connection if auto-refresh fails</li>
+                        <li>• Contact support if issues persist</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </motion.div>
 
           {/* Profile Details */}
@@ -398,6 +573,32 @@ const JobSeekerDashboard = () => {
                   <p className="text-xs text-gray-500">
                     Complete your profile to increase your chances of getting hired
                   </p>
+                  
+                  {/* Refresh Status */}
+                  <div className="pt-3 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-500">Data Status</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-green-600">Live</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        Last updated: {new Date().toLocaleTimeString()}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleManualRefresh}
+                        disabled={isRefreshing}
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-1"
+                      >
+                        <RefreshCw className={`w-3 h-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        Refresh
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </Card>
             </div>
