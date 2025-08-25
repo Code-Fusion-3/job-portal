@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertCircle, XCircle } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import { logProfileOperation } from '../../api/utils/profileUtils';
 
 const RejectionReasonModal = ({ 
   isOpen, 
@@ -53,10 +54,16 @@ const RejectionReasonModal = ({
     setIsSubmitting(true);
     
     try {
+      // Log rejection submission for debugging
+      logProfileOperation('reject', { reason: reason.trim() }, {
+        component: 'RejectionReasonModal',
+        profileName: profileName || 'unknown'
+      });
+
       await onSubmit(reason.trim());
       handleClose();
     } catch (error) {
-      console.error('Error submitting rejection reason:', error);
+      console.error('❌ Error submitting rejection reason:', error);
       setErrors({ general: 'Failed to submit rejection reason. Please try again.' });
     } finally {
       setIsSubmitting(false);

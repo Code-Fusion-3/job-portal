@@ -3,6 +3,14 @@ import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
 import StatusBadge from '../ui/StatusBadge';
+import {
+  extractProfileId,
+  validateProfileId,
+  getApprovalStatus,
+  canApproveProfile,
+  canRejectProfile,
+  logProfileOperation
+} from '../../api/utils/profileUtils';
 
 const ApprovalActions = ({ 
   profileId, 
@@ -15,24 +23,38 @@ const ApprovalActions = ({
   const [isLoading, setIsLoading] = useState(false);
   const [actionType, setActionType] = useState(null);
 
-  // Determine available actions based on current status
+  // Validate profile ID
+  const validProfileId = validateProfileId(profileId) ? profileId : null;
+  
+  // Get actual status from props or use utility function
+  const actualStatus = currentStatus || 'pending';
+
+  // Determine available actions based on current status using utility functions
   const getAvailableActions = (status) => {
-    switch (status) {
-      case 'pending':
-        return ['approve', 'reject'];
-      case 'approved':
-        return ['reject']; // Can still reject approved profiles
-      case 'rejected':
-        return ['approve']; // Can approve rejected profiles
-      default:
-        return [];
+    // Create a mock profile object for utility functions
+    const mockProfile = { id: validProfileId, approvalStatus: status };
+    
+    const actions = [];
+    if (canApproveProfile(mockProfile)) {
+      actions.push('approve');
     }
+    if (canRejectProfile(mockProfile)) {
+      actions.push('reject');
+    }
+    
+    return actions;
   };
 
-  const availableActions = getAvailableActions(currentStatus);
+  const availableActions = getAvailableActions(actualStatus);
 
   const handleAction = async (action) => {
-    if (disabled || isLoading) return;
+    if (disabled || isLoading || !validProfileId) return;
+
+    // Log operation for debugging
+    logProfileOperation(action, { id: validProfileId }, {
+      component: 'ApprovalActions',
+      currentStatus: actualStatus
+    });
 
     setIsLoading(true);
     setActionType(action);
@@ -46,7 +68,7 @@ const ApprovalActions = ({
         await onApprovalChange('rejected');
       }
     } catch (error) {
-      console.error(`Error performing ${action} action:`, error);
+      console.error(`❌ Error performing ${action} action:`, error);
     } finally {
       setIsLoading(false);
       setActionType(null);
@@ -55,7 +77,7 @@ const ApprovalActions = ({
 
   const getActionButton = (action) => {
     const isCurrentAction = actionType === action;
-    const isDisabled = disabled || isLoading;
+    const isDisabled = disabled || isLoading || !validProfileId;
 
     const buttonConfig = {
       approve: {
@@ -85,7 +107,7 @@ const ApprovalActions = ({
         onClick={() => handleAction(action)}
         disabled={isDisabled}
         className={`min-w-[100px] ${config.bgColor} ${config.color} border ${config.color.replace('text-', 'border-')} hover:${config.bgColor}`}
-        aria-label={`${config.label} profile ${profileId}`}
+        aria-label={`${config.label} profile ${validProfileId || 'unknown'}`}
         title={`${config.label} this profile`}
         {...props}
       >
@@ -111,7 +133,7 @@ const ApprovalActions = ({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Current Status Display */}
-      <StatusBadge status={currentStatus} size="sm" />
+      <StatusBadge status={actualStatus} size="sm" />
       
       {/* Action Buttons */}
       <div className="flex gap-2">

@@ -6,6 +6,12 @@
 import { apiClient } from '../client/apiClient.js';
 import { handleError } from '../utils/errorHandler.js';
 import { getAuthHeaders } from '../config/apiConfig.js';
+import { 
+  extractProfileId, 
+  validateProfileId, 
+  logProfileOperation, 
+  createProfileErrorMessage 
+} from '../utils/profileUtils.js';
 
 /**
  * Job Seeker Profile Data Structure
@@ -471,23 +477,40 @@ export const jobSeekerService = {
    */
   approveJobSeeker: async (id) => {
     try {
+      // Validate profile ID
+      if (!validateProfileId(id)) {
+        const error = createProfileErrorMessage('approve profile', 'Invalid profile ID provided');
+        console.error('❌ approveJobSeeker validation error:', error);
+        return { success: false, error };
+      }
+
+      // Log operation for debugging
+      logProfileOperation('approve', { id }, { operation: 'approveJobSeeker' });
+
       const response = await apiClient.put(`/profile/${id}/approve`, {}, {
         headers: getAuthHeaders()
       });
       
+      console.log('✅ Profile approved successfully:', { profileId: id, response: response.data });
+      
       return {
         success: true,
-        data: response.data,
+        data: response.data.profile || response.data,
         message: 'Profile approved successfully'
       };
     } catch (error) {
+      console.error('❌ approveJobSeeker error:', error);
+      console.error('❌ Error response:', error.response);
+      
       // Handle specific backend error cases
       if (error.response?.data?.error) {
-        return { success: false, error: error.response.data.error };
+        const errorMsg = createProfileErrorMessage('approve profile', error.response.data.error);
+        return { success: false, error: errorMsg };
       }
       
       const apiError = handleError(error, { context: 'approve_job_seeker' });
-      return { success: false, error: apiError.userMessage };
+      const errorMsg = createProfileErrorMessage('approve profile', apiError.userMessage);
+      return { success: false, error: errorMsg };
     }
   },
 
@@ -497,23 +520,47 @@ export const jobSeekerService = {
    */
   rejectJobSeeker: async (id, reason) => {
     try {
-      const response = await apiClient.put(`/profile/${id}/reject`, { reason }, {
+      // Validate profile ID
+      if (!validateProfileId(id)) {
+        const error = createProfileErrorMessage('reject profile', 'Invalid profile ID provided');
+        console.error('❌ rejectJobSeeker validation error:', error);
+        return { success: false, error };
+      }
+
+      // Validate rejection reason
+      if (!reason || typeof reason !== 'string' || reason.trim().length < 10) {
+        const error = createProfileErrorMessage('reject profile', 'Rejection reason must be at least 10 characters long');
+        console.error('❌ rejectJobSeeker validation error:', error);
+        return { success: false, error };
+      }
+
+      // Log operation for debugging
+      logProfileOperation('reject', { id }, { operation: 'rejectJobSeeker', reason: reason.trim() });
+
+      const response = await apiClient.put(`/profile/${id}/reject`, { reason: reason.trim() }, {
         headers: getAuthHeaders()
       });
       
+      console.log('✅ Profile rejected successfully:', { profileId: id, reason: reason.trim(), response: response.data });
+      
       return {
         success: true,
-        data: response.data,
+        data: response.data.profile || response.data,
         message: 'Profile rejected successfully'
       };
     } catch (error) {
+      console.error('❌ rejectJobSeeker error:', error);
+      console.error('❌ Error response:', error.response);
+      
       // Handle specific backend error cases
       if (error.response?.data?.error) {
-        return { success: false, error: error.response.data.error };
+        const errorMsg = createProfileErrorMessage('reject profile', error.response.data.error);
+        return { success: false, error: errorMsg };
       }
       
       const apiError = handleError(error, { context: 'reject_job_seeker' });
-      return { success: false, error: apiError.userMessage };
+      const errorMsg = createProfileErrorMessage('reject profile', apiError.userMessage);
+      return { success: false, error: errorMsg };
     }
   },
 
@@ -523,7 +570,22 @@ export const jobSeekerService = {
    */
   getProfilesByStatus: async (status, params = {}) => {
     try {
+      // Validate status parameter
+      const validStatuses = ['pending', 'approved', 'rejected'];
+      if (!validStatuses.includes(status)) {
+        const error = `Invalid status '${status}'. Must be one of: ${validStatuses.join(', ')}`;
+        console.error('❌ getProfilesByStatus validation error:', error);
+        return { success: false, error };
+      }
+
       const { page = 1, limit = 10, ...otherParams } = params;
+      
+      // Validate pagination parameters
+      if (page < 1 || limit < 1 || limit > 100) {
+        const error = 'Invalid pagination parameters. Page must be >= 1, limit must be between 1 and 100';
+        console.error('❌ getProfilesByStatus pagination error:', error);
+        return { success: false, error };
+      }
       
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -531,23 +593,39 @@ export const jobSeekerService = {
         ...otherParams
       });
 
+      console.log(`🔍 Fetching profiles with status '${status}':`, { page, limit, otherParams });
+
       const response = await apiClient.get(`/profile/status/${status}?${queryParams}`, {
         headers: getAuthHeaders()
       });
       
+      const profiles = response.data.profiles || response.data || [];
+      const pagination = response.data.pagination || {};
+      
+      console.log(`✅ Retrieved ${profiles.length} profiles with status '${status}'`, { 
+        status, 
+        count: profiles.length, 
+        pagination 
+      });
+      
       return {
         success: true,
-        data: response.data.profiles || [],
-        pagination: response.data.pagination || {}
+        data: profiles,
+        pagination: pagination
       };
     } catch (error) {
+      console.error(`❌ getProfilesByStatus error for status '${status}':`, error);
+      console.error('❌ Error response:', error.response);
+      
       // Handle specific backend error cases
       if (error.response?.data?.error) {
-        return { success: false, error: error.response.data.error };
+        const errorMsg = `Failed to fetch ${status} profiles: ${error.response.data.error}`;
+        return { success: false, error: errorMsg };
       }
       
       const apiError = handleError(error, { context: 'get_profiles_by_status' });
-      return { success: false, error: apiError.userMessage };
+      const errorMsg = `Failed to fetch ${status} profiles: ${apiError.userMessage}`;
+      return { success: false, error: errorMsg };
     }
   }
 };
