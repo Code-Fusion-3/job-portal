@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { jobSeekerService } from '../services/jobSeekerService.js';
+import { 
+  extractProfileId, 
+  validateProfileId, 
+  logProfileOperation, 
+  createProfileErrorMessage 
+} from '../utils/profileUtils.js';
 
 export const useApprovalManagement = (options = {}) => {
   const {
@@ -149,16 +155,27 @@ export const useApprovalManagement = (options = {}) => {
     }
   }, [itemsPerPage, handleApiError, retryWithBackoff]);
 
-    // Approve profile with enhanced error handling
+    // Approve profile with enhanced error handling and race condition prevention
   const approveProfile = useCallback(async (profileId) => {
-    if (!profileId) {
-      const error = 'Profile ID is required for approval';
+    // Validate profile ID
+    if (!validateProfileId(profileId)) {
+      const error = createProfileErrorMessage('approve profile', 'Invalid profile ID provided');
       setError(error);
+      return { success: false, error };
+    }
+
+    // Prevent multiple simultaneous operations on the same profile
+    if (loading) {
+      const error = 'Another operation is in progress. Please wait.';
+      console.warn('🚫 approveProfile: Operation blocked - another operation in progress');
       return { success: false, error };
     }
 
     setLoading(true);
     setError(null);
+
+    // Log operation for debugging
+    logProfileOperation('approve', { id: profileId }, { hook: 'useApprovalManagement' });
 
     // Store original state for rollback
     const originalPendingProfiles = [...pendingProfiles];
@@ -175,8 +192,11 @@ export const useApprovalManagement = (options = {}) => {
     };
 
     try {
-      // Optimistic update
-      setPendingProfiles(prev => prev.filter(profile => profile.id !== profileId));
+      // Optimistic update - remove from pending, add to approved
+      setPendingProfiles(prev => prev.filter(profile => {
+        const profileIdToCheck = extractProfileId(profile);
+        return profileIdToCheck !== profileId;
+      }));
       
       const result = await retryWithBackoff(approveOperation);
       
@@ -185,20 +205,25 @@ export const useApprovalManagement = (options = {}) => {
         setApprovedProfiles(prev => [...prev, result.data]);
       }
 
-      // Refresh current page data
+      // Sequential refresh to prevent race conditions
       try {
+        console.log('🔄 Refreshing data after successful approval...');
         await fetchProfilesByStatus('pending', currentPage, false);
+        console.log('✅ Pending profiles refreshed successfully');
       } catch (refreshError) {
-        console.warn('Failed to refresh data after approval:', refreshError);
+        console.warn('⚠️ Failed to refresh pending profiles after approval:', refreshError);
         // Don't fail the whole operation if refresh fails
       }
 
+      console.log('✅ Profile approval completed successfully:', { profileId, result });
       return { 
         success: true, 
         data: result.data, 
         message: result.message || 'Profile approved successfully' 
       };
     } catch (error) {
+      console.error('❌ Profile approval failed, rolling back state:', error);
+      
       // Rollback optimistic updates on error
       setPendingProfiles(originalPendingProfiles);
       setApprovedProfiles(originalApprovedProfiles);
@@ -209,24 +234,39 @@ export const useApprovalManagement = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [pendingProfiles, approvedProfiles, fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError]);
+  }, [pendingProfiles, approvedProfiles, fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError, loading]);
 
-    // Reject profile with enhanced error handling
+    // Reject profile with enhanced error handling and race condition prevention
   const rejectProfile = useCallback(async (profileId, reason) => {
-    if (!profileId) {
-      const error = 'Profile ID is required for rejection';
+    // Validate profile ID
+    if (!validateProfileId(profileId)) {
+      const error = createProfileErrorMessage('reject profile', 'Invalid profile ID provided');
       setError(error);
       return { success: false, error };
     }
 
-    if (!reason || reason.trim().length < 10) {
+    // Validate rejection reason
+    if (!reason || typeof reason !== 'string' || reason.trim().length < 10) {
       const error = 'A detailed rejection reason (minimum 10 characters) is required';
       setError(error);
       return { success: false, error };
     }
 
+    // Prevent multiple simultaneous operations on the same profile
+    if (loading) {
+      const error = 'Another operation is in progress. Please wait.';
+      console.warn('🚫 rejectProfile: Operation blocked - another operation in progress');
+      return { success: false, error };
+    }
+
     setLoading(true);
     setError(null);
+
+    // Log operation for debugging
+    logProfileOperation('reject', { id: profileId }, { 
+      hook: 'useApprovalManagement', 
+      reason: reason.trim() 
+    });
 
     // Store original state for rollback
     const originalPendingProfiles = [...pendingProfiles];
@@ -243,8 +283,11 @@ export const useApprovalManagement = (options = {}) => {
     };
 
     try {
-      // Optimistic update
-      setPendingProfiles(prev => prev.filter(profile => profile.id !== profileId));
+      // Optimistic update - remove from pending, add to rejected
+      setPendingProfiles(prev => prev.filter(profile => {
+        const profileIdToCheck = extractProfileId(profile);
+        return profileIdToCheck !== profileId;
+      }));
       
       const result = await retryWithBackoff(rejectOperation);
       
@@ -253,20 +296,25 @@ export const useApprovalManagement = (options = {}) => {
         setRejectedProfiles(prev => [...prev, result.data]);
       }
 
-      // Refresh current page data
+      // Sequential refresh to prevent race conditions
       try {
+        console.log('🔄 Refreshing data after successful rejection...');
         await fetchProfilesByStatus('pending', currentPage, false);
+        console.log('✅ Pending profiles refreshed successfully');
       } catch (refreshError) {
-        console.warn('Failed to refresh data after rejection:', refreshError);
+        console.warn('⚠️ Failed to refresh pending profiles after rejection:', refreshError);
         // Don't fail the whole operation if refresh fails
       }
 
+      console.log('✅ Profile rejection completed successfully:', { profileId, reason: reason.trim(), result });
       return { 
         success: true, 
         data: result.data, 
         message: result.message || 'Profile rejected successfully' 
       };
     } catch (error) {
+      console.error('❌ Profile rejection failed, rolling back state:', error);
+      
       // Rollback optimistic updates on error
       setPendingProfiles(originalPendingProfiles);
       setRejectedProfiles(originalRejectedProfiles);
@@ -277,7 +325,7 @@ export const useApprovalManagement = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [pendingProfiles, rejectedProfiles, fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError]);
+  }, [pendingProfiles, rejectedProfiles, fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError, loading]);
 
   // Bulk operations
   const bulkApprove = useCallback(async (profileIds) => {

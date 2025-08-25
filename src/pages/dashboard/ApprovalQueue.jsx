@@ -12,6 +12,15 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { useApprovalManagement } from '../../api/hooks/useApprovalManagement.js';
+import {
+  extractProfileId,
+  validateProfileId,
+  getApprovalStatus,
+  canApproveProfile,
+  canRejectProfile,
+  getProfileDisplayName,
+  logProfileOperation
+} from '../../api/utils/profileUtils';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -96,9 +105,24 @@ const ApprovalQueue = () => {
     }
   }, [showError]);
 
-    // Handle approval changes with optimizations
+    // Handle approval changes with enhanced validation and logging
   const handleApprovalChange = useCallback(async (profileId, newStatus, reason = null) => {
     try {
+      // Validate profile ID
+      if (!validateProfileId(profileId)) {
+        const error = `Invalid profile ID provided: ${profileId}`;
+        setErrorMessage(error);
+        setShowError(true);
+        console.error('❌ handleApprovalChange validation error:', error);
+        return;
+      }
+
+      // Log operation for debugging
+      logProfileOperation(newStatus, { id: profileId }, {
+        component: 'ApprovalQueue',
+        reason: reason || 'N/A'
+      });
+
       let result;
 
       if (newStatus === 'approved') {
@@ -123,29 +147,47 @@ const ApprovalQueue = () => {
     } catch (error) {
       setErrorMessage(`Failed to ${newStatus} profile`);
       setShowError(true);
-      console.error(`Approval change error:`, error);
+      console.error(`❌ Approval change error:`, error);
     }
   }, [profileOperations, clearError]);
 
-  // Handle rejection modal
+  // Handle rejection modal with validation
   const handleRejectionRequest = (profile) => {
+    if (!profile) {
+      console.error('❌ handleRejectionRequest: No profile provided');
+      return;
+    }
+
+    const profileId = extractProfileId(profile);
+    if (!profileId) {
+      console.error('❌ handleRejectionRequest: Could not extract profile ID from profile:', profile);
+      setErrorMessage('Error: Could not determine profile ID. Please try again.');
+      setShowError(true);
+      return;
+    }
+
     setSelectedProfile(profile);
     setShowRejectionModal(true);
   };
 
   const handleRejectionSubmit = async (reason) => {
     if (selectedProfile) {
-      await handleApprovalChange(selectedProfile.id, 'rejected', reason);
-      setShowRejectionModal(false);
-      setSelectedProfile(null);
+      const profileId = extractProfileId(selectedProfile);
+      if (profileId) {
+        await handleApprovalChange(profileId, 'rejected', reason);
+        setShowRejectionModal(false);
+        setSelectedProfile(null);
+      } else {
+        setErrorMessage('Error: Could not determine profile ID for rejection');
+        setShowError(true);
+        console.error('❌ handleRejectionSubmit: Could not extract profile ID from selectedProfile:', selectedProfile);
+      }
     }
   };
 
-  // Memoized profile utility functions for performance
+  // Memoized profile utility functions for performance using new utilities
   const getProfileName = useCallback((profile) => {
-    const firstName = profile.profile?.firstName || profile.firstName || 'Unknown';
-    const lastName = profile.profile?.lastName || profile.lastName || '';
-    return `${firstName} ${lastName}`.trim();
+    return getProfileDisplayName(profile);
   }, []);
 
   const getProfilePhoto = useCallback((profile) => {
@@ -412,7 +454,15 @@ const ApprovalQueue = () => {
                       <StatusBadge status="pending" size="sm" />
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => handleApprovalChange(profile.id, 'approved')}
+                          onClick={() => {
+                            const profileId = extractProfileId(profile);
+                            if (profileId) {
+                              handleApprovalChange(profileId, 'approved');
+                            } else {
+                              setErrorMessage('Error: Could not determine profile ID for approval');
+                              setShowError(true);
+                            }
+                          }}
                           variant="primary"
                           size="sm"
                           disabled={loading}

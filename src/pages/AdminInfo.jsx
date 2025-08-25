@@ -27,7 +27,7 @@ import {
 import Card from '../components/ui/Card';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
-import defaultProfileImage from '../assets/defaultProfileImage.jpeg';
+import defaultProfileImage from '../assets/adminProfile.jpg';
 
 const AdminInfo = () => {
   const { t } = useTranslation();

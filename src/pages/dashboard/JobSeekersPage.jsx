@@ -32,6 +32,15 @@ import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
 import { useApprovalManagement } from '../../api/hooks/useApprovalManagement.js';
+import { 
+  extractProfileId, 
+  validateProfileId,
+  getApprovalStatus, 
+  canApproveProfile, 
+  canRejectProfile,
+  getProfileDisplayName,
+  logProfileOperation 
+} from '../../api/utils/profileUtils';
 import API_CONFIG from '../../api/config/apiConfig.js';
 import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import ProfileImage from '../../components/ui/ProfileImage';
@@ -473,8 +482,14 @@ const JobSeekersPage = () => {
         setShowActionModal(false);
         break;
       case 'approve':
-        handleApprovalChange(jobSeeker.id, 'approved');
-        setShowActionModal(false);
+        const approveProfileId = extractProfileId(jobSeeker);
+        if (approveProfileId) {
+          handleApprovalChange(approveProfileId, 'approved');
+          setShowActionModal(false);
+        } else {
+          setErrorMessage('Error: Could not determine profile ID for approval');
+          setShowError(true);
+        }
         break;
       case 'reject':
         // For rejection, we need to show a rejection reason modal
@@ -557,9 +572,24 @@ const JobSeekersPage = () => {
     }
   };
 
-  // Handle approval changes
+  // Handle approval changes with improved error handling and logging
   const handleApprovalChange = async (profileId, newStatus, reason = null) => {
     try {
+      // Validate profile ID
+      if (!validateProfileId(profileId)) {
+        const error = `Invalid profile ID provided: ${profileId}`;
+        setErrorMessage(error);
+        setShowError(true);
+        console.error('❌ handleApprovalChange validation error:', error);
+        return;
+      }
+
+      // Log operation for debugging
+      logProfileOperation(newStatus, { id: profileId }, { 
+        component: 'JobSeekersPage', 
+        reason: reason || 'N/A' 
+      });
+
       let result;
       
       if (newStatus === 'approved') {
@@ -578,15 +608,18 @@ const JobSeekersPage = () => {
         setShowSuccess(true);
         
         try {
+          console.log('🔄 Refreshing data after approval change...');
+          
           // Refresh the job seekers list to show updated status
           await fetchJobSeekers();
+          console.log('✅ Job seekers list refreshed');
           
-          // Refresh approval data to update statistics
-          await Promise.all([
-            fetchProfilesByStatus('pending', 1),
-            fetchProfilesByStatus('approved', 1),
-            fetchProfilesByStatus('rejected', 1)
-          ]);
+          // Sequential refresh to prevent race conditions
+          console.log('🔄 Refreshing approval statistics...');
+          await fetchProfilesByStatus('pending', 1);
+          await fetchProfilesByStatus('approved', 1);
+          await fetchProfilesByStatus('rejected', 1);
+          console.log('✅ Approval statistics refreshed');
           
           // Update success message to indicate refresh completed
           setSuccessMessage(result.message || `Profile ${newStatus} successfully - data refreshed!`);
@@ -594,7 +627,7 @@ const JobSeekersPage = () => {
           // Clear selected job seeker to close any open modals
           setSelectedJobSeeker(null);
         } catch (refreshError) {
-          console.error('Error refreshing data after approval change:', refreshError);
+          console.error('❌ Error refreshing data after approval change:', refreshError);
           setErrorMessage('Action completed but failed to refresh data. Please refresh the page manually.');
           setShowError(true);
         }
@@ -603,9 +636,10 @@ const JobSeekersPage = () => {
         setShowError(true);
       }
     } catch (error) {
-      setErrorMessage(`Failed to ${newStatus} profile`);
+      const errorMsg = `Failed to ${newStatus} profile: ${error.message}`;
+      setErrorMessage(errorMsg);
       setShowError(true);
-      console.error(`Approval change error:`, error);
+      console.error(`❌ Approval change error:`, error);
     }
   };
 
@@ -1559,8 +1593,8 @@ const JobSeekersPage = () => {
               <span className="text-gray-900">Edit Job Seeker</span>
             </button>
             
-            {/* Approval Actions - Only show if profile is not already approved */}
-            {selectedJobSeeker && (selectedJobSeeker.profile?.approvalStatus || selectedJobSeeker.approvalStatus) !== 'approved' && (
+            {/* Approval Actions - Show for profiles that can be approved */}
+            {selectedJobSeeker && canApproveProfile(selectedJobSeeker) && (
               <button
                 onClick={() => handleRowAction('approve', selectedJobSeeker)}
                 className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-green-50 transition-colors duration-200"
@@ -1570,14 +1604,14 @@ const JobSeekersPage = () => {
               </button>
             )}
             
-            {/* Reject Action - Show for pending and approved profiles */}
-            {selectedJobSeeker && (selectedJobSeeker.profile?.approvalStatus || selectedJobSeeker.approvalStatus) !== 'rejected' && (
+            {/* Reject Action - Show for profiles that can be rejected */}
+            {selectedJobSeeker && canRejectProfile(selectedJobSeeker) && (
               <button
                 onClick={() => handleRowAction('reject', selectedJobSeeker)}
                 className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-red-50 transition-colors duration-200"
               >
                 <XCircle className="w-5 h-5 text-red-600" />
-                <span className="text-gray-900">Reject Profile</span>
+                <span className="text-gray-500">Reject Profile</span>
               </button>
             )}
             
@@ -1624,8 +1658,13 @@ const JobSeekersPage = () => {
                 onClick={() => {
                   const reason = document.getElementById('rejectionReason').value.trim();
                   if (reason.length >= 10) {
-                    handleApprovalChange(selectedJobSeeker.id, 'rejected', reason);
-                    setShowRejectionModal(false);
+                    const profileId = extractProfileId(selectedJobSeeker);
+                    if (profileId) {
+                      handleApprovalChange(profileId, 'rejected', reason);
+                      setShowRejectionModal(false);
+                    } else {
+                      alert('Error: Could not determine profile ID. Please try again.');
+                    }
                   } else {
                     alert('Please provide a rejection reason (minimum 10 characters)');
                   }
