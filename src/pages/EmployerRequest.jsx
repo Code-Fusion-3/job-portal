@@ -133,9 +133,10 @@ const EmployerRequest = () => {
               <div className="bg-green-50 rounded-xl p-6 mb-8">
                 <h3 className="font-semibold text-green-800 mb-2">{t('employerRequest.success.whatHappensNext')}</h3>
                 <ul className="text-sm text-green-700 space-y-1">
-                  <li>• {t('employerRequest.success.reviewTimeline')}</li>
+                  {/* <li>• {t('employerRequest.success.reviewTimeline')}</li> */}
                   <li>• {t('employerRequest.success.emailConfirmation')}</li>
                   <li>• {t('employerRequest.success.contactNextSteps')}</li>
+                  <li>• {t('employerRequest.fullDetail.content')}</li>
                 </ul>
               </div>
               <div className="space-y-4">

@@ -802,6 +802,8 @@ const resources = {
       'employerRequest.success.reviewTimeline': 'Our team will review your request within 24 hours',
       'employerRequest.success.emailConfirmation': 'You\'ll receive an email confirmation',
       'employerRequest.success.contactNextSteps': 'We\'ll contact you to discuss next steps',
+      // for full detail content and more info about the employer request form
+      'employerRequest.fullDetail.content': 'Sir, Madam, we have gladly received the service you need from us. Before you are given full information about this worker or service, you must first pay a non-refundable fee of 5,000 Frw. After that, you will be given further details, and then you can pay the remaining amount as agreed. Finally, we will connect you with the person you needed.',
       'employerRequest.hero.title': 'Request Candidate',
       'employerRequest.hero.subtitle': 'Fill out the form below to request this candidate for your position',
       'employerRequest.candidate.location': 'Location',
@@ -1774,10 +1776,12 @@ const resources = {
       // Additional EmployerRequest Component Translations in Kinyarwanda
       'employerRequest.loading.candidateInfo': 'Turimo kurukurikirana amakuru y\'umukandida...',
       'employerRequest.errors.loadingProfile': 'Ikibazo mu Kurukurikirana Umwirondoro',
-      'employerRequest.success.whatHappensNext': 'Icyo kiba gikurikira?',
+      'employerRequest.success.whatHappensNext': 'Niki gikurikiraho?',
       'employerRequest.success.reviewTimeline': 'Itsinda ryawe rizagenzura ubusabe bwawe mu masaha 24',
       'employerRequest.success.emailConfirmation': 'Uzakira imeyili yo kwemeza',
       'employerRequest.success.contactNextSteps': 'Tuzakwandikira kugira ngo tuzaganire ibikurikira',
+      // for full detail content and more info about the employer request form
+      'employerRequest.fullDetail.content': 'Bwana , Madam twakiriye neza service mudukeneyeho, mbere yuko muhabwa amakuru ahagije kuri uyu mukozi cg service murabanza kwishyura amafranga 5000 Frw adasubizwa, nyuma muhabwe undi mwirondoro mubone kwishyura asigaye bitewe nuko byumvikanweho. Bwanyuma hazabaho kubahuza nuwo mwari mukeneye.',     
       'employerRequest.hero.title': 'Saba Umukandida',
       'employerRequest.hero.subtitle': 'Uzuza urupapuro ruri munsi kugira ngo usabe uyu mukandida ku kazi kawe',
       'employerRequest.candidate.location': 'Aho Aherereye',
