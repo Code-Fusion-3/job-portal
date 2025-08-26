@@ -742,38 +742,137 @@ const Register = () => {
                   icon={User}
                   required
                 />
-              <PhoneInput
-                id="contactNumber"
-                name="contactNumber"
-                label={t('register.phone')}
-                value={formData.contactNumber}
-                onChange={handleInputChange}
-                error={errors.contactNumber}
-                required
-              />
+                <PhoneInput
+                  id="contactNumber"
+                  name="contactNumber"
+                  label={t('register.phone')}
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  error={errors.contactNumber}
+                  required
+                />
+                <FormInput
+                    id="email"
+                    name="email"
+                    type="email"
+                    label={t('register.email')}
+                    placeholder={t('register.emailPlaceholder')}
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    error={errors.email}
+                    icon={Mail}
+                />
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  label={t('register.password')}
+                  placeholder={t('register.passwordPlaceholder')}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  error={errors.password}
+                  showStrength
+                  required
+                />
 
-              <PasswordInput
-                id="password"
-                name="password"
-                label={t('register.password')}
-                placeholder={t('register.passwordPlaceholder')}
-                value={formData.password}
-                onChange={handleInputChange}
-                error={errors.password}
-                showStrength
-                required
-              />
-
-              <PasswordInput
-                id="confirmPassword"
-                name="confirmPassword"
-                label={t('register.confirmPassword')}
-                placeholder={t('register.confirmPasswordPlaceholder')}
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                error={errors.confirmPassword}
-                required
-              />
+                <PasswordInput
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  label={t('register.confirmPassword')}
+                  placeholder={t('register.confirmPasswordPlaceholder')}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  error={errors.confirmPassword}
+                  required
+                />
+                {/* Gender Select */}
+                <div>
+                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.gender')}
+                  </label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                  >
+                    <option value="">{t('register.selectGender')}</option>
+                    <option value="Male">{t('gender.male')}</option>
+                    <option value="Female">{t('gender.female')}</option>
+                    <option value="Other">{t('gender.other')}</option>
+                    <option value="Prefer not to say">{t('gender.preferNotToSay')}</option>
+                  </select>
+                  {errors.gender && (
+                    <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+                  )}
+                </div>
+                {/* Date of Birth */}
+                <FormInput
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    type="date"
+                    label={t('register.dateOfBirth')}
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    error={errors.dateOfBirth}
+                    icon={Calendar}
+                  />
+              {/* Job Category */}
+                <div>
+                  <label htmlFor="jobCategoryId" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.jobCategory')}
+                  </label>
+                  <select
+                    id="jobCategoryId"
+                    name="jobCategoryId"
+                    value={formData.jobCategoryId}
+                    onChange={handleInputChange}
+                    disabled={categoriesLoading}
+                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">
+                      {categoriesLoading 
+                        ? t('register.loadingCategories') 
+                        : t('register.selectJobCategory')
+                      }
+                    </option>
+                    {!categoriesLoading && jobCategories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name_en} - {category.name_rw}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.jobCategoryId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.jobCategoryId}</p>
+                  )}
+                  {categoriesError && (
+                    <p className="mt-1 text-sm text-red-600">{t('register.errorLoadingCategories')} {categoriesError}</p>
+                  )}
+                </div>
+                <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('register.experienceLevel')} *
+                </label>
+                <select
+                  name="experienceLevel"
+                  value={formData.experienceLevel}
+                  onChange={handleInputChange}
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
+                    errors.experienceLevel ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  required
+                >
+                  <option value="">{t('register.selectExperienceLevel')}</option>
+                  <option value="no_experience">{t('experience.noExperience')}</option>
+                  <option value="beginner">{t('experience.beginner')}</option>
+                  <option value="intermediate">{t('experience.intermediate')}</option>
+                  <option value="experienced">{t('experience.experienced')}</option>
+                  <option value="expert">{t('experience.expert')}</option>
+                </select>
+                {errors.experienceLevel && (
+                  <p className="mt-1 text-sm text-red-600">{t('register.errors.experienceLevelRequired')}</p>
+                )}
+              </div>
               {/* Photo Upload */}
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -858,17 +957,7 @@ const Register = () => {
                     <div className="p-4 pb-8 border-t border-gray-200">
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormInput
-                  id="email"
-                  name="email"
-                  type="email"
-                  label={t('register.email')}
-                  placeholder={t('register.emailPlaceholder')}
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  error={errors.email}
-                  icon={Mail}
-                />
+               
                 <FormInput
                   id="idNumber"
                   name="idNumber"
@@ -878,40 +967,6 @@ const Register = () => {
                   onChange={handleInputChange}
                   error={errors.idNumber}
                 />
-                {/* Date of Birth */}
-                <FormInput
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  type="date"
-                  label={t('register.dateOfBirth')}
-                  value={formData.dateOfBirth}
-                  onChange={handleInputChange}
-                  error={errors.dateOfBirth}
-                  icon={Calendar}
-                />
-
-                {/* Gender Select */}
-                <div>
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.gender')}
-                  </label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
-                  >
-                    <option value="">{t('register.selectGender')}</option>
-                    <option value="Male">{t('gender.male')}</option>
-                    <option value="Female">{t('gender.female')}</option>
-                    <option value="Other">{t('gender.other')}</option>
-                    <option value="Prefer not to say">{t('gender.preferNotToSay')}</option>
-                  </select>
-                  {errors.gender && (
-                    <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
-                  )}
-                </div>
 
                 {/* Marital Status Select */}
                 <div>
@@ -934,39 +989,8 @@ const Register = () => {
                     <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
                   )}
                 </div>
-                {/* Job Category */}
-                <div>
-                  <label htmlFor="jobCategoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.jobCategory')}
-                  </label>
-                  <select
-                    id="jobCategoryId"
-                    name="jobCategoryId"
-                    value={formData.jobCategoryId}
-                    onChange={handleInputChange}
-                    disabled={categoriesLoading}
-                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  >
-                    <option value="">
-                      {categoriesLoading 
-                        ? t('register.loadingCategories') 
-                        : t('register.selectJobCategory')
-                      }
-                    </option>
-                    {!categoriesLoading && jobCategories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name_en} - {category.name_rw}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.jobCategoryId && (
-                    <p className="mt-1 text-sm text-red-600">{errors.jobCategoryId}</p>
-                  )}
-                  {categoriesError && (
-                    <p className="mt-1 text-sm text-red-600">{t('register.errorLoadingCategories')} {categoriesError}</p>
-                  )}
-                </div>
-                                    {/* Education Level */}
+              
+                   {/* Education Level */}
                   <div>
                     <label htmlFor="educationLevel" className="block text-sm font-medium text-gray-700 mb-2">
                       {t('register.educationLevel')}
@@ -1271,30 +1295,6 @@ const Register = () => {
                 <div className="p-4 border-t border-gray-200">
                   {/* Experience and Description */}
                   <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('register.experienceLevel')} *
-                      </label>
-                      <select
-                        name="experienceLevel"
-                        value={formData.experienceLevel}
-                        onChange={handleInputChange}
-                        className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
-                          errors.experienceLevel ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        required
-                      >
-                        <option value="">{t('register.selectExperienceLevel')}</option>
-                        <option value="no_experience">{t('experience.noExperience')}</option>
-                        <option value="beginner">{t('experience.beginner')}</option>
-                        <option value="intermediate">{t('experience.intermediate')}</option>
-                        <option value="experienced">{t('experience.experienced')}</option>
-                        <option value="expert">{t('experience.expert')}</option>
-                      </select>
-                      {errors.experienceLevel && (
-                        <p className="mt-1 text-sm text-red-600">{t('register.errors.experienceLevelRequired')}</p>
-                      )}
-                    </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
