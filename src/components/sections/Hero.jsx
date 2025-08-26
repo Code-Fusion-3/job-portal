@@ -6,6 +6,10 @@ import Button from '../ui/Button';
 import ImageSlideshow from '../ui/ImageSlideshow';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 const Hero = () => {
   const { t } = useTranslation();
@@ -186,7 +190,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section id="home" className="w-full h-screen relative overflow-hidden">
+    <section id="home" className="w-full h-screen relative overflow-hidden hero-section">
       {/* Image Slideshow Background */}
       <ImageSlideshow>
         {/* Three.js Background */}
@@ -203,12 +207,12 @@ const Hero = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center">
           <div className="space-y-8">
             {/* Main Heading */}
-            <h1 className="hero-title text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+            <h1 className="hero-title text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] text-reveal">
               {t('hero.title')}
             </h1>
 
             {/* Subtitle */}
-            <p className="hero-subtitle text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
+            <p className="hero-subtitle text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] text-reveal">
               {t('hero.subtitle')}
             </p>
 

@@ -10,6 +10,7 @@ import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
 import LatestJobSeekers from './components/sections/LatestJobSeekers';
 import Statistics from './components/sections/Statistics';
+import { useScrollAnimations } from './hooks/useScrollAnimations';
 
 import Footer from './components/layout/Footer';
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
@@ -41,7 +42,6 @@ const PendingApproval = lazy(() => import('./pages/PendingApproval'));
 const EmployerDashboard = lazy(() => import('./pages/dashboard/EmployerDashboard'));
 const AdminPaymentReview = lazy(() => import('./pages/dashboard/AdminPaymentReview'));
 
-const useScrollAnimations = lazy(() => import('./hooks/useScrollAnimations'));
 import './App.css';
 
 

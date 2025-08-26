@@ -12,7 +12,8 @@ import {
   Calendar,
   Phone,
   Mail,
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { jobSeekerService } from '../api/index.js';
 import { usePublicCategories } from '../api/hooks/useCategories.js';
@@ -82,7 +83,7 @@ const JobSeekers = () => {
   const [selectedGender, setSelectedGender] = useState('');
   const [sortBy, setSortBy] = useState('Most Recent');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true); // Changed to true - show filters by default
   const navigate = useNavigate();
 
   // Use the public categories hook for dynamic job categories
@@ -327,22 +328,28 @@ const JobSeekers = () => {
       <Header />
       
       {/* Page Header */}
-      <div className="relative z-10 mt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl font-bold text-white mb-4">
-              {t('jobSeekers.pageTitle', 'All Job Seekers')}
-            </h1>
-            <p className="text-xl text-white/70 max-w-3xl mx-auto">
-              {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
-            </p>
-          </motion.div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <h1 className="text-4xl font-bold text-white mb-4 text-reveal">
+            {t('jobSeekers.pageTitle', 'All Job Seekers')}
+          </h1>
+          <p className="text-xl text-white/70 max-w-3xl mx-auto mb-6 text-reveal">
+            {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
+          </p>
+          
+          {/* Total Job Seekers Count */}
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
+            <Users className="w-5 h-5 text-white" />
+            <span className="text-white font-semibold">
+              {t('jobSeekers.totalCount', 'Total Job Seekers')}: <span className="text-2xl">{jobSeekers.length}</span>
+            </span>
+          </div>
+        </motion.div>
       </div>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -351,7 +358,7 @@ const JobSeekers = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8"
+          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8 text-reveal"
         >
           {/* Search Bar */}
           <div className="flex flex-col md:flex-row gap-4">
@@ -359,11 +366,19 @@ const JobSeekers = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder={t('jobSeekers.searchPlaceholder', 'Search by name, title, or skills...')}
+                placeholder={t('jobSeekers.searchPlaceholder', 'Search by name, skills, location, or category...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 placeholder-gray-500 bg-white"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
             <div className="flex gap-2">
               <Button
@@ -371,8 +386,8 @@ const JobSeekers = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center gap-2"
               >
-                <Filter className="w-4 h-4" />
-                {t('jobSeekers.filters.filters', 'Filters')} {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
+                {showFilters ? <Eye className="w-4 h-4" /> : <Filter className="w-4 h-4" />}
+                {showFilters ? t('jobSeekers.filters.hideFilters', 'Hide Filters') : t('jobSeekers.filters.showFilters', 'Show Filters')} {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
               </Button>
               <Button
                 variant="outline"
@@ -395,10 +410,92 @@ const JobSeekers = () => {
             </div>
           </div>
 
+          {/* Results Count */}
+          {filteredSeekers.length > 0 && (
+            <div className="mt-4 text-center text-reveal">
+              <div className="inline-flex items-center gap-4 bg-white/95 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-gray-700">
+                    {t('jobSeekers.results.showingResults', 'Showing')} <span className="font-bold text-gray-900">{filteredSeekers.length}</span> {t('jobSeekers.results.of', 'of')} <span className="font-bold text-gray-900">{jobSeekers.length}</span> {t('jobSeekers.results.jobSeekers', 'job seekers')}
+                  </span>
+                </div>
+                {getActiveFiltersCount() > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-700 font-medium">
+                      {getActiveFiltersCount()} {t('jobSeekers.results.activeFilters', 'active filters')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Total Count Display (when no results) */}
+          {filteredSeekers.length === 0 && jobSeekers.length > 0 && (
+            <div className="mt-4 text-center text-reveal">
+              <div className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-lg px-6 py-3 border border-white/20 shadow-sm">
+                <Users className="w-4 h-4 text-gray-600" />
+                <span className="text-sm text-gray-700">
+                  {t('jobSeekers.results.totalAvailable', 'Total available')}: <span className="font-bold text-gray-900">{jobSeekers.length}</span> {t('jobSeekers.results.jobSeekers', 'job seekers')}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Professional Filters */}
           {showFilters && (
-            <div className="border-t pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="border-t pt-6 text-reveal">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {t('jobSeekers.filters.advancedFilters', 'Advanced Filters')}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {t('jobSeekers.filters.description', 'Refine your search to find the perfect job seeker')}
+                </p>
+                
+                {/* Active Filters Summary */}
+                {getActiveFiltersCount() > 0 && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Filter className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        {t('jobSeekers.filters.activeFilters', 'Active Filters')}: {getActiveFiltersCount()}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedExperienceLevel && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          Experience: {filterOptions.experienceLevel.find(opt => opt.value === selectedExperienceLevel)?.label}
+                        </span>
+                      )}
+                      {selectedCategory && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          Category: {selectedCategory}
+                        </span>
+                      )}
+                      {selectedLocation && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          Location: {selectedLocation}
+                        </span>
+                      )}
+                      {selectedGender && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          Gender: {selectedGender}
+                        </span>
+                      )}
+                      {sortBy !== 'Most Recent' && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          Sort: {sortBy}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Experience Level Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -407,7 +504,7 @@ const JobSeekers = () => {
                   <select
                     value={selectedExperienceLevel}
                     onChange={(e) => setSelectedExperienceLevel(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     {filterOptions.experienceLevel.map(option => (
                       <option key={option.value} value={option.value}>
@@ -425,7 +522,7 @@ const JobSeekers = () => {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                     disabled={loadingCategories}
                   >
                     {loadingCategories ? (
@@ -450,7 +547,7 @@ const JobSeekers = () => {
                   <select
                     value={selectedLocation}
                     onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     {filterOptions.location.map(option => (
                       <option key={option.value} value={option.value}>
@@ -468,7 +565,7 @@ const JobSeekers = () => {
                   <select
                     value={selectedGender}
                     onChange={(e) => setSelectedGender(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
                     {filterOptions.gender.map(option => (
                       <option key={option.value} value={option.value}>
@@ -477,22 +574,22 @@ const JobSeekers = () => {
                     ))}
                   </select>
                 </div>
+              </div>
 
-                {/* Sort By */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('jobSeekers.filters.sortBy', 'Sort By')}
-                  </label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900"
-                  >
-                    {filterOptions.sortBy.map(sort => (
-                      <option key={sort} value={sort}>{sort}</option>
-                    ))}
-                  </select>
-                </div>
+              {/* Sort By - Full Width */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('jobSeekers.filters.sortBy', 'Sort By')}
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
+                >
+                  {filterOptions.sortBy.map(sort => (
+                    <option key={sort} value={sort}>{sort}</option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
@@ -511,36 +608,9 @@ const JobSeekers = () => {
           </div>
         )}
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-sm font-medium text-gray-600">{t('jobSeekers.stats.totalJobSeekers', 'Total Job Seekers')}</p>
-            <p className="text-2xl font-bold text-gray-900">{jobSeekers.length}</p>
-          </div>
-
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Search className="w-6 h-6 text-green-600" />
-            </div>
-            <p className="text-sm font-medium text-gray-600">{t('jobSeekers.stats.searchResults', 'Search Results')}</p>
-            <p className="text-2xl font-bold text-gray-900">{filteredSeekers.length}</p>
-          </div>
-
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <Filter className="w-6 h-6 text-purple-600" />
-            </div>
-            <p className="text-sm font-medium text-gray-600">{t('jobSeekers.stats.activeFilters', 'Active Filters')}</p>
-            <p className="text-2xl font-bold text-gray-900">{getActiveFiltersCount()}</p>
-          </div>
-        </div>
-
         {/* No Results State */}
         {filteredSeekers.length === 0 && getActiveFiltersCount() > 0 && (
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center text-reveal">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">{t('jobSeekers.noResults.noResultsFound', 'No results found')}</h3>
             <p className="text-gray-600 mb-4">
@@ -554,7 +624,7 @@ const JobSeekers = () => {
 
         {/* No Job Seekers Available */}
         {filteredSeekers.length === 0 && getActiveFiltersCount() === 0 && jobSeekers.length === 0 && !jobSeekersLoading && (
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-8 mb-8 text-center text-reveal">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">{t('jobSeekers.noResults.noApprovedSeekers', 'No approved job seekers available')}</h3>
             <p className="text-gray-600 mb-4">
@@ -570,8 +640,8 @@ const JobSeekers = () => {
         {filteredSeekers.length > 0 ? (
           <div
             className={viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'space-y-6'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-reveal'
+              : 'space-y-6 text-reveal'
             }
           >
             {filteredSeekers.map((seeker, index) => {
@@ -662,7 +732,7 @@ const JobSeekers = () => {
             })}
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-12 text-reveal">
             <div className="max-w-md mx-auto">
               <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-white/60" />
