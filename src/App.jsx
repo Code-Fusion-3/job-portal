@@ -244,7 +244,12 @@ function App() {
       <ErrorBoundary>
         <AuthProvider>
           <LiveUpdateProvider>
-            <Router>
+            <Router
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true
+              }}
+            >
               <SessionMonitor />
               <Suspense fallback={<LoadingSpinner />}> 
               <Routes>
