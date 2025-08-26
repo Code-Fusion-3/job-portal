@@ -92,7 +92,7 @@ export const logApprovalStart = (component, operation, profileData = {}, additio
   };
   
   const message = formatLogMessage(LOG_LEVELS.INFO, component, operation, 'Operation started', data);
-  console.log(message);
+  // console.log(message);
   
   // Store in session storage for debugging
   storeLogEntry('approval_start', data);
@@ -120,7 +120,7 @@ export const logApprovalSuccess = (component, operation, profileData = {}, resul
   };
   
   const message = formatLogMessage(LOG_LEVELS.INFO, component, operation, 'Operation completed successfully', data);
-  console.log(message);
+  // console.log(message);
   
   // Store in session storage for debugging
   storeLogEntry('approval_success', data);
@@ -225,7 +225,7 @@ export const logProfileStatusChange = (component, profileData, oldStatus, newSta
   };
   
   const message = formatLogMessage(LOG_LEVELS.INFO, component, 'status_change', `Profile status changed from ${oldStatus} to ${newStatus}`, data);
-  console.log(message);
+  // console.log(message);
   
   // Store in session storage for debugging
   storeLogEntry('profile_status_change', data);

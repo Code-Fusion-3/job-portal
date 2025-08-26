@@ -141,7 +141,7 @@ export const useApprovalManagement = (options = {}) => {
       }
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.log('Fetch operation was cancelled');
+        // console.log('Fetch operation was cancelled');
         return { success: false, error: 'Operation cancelled' };
       }
       
@@ -199,20 +199,13 @@ export const useApprovalManagement = (options = {}) => {
 
       // Sequential refresh to prevent race conditions
       try {
-        console.log('🔄 Refreshing data after successful approval...');
         await fetchProfilesByStatus('pending', currentPage, false);
-        console.log('✅ Pending profiles refreshed successfully');
       } catch (refreshError) {
         console.warn('⚠️ Failed to refresh pending profiles after approval:', refreshError);
         // Don't fail the whole operation if refresh fails
       }
 
-      console.log('✅ Profile approval completed successfully:', { profileId, result });
-      return { 
-        success: true, 
-        data: result.data, 
-        message: result.message || 'Profile approved successfully' 
-      };
+     
     } catch (error) {
       console.error('❌ Profile approval failed, rolling back state:', error);
       
@@ -287,15 +280,12 @@ export const useApprovalManagement = (options = {}) => {
 
       // Sequential refresh to prevent race conditions
       try {
-        console.log('🔄 Refreshing data after successful rejection...');
         await fetchProfilesByStatus('pending', currentPage, false);
-        console.log('✅ Pending profiles refreshed successfully');
       } catch (refreshError) {
-        console.warn('⚠️ Failed to refresh pending profiles after rejection:', refreshError);
+        // console.warn('⚠️ Failed to refresh pending profiles after rejection:', refreshError);
         // Don't fail the whole operation if refresh fails
       }
 
-      console.log('✅ Profile rejection completed successfully:', { profileId, result });
       return { 
         success: true, 
         data: result.data, 

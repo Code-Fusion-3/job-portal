@@ -487,7 +487,6 @@ export const jobSeekerService = {
         headers: getAuthHeaders()
       });
       
-      console.log('✅ Profile approved successfully:', { profileId: id, response: response.data });
       
       return {
         success: true,
@@ -534,7 +533,6 @@ export const jobSeekerService = {
         headers: getAuthHeaders()
       });
       
-      console.log('✅ Profile rejected successfully:', { profileId: id, reason: reason.trim(), response: response.data });
       
       return {
         success: true,
