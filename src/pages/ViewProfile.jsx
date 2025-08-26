@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   MapPin, 
   Briefcase, 
@@ -10,26 +10,19 @@ import {
   Globe, 
   GraduationCap, 
   Award, 
-  Mail, 
-  Phone, 
-  Linkedin, 
-  Eye, 
-  EyeOff,
   Calendar,
   Users,
   TrendingUp,
   MessageSquare,
-  Download,
   Share2,
   Bookmark,
   BookmarkPlus,
   CheckCircle,
-  ExternalLink,
-  UserCheck
+  UserCheck,
+  AlertCircle
 } from 'lucide-react';
 import { jobSeekerService } from '../api/index.js';
 import { useAuth } from '../api/hooks/useAuth.js';
-import { maskName } from '../utils/helpers.js';
 import Button from '../components/ui/Button';
 import BackButton from '../components/ui/BackButton';
 import Card from '../components/ui/Card';
@@ -38,7 +31,7 @@ import Avatar from '../components/ui/Avatar';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { formatDailyRate, formatMonthlyRate } from '../utils/helpers';
+import { formatMonthlyRate } from '../utils/helpers';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
 
 const ViewProfile = () => {
@@ -48,7 +41,6 @@ const ViewProfile = () => {
   const [jobSeeker, setJobSeeker] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showContact, setShowContact] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { user } = useAuth();
 
@@ -70,7 +62,6 @@ const ViewProfile = () => {
         }
         if (result && result.success) {
           setJobSeeker(result.data);
-          console.log(result.data);
         } else {
           setError(result?.error || t('viewProfile.errors.notAvailable'));
         }
@@ -246,9 +237,19 @@ const ViewProfile = () => {
                     
                     <p className="text-xl text-blue-600 font-semibold mb-4">
                       {isPublic
-                        ? jobSeeker.jobCategory?.name_en || t('viewProfile.hero.jobSeeker')
-                        : jobSeeker?.profile?.jobCategory?.name_en || t('viewProfile.hero.jobSeeker')}
+                        ? jobSeeker.jobCategory?.name_en || 'Job Seeker'
+                        : jobSeeker?.profile?.jobCategory?.name_en || 'Job Seeker'}
                     </p>
+                    
+                    {/* Job Category Badge */}
+                    {isPublic && jobSeeker.jobCategory?.name_en && (
+                      <div className="mb-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                          <Briefcase className="w-4 h-4" />
+                          {jobSeeker.jobCategory.name_en}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Approval Status Indicator */}
                     {isPublic && jobSeeker.approvalStatus && (
@@ -268,46 +269,64 @@ const ViewProfile = () => {
                             <Clock className="w-4 h-4" />
                           )}
                           {jobSeeker.approvalStatus === 'approved'
-                            ? t('viewProfile.hero.verifiedProfile')
+                            ? 'Verified Profile'
                             : jobSeeker.approvalStatus === 'rejected'
-                            ? t('viewProfile.hero.profileNotAvailable')
-                            : t('viewProfile.hero.profileUnderReview')}
+                            ? 'Profile Not Available'
+                            : 'Profile Under Review'}
                         </div>
                       </div>
                     )}
 
                     {/* Key Info Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                       <div className="flex items-center space-x-2 text-gray-600">
                         <MapPin className="w-4 h-4 text-blue-500" />
                         <span className="text-sm font-medium">
                           {isPublic 
                             ? (jobSeeker.location && jobSeeker.location.trim() !== '' 
                                 ? jobSeeker.location 
-                                : <span className="text-gray-400">{t('viewProfile.info.locationNotSpecified')}</span>)
+                                : <span className="text-gray-400">Location not specified</span>)
                             : (jobSeeker?.profile?.location && jobSeeker?.profile?.location.trim() !== '' 
                                 ? jobSeeker?.profile?.location 
-                                : <span className="text-gray-400">{t('viewProfile.info.locationNotSpecified')}</span>)
+                                : <span className="text-gray-400">Location not specified</span>)
                           }
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-600">
-                        <Briefcase className="w-4 h-4 text-green-500" />
+                        <Globe className="w-4 h-4 text-orange-500" />
                         <span className="text-sm font-medium">
-                          {isPublic ? jobSeeker.experienceLevel : jobSeeker?.profile?.experienceLevel || t('viewProfile.info.experienceNotSpecified')}
+                          {isPublic 
+                            ? (jobSeeker.languages && jobSeeker.languages.trim() !== '' 
+                                ? jobSeeker.languages.split(',').slice(0, 2).join(', ') + (jobSeeker.languages.split(',').length > 2 ? '...' : '')
+                                : <span className="text-gray-400">Languages not specified</span>)
+                            : (jobSeeker?.profile?.languages && jobSeeker?.profile?.languages.trim() !== '' 
+                                ? jobSeeker?.profile?.languages.split(',').slice(0, 2).join(', ') + (jobSeeker?.profile?.languages.split(',').length > 2 ? '...' : '')
+                                : <span className="text-gray-400">Languages not specified</span>)
+                          }
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-600">
-                        <Clock className="w-4 h-4 text-purple-500" />
+                        <GraduationCap className="w-4 h-4 text-indigo-500" />
                         <span className="text-sm font-medium">
-                                                    {isPublic ? jobSeeker.availability : jobSeeker?.profile?.availability || t('viewProfile.info.availabilityNotSpecified')}
+                          {isPublic 
+                            ? (jobSeeker.educationLevel && jobSeeker.educationLevel.trim() !== '' 
+                                ? jobSeeker.educationLevel 
+                                : <span className="text-gray-400">Education not specified</span>)
+                            : (jobSeeker?.profile?.educationLevel && jobSeeker?.profile?.educationLevel.trim() !== '' 
+                                ? jobSeeker?.profile?.educationLevel 
+                                : <span className="text-gray-400">Education not specified</span>)
+                          }
                         </span>
                       </div>
+                    </div>
+
+                    {/* Additional Info Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
                       {isPublic && jobSeeker.memberSince && (
                         <div className="flex items-center space-x-2 text-gray-600">
                           <Calendar className="w-4 h-4 text-orange-500" />
                           <span className="text-sm font-medium">
-                            {t('viewProfile.info.memberSince')} {new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                            Member since {new Date(jobSeeker.memberSince).toLocaleString('default', { month: 'short', year: 'numeric' })}
                           </span>
                         </div>
                       )}
@@ -317,7 +336,7 @@ const ViewProfile = () => {
                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                        <div className="flex items-center justify-between">
                          <div className="flex items-center space-x-2">
-                           <span className="text-sm font-medium text-gray-700">{t('viewProfile.info.monthlyRate')}</span>
+                           <span className="text-sm font-medium text-gray-700">Monthly Rate</span>
                          </div>
                          <span className="text-2xl font-bold text-blue-600">
                            {formatMonthlyRate(isPublic ? jobSeeker.monthlyRate : jobSeeker?.profile?.monthlyRate)}
@@ -344,7 +363,7 @@ const ViewProfile = () => {
                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                      <UserCheck className="w-6 h-6 text-white" />
                    </div>
-                   <h2 className="text-3xl font-bold text-gray-900">{t('viewProfile.sections.profileInformation')}</h2>
+                   <h2 className="text-3xl font-bold text-gray-900">Profile Information</h2>
                  </div>
 
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -356,11 +375,11 @@ const ViewProfile = () => {
                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                            <UserCheck className="w-4 h-4 text-blue-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.about')}</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">About</h3>
                        </div>
                        <div className="bg-gray-50 rounded-xl p-4">
                          <p className="text-gray-700 leading-relaxed">
-                           {isPublic ? jobSeeker.description : jobSeeker?.profile?.description || t('viewProfile.sections.noDescription')}
+                           {isPublic ? jobSeeker.description : jobSeeker?.profile?.description || 'No description provided'}
                          </p>
                        </div>
                      </div>
@@ -371,7 +390,7 @@ const ViewProfile = () => {
                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                            <Star className="w-4 h-4 text-purple-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.skillsAndExpertise')}</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">Skills & Expertise</h3>
                        </div>
                        <div className="flex flex-wrap gap-2">
                          {(isPublic ? jobSeeker.skills : jobSeeker?.profile?.skills)
@@ -380,48 +399,276 @@ const ViewProfile = () => {
                                  {skill.trim()}
                                </Badge>
                              ))
-                           : <p className="text-gray-500">{t('viewProfile.sections.noSkillsListed')}</p>}
+                           : <p className="text-gray-500">No skills listed</p>}
+                       </div>
+                     </div>
+
+                     {/* Availability Section */}
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                           <Clock className="w-4 h-4 text-purple-600" />
+                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">Availability</h3>
+                       </div>
+                       <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-gray-700">Work Schedule</span>
+                           </div>
+                           <span className="text-lg font-semibold text-purple-700">
+                             {isPublic 
+                               ? (jobSeeker.availability && jobSeeker.availability.trim() !== '' 
+                                   ? jobSeeker.availability 
+                                   : <span className="text-gray-400">Not specified</span>)
+                               : (jobSeeker?.profile?.availability && jobSeeker?.profile?.availability.trim() !== '' 
+                                   ? jobSeeker?.profile?.availability 
+                                   : <span className="text-gray-400">Not specified</span>)
+                             }
+                           </span>
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* Experience Section */}
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                           <TrendingUp className="w-4 h-4 text-emerald-600" />
+                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">Experience</h3>
+                       </div>
+                       <div className="bg-gray-50 rounded-xl p-4">
+                         <p className="text-gray-700 leading-relaxed">
+                           {isPublic 
+                             ? (jobSeeker.experience && jobSeeker.experience.trim() !== '' 
+                                 ? jobSeeker.experience 
+                                 : <span className="text-gray-400">No experience listed</span>)
+                             : (jobSeeker?.profile?.experience && jobSeeker?.profile?.experience.trim() !== '' 
+                                 ? jobSeeker?.profile?.experience 
+                                 : <span className="text-gray-400">No experience listed</span>)
+                           }
+                         </p>
                        </div>
                      </div>
 
                      {/* References Section */}
-                     {isPublic && jobSeeker.references && (
-                       <div>
-                         <div className="flex items-center space-x-3 mb-4">
-                           <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                             <Users className="w-4 h-4 text-green-600" />
-                           </div>
-                           <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.references')}</h3>
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                           <Users className="w-4 h-4 text-green-600" />
                          </div>
-                         <div className="bg-gray-50 rounded-xl p-4">
-                           <p className="text-gray-700 leading-relaxed text-sm">{jobSeeker.references}</p>
-                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">References</h3>
                        </div>
-                     )}
+                       <div className="bg-gray-50 rounded-xl p-4">
+                         <p className="text-gray-700 leading-relaxed text-sm">
+                           {isPublic 
+                             ? (jobSeeker.references && jobSeeker.references.trim() !== '' 
+                                 ? jobSeeker.references 
+                                 : <span className="text-gray-400">No references listed</span>)
+                             : (jobSeeker?.profile?.references && jobSeeker?.profile?.references.trim() !== '' 
+                                 ? jobSeeker?.profile?.references 
+                                 : <span className="text-gray-400">No references listed</span>)
+                           }
+                         </p>
+                       </div>
+                     </div>
                    </div>
 
                    {/* Right Column */}
                    <div className="space-y-6">
+                     {/* Personal Information */}
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                           <UserCheck className="w-4 h-4 text-pink-600" />
+                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">Personal Information</h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-pink-50 rounded-xl p-3">
+                           <div className="flex items-center mb-1">
+                             <span className="text-xs font-medium text-pink-700 uppercase tracking-wide">Gender</span>
+                           </div>
+                           <p className="text-gray-700 text-sm">
+                             {isPublic 
+                               ? (jobSeeker.gender && jobSeeker.gender.trim() !== '' 
+                                   ? jobSeeker.gender 
+                                   : <span className="text-gray-400">Not specified</span>)
+                               : (jobSeeker?.profile?.gender && jobSeeker?.profile?.gender.trim() !== '' 
+                                   ? jobSeeker?.profile?.gender 
+                                   : <span className="text-gray-400">Not specified</span>)
+                             }
+                           </p>
+                         </div>
+                         <div className="bg-pink-50 rounded-xl p-3">
+                           <div className="flex items-center mb-1">
+                             <span className="text-xs font-medium text-pink-700 uppercase tracking-wide">Marital Status</span>
+                           </div>
+                           <p className="text-gray-700 text-sm">
+                             {isPublic 
+                               ? (jobSeeker.maritalStatus && jobSeeker.maritalStatus.trim() !== '' 
+                                   ? jobSeeker.maritalStatus 
+                                   : <span className="text-gray-400">Not specified</span>)
+                               : (jobSeeker?.profile?.maritalStatus && jobSeeker?.profile?.maritalStatus.trim() !== '' 
+                                   ? jobSeeker?.profile?.maritalStatus 
+                                   : <span className="text-gray-400">Not specified</span>)
+                             }
+                           </p>
+                         </div>
+                         {isPublic && jobSeeker.dateOfBirth && (
+                           <div className="bg-pink-50 rounded-xl p-3">
+                             <div className="flex items-center mb-1">
+                               <span className="text-xs font-medium text-pink-700 uppercase tracking-wide">Date of Birth</span>
+                             </div>
+                             <p className="text-gray-700 text-sm">
+                               {new Date(jobSeeker.dateOfBirth).toLocaleDateString()}
+                             </p>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+
+                     {/* Location Details */}
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                           <MapPin className="w-4 h-4 text-teal-600" />
+                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">Location Details</h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-teal-50 rounded-xl p-3">
+                           <div className="flex items-center mb-1">
+                             <span className="text-xs font-medium text-teal-700 uppercase tracking-wide">City</span>
+                           </div>
+                           <p className="text-gray-700 text-sm">
+                             {isPublic 
+                               ? (jobSeeker.city && jobSeeker.city.trim() !== '' 
+                                   ? jobSeeker.city 
+                                   : <span className="text-gray-400">Not specified</span>)
+                               : (jobSeeker?.profile?.city && jobSeeker?.profile?.city.trim() !== '' 
+                                   ? jobSeeker?.profile?.city 
+                                   : <span className="text-gray-400">Not specified</span>)
+                             }
+                           </p>
+                         </div>
+                         <div className="bg-teal-50 rounded-xl p-3">
+                           <div className="flex items-center mb-1">
+                             <span className="text-xs font-medium text-teal-700 uppercase tracking-wide">Country</span>
+                           </div>
+                           <p className="text-gray-700 text-sm">
+                             {isPublic 
+                               ? (jobSeeker.country && jobSeeker.country.trim() !== '' 
+                                   ? jobSeeker.country 
+                                   : <span className="text-gray-400">Not specified</span>)
+                               : (jobSeeker?.profile?.country && jobSeeker?.profile?.country.trim() !== '' 
+                                   ? jobSeeker?.profile?.country 
+                                   : <span className="text-gray-400">Not specified</span>)
+                             }
+                           </p>
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* Job Category */}
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                           <Briefcase className="w-4 h-4 text-amber-600" />
+                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">Job Category</h3>
+                       </div>
+                       <div className="bg-amber-50 rounded-xl p-4">
+                         <p className="text-gray-700 text-sm">
+                           {isPublic 
+                             ? (jobSeeker.jobCategory?.name_en && jobSeeker.jobCategory.name_en.trim() !== '' 
+                                 ? jobSeeker.jobCategory.name_en 
+                                 : <span className="text-gray-400">No job category specified</span>)
+                             : (jobSeeker?.profile?.jobCategory?.name_en && jobSeeker?.profile?.jobCategory.name_en.trim() !== '' 
+                                 ? jobSeeker?.profile?.jobCategory.name_en 
+                                 : <span className="text-gray-400">No job category specified</span>)
+                           }
+                         </p>
+                       </div>
+                     </div>
+
+                     {/* Additional Profile Details */}
+                     <div>
+                       <div className="flex items-center space-x-3 mb-4">
+                         <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+                           <UserCheck className="w-4 h-4 text-slate-600" />
+                         </div>
+                         <h3 className="text-xl font-semibold text-gray-900">Additional Details</h3>
+                       </div>
+                       <div className="space-y-3">
+                         <div className="bg-slate-50 rounded-xl p-3">
+                           <div className="flex items-center mb-1">
+                             <span className="text-xs font-medium text-slate-700 uppercase tracking-wide">ID Number</span>
+                           </div>
+                           <p className="text-gray-700 text-sm">
+                             {isPublic 
+                               ? (jobSeeker.idNumber && jobSeeker.idNumber.trim() !== '' 
+                                   ? jobSeeker.idNumber 
+                                   : <span className="text-gray-400">Not specified</span>)
+                               : (jobSeeker?.profile?.idNumber && jobSeeker?.profile?.idNumber.trim() !== '' 
+                                   ? jobSeeker?.profile?.idNumber 
+                                   : <span className="text-gray-400">Not specified</span>)
+                             }
+                           </p>
+                         </div>
+                         {isPublic && jobSeeker.createdAt && (
+                           <div className="bg-slate-50 rounded-xl p-3">
+                             <div className="flex items-center mb-1">
+                               <span className="text-xs font-medium text-slate-700 uppercase tracking-wide">Profile Created</span>
+                             </div>
+                             <p className="text-gray-700 text-sm">
+                               {new Date(jobSeeker.createdAt).toLocaleDateString()}
+                             </p>
+                           </div>
+                         )}
+                         {isPublic && jobSeeker.updatedAt && (
+                           <div className="bg-slate-50 rounded-xl p-3">
+                             <div className="flex items-center mb-1">
+                               <span className="text-xs font-medium text-slate-700 uppercase tracking-wide">Last Updated</span>
+                             </div>
+                             <p className="text-gray-700 text-sm">
+                               {new Date(jobSeeker.updatedAt).toLocaleDateString()}
+                             </p>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+
                      {/* Education & Certifications */}
                      <div>
                        <div className="flex items-center space-x-3 mb-4">
                          <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                            <GraduationCap className="w-4 h-4 text-indigo-600" />
                          </div>
-                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.educationAndCertifications')}</h3>
+                         <h3 className="text-xl font-semibold text-gray-900">Education & Certifications</h3>
                        </div>
                        <div className="space-y-4">
                          <div className="bg-blue-50 rounded-xl p-4">
                            <div className="flex items-center mb-2">
                              <GraduationCap className="w-4 h-4 mr-2 text-blue-600" />
-                             <span className="font-semibold text-gray-900 text-sm">{t('viewProfile.sections.education')}</span>
+                             <span className="font-semibold text-gray-900 text-sm">Education</span>
                            </div>
-                           <p className="text-gray-700 text-sm">{isPublic ? jobSeeker.educationLevel : jobSeeker?.profile?.educationLevel}</p>
+                           <p className="text-gray-700 text-sm">
+                             {isPublic 
+                               ? (jobSeeker.educationLevel && jobSeeker.educationLevel.trim() !== '' 
+                                   ? jobSeeker.educationLevel 
+                                   : <span className="text-gray-400">No education specified</span>)
+                               : (jobSeeker?.profile?.educationLevel && jobSeeker?.profile?.educationLevel.trim() !== '' 
+                                   ? jobSeeker?.profile?.educationLevel 
+                                   : <span className="text-gray-400">No education specified</span>)
+                             }
+                           </p>
                          </div>
                          <div className="bg-green-50 rounded-xl p-4">
                            <div className="flex items-center mb-2">
                              <Award className="w-4 h-4 mr-2 text-green-600" />
-                             <span className="font-semibold text-gray-900 text-sm">{t('viewProfile.sections.certifications')}</span>
+                             <span className="font-semibold text-gray-900 text-sm">Certifications</span>
                            </div>
                            <div className="space-y-1">
                              {(() => {
@@ -435,41 +682,11 @@ const ViewProfile = () => {
                                    <p key={index} className="text-gray-700 text-sm">{cert.trim()}</p>
                                  ));
                                } else {
-                                 return <p className="text-gray-500 text-sm">{t('viewProfile.sections.noCertificationsListed')}</p>;
+                                 return <p className="text-gray-500 text-sm">No certifications listed</p>;
                                }
                              })()}
                            </div>
                          </div>
-                       </div>
-                     </div>
-
-                     {/* Languages */}
-                     <div>
-                       <div className="flex items-center space-x-3 mb-4">
-                         <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                           <Globe className="w-4 h-4 text-orange-600" />
-                         </div>
-                         <h3 className="text-xl font-semibold text-gray-900">{t('viewProfile.sections.languages')}</h3>
-                       </div>
-                       <div className="flex flex-wrap gap-2">
-                         {(() => {
-                           const langs = isPublic ? jobSeeker.languages : jobSeeker?.profile?.languages;
-                           if (Array.isArray(langs) && langs.length > 0) {
-                             return langs.map((language, index) => (
-                               <Badge key={index} variant="outline" size="md" className="px-3 py-1 text-sm font-medium border-orange-200 text-orange-700 bg-orange-50">
-                                 {language}
-                               </Badge>
-                             ));
-                           } else if (langs && typeof langs === 'string' && langs.trim() !== '') {
-                             return langs.split(',').map((language, index) => (
-                               <Badge key={index} variant="outline" size="md" className="px-3 py-1 text-sm font-medium border-orange-200 text-orange-700 bg-orange-50">
-                                 {language.trim()}
-                               </Badge>
-                             ));
-                                                          } else {
-                                 return <p className="text-gray-500 text-sm">{t('viewProfile.sections.noLanguagesListed')}</p>;
-                               }
-                         })()}
                        </div>
                      </div>
                    </div>
@@ -485,7 +702,7 @@ const ViewProfile = () => {
             {/* Action Buttons - Sticky */}
                          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
                <Card className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border-0 sticky top-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">{t('viewProfile.sections.actions')}</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
                 <div className="space-y-3">
                                      <Button 
                      variant="primary" 
@@ -494,7 +711,7 @@ const ViewProfile = () => {
                      onClick={handleRequestCandidate}
                    >
                     <MessageSquare className="w-5 h-5 mr-2" />
-                    {t('viewProfile.actions.requestCandidate')}
+                    Request Candidate
                   </Button>
                  
                 </div>
