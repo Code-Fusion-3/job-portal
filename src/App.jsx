@@ -36,6 +36,11 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const ApprovalComponentsTest = lazy(() => import('./components/admin/ApprovalComponentsTest'));
 const ApprovalQueue = lazy(() => import('./pages/dashboard/ApprovalQueue'));
 const PendingApproval = lazy(() => import('./pages/PendingApproval'));
+
+// New Payment Workflow Components
+const EmployerDashboard = lazy(() => import('./pages/dashboard/EmployerDashboard'));
+const AdminPaymentReview = lazy(() => import('./pages/dashboard/AdminPaymentReview'));
+
 const useScrollAnimations = lazy(() => import('./hooks/useScrollAnimations'));
 import './App.css';
 
@@ -293,6 +298,19 @@ function App() {
                     <ApprovalQueue />
                   </ProtectedRoute>
                 } />
+                
+                {/* New Payment Workflow Routes */}
+                <Route path="/dashboard/employer" element={
+                  <ProtectedRoute requiredRole="employer">
+                    <EmployerDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard/admin/payments" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminPaymentReview />
+                  </ProtectedRoute>
+                } />
+                
                 <Route path="/view-profile/:id" element={<ViewProfile />} />
                 <Route path="/update-profile" element={
                   <ProtectedRoute requiredRole="jobseeker">
