@@ -15,14 +15,6 @@ export const extractProfileId = (jobSeeker) => {
     return null;
   }
 
-  // Debug: Show what IDs are available
-  console.log('🔍 extractProfileId debugging:', {
-    userId: jobSeeker.id,
-    profileId: jobSeeker.profile?.id,
-    profileIdAlt: jobSeeker.profileId,
-    fullObject: jobSeeker
-  });
-
   // Prioritize profile.id over user.id for approval operations
   // Backend returns: { id: 3, profile: { id: 2 } }
   // We want profile.id (2) for approval operations, not user.id (3)
@@ -40,7 +32,6 @@ export const extractProfileId = (jobSeeker) => {
     return null;
   }
 
-  console.log('✅ extractProfileId: Using profile ID:', numericId);
   return numericId;
 };
 
@@ -128,26 +119,6 @@ export const getProfileDisplayName = (jobSeeker) => {
   
   const fullName = `${firstName} ${lastName}`.trim();
   return fullName || 'Unnamed Profile';
-};
-
-/**
- * Log profile operation for debugging
- * @param {string} operation - Operation being performed
- * @param {Object} jobSeeker - Job seeker object
- * @param {Object} additionalData - Additional data to log
- */
-export const logProfileOperation = (operation, jobSeeker, additionalData = {}) => {
-  const profileId = extractProfileId(jobSeeker);
-  const displayName = getProfileDisplayName(jobSeeker);
-  const status = getApprovalStatus(jobSeeker);
-
-  console.log(`🔍 Profile Operation: ${operation}`, {
-    profileId,
-    displayName,
-    currentStatus: status,
-    timestamp: new Date().toISOString(),
-    ...additionalData
-  });
 };
 
 /**

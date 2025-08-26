@@ -38,8 +38,7 @@ import {
   getApprovalStatus, 
   canApproveProfile, 
   canRejectProfile,
-  getProfileDisplayName,
-  logProfileOperation 
+  getProfileDisplayName
 } from '../../api/utils/profileUtils';
 import API_CONFIG from '../../api/config/apiConfig.js';
 import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
@@ -584,12 +583,6 @@ const JobSeekersPage = () => {
         return;
       }
 
-      // Log operation for debugging
-      logProfileOperation(newStatus, { id: profileId }, { 
-        component: 'JobSeekersPage', 
-        reason: reason || 'N/A' 
-      });
-
       let result;
       
       if (newStatus === 'approved') {
@@ -608,18 +601,14 @@ const JobSeekersPage = () => {
         setShowSuccess(true);
         
         try {
-          console.log('🔄 Refreshing data after approval change...');
           
           // Refresh the job seekers list to show updated status
           await fetchJobSeekers();
-          console.log('✅ Job seekers list refreshed');
           
           // Sequential refresh to prevent race conditions
-          console.log('🔄 Refreshing approval statistics...');
           await fetchProfilesByStatus('pending', 1);
           await fetchProfilesByStatus('approved', 1);
           await fetchProfilesByStatus('rejected', 1);
-          console.log('✅ Approval statistics refreshed');
           
           // Update success message to indicate refresh completed
           setSuccessMessage(result.message || `Profile ${newStatus} successfully - data refreshed!`);

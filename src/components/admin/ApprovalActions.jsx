@@ -9,7 +9,7 @@ import {
   getApprovalStatus,
   canApproveProfile,
   canRejectProfile,
-  logProfileOperation
+  getProfileDisplayName
 } from '../../api/utils/profileUtils';
 
 const ApprovalActions = ({ 
@@ -49,12 +49,6 @@ const ApprovalActions = ({
 
   const handleAction = async (action) => {
     if (disabled || isLoading || !validProfileId) return;
-
-    // Log operation for debugging
-    logProfileOperation(action, { id: validProfileId }, {
-      component: 'ApprovalActions',
-      currentStatus: actualStatus
-    });
 
     setIsLoading(true);
     setActionType(action);

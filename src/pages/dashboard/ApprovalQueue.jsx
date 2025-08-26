@@ -18,8 +18,7 @@ import {
   getApprovalStatus,
   canApproveProfile,
   canRejectProfile,
-  getProfileDisplayName,
-  logProfileOperation
+  getProfileDisplayName
 } from '../../api/utils/profileUtils';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -116,12 +115,6 @@ const ApprovalQueue = () => {
         console.error('❌ handleApprovalChange validation error:', error);
         return;
       }
-
-      // Log operation for debugging
-      logProfileOperation(newStatus, { id: profileId }, {
-        component: 'ApprovalQueue',
-        reason: reason || 'N/A'
-      });
 
       let result;
 

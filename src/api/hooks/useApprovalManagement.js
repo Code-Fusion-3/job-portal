@@ -3,7 +3,6 @@ import { jobSeekerService } from '../services/jobSeekerService.js';
 import { 
   extractProfileId, 
   validateProfileId, 
-  logProfileOperation, 
   createProfileErrorMessage 
 } from '../utils/profileUtils.js';
 
@@ -174,9 +173,6 @@ export const useApprovalManagement = (options = {}) => {
     setLoading(true);
     setError(null);
 
-    // Log operation for debugging
-    logProfileOperation('approve', { id: profileId }, { hook: 'useApprovalManagement' });
-
     const approveOperation = async () => {
       const result = await jobSeekerService.approveJobSeeker(profileId);
 
@@ -264,9 +260,6 @@ export const useApprovalManagement = (options = {}) => {
 
     setLoading(true);
     setError(null);
-
-    // Log operation for debugging
-    logProfileOperation('reject', { id: profileId, reason }, { hook: 'useApprovalManagement' });
 
     const rejectOperation = async () => {
       const result = await jobSeekerService.rejectJobSeeker(profileId, reason);

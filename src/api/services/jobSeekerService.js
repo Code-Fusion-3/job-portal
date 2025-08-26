@@ -9,7 +9,6 @@ import { getAuthHeaders } from '../config/apiConfig.js';
 import { 
   extractProfileId, 
   validateProfileId, 
-  logProfileOperation, 
   createProfileErrorMessage 
 } from '../utils/profileUtils.js';
 
@@ -484,9 +483,6 @@ export const jobSeekerService = {
         return { success: false, error };
       }
 
-      // Log operation for debugging
-      logProfileOperation('approve', { id }, { operation: 'approveJobSeeker' });
-
       const response = await apiClient.put(`/profile/${id}/approve`, {}, {
         headers: getAuthHeaders()
       });
@@ -533,9 +529,6 @@ export const jobSeekerService = {
         console.error('❌ rejectJobSeeker validation error:', error);
         return { success: false, error };
       }
-
-      // Log operation for debugging
-      logProfileOperation('reject', { id }, { operation: 'rejectJobSeeker', reason: reason.trim() });
 
       const response = await apiClient.put(`/profile/${id}/reject`, { reason: reason.trim() }, {
         headers: getAuthHeaders()
@@ -593,7 +586,6 @@ export const jobSeekerService = {
         ...otherParams
       });
 
-      console.log(`🔍 Fetching profiles with status '${status}':`, { page, limit, otherParams });
 
       const response = await apiClient.get(`/profile/status/${status}?${queryParams}`, {
         headers: getAuthHeaders()
@@ -602,11 +594,11 @@ export const jobSeekerService = {
       const profiles = response.data.profiles || response.data || [];
       const pagination = response.data.pagination || {};
       
-      console.log(`✅ Retrieved ${profiles.length} profiles with status '${status}'`, { 
-        status, 
-        count: profiles.length, 
-        pagination 
-      });
+      // console.log(`✅ Retrieved ${profiles.length} profiles with status '${status}'`, { 
+      //   status, 
+      //   count: profiles.length, 
+      //   pagination 
+      // });
       
       return {
         success: true,
