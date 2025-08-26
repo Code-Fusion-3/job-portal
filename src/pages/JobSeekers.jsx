@@ -1,79 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Search, 
   Filter, 
   MapPin, 
-  Star, 
   Users, 
   Eye,
   Briefcase,
-  Calendar,
-  Phone,
-  Mail,
-  AlertCircle,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
-import { jobSeekerService } from '../api/index.js';
 import { usePublicCategories } from '../api/hooks/useCategories.js';
 import { usePublicJobSeekers } from '../api/hooks/useJobSeekers.js';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import Badge from '../components/ui/Badge';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ProfileImage from '../components/ui/ProfileImage';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import jobseekerBackground from '../assets/jobseekerBackground.png';
-import { filterJobSeekers, sortJobSeekers, maskName, formatExperienceDisplay } from '../utils/helpers';
-import useDebounce from '../hooks/useDebounce';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { maskName } from '../utils/helpers';
 
 const JobSeekers = () => {
   const { t } = useTranslation();
   
-  // Professional filter options - moved inside component where t function is available
-  const filterOptions = {
-    experienceLevel: [
-      { value: '', label: t('jobSeekers.filters.allExperienceLevels', 'All Experience Levels') },
-      { value: 'no_experience', label: t('jobSeekers.filters.noExperience', 'No Experience (0 years)') },
-      { value: 'beginner', label: t('jobSeekers.filters.beginner', 'Beginner (1-2 years)') },
-      { value: 'intermediate', label: t('jobSeekers.filters.intermediate', 'Intermediate (3-5 years)') },
-      { value: 'experienced', label: t('jobSeekers.filters.experienced', 'Experienced (6-10 years)') },
-      { value: 'expert', label: t('jobSeekers.filters.expert', 'Expert (10+ years)') }
-    ],
-    category: [
-      { value: '', label: t('jobSeekers.filters.allCategories', 'All Categories') }
-      // Will be populated dynamically from jobCategories
-    ],
-    location: [
-      { value: '', label: t('jobSeekers.filters.allLocations', 'All Locations') },
-      { value: 'kigali', label: t('jobSeekers.filters.kigali', 'Kigali') },
-      { value: 'butare', label: t('jobSeekers.filters.butare', 'Butare') },
-      { value: 'gisenyi', label: t('jobSeekers.filters.gisenyi', 'Gisenyi') },
-      { value: 'ruhengeri', label: t('jobSeekers.filters.ruhengeri', 'Ruhengeri') },
-      { value: 'kibuye', label: t('jobSeekers.filters.kibuye', 'Kibuye') },
-      { value: 'cyangugu', label: t('jobSeekers.filters.cyangugu', 'Cyangugu') },
-      { value: 'kibungo', label: t('jobSeekers.filters.kibungo', 'Kibungo') },
-      { value: 'rwamagana', label: t('jobSeekers.filters.rwamagana', 'Rwamagana') }
-    ],
-    gender: [
-      { value: '', label: t('jobSeekers.filters.allGenders', 'All Genders') },
-      { value: 'Male', label: t('jobSeekers.filters.male', 'Male') },
-      { value: 'Female', label: t('jobSeekers.filters.female', 'Female') },
-      { value: 'Other', label: t('jobSeekers.filters.other', 'Other') }
-    ],
-    sortBy: [
-      t('jobSeekers.filters.mostRecent', 'Most Recent'),
-      t('jobSeekers.filters.highestRated', 'Highest Rated'),
-      t('jobSeekers.filters.mostExperienced', 'Most Experienced'),
-      t('jobSeekers.filters.name', 'Name A-Z'),
-      t('jobSeekers.filters.lowestRate', 'Lowest Rate'),
-      t('jobSeekers.filters.highestRate', 'Highest Rate')
-    ]
-  };
-
+  // Professional filter options will be created dynamically using useMemo
   const [jobSeekers, setJobSeekers] = useState([]);
   const [filteredSeekers, setFilteredSeekers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,36 +36,65 @@ const JobSeekers = () => {
   const [sortBy, setSortBy] = useState('Most Recent');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showFilters, setShowFilters] = useState(true); // Changed to true - show filters by default
-  const navigate = useNavigate();
 
   // Use the public categories hook for dynamic job categories
   const { categories: jobCategories, loading: loadingCategories, error: categoriesError } = usePublicCategories();
 
-  // Debounce search term
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  // Update category filter options when jobCategories change
-  useEffect(() => {
-    if (jobCategories && jobCategories.length > 0) {
-      const categoryOptions = [
+  // Create dynamic filter options based on available categories
+  const dynamicFilterOptions = useMemo(() => {
+    const baseOptions = {
+      experienceLevel: [
+        { value: '', label: t('jobSeekers.filters.allExperienceLevels', 'All Experience Levels') },
+        { value: 'no_experience', label: t('jobSeekers.filters.noExperience', 'No Experience (0 years)') },
+        { value: 'beginner', label: t('jobSeekers.filters.beginner', 'Beginner (1-2 years)') },
+        { value: 'intermediate', label: t('jobSeekers.filters.intermediate', 'Intermediate (3-5 years)') },
+        { value: 'experienced', label: t('jobSeekers.filters.experienced', 'Experienced (6-10 years)') },
+        { value: 'expert', label: t('jobSeekers.filters.expert', 'Expert (10+ years)') }
+      ],
+      category: [
         { value: '', label: t('jobSeekers.filters.allCategories', 'All Categories') },
-        ...jobCategories.map(cat => ({
+        ...(jobCategories || []).map(cat => ({
           value: cat.name_en.toLowerCase(),
           label: cat.name_en
         }))
-      ];
-      // Update the filterOptions.category dynamically
-      filterOptions.category = categoryOptions;
-    } else if (categoriesError) {
-      // Handle categories API error gracefully without fallback data
-      filterOptions.category = [
-        { value: '', label: t('jobSeekers.filters.allCategories', 'All Categories') }
-      ];
-      // Clear any selected category when API fails
+      ],
+      location: [
+        { value: '', label: t('jobSeekers.filters.allLocations', 'All Locations') },
+        { value: 'kigali', label: t('jobSeekers.filters.kigali', 'Kigali') },
+        { value: 'butare', label: t('jobSeekers.filters.butare', 'Butare') },
+        { value: 'gisenyi', label: t('jobSeekers.filters.gisenyi', 'Gisenyi') },
+        { value: 'ruhengeri', label: t('jobSeekers.filters.ruhengeri', 'Ruhengeri') },
+        { value: 'kibuye', label: t('jobSeekers.filters.kibuye', 'Kibuye') },
+        { value: 'cyangugu', label: t('jobSeekers.filters.cyangugu', 'Cyangugu') },
+        { value: 'kibungo', label: t('jobSeekers.filters.kibungo', 'Kibungo') },
+        { value: 'rwamagana', label: t('jobSeekers.filters.rwamagana', 'Rwamagana') }
+      ],
+      gender: [
+        { value: '', label: t('jobSeekers.filters.allGenders', 'All Genders') },
+        { value: 'Male', label: t('jobSeekers.filters.male', 'Male') },
+        { value: 'Female', label: t('jobSeekers.filters.female', 'Female') },
+        { value: 'Other', label: t('jobSeekers.filters.other', 'Other') }
+      ],
+      sortBy: [
+        t('jobSeekers.filters.mostRecent', 'Most Recent'),
+        t('jobSeekers.filters.highestRated', 'Highest Rated'),
+        t('jobSeekers.filters.mostExperienced', 'Most Experienced'),
+        t('jobSeekers.filters.name', 'Name A-Z'),
+        t('jobSeekers.filters.lowestRate', 'Lowest Rate'),
+        t('jobSeekers.filters.highestRate', 'Highest Rate')
+      ]
+    };
+
+    return baseOptions;
+  }, [jobCategories, t]);
+
+  // Handle categories API error separately to avoid infinite loop
+  useEffect(() => {
+    if (categoriesError && selectedCategory) {
+      // Clear selected category when API fails
       setSelectedCategory('');
     }
-    
-  }, [jobCategories, categoriesError]);
+  }, [categoriesError, selectedCategory]);
 
   // Get active filters count
   const getActiveFiltersCount = () => {
@@ -258,23 +239,13 @@ const JobSeekers = () => {
     setSortBy('Most Recent');
   };
 
-  const handleViewProfile = (seeker) => {
-    navigate(`/view-profile/${seeker.id}`);
-  };
+  
 
-  const handleFavorite = (seekerId) => {
-    // Implement favorite functionality
-  };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
+
+
+
+
 
   if (jobSeekersLoading) {
     return (
@@ -329,12 +300,7 @@ const JobSeekers = () => {
       
       {/* Page Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <h1 className="text-4xl font-bold text-white mb-4 text-reveal">
             {t('jobSeekers.pageTitle', 'All Job Seekers')}
           </h1>
@@ -349,17 +315,14 @@ const JobSeekers = () => {
               {t('jobSeekers.totalCount', 'Total Job Seekers')}: <span className="text-2xl">{jobSeekers.length}</span>
             </span>
           </div>
-        </motion.div>
+          
+
+        </div>
       </div>
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Search and Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8 text-reveal"
-        >
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6 mb-8 text-reveal">
           {/* Search Bar */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -467,7 +430,7 @@ const JobSeekers = () => {
                     <div className="flex flex-wrap gap-2">
                       {selectedExperienceLevel && (
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                          Experience: {filterOptions.experienceLevel.find(opt => opt.value === selectedExperienceLevel)?.label}
+                          Experience: {dynamicFilterOptions.experienceLevel.find(opt => opt.value === selectedExperienceLevel)?.label}
                         </span>
                       )}
                       {selectedCategory && (
@@ -506,7 +469,7 @@ const JobSeekers = () => {
                     onChange={(e) => setSelectedExperienceLevel(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
-                    {filterOptions.experienceLevel.map(option => (
+                    {dynamicFilterOptions.experienceLevel.map(option => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -530,7 +493,7 @@ const JobSeekers = () => {
                     ) : categoriesError ? (
                       <option>{t('jobSeekers.errors.categoriesLoad', 'Error loading categories')}</option>
                     ) : (
-                      filterOptions.category.map(option => (
+                      dynamicFilterOptions.category.map(option => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -549,7 +512,7 @@ const JobSeekers = () => {
                     onChange={(e) => setSelectedLocation(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
-                    {filterOptions.location.map(option => (
+                    {dynamicFilterOptions.location.map(option => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -567,7 +530,7 @@ const JobSeekers = () => {
                     onChange={(e) => setSelectedGender(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                   >
-                    {filterOptions.gender.map(option => (
+                    {dynamicFilterOptions.gender.map(option => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -586,14 +549,14 @@ const JobSeekers = () => {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-gray-900 bg-white"
                 >
-                  {filterOptions.sortBy.map(sort => (
+                  {dynamicFilterOptions.sortBy.map(sort => (
                     <option key={sort} value={sort}>{sort}</option>
                   ))}
                 </select>
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Categories Error Message */}
         {categoriesError && (
@@ -644,7 +607,7 @@ const JobSeekers = () => {
               : 'space-y-6 text-reveal'
             }
           >
-            {filteredSeekers.map((seeker, index) => {
+            {filteredSeekers.map((seeker) => {
               return (
                 <div key={seeker.id}>
                   <Card className="h-[380px] bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 overflow-hidden group">
@@ -674,13 +637,15 @@ const JobSeekers = () => {
                               </div>
                             </div>
                           </div>
-                          <button
-                            onClick={() => handleViewProfile(seeker)}
+                          <Link
+                            to={`/view-profile/${seeker.id}`}
                             className="px-3 py-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
                           >
                             <Eye className="w-4 h-4" />
                             {t('jobSeekers.actions.viewProfile', 'View Profile')}
-                          </button>
+                          </Link>
+                          
+                          {/* Fallback Link for navigation - REMOVED as it might interfere with button navigation */}
                         </div>
                       </div>
 
@@ -710,8 +675,8 @@ const JobSeekers = () => {
                               {(seeker.skills || seeker.profile?.skills || seeker.user?.skills || '')
                                 .split(',')
                                 .slice(0, 4)
-                                .map((skill, index) => (
-                                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+                                .map((skill, skillIndex) => (
+                                  <span key={skillIndex} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
                                     {skill.trim()}
                                   </span>
                                 ))}

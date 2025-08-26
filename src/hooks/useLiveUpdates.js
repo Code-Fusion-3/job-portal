@@ -187,7 +187,7 @@ export const useLiveUpdates = (options = {}) => {
     }
 
     return cleanup;
-  }, [enabled, websocketUrl, connectWebSocket, startPolling, cleanup]);
+  }, [enabled, websocketUrl, startPolling, cleanup]);
 
   // Cleanup on unmount
   useEffect(() => {

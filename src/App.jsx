@@ -246,8 +246,8 @@ function App() {
           <LiveUpdateProvider>
             <Router
               future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true
+                v7_startTransition: false,
+                v7_relativeSplatPath: false
               }}
             >
               <SessionMonitor />

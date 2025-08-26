@@ -28,8 +28,15 @@ const Button = forwardRef(({
   
   const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
   
-  // Extract Framer Motion props
-  const { whileHover, whileTap, ...otherProps } = props;
+  // Extract Framer Motion props and other props
+  const { 
+    whileHover, 
+    whileTap, 
+    onClick,
+    disabled,
+    type,
+    ...otherProps 
+  } = props;
   
   // Handle different component types properly
   if (as === 'button') {
@@ -39,6 +46,9 @@ const Button = forwardRef(({
         className={classes}
         whileHover={whileHover || { scale: 1.02 }}
         whileTap={whileTap || { scale: 0.98 }}
+        onClick={onClick}
+        disabled={disabled}
+        type={type || 'button'}
         {...otherProps}
       >
         {children}
@@ -52,6 +62,8 @@ const Button = forwardRef(({
     <Component
       ref={ref}
       className={classes}
+      onClick={onClick}
+      disabled={disabled}
       {...otherProps}
     >
       {children}

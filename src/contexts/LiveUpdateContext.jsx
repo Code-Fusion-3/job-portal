@@ -102,47 +102,50 @@ export const LiveUpdateProvider = ({ children }) => {
     setNotifications([]);
   }, []);
 
-  // Handle data updates
-  const handleDataUpdate = useCallback((results) => {
+  // Handle data updates with proper dependency management
+  const handleDataUpdate = useCallback((dataArray) => {
+    if (!dataArray || dataArray.length === 0) return;
+
     const timestamp = Date.now();
-    const newData = { ...liveData };
-
-    // Handle different data formats
-    const dataArray = Array.isArray(results) ? results : [results];
-
-    dataArray.forEach((item) => {
-      if (item.endpoint && item.data) {
-        // Polling data format
-        if (item.endpoint.includes('dashboard/stats')) {
-          newData.dashboard = item.data;
-        } else if (item.endpoint.includes('employer/requests')) {
-          newData.requests = item.data;
-        } else if (item.endpoint.includes('job-seekers')) {
-          newData.jobSeekers = item.data;
-        } else if (item.endpoint.includes('categories')) {
-          newData.categories = item.data;
+    
+    // Use functional update to avoid dependency issues
+    setLiveData(prevData => {
+      const newData = { ...prevData };
+      
+      dataArray.forEach(item => {
+        if (item.endpoint) {
+          if (item.endpoint.includes('dashboard/stats')) {
+            newData.dashboard = item.data;
+          } else if (item.endpoint.includes('employer/requests')) {
+            newData.requests = item.data;
+          } else if (item.endpoint.includes('job-seekers')) {
+            newData.jobSeekers = item.data;
+          } else if (item.endpoint.includes('categories')) {
+            newData.categories = item.data;
+          }
+        } else if (item.type) {
+          // WebSocket message format
+          if (item.type === 'new_request' && item.data) {
+            // Handle new request notification
+            addNotification({
+              message: `New request from ${item.data.name}`,
+              type: 'info',
+              duration: 5000
+            });
+          } else if (item.type === 'dashboard_update') {
+            // Handle dashboard update notification
+            addNotification({
+              message: 'Dashboard updated',
+              type: 'success',
+              duration: 3000
+            });
+          }
         }
-      } else if (item.type) {
-        // WebSocket message format
-        if (item.type === 'new_request' && item.data) {
-          // Handle new request notification
-          addNotification({
-            message: `New request from ${item.data.name}`,
-            type: 'info',
-            duration: 5000
-          });
-        } else if (item.type === 'dashboard_update') {
-          // Handle dashboard update notification
-          addNotification({
-            message: 'Dashboard updated',
-            type: 'success',
-            duration: 3000
-          });
-        }
-      }
+      });
+      
+      return newData;
     });
 
-    setLiveData(newData);
     setLastUpdate(timestamp);
 
     // Add notification for significant changes (but not too frequently)
@@ -153,7 +156,7 @@ export const LiveUpdateProvider = ({ children }) => {
       //   duration: 3000
       // });
     }
-  }, [liveData, lastUpdate, addNotification]);
+  }, [lastUpdate, addNotification]);
 
   // Handle errors
   const handleError = useCallback((error) => {
@@ -185,8 +188,8 @@ export const LiveUpdateProvider = ({ children }) => {
     });
   }, [refresh, addNotification]);
 
-  // Context value
-  const contextValue = {
+  // Context value - memoized to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
     liveData,
     lastUpdate,
     notifications,
@@ -197,7 +200,18 @@ export const LiveUpdateProvider = ({ children }) => {
     manualRefresh,
     stopPolling,
     startPolling
-  };
+  }), [
+    liveData,
+    lastUpdate,
+    notifications,
+    isConnected,
+    addNotification,
+    removeNotification,
+    clearNotifications,
+    manualRefresh,
+    stopPolling,
+    startPolling
+  ]);
 
   return (
     <LiveUpdateContext.Provider value={contextValue}>
