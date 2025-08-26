@@ -70,6 +70,7 @@ const ViewProfile = () => {
         }
         if (result && result.success) {
           setJobSeeker(result.data);
+          console.log(result.data);
         } else {
           setError(result?.error || t('viewProfile.errors.notAvailable'));
         }
@@ -218,8 +219,8 @@ const ViewProfile = () => {
                     <div className="flex items-center space-x-3 mb-2">
                       <h1 className="text-4xl font-bold text-gray-900">
                         {isPublic
-                          ? `${jobSeeker.firstName} ${jobSeeker.lastName}`
-                          : `${jobSeeker?.profile?.firstName} ${jobSeeker?.profile?.lastName}`}
+                          ? `${jobSeeker.firstName?.charAt(0) || ''}** ${jobSeeker.lastName?.charAt(0) || ''}**`
+                          : `${jobSeeker?.profile?.firstName?.charAt(0) || ''}** ${jobSeeker?.profile?.lastName?.charAt(0) || ''}**`}
                       </h1>
                       {user?.role === 'admin' && (
                         <div className="flex items-center space-x-2">
@@ -280,13 +281,20 @@ const ViewProfile = () => {
                       <div className="flex items-center space-x-2 text-gray-600">
                         <MapPin className="w-4 h-4 text-blue-500" />
                         <span className="text-sm font-medium">
-                          {isPublic ? jobSeeker.location : jobSeeker?.profile?.location || t('viewProfile.info.locationNotSpecified')}
+                          {isPublic 
+                            ? (jobSeeker.location && jobSeeker.location.trim() !== '' 
+                                ? jobSeeker.location 
+                                : <span className="text-gray-400">{t('viewProfile.info.locationNotSpecified')}</span>)
+                            : (jobSeeker?.profile?.location && jobSeeker?.profile?.location.trim() !== '' 
+                                ? jobSeeker?.profile?.location 
+                                : <span className="text-gray-400">{t('viewProfile.info.locationNotSpecified')}</span>)
+                          }
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-600">
                         <Briefcase className="w-4 h-4 text-green-500" />
                         <span className="text-sm font-medium">
-                          {isPublic ? jobSeeker.experience : jobSeeker?.profile?.experience || t('viewProfile.info.experienceNotSpecified')}
+                          {isPublic ? jobSeeker.experienceLevel : jobSeeker?.profile?.experienceLevel || t('viewProfile.info.experienceNotSpecified')}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-gray-600">
