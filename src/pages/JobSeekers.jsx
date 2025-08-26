@@ -27,7 +27,6 @@ const JobSeekers = () => {
   
   // Professional filter options will be created dynamically using useMemo
   const [jobSeekers, setJobSeekers] = useState([]);
-  const [filteredSeekers, setFilteredSeekers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -121,23 +120,19 @@ const JobSeekers = () => {
   useEffect(() => {
     if (publicJobSeekers && publicJobSeekers.length > 0) {
       setJobSeekers(publicJobSeekers);
-      setFilteredSeekers(publicJobSeekers);
     } else if (jobSeekersError) {
       // Set empty arrays if there's an error
       setJobSeekers([]);
-      setFilteredSeekers([]);
     } else if (!publicJobSeekers || publicJobSeekers.length === 0) {
       // If no data from API, set empty arrays to show "no user found"
       setJobSeekers([]);
-      setFilteredSeekers([]);
     }
   }, [publicJobSeekers, jobSeekersError]);
 
-  // Apply filters and search
-  useEffect(() => {
+  // Apply filters and search using useMemo to prevent infinite loops
+  const filteredSeekers = useMemo(() => {
     if (!jobSeekers || jobSeekers.length === 0) {
-      setFilteredSeekers([]);
-      return;
+      return [];
     }
 
     let filtered = jobSeekers.filter(seeker => {
@@ -227,7 +222,7 @@ const JobSeekers = () => {
       });
     }
 
-    setFilteredSeekers(filtered);
+    return filtered;
   }, [jobSeekers, searchTerm, selectedExperienceLevel, selectedCategory, selectedLocation, selectedGender, sortBy]);
 
   const clearFilters = () => {

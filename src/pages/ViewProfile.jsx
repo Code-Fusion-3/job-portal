@@ -472,65 +472,7 @@ const ViewProfile = () => {
 
           {/* Sticky Sidebar */}
           <div className="space-y-6">
-            {/* Contact Information - Only for authenticated users */}
-            {!isPublic && (
-                             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                 <Card className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border-0 sticky top-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-900">{t('viewProfile.sections.contactInformation')}</h3>
-                    </div>
-                    {user?.role === 'admin' && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => setShowContact(!showContact)}
-                        className="p-2 rounded-full hover:bg-gray-100"
-                      >
-                        {showContact ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    )}
-                  </div>
-                  {showContact ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <Mail className="w-4 h-4 mr-3 text-blue-500" />
-                        <span className="text-sm text-gray-700">{jobSeeker.contact?.email}</span>
-                      </div>
-                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <Phone className="w-4 h-4 mr-3 text-green-500" />
-                        <span className="text-sm text-gray-700">{jobSeeker.contact?.phone}</span>
-                      </div>
-                      {jobSeeker.contact?.linkedin && (
-                        <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                          <Linkedin className="w-4 h-4 mr-3 text-blue-600" />
-                          <a 
-                            href={`https://${jobSeeker.contact.linkedin}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
-                          >
-                            {jobSeeker.contact.linkedin}
-                            <ExternalLink className="w-3 h-3 ml-1" />
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Eye className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{t('viewProfile.contact.hidden')}</p>
-                      <p className="text-xs text-gray-400">{t('viewProfile.contact.clickToReveal')}</p>
-                    </div>
-                  )}
-                </Card>
-              </motion.div>
-            )}
+        
 
             {/* Action Buttons - Sticky */}
                          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
