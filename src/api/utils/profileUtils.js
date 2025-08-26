@@ -15,8 +15,18 @@ export const extractProfileId = (jobSeeker) => {
     return null;
   }
 
-  // Try to get ID from different possible locations
-  const profileId = jobSeeker.id || jobSeeker.profile?.id || jobSeeker.profileId;
+  // Debug: Show what IDs are available
+  console.log('🔍 extractProfileId debugging:', {
+    userId: jobSeeker.id,
+    profileId: jobSeeker.profile?.id,
+    profileIdAlt: jobSeeker.profileId,
+    fullObject: jobSeeker
+  });
+
+  // Prioritize profile.id over user.id for approval operations
+  // Backend returns: { id: 3, profile: { id: 2 } }
+  // We want profile.id (2) for approval operations, not user.id (3)
+  const profileId = jobSeeker.profile?.id || jobSeeker.profileId || jobSeeker.id;
   
   if (!profileId) {
     console.warn('extractProfileId: No profile ID found in job seeker object:', jobSeeker);
@@ -30,6 +40,7 @@ export const extractProfileId = (jobSeeker) => {
     return null;
   }
 
+  console.log('✅ extractProfileId: Using profile ID:', numericId);
   return numericId;
 };
 

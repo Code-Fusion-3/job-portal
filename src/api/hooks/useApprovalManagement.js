@@ -155,7 +155,7 @@ export const useApprovalManagement = (options = {}) => {
     }
   }, [itemsPerPage, handleApiError, retryWithBackoff]);
 
-    // Approve profile with enhanced error handling and race condition prevention
+  // Approve profile with enhanced error handling and race condition prevention
   const approveProfile = useCallback(async (profileId) => {
     // Validate profile ID
     if (!validateProfileId(profileId)) {
@@ -176,10 +176,6 @@ export const useApprovalManagement = (options = {}) => {
 
     // Log operation for debugging
     logProfileOperation('approve', { id: profileId }, { hook: 'useApprovalManagement' });
-
-    // Store original state for rollback
-    const originalPendingProfiles = [...pendingProfiles];
-    const originalApprovedProfiles = [...approvedProfiles];
 
     const approveOperation = async () => {
       const result = await jobSeekerService.approveJobSeeker(profileId);
@@ -224,9 +220,16 @@ export const useApprovalManagement = (options = {}) => {
     } catch (error) {
       console.error('❌ Profile approval failed, rolling back state:', error);
       
-      // Rollback optimistic updates on error
-      setPendingProfiles(originalPendingProfiles);
-      setApprovedProfiles(originalApprovedProfiles);
+      // Rollback optimistic updates on error - use functional updates to avoid dependency issues
+      setPendingProfiles(prev => {
+        const profileToRestore = prev.find(p => extractProfileId(p) === profileId);
+        if (profileToRestore) {
+          return [...prev, profileToRestore];
+        }
+        return prev;
+      });
+      
+      setApprovedProfiles(prev => prev.filter(p => extractProfileId(p) !== profileId));
       
       const errorMessage = handleApiError(error, 'approveProfile', 'Failed to approve profile');
       setError(errorMessage);
@@ -234,9 +237,9 @@ export const useApprovalManagement = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [pendingProfiles, approvedProfiles, fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError, loading]);
+  }, [fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError, loading]);
 
-    // Reject profile with enhanced error handling and race condition prevention
+  // Reject profile with enhanced error handling and race condition prevention
   const rejectProfile = useCallback(async (profileId, reason) => {
     // Validate profile ID
     if (!validateProfileId(profileId)) {
@@ -247,7 +250,7 @@ export const useApprovalManagement = (options = {}) => {
 
     // Validate rejection reason
     if (!reason || typeof reason !== 'string' || reason.trim().length < 10) {
-      const error = 'A detailed rejection reason (minimum 10 characters) is required';
+      const error = 'Rejection reason must be at least 10 characters long.';
       setError(error);
       return { success: false, error };
     }
@@ -263,17 +266,10 @@ export const useApprovalManagement = (options = {}) => {
     setError(null);
 
     // Log operation for debugging
-    logProfileOperation('reject', { id: profileId }, { 
-      hook: 'useApprovalManagement', 
-      reason: reason.trim() 
-    });
-
-    // Store original state for rollback
-    const originalPendingProfiles = [...pendingProfiles];
-    const originalRejectedProfiles = [...rejectedProfiles];
+    logProfileOperation('reject', { id: profileId, reason }, { hook: 'useApprovalManagement' });
 
     const rejectOperation = async () => {
-      const result = await jobSeekerService.rejectJobSeeker(profileId, reason.trim());
+      const result = await jobSeekerService.rejectJobSeeker(profileId, reason);
 
       if (result.success) {
         return result;
@@ -306,7 +302,7 @@ export const useApprovalManagement = (options = {}) => {
         // Don't fail the whole operation if refresh fails
       }
 
-      console.log('✅ Profile rejection completed successfully:', { profileId, reason: reason.trim(), result });
+      console.log('✅ Profile rejection completed successfully:', { profileId, result });
       return { 
         success: true, 
         data: result.data, 
@@ -315,9 +311,16 @@ export const useApprovalManagement = (options = {}) => {
     } catch (error) {
       console.error('❌ Profile rejection failed, rolling back state:', error);
       
-      // Rollback optimistic updates on error
-      setPendingProfiles(originalPendingProfiles);
-      setRejectedProfiles(originalRejectedProfiles);
+      // Rollback optimistic updates on error - use functional updates to avoid dependency issues
+      setPendingProfiles(prev => {
+        const profileToRestore = prev.find(p => extractProfileId(p) === profileId);
+        if (profileToRestore) {
+          return [...prev, profileToRestore];
+        }
+        return prev;
+      });
+      
+      setRejectedProfiles(prev => prev.filter(p => extractProfileId(p) !== profileId));
       
       const errorMessage = handleApiError(error, 'rejectProfile', 'Failed to reject profile');
       setError(errorMessage);
@@ -325,7 +328,7 @@ export const useApprovalManagement = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [pendingProfiles, rejectedProfiles, fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError, loading]);
+  }, [fetchProfilesByStatus, currentPage, retryWithBackoff, handleApiError, loading]);
 
   // Bulk operations
   const bulkApprove = useCallback(async (profileIds) => {
