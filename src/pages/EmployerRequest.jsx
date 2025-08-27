@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { CheckCircle, User, MapPin, Briefcase, Star, Clock, MessageSquare } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import Header from '../components/layout/Header';

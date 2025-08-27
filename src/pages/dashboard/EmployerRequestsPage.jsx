@@ -37,7 +37,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import API_CONFIG from '../../api/config/apiConfig.js';
 
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 
 const EmployerRequestsPage = () => {

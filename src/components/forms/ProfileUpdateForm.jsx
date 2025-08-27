@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useProfile } from '../../api/hooks/useAuth.js';
 import Button from '../ui/Button';
 import FormInput from '../ui/FormInput';
