@@ -13,19 +13,7 @@ const ProtectedRoute = ({
   const location = useLocation();
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
-  // Debug logging
-  console.log('🔒 ProtectedRoute Debug:', {
-    pathname: location.pathname,
-    user: user,
-    loading: loading,
-    isAuthenticated: isAuthenticated,
-    requiredRole: requiredRole,
-    userRole: user?.role,
-    userExists: !!user,
-    sessionValid: user?.sessionValid,
-    isAuthenticatedCalculation: !!user && user.sessionValid,
-    redirectReason: 'none'
-  });
+
   
 
 
@@ -74,14 +62,9 @@ const ProtectedRoute = ({
     // More robust role checking to handle state synchronization issues
     const userRole = user.role || user.user?.role || (user.data ? user.data.role : null);
     
-    console.log('🔒 Role Check Debug:', {
-      requiredRole: requiredRole,
-      userRole: userRole,
-      user: user
-    });
+
     
     if (userRole !== requiredRole) {
-      console.log('❌ Role mismatch, redirecting...');
       
       // If we have a valid user but role mismatch, redirect to appropriate dashboard
       let dashboardPath;

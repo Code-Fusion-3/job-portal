@@ -127,7 +127,6 @@ export const AuthProvider = ({ children }) => {
   }, [sessionValid, user, logout]);
 
   const login = async (email, password, role) => {
-    console.log('🔍 LOGIN METHOD CALLED with:', { email, password, role });
     setLoading(true);
     setError(null);
     
@@ -138,22 +137,17 @@ export const AuthProvider = ({ children }) => {
         loginResult = await authApi.loginAdmin({ email, password });
       } else if (role === 'employer') {
         // Handle employer login
-        console.log('🔍 Calling loginEmployer with:', { email, password });
         loginResult = await authApi.loginEmployer({ email, password });
-        console.log('🔍 loginEmployer returned:', loginResult);
       } else {
         loginResult = await authApi.loginJobSeeker({ email, password });
       }
 
       // For employers, use the login response data directly
       if (role === 'employer') {
-        console.log('🔍 Employer login response:', loginResult);
-        console.log('🔍 Response type:', typeof loginResult);
-        console.log('🔍 Response keys:', Object.keys(loginResult || {}));
+       
         
         // Check if login was successful (either by success property, message, or by having a token)
         if (loginResult.success || loginResult.message === 'Login successful' || loginResult.token) {
-          console.log('✅ Login appears successful, creating user object...');
           
           // Create a user object from the employer login response
           const employerUser = {
@@ -164,31 +158,22 @@ export const AuthProvider = ({ children }) => {
             employerAccount: loginResult.employer
           };
           
-          console.log('🔍 Created employer user object:', employerUser);
           
           // Store employer user data in localStorage for persistence
           localStorage.setItem('employer_user', JSON.stringify(employerUser));
-          console.log('🔍 Stored in localStorage');
           
           // Set the state synchronously
-          console.log('🔍 Setting user state...');
           setUser(employerUser);
-          console.log('🔍 Setting sessionValid to true...');
           setSessionValid(true);
           
-          console.log('🔍 State set - user:', employerUser);
-          console.log('🔍 State set - sessionValid: true');
+        
           
           // Add a longer delay to ensure state updates are processed
           await new Promise(resolve => setTimeout(resolve, 500));
           
-          console.log('🔍 Returning success result');
           return { success: true, user: employerUser };
         } else {
-          console.error('❌ Employer login failed - no success indicators:', loginResult);
-          console.error('❌ loginResult.success:', loginResult?.success);
-          console.error('❌ loginResult.message:', loginResult?.message);
-          console.error('❌ loginResult.token:', loginResult?.token);
+        
           
           // Clear authentication state on failed login
           setUser(null);
@@ -232,7 +217,6 @@ export const AuthProvider = ({ children }) => {
         errorType: apiError.type 
       };
     } finally {
-      console.log('🔍 Finally block - setting loading to false');
       setLoading(false);
     }
   };
@@ -426,8 +410,7 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
+}; 
 // Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
