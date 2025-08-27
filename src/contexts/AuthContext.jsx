@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       // Clear all auth data
       clearAuthTokens();
+      localStorage.removeItem('employer_user'); // Clear employer user data
       setUser(null);
       setError(null);
       setSessionValid(false);
@@ -33,15 +34,37 @@ export const AuthProvider = ({ children }) => {
       try {
         setError(null);
         
+        // Don't check authentication if we're on the login page
+        if (window.location.pathname === '/employer/login' || window.location.pathname === '/login') {
+          console.log('🔍 On login page, skipping authentication check');
+          setLoading(false);
+          return;
+        }
+        
         // Check if we have a valid token
         const token = getAuthToken();
         
         if (token && !isTokenExpired()) {
-          // Fetch user data from backend
+          // Check if this is an employer token by looking at stored user data
+          const storedUser = localStorage.getItem('employer_user');
+          if (storedUser) {
+            try {
+              const employerUser = JSON.parse(storedUser);
+              if (employerUser.role === 'employer') {
+                setUser(employerUser);
+                setSessionValid(true);
+                setLoading(false);
+                return;
+              }
+            } catch (e) {
+              // Invalid stored data, continue with normal flow
+            }
+          }
+          
+          // Fetch user data from backend for non-employer users
           const result = await userService.getCurrentUser();
           
           if (result.success) {
-           
             setUser(result.data);
             setSessionValid(true);
           } else {
@@ -81,6 +104,11 @@ export const AuthProvider = ({ children }) => {
             return;
           }
           
+          // Skip session checks for employers since they don't have a profile endpoint
+          if (user.role === 'employer') {
+            return;
+          }
+          
           const result = await userService.getCurrentUser();
           if (!result.success) {
             console.warn('Session check failed, logging out...');
@@ -99,6 +127,7 @@ export const AuthProvider = ({ children }) => {
   }, [sessionValid, user, logout]);
 
   const login = async (email, password, role) => {
+    console.log('🔍 LOGIN METHOD CALLED with:', { email, password, role });
     setLoading(true);
     setError(null);
     
@@ -107,11 +136,71 @@ export const AuthProvider = ({ children }) => {
       
       if (role === 'admin') {
         loginResult = await authApi.loginAdmin({ email, password });
+      } else if (role === 'employer') {
+        // Handle employer login
+        console.log('🔍 Calling loginEmployer with:', { email, password });
+        loginResult = await authApi.loginEmployer({ email, password });
+        console.log('🔍 loginEmployer returned:', loginResult);
       } else {
         loginResult = await authApi.loginJobSeeker({ email, password });
       }
 
-      // Login successful, now fetch user data from backend
+      // For employers, use the login response data directly
+      if (role === 'employer') {
+        console.log('🔍 Employer login response:', loginResult);
+        console.log('🔍 Response type:', typeof loginResult);
+        console.log('🔍 Response keys:', Object.keys(loginResult || {}));
+        
+        // Check if login was successful (either by success property, message, or by having a token)
+        if (loginResult.success || loginResult.message === 'Login successful' || loginResult.token) {
+          console.log('✅ Login appears successful, creating user object...');
+          
+          // Create a user object from the employer login response
+          const employerUser = {
+            id: loginResult.employer?.id || loginResult.employer?.accountId,
+            email: loginResult.employer?.email,
+            name: loginResult.employer?.name,
+            role: 'employer',
+            employerAccount: loginResult.employer
+          };
+          
+          console.log('🔍 Created employer user object:', employerUser);
+          
+          // Store employer user data in localStorage for persistence
+          localStorage.setItem('employer_user', JSON.stringify(employerUser));
+          console.log('🔍 Stored in localStorage');
+          
+          // Set the state synchronously
+          console.log('🔍 Setting user state...');
+          setUser(employerUser);
+          console.log('🔍 Setting sessionValid to true...');
+          setSessionValid(true);
+          
+          console.log('🔍 State set - user:', employerUser);
+          console.log('🔍 State set - sessionValid: true');
+          
+          // Add a longer delay to ensure state updates are processed
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          console.log('🔍 Returning success result');
+          return { success: true, user: employerUser };
+        } else {
+          console.error('❌ Employer login failed - no success indicators:', loginResult);
+          console.error('❌ loginResult.success:', loginResult?.success);
+          console.error('❌ loginResult.message:', loginResult?.message);
+          console.error('❌ loginResult.token:', loginResult?.token);
+          
+          // Clear authentication state on failed login
+          setUser(null);
+          setSessionValid(false);
+          clearAuthTokens();
+          
+          // setError('Login failed. Please check your credentials.');
+          return { success: false, error: 'Login failed. Please check your credentials.' };
+        }
+      }
+
+      // For other roles, fetch user data from backend
       const userResult = await userService.getCurrentUser();
       
       if (userResult.success) {
@@ -136,13 +225,14 @@ export const AuthProvider = ({ children }) => {
         role 
       });
       
-      setError(apiError.userMessage);
+      // setError(apiError.userMessage);
       return { 
         success: false, 
         error: apiError.userMessage,
         errorType: apiError.type 
       };
     } finally {
+      console.log('🔍 Finally block - setting loading to false');
       setLoading(false);
     }
   };
@@ -317,12 +407,32 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user && sessionValid,
     isAdmin: user?.role === 'admin',
     isJobSeeker: user?.role === 'jobseeker',
+    isEmployer: user?.role === 'employer',
     clearError: () => setError(null)
   };
+
+  // Debug logging for authentication state
+  console.log('🔐 AuthContext Debug:', {
+    user: user,
+    sessionValid: sessionValid,
+    isAuthenticated: !!user && sessionValid,
+    userRole: user?.role,
+    userExists: !!user,
+    sessionValidValue: sessionValid
+  });
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }; 

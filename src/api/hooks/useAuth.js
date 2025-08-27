@@ -1,20 +1,9 @@
 /**
- * Custom Authentication Hook
- * Provides a clean interface for authentication operations
+ * useAuth Hook
+ * Re-exports the useAuth hook from AuthContext for compatibility
  */
 
-import { useContext } from 'react';
-import { AuthContext } from '../../contexts/AuthContext.jsx';
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  
-  return context;
-};
+export { useAuth } from '../../contexts/AuthContext.jsx';
 
 // Export individual hooks for specific functionality
 export const useLogin = () => {

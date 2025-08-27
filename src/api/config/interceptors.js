@@ -23,7 +23,13 @@ export const requestInterceptor = (config) => {
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 Request interceptor: Adding token for URL:', config.url);
+      console.log('🔐 Token (first 20 chars):', token.substring(0, 20) + '...');
+    } else {
+      console.log('⚠️ Request interceptor: No token found for URL:', config.url);
     }
+  } else {
+    console.log('⚠️ Request interceptor: Token expired for URL:', config.url);
   }
 
   // Add timeout

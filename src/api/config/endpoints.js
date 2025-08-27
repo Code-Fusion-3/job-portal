@@ -11,6 +11,28 @@ export const ENDPOINTS = {
     REFRESH_TOKEN: '/security/refresh',
   },
 
+  // Employer Authentication & Requests
+  EMPLOYER: {
+    LOGIN: '/employer/auth/login',
+    REGISTER: '/employer/auth/register',
+    SUBMIT_REQUEST: '/employer/request', // Corrected from '/employer/requests'
+    GET_REQUESTS: '/employer/requests',
+    GET_REQUEST_BY_ID: (id) => `/employer/requests/${id}`,
+    CHANGE_PASSWORD: '/employer/auth/change-password',
+    FORGOT_PASSWORD: '/employer/auth/forgot-password',
+    GET_PROFILE: '/employer/auth/profile',
+    UPDATE_PROFILE: '/employer/auth/profile',
+    // New endpoints
+    DASHBOARD: '/employer/dashboard',
+    MESSAGES: {
+      GET_BY_REQUEST: (requestId) => `/messaging/request/${requestId}`,
+      SEND: (requestId) => `/messaging/request/${requestId}`,
+      MARK_READ: (requestId) => `/messaging/request/${requestId}/read`,
+      DELETE: (messageId) => `/messaging/message/${messageId}`,
+      UNREAD_COUNT: '/messaging/unread-count'
+    }
+  },
+
   // Job Seekers
   JOB_SEEKERS: {
     GET_ALL: '/job-seekers',

@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 // Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger);
+      gsap.registerPlugin(ScrollTrigger);
 
 export const useScrollAnimations = () => {
   const containerRef = useRef(null);
@@ -85,7 +85,7 @@ export const useScrollAnimations = () => {
     if (animationsInitialized) return;
 
     // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
+        const timer = setTimeout(() => {
       try {
         initStaggerAnimation();
         initTextReveal();

@@ -12,6 +12,20 @@ const ProtectedRoute = ({
   const { user, loading, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  // Debug logging
+  console.log('🔒 ProtectedRoute Debug:', {
+    pathname: location.pathname,
+    user: user,
+    loading: loading,
+    isAuthenticated: isAuthenticated,
+    requiredRole: requiredRole,
+    userRole: user?.role,
+    userExists: !!user,
+    sessionValid: user?.sessionValid,
+    isAuthenticatedCalculation: !!user && user.sessionValid,
+    redirectReason: 'none'
+  });
   
 
 
@@ -21,7 +35,7 @@ const ProtectedRoute = ({
       // User is loaded, we can proceed with route protection
       const timer = setTimeout(() => {
         setIsCheckingSession(false);
-      }, 50);
+      }, 200); // Increased delay to ensure state is fully updated
       return () => clearTimeout(timer);
     } else if (!loading && !user) {
       // AuthContext finished loading but no user found
@@ -41,6 +55,11 @@ const ProtectedRoute = ({
 
   // User is not authenticated
   if (!isAuthenticated) {
+    console.log('🔒 REDIRECTING: User not authenticated', {
+      user: user,
+      isAuthenticated: isAuthenticated,
+      sessionValid: user?.sessionValid
+    });
     return (
       <Navigate 
         to={redirectTo} 
@@ -55,12 +74,26 @@ const ProtectedRoute = ({
     // More robust role checking to handle state synchronization issues
     const userRole = user.role || user.user?.role || (user.data ? user.data.role : null);
     
-  
+    console.log('🔒 Role Check Debug:', {
+      requiredRole: requiredRole,
+      userRole: userRole,
+      user: user
+    });
     
     if (userRole !== requiredRole) {
+      console.log('❌ Role mismatch, redirecting...');
       
       // If we have a valid user but role mismatch, redirect to appropriate dashboard
-      const dashboardPath = userRole === 'admin' ? '/dashboard/admin' : '/dashboard/jobseeker';
+      let dashboardPath;
+      if (userRole === 'admin') {
+        dashboardPath = '/dashboard/admin';
+      } else if (userRole === 'employer') {
+        dashboardPath = '/dashboard/employer';
+      } else if (userRole === 'jobseeker') {
+        dashboardPath = '/dashboard/jobseeker';
+      } else {
+        dashboardPath = '/login';
+      }
       
       return (
         <Navigate 

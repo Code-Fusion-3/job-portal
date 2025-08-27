@@ -100,6 +100,36 @@ export const authApi = {
     }
   },
 
+  // Employer Login
+  loginEmployer: async (credentials) => {
+    try {
+      console.log('🔍 authClient.loginEmployer called with:', credentials);
+      const response = await authClient.post('/employer/auth/login', credentials);
+      console.log('🔍 authClient.loginEmployer response:', response);
+      console.log('🔍 authClient.loginEmployer response.data:', response.data);
+      
+      if (response.data.token) {
+        console.log('🔍 Token found, setting auth tokens...');
+        // Backend returns 'token' instead of 'accessToken'
+        // No refreshToken or expiresAt in the response
+        setAuthTokens(
+          response.data.token,
+          null, // No refresh token
+          null  // No expiry time
+        );
+        console.log('🔍 Auth tokens set');
+      } else {
+        console.log('🔍 No token found in response');
+      }
+
+      console.log('🔍 loginEmployer returning:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ loginEmployer error:', error);
+      throw error;
+    }
+  },
+
   // Refresh Token
   refreshToken: async () => {
     try {

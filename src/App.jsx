@@ -21,6 +21,9 @@ const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminInfo = lazy(() => import('./pages/AdminInfo'));
 const Register = lazy(() => import('./pages/Register'));
 const EmployerRequest = lazy(() => import('./pages/EmployerRequest'));
+const EmployerRequestGeneral = lazy(() => import('./pages/EmployerRequestGeneral'));
+const EmployerLogin = lazy(() => import('./pages/EmployerLogin'));
+const ApiTest = lazy(() => import('./pages/ApiTest'));
 const JobSeekerDashboard = lazy(() => import('./pages/dashboard/JobSeekerDashboard'));
 const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'));
 const JobSeekersPage = lazy(() => import('./pages/dashboard/JobSeekersPage'));
@@ -258,6 +261,8 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<AdminLogin />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/employer/login" element={<EmployerLogin />} />
+                <Route path="/employer-request" element={<EmployerRequestGeneral />} />
                 <Route path="/employer-request/:id" element={<EmployerRequest />} />
                 <Route path="/about" element={<AboutUsPage />} />
                 <Route path="/admin-info" element={<AdminInfo />} />
@@ -268,6 +273,7 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/test-approval" element={<ApprovalComponentsTest />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
+                <Route path="/api-test" element={<ApiTest />} />
               <Route path="/dashboard/jobseeker" element={
                   <ProtectedRoute requiredRole="jobseeker">
                     <JobSeekerDashboard />
