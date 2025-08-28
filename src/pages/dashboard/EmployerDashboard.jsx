@@ -128,6 +128,23 @@ const EmployerDashboard = () => {
     setNewMessage('');
   };
 
+  // Close details modal
+  const closeDetails = () => {
+    setShowDetails(false);
+    setSelectedRequest(null);
+  };
+
+  // Handle backdrop click to close modals
+  const handleBackdropClick = (e, modalType) => {
+    if (e.target === e.currentTarget) {
+      if (modalType === 'messaging') {
+        closeMessaging();
+      } else if (modalType === 'details') {
+        closeDetails();
+      }
+    }
+  };
+
   // Mark messages as read
   const markMessagesAsRead = async () => {
     if (!selectedRequest) return;
@@ -147,12 +164,6 @@ const EmployerDashboard = () => {
     setShowDetails(true);
     // Fetch messages for this request to display in the details modal
     await fetchMessages(request.id);
-  };
-
-  // Close details modal
-  const closeDetails = () => {
-    setShowDetails(false);
-    setSelectedRequest(null);
   };
 
   // Load dashboard data on component mount
@@ -279,7 +290,7 @@ const EmployerDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -480,10 +491,17 @@ const EmployerDashboard = () => {
 
       {/* Messaging Modal */}
       {showMessaging && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
+        <div 
+          className="absolute inset-0 flex items-center justify-center z-40 p-4"
+          onClick={(e) => handleBackdropClick(e, 'messaging')}
+        >
+          {/* Semi-transparent backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          
+          {/* Modal content */}
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
                   Messages - Request #{selectedRequest.id}
@@ -494,7 +512,7 @@ const EmployerDashboard = () => {
               </div>
               <button
                 onClick={closeMessaging}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <span className="sr-only">Close</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -504,7 +522,7 @@ const EmployerDashboard = () => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
               {messagingLoading ? (
                 <div className="text-center py-8">
                   <RefreshCw className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4" />
@@ -523,9 +541,9 @@ const EmployerDashboard = () => {
                     className={`flex ${message.fromAdmin ? 'justify-start' : 'justify-end'}`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${
                         message.fromAdmin
-                          ? 'bg-gray-100 text-gray-900'
+                          ? 'bg-white text-gray-900 border border-gray-200'
                           : 'bg-blue-600 text-white'
                       }`}
                     >
@@ -542,7 +560,7 @@ const EmployerDashboard = () => {
             </div>
 
             {/* Message Input */}
-            <div className="px-6 py-4 border-t border-gray-200">
+            <div className="px-6 py-4 border-t border-gray-200 bg-white rounded-b-xl">
               <div className="flex space-x-2">
                 <input
                   type="text"
@@ -568,15 +586,22 @@ const EmployerDashboard = () => {
 
       {/* Details Modal */}
       {showDetails && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div 
+          className="absolute inset-0 flex items-center justify-center z-40 p-4"
+          onClick={(e) => handleBackdropClick(e, 'details')}
+        >
+          {/* Semi-transparent backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          
+          {/* Modal content */}
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
               <h3 className="text-lg font-semibold text-gray-900">
                 Request Details - #{selectedRequest.id}
               </h3>
               <button
                 onClick={closeDetails}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <span className="sr-only">Close</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -585,7 +610,7 @@ const EmployerDashboard = () => {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
               {/* Request Information */}
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Information</h4>
@@ -1088,7 +1113,7 @@ const EmployerDashboard = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-200">
+            <div className="px-6 py-4 border-t border-gray-200 bg-white rounded-b-xl">
               <div className="flex space-x-2">
                 <input
                   type="text"
