@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -18,13 +17,15 @@ import {
   MoreHorizontal,
   Search,
   Filter,
-  X
+  X,
+  Send
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { categoryService } from '../../api/services/categoryService.js';
 import { useCategories } from '../../api/hooks/useCategories.js';
 import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';
+import messagingService from '../../api/services/messagingService.js';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import StatsGrid from '../../components/ui/StatsGrid';
@@ -134,6 +135,13 @@ const EmployerRequestsPage = () => {
   const [completionError, setCompletionError] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
 
+  // Messaging state
+  const [showMessagingModal, setShowMessagingModal] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [messagingLoading, setMessagingLoading] = useState(false);
+  const [messagingError, setMessagingError] = useState('');
+
   // Search and Filter state
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [localFilters, setLocalFilters] = useState({
@@ -159,7 +167,83 @@ const EmployerRequestsPage = () => {
     setSelectedCandidate(null);
     setCandidateSelectionError('');
     setShowDetailsModal(false);
+    setShowMessagingModal(false);
+    setMessages([]);
+    setNewMessage('');
+    setMessagingError('');
   }, []);
+
+  // Messaging functions
+  const openMessaging = async (request) => {
+    try {
+      setSelectedRequest(request);
+      setShowMessagingModal(true);
+      setMessagingLoading(true);
+      setMessagingError('');
+      
+      const response = await messagingService.getMessagesByRequest(request.id);
+      setMessages(response.messages || []);
+    } catch (error) {
+      console.error('Error opening messaging:', error);
+      setMessagingError('Failed to load messages');
+      toast.error('Failed to load messages');
+    } finally {
+      setMessagingLoading(false);
+    }
+  };
+
+  const closeMessaging = () => {
+    setShowMessagingModal(false);
+    setMessages([]);
+    setNewMessage('');
+    setMessagingError('');
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedRequest) return;
+
+    try {
+      setMessagingLoading(true);
+      setMessagingError('');
+      
+      await messagingService.sendMessage(selectedRequest.id, {
+        content: newMessage.trim(),
+        messageType: 'text'
+      });
+      
+      setNewMessage('');
+      // Refresh messages
+      const response = await messagingService.getMessagesByRequest(selectedRequest.id);
+      setMessages(response.messages || []);
+      toast.success('Message sent successfully');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessagingError('Failed to send message');
+      toast.error('Failed to send message');
+    } finally {
+      setMessagingLoading(false);
+    }
+  };
+
+  const markMessagesAsRead = async () => {
+    if (!selectedRequest) return;
+
+    try {
+      await messagingService.markMessagesAsRead(selectedRequest.id);
+      // Refresh messages to update read status
+      const response = await messagingService.getMessagesByRequest(selectedRequest.id);
+      setMessages(response.messages || []);
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
+
+  // Mark messages as read when messaging is opened
+  useEffect(() => {
+    if (showMessagingModal && selectedRequest) {
+      markMessagesAsRead();
+    }
+  }, [showMessagingModal, selectedRequest]);
 
   // State validation function for debugging
   const validateModalStates = useCallback(() => {
@@ -649,6 +733,9 @@ const EmployerRequestsPage = () => {
         setCurrentAction('reply');
         setShowActionModal(true);
         break;
+      case 'message':
+        openMessaging(request);
+        break;
       case 'select':
         setCurrentAction('select');
         setShowActionModal(true);
@@ -833,6 +920,9 @@ const EmployerRequestsPage = () => {
     const baseActions = [
       // View Details - Always available
       { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
+      
+      // Messaging - Always available
+      { key: 'message', title: 'Message', icon: MessageSquare, className: 'text-indigo-600 hover:bg-indigo-50', group: 'contact' },
       
       // Contact Group - Status-dependent
       { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
@@ -1848,6 +1938,86 @@ const EmployerRequestsPage = () => {
         </div>
           )}
       </Modal>
+      )}
+      
+      {/* Messaging Modal */}
+      {showMessagingModal && selectedRequest && (
+        <Modal
+          isOpen={showMessagingModal}
+          onClose={closeMessaging}
+          title={`Messaging - Request #${selectedRequest.id}`}
+          maxWidth="max-w-2xl"
+        >
+          <div className="flex flex-col h-[calc(100vh-200px)]">
+            {/* Messages List */}
+            <div className="flex-1 overflow-y-auto pr-4 space-y-4 mb-4">
+              {messagingLoading ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4" />
+                  <p className="text-gray-600">Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No messages yet</p>
+                  <p className="text-sm text-gray-500">Start the conversation!</p>
+                </div>
+              ) : (
+                messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.fromAdmin ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
+                        msg.fromAdmin
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-800 border border-gray-200'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.content}</p>
+                      <p className={`text-xs mt-1 ${
+                        msg.fromAdmin ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                        {new Date(msg.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+              
+              {messagingError && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                  {messagingError}
+                </div>
+              )}
+            </div>
+
+            {/* New Message Input */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Type a message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                disabled={messagingLoading}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              />
+              <Button
+                variant="primary"
+                onClick={sendMessage}
+                disabled={!newMessage.trim() || messagingLoading}
+              >
+                {messagingLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
       
       <Toaster position="top-right" />
