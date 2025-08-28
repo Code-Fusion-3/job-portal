@@ -25,7 +25,8 @@ import {
   Home,
   Shield,
   Mail,
-  Phone
+  Phone,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '../../api/hooks/useAuth.js';
 import { adminService } from '../../api/services/adminService.js';
@@ -51,6 +52,7 @@ import TableReportsPage from './TableReportsPage';
 import ContactMessagesPage from './ContactMessagesPage';
 import SettingsPage from './SettingsPage';
 import JobCategoriesPage from './JobCategoriesPage';
+import PaymentMethodsPage from './PaymentMethodsPage';
 
 import { 
   getStatusColor, 
@@ -589,6 +591,8 @@ const AdminDashboard = () => {
         return <TableReportsPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'payment-methods':
+        return <PaymentMethodsPage />;
       default:
         return renderDashboardContent();
     }
@@ -626,7 +630,8 @@ const AdminDashboard = () => {
                 { id: 'reports-tables', label: 'Table Reports' }
               ]
             },
-            { id: 'settings', label: 'Settings', icon: 'Settings' }
+            { id: 'settings', label: 'Settings', icon: 'Settings' },
+            { id: 'payment-methods', label: 'Payment Methods', icon: 'CreditCard' }
           ]}
           activeTab={activeTab}
           setActiveTab={setActiveTab}

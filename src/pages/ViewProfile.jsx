@@ -453,14 +453,14 @@ const ViewProfile = () => {
                      </div>
 
                      {/* References Section */}
-                     <div>
-                       <div className="flex items-center space-x-3 mb-4">
-                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                           <Users className="w-4 h-4 text-green-600" />
-                         </div>
+                       <div>
+                         <div className="flex items-center space-x-3 mb-4">
+                           <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                             <Users className="w-4 h-4 text-green-600" />
+                           </div>
                          <h3 className="text-xl font-semibold text-gray-900">References</h3>
-                       </div>
-                       <div className="bg-gray-50 rounded-xl p-4">
+                         </div>
+                         <div className="bg-gray-50 rounded-xl p-4">
                          <p className="text-gray-700 leading-relaxed text-sm">
                            {isPublic 
                              ? (jobSeeker.references && jobSeeker.references.trim() !== '' 

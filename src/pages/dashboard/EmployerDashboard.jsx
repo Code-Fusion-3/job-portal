@@ -37,6 +37,19 @@ const EmployerDashboard = () => {
   const [newMessage, setNewMessage] = useState('');
   const [messagingLoading, setMessagingLoading] = useState(false);
 
+  // Payment confirmation state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentConfirmation, setPaymentConfirmation] = useState({
+    confirmationName: '',
+    confirmationPhone: '',
+    paymentReference: '',
+    transferAmount: '',
+    transferDate: '',
+    notes: ''
+  });
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
   // Helper function to safely format location data
   const formatLocation = (location, city, country) => {
     const locationParts = [];
@@ -177,6 +190,80 @@ const EmployerDashboard = () => {
       markMessagesAsRead();
     }
   }, [showMessaging, selectedRequest]);
+
+  // Payment confirmation functions
+  const openPaymentModal = (request) => {
+    setSelectedRequest(request);
+    setShowPaymentModal(true);
+    setPaymentConfirmation({
+      confirmationName: '',
+      confirmationPhone: '',
+      paymentReference: '',
+      transferAmount: request.paymentAmount?.toString() || '',
+      transferDate: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+    setPaymentError('');
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setPaymentConfirmation({
+      confirmationName: '',
+      confirmationPhone: '',
+      paymentReference: '',
+      transferAmount: '',
+      transferDate: '',
+      notes: ''
+    });
+    setPaymentError('');
+  };
+
+  const handlePaymentConfirmation = async (e) => {
+    e.preventDefault();
+    
+    if (!paymentConfirmation.confirmationName || !paymentConfirmation.confirmationPhone) {
+      setPaymentError('Please provide your name and phone number');
+      return;
+    }
+
+    try {
+      setPaymentLoading(true);
+      setPaymentError('');
+
+      const response = await fetch('/payment-confirmations/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          paymentId: selectedRequest.latestPayment?.id,
+          confirmationName: paymentConfirmation.confirmationName,
+          confirmationPhone: paymentConfirmation.confirmationPhone,
+          paymentReference: paymentConfirmation.paymentReference,
+          transferAmount: paymentConfirmation.transferAmount,
+          transferDate: paymentConfirmation.transferDate,
+          notes: paymentConfirmation.notes
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Payment confirmation submitted successfully!');
+        closePaymentModal();
+        // Refresh dashboard data
+        fetchDashboardData();
+      } else {
+        setPaymentError(data.error || 'Failed to submit payment confirmation');
+      }
+    } catch (error) {
+      console.error('Error submitting payment confirmation:', error);
+      setPaymentError('Network error. Please try again.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
 
   // Filter requests based on search and status
   const filteredRequests = dashboardData?.requests?.filter(request => {
@@ -464,6 +551,15 @@ const EmployerDashboard = () => {
                           >
                             View Details
                           </button>
+                          {request.status === 'payment_required' && request.paymentRequired && (
+                            <button
+                              onClick={() => openPaymentModal(request)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs transition-colors flex items-center space-x-1"
+                            >
+                              <DollarSign className="h-3 w-3" />
+                              <span>Confirm Payment</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </motion.tr>
@@ -1132,6 +1228,174 @@ const EmployerDashboard = () => {
                   <span>Send</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Confirmation Modal */}
+      {showPaymentModal && selectedRequest && (
+        <div 
+          className="absolute inset-0 flex items-center justify-center z-40 p-4"
+          onClick={(e) => e.target === e.currentTarget && closePaymentModal()}
+        >
+          {/* Semi-transparent backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+          
+          {/* Modal content */}
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col border border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Confirm Payment - Request #{selectedRequest.id}
+              </h3>
+              <button
+                onClick={closePaymentModal}
+                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 p-6 bg-gray-50">
+              <form onSubmit={handlePaymentConfirmation} className="space-y-6">
+                {/* Payment Information */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">Payment Details:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-blue-700 font-medium">Amount:</span>
+                      <span className="text-blue-900 ml-1">{selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}</span>
+                    </div>
+                    <div>
+                      <span className="text-blue-700 font-medium">Type:</span>
+                      <span className="text-blue-900 ml-1">
+                        {selectedRequest.paymentDescription || 'Payment for candidate access'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirmation Form */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Your Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentConfirmation.confirmationName}
+                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, confirmationName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="As shown on transfer"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={paymentConfirmation.confirmationPhone}
+                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, confirmationPhone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="+250123456789"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Reference
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentConfirmation.paymentReference}
+                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, paymentReference: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="MTN123456 or transfer ID"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Transfer Amount
+                    </label>
+                    <input
+                      type="number"
+                      value={paymentConfirmation.transferAmount}
+                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, transferAmount: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="5000"
+                      min="0"
+                      step="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Transfer Date
+                    </label>
+                    <input
+                      type="date"
+                      value={paymentConfirmation.transferDate}
+                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, transferDate: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Notes
+                  </label>
+                  <textarea
+                    value={paymentConfirmation.notes}
+                    onChange={(e) => setPaymentConfirmation({...paymentConfirmation, notes: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows="3"
+                    placeholder="Any additional information about your payment..."
+                  />
+                </div>
+
+                {/* Error Display */}
+                {paymentError && (
+                  <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                    {paymentError}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={closePaymentModal}
+                    disabled={paymentLoading}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={paymentLoading}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center space-x-2"
+                  >
+                    {paymentLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <DollarSign className="h-4 w-4" />
+                        <span>Confirm Payment</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

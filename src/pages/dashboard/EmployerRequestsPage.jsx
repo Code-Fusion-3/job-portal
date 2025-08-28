@@ -18,7 +18,8 @@ import {
   Search,
   Filter,
   X,
-  Send
+  Send,
+  DollarSign
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
@@ -142,6 +143,29 @@ const EmployerRequestsPage = () => {
   const [messagingLoading, setMessagingLoading] = useState(false);
   const [messagingError, setMessagingError] = useState('');
 
+  // Payment state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentFormData, setPaymentFormData] = useState({
+    amount: '',
+    currency: 'RWF',
+    description: '',
+    paymentMethodId: '',
+    paymentType: 'photo_access',
+    dueDate: ''
+  });
+
+  // Payment approval state
+  const [showPaymentApprovalModal, setShowPaymentApprovalModal] = useState(false);
+  const [paymentApprovalLoading, setPaymentApprovalLoading] = useState(false);
+  const [paymentApprovalError, setPaymentApprovalError] = useState('');
+  const [paymentApprovalData, setPaymentApprovalData] = useState({
+    action: 'approve',
+    notes: ''
+  });
+
   // Search and Filter state
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [localFilters, setLocalFilters] = useState({
@@ -171,6 +195,23 @@ const EmployerRequestsPage = () => {
     setMessages([]);
     setNewMessage('');
     setMessagingError('');
+    setPaymentError('');
+    setShowPaymentModal(false);
+    setPaymentFormData({
+      amount: '',
+      currency: 'RWF',
+      description: '',
+      paymentMethodId: '',
+      paymentType: 'photo_access',
+      dueDate: ''
+    });
+    setPaymentError('');
+    setShowPaymentApprovalModal(false);
+    setPaymentApprovalData({
+      action: 'approve',
+      notes: ''
+    });
+    setPaymentApprovalError('');
   }, []);
 
   // Messaging functions
@@ -244,6 +285,156 @@ const EmployerRequestsPage = () => {
       markMessagesAsRead();
     }
   }, [showMessagingModal, selectedRequest]);
+
+  // Payment functions
+  const fetchPaymentMethods = async () => {
+    try {
+      const response = await fetch('/payment-methods/active');
+      const data = await response.json();
+      setPaymentMethods(data.paymentMethods || []);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+      toast.error('Failed to load payment methods');
+    }
+  };
+
+  const openPaymentModal = async (request) => {
+    setSelectedRequest(request);
+    setShowPaymentModal(true);
+    setPaymentFormData({
+      amount: request.paymentAmount || '5000',
+      currency: request.paymentCurrency || 'RWF',
+      description: request.paymentDescription || '',
+      paymentMethodId: '',
+      paymentType: 'photo_access',
+      dueDate: ''
+    });
+    await fetchPaymentMethods();
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setPaymentFormData({
+      amount: '',
+      currency: 'RWF',
+      description: '',
+      paymentMethodId: '',
+      paymentType: 'photo_access',
+      dueDate: ''
+    });
+    setPaymentError('');
+  };
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!paymentFormData.paymentMethodId || !paymentFormData.amount) {
+      setPaymentError('Please select a payment method and enter amount');
+      return;
+    }
+
+    try {
+      setPaymentLoading(true);
+      setPaymentError('');
+
+      const response = await fetch('/payments/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          employerRequestId: selectedRequest.id,
+          amount: paymentFormData.amount,
+          currency: paymentFormData.currency,
+          description: paymentFormData.description,
+          paymentMethodId: paymentFormData.paymentMethodId,
+          paymentType: paymentFormData.paymentType,
+          dueDate: paymentFormData.dueDate || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Payment request sent successfully!');
+        closePaymentModal();
+        // Refresh the requests to show updated status
+        handleRefresh();
+      } else {
+        setPaymentError(data.error || 'Failed to send payment request');
+      }
+    } catch (error) {
+      console.error('Error sending payment request:', error);
+      setPaymentError('Network error. Please try again.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  // Payment approval functions
+  const openPaymentApprovalModal = (request) => {
+    setSelectedRequest(request);
+    setShowPaymentApprovalModal(true);
+    setPaymentApprovalData({
+      action: 'approve',
+      notes: ''
+    });
+    setPaymentApprovalError('');
+  };
+
+  const closePaymentApprovalModal = () => {
+    setShowPaymentApprovalModal(false);
+    setPaymentApprovalData({
+      action: 'approve',
+      notes: ''
+    });
+    setPaymentApprovalError('');
+  };
+
+  const handlePaymentApproval = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedRequest?.latestPayment?.id) {
+      setPaymentApprovalError('No payment found to approve');
+      return;
+    }
+
+    try {
+      setPaymentApprovalLoading(true);
+      setPaymentApprovalError('');
+
+      const response = await fetch('/payments/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          paymentId: selectedRequest.latestPayment.id,
+          action: paymentApprovalData.action,
+          notes: paymentApprovalData.notes
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const actionText = paymentApprovalData.action === 'approve' ? 'approved' : 'rejected';
+        toast.success(`Payment ${actionText} successfully!`);
+        closePaymentApprovalModal();
+        // Refresh the requests to show updated status
+        handleRefresh();
+      } else {
+        setPaymentApprovalError(data.error || 'Failed to process payment approval');
+      }
+    } catch (error) {
+      console.error('Error processing payment approval:', error);
+      setPaymentApprovalError('Network error. Please try again.');
+    } finally {
+      setPaymentApprovalLoading(false);
+    }
+  };
 
   // State validation function for debugging
   const validateModalStates = useCallback(() => {
@@ -736,6 +927,12 @@ const EmployerRequestsPage = () => {
       case 'message':
         openMessaging(request);
         break;
+      case 'payment':
+        openPaymentModal(request);
+        break;
+      case 'paymentApproval':
+        openPaymentApprovalModal(request);
+        break;
       case 'select':
         setCurrentAction('select');
         setShowActionModal(true);
@@ -923,6 +1120,12 @@ const EmployerRequestsPage = () => {
       
       // Messaging - Always available
       { key: 'message', title: 'Message', icon: MessageSquare, className: 'text-indigo-600 hover:bg-indigo-50', group: 'contact' },
+      
+      // Payment - Available for pending requests
+      { key: 'payment', title: 'Request Payment', icon: DollarSign, className: 'text-green-600 hover:bg-green-50', group: 'payment' },
+      
+      // Payment Approval - Available for confirmed payments
+      { key: 'paymentApproval', title: 'Approve Payment', icon: CheckCircle, className: 'text-blue-600 hover:bg-blue-50', group: 'payment' },
       
       // Contact Group - Status-dependent
       { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
@@ -2017,6 +2220,313 @@ const EmployerRequestsPage = () => {
               </Button>
             </div>
           </div>
+        </Modal>
+      )}
+      
+      {/* Payment Modal */}
+      {showPaymentModal && selectedRequest && (
+        <Modal
+          isOpen={showPaymentModal}
+          onClose={closePaymentModal}
+          title={`Request Payment - Request #${selectedRequest.id}`}
+          maxWidth="max-w-2xl"
+        >
+          <form onSubmit={handlePaymentSubmit} className="space-y-6">
+            {/* Request Information */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Request Details:</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-blue-700 font-medium">Employer:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.employerName}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700 font-medium">Company:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.companyName}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700 font-medium">Candidate:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.candidateName}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700 font-medium">Status:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.status}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Type Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payment Type <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="photo_access"
+                    checked={paymentFormData.paymentType === 'photo_access'}
+                    onChange={(e) => setPaymentFormData({...paymentFormData, paymentType: e.target.value})}
+                    className="mr-2"
+                  />
+                  <div>
+                    <div className="font-medium">Photo Access</div>
+                    <div className="text-sm text-gray-500">Basic candidate photo</div>
+                  </div>
+                </label>
+                <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="full_details"
+                    checked={paymentFormData.paymentType === 'full_details'}
+                    onChange={(e) => setPaymentFormData({...paymentFormData, paymentType: e.target.value})}
+                    className="mr-2"
+                  />
+                  <div>
+                    <div className="font-medium">Full Details</div>
+                    <div className="text-sm text-gray-500">Complete candidate information</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Payment Method Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Payment Method <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={paymentFormData.paymentMethodId}
+                onChange={(e) => setPaymentFormData({...paymentFormData, paymentMethodId: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select Payment Method</option>
+                {paymentMethods.map((method) => (
+                  <option key={method.id} value={method.id}>
+                    {method.name} - {method.accountNumber}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Amount and Currency */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={paymentFormData.amount}
+                  onChange={(e) => setPaymentFormData({...paymentFormData, amount: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="5000"
+                  min="0"
+                  step="100"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Currency
+                </label>
+                <select
+                  value={paymentFormData.currency}
+                  onChange={(e) => setPaymentFormData({...paymentFormData, currency: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="RWF">RWF (Rwandan Franc)</option>
+                  <option value="USD">USD (US Dollar)</option>
+                  <option value="EUR">EUR (Euro)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                value={paymentFormData.description}
+                onChange={(e) => setPaymentFormData({...paymentFormData, description: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                placeholder={`Payment for ${paymentFormData.paymentType === 'photo_access' ? 'photo access' : 'full details'} access to candidate information`}
+              />
+            </div>
+
+            {/* Due Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Due Date (Optional)
+              </label>
+              <input
+                type="date"
+                value={paymentFormData.dueDate}
+                onChange={(e) => setPaymentFormData({...paymentFormData, dueDate: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                min={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+
+            {/* Error Display */}
+            {paymentError && (
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                {paymentError}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closePaymentModal}
+                disabled={paymentLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={paymentLoading}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {paymentLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  'Send Payment Request'
+                )}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      
+      {/* Payment Approval Modal */}
+      {showPaymentApprovalModal && selectedRequest && (
+        <Modal
+          isOpen={showPaymentApprovalModal}
+          onClose={closePaymentApprovalModal}
+          title={`Approve Payment - Request #${selectedRequest.id}`}
+          maxWidth="max-w-2xl"
+        >
+          <form onSubmit={handlePaymentApproval} className="space-y-6">
+            {/* Request Information */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Payment Details:</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-blue-700 font-medium">Employer:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.employerName}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700 font-medium">Company:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.companyName}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700 font-medium">Candidate:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.candidateName}</span>
+                </div>
+                <div>
+                  <span className="text-blue-700 font-medium">Status:</span>
+                  <span className="text-blue-900 ml-1">{selectedRequest.status}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Approval Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Action <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="action"
+                    value="approve"
+                    checked={paymentApprovalData.action === 'approve'}
+                    onChange={(e) => setPaymentApprovalData({...paymentApprovalData, action: e.target.value})}
+                    className="mr-2"
+                  />
+                  <div>
+                    <div className="font-medium">Approve</div>
+                    <div className="text-sm text-gray-500">Approve the payment</div>
+                  </div>
+                </label>
+                <label className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="action"
+                    value="reject"
+                    checked={paymentApprovalData.action === 'reject'}
+                    onChange={(e) => setPaymentApprovalData({...paymentApprovalData, action: e.target.value})}
+                    className="mr-2"
+                  />
+                  <div>
+                    <div className="font-medium">Reject</div>
+                    <div className="text-sm text-gray-500">Reject the payment</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notes (Optional)
+              </label>
+              <textarea
+                value={paymentApprovalData.notes}
+                onChange={(e) => setPaymentApprovalData({...paymentApprovalData, notes: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                placeholder="Add any additional notes for the payment approval..."
+              />
+            </div>
+
+            {/* Error Display */}
+            {paymentApprovalError && (
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                {paymentApprovalError}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closePaymentApprovalModal}
+                disabled={paymentApprovalLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={paymentApprovalLoading}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {paymentApprovalLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  'Submit Approval'
+                )}
+              </Button>
+            </div>
+          </form>
         </Modal>
       )}
       
