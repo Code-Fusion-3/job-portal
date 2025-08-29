@@ -19,7 +19,8 @@ import {
   Filter,
   X,
   Send,
-  DollarSign
+  DollarSign,
+  Banknote
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../api/hooks/useAuth.js';
@@ -373,8 +374,73 @@ const EmployerRequestsPage = () => {
   };
 
   // Payment approval functions
-  const openPaymentApprovalModal = (request) => {
-    setSelectedRequest(request);
+  const openPaymentApprovalModal = async (request) => {
+    console.log('Opening payment approval modal for request:', request);
+    console.log('Request latestPayment:', request.latestPayment);
+    console.log('Request _backendData:', request._backendData);
+    
+    // Extract payment data from _backendData if available
+    let enrichedRequest = { ...request };
+    
+    // Check if we have actual Payment model data in latestPayment or need to construct from _backendData
+    if (request.latestPayment) {
+      // We have actual Payment model data - use it directly
+      console.log('Using existing latestPayment from Payment model:', request.latestPayment);
+      enrichedRequest.latestPayment = {
+        ...request.latestPayment,
+        // Map Payment model fields to our expected structure
+        payerName: request.latestPayment.confirmationName || 'Not specified',
+        payerPhone: request.latestPayment.confirmationPhone || 'Not specified',
+        transferDate: request.latestPayment.confirmationDate || request.latestPayment.createdAt,
+        additionalNotes: request.latestPayment.adminNotes || request.latestPayment.description || 'No additional notes',
+        transactionReference: request.latestPayment.paymentReference || `PAY-${request.latestPayment.id}`
+      };
+    } else if (request._backendData && !request.latestPayment) {
+      // Fallback: Create latestPayment object from _backendData
+      enrichedRequest.latestPayment = {
+        id: request._backendData.id, // Use request ID as payment ID for now
+        amount: request._backendData.paymentAmount || request.paymentAmount,
+        currency: request._backendData.paymentCurrency || request.paymentCurrency || 'RWF',
+        paymentType: request._backendData.paymentDescription?.includes('photo') ? 'photo_access' : 'full_details',
+        status: 'confirmed', // Since status is payment_confirmed
+        confirmedAt: request._backendData.updatedAt || request.date,
+        createdAt: request._backendData.createdAt || request.date,
+        paymentMethod: 'Mobile Money', // Default for now
+        transactionReference: `REQ-${request.id}-${Date.now()}`,
+        // Payment confirmation details from employer (fallback)
+        payerName: request._backendData?.employerAccount?.user?.name || request.employerName || 'Not specified',
+        payerPhone: request._backendData?.employerAccount?.phoneNumber || request.employerContact?.phone || 'Not specified',
+        transferDate: request._backendData.updatedAt || request.date,
+        additionalNotes: request._backendData.paymentDescription || 'No additional notes'
+      };
+      console.log('Created latestPayment from _backendData:', enrichedRequest.latestPayment);
+    }
+    
+    // Try to fetch full payment details if still not available
+    if (!enrichedRequest.latestPayment || !enrichedRequest.latestPayment.amount) {
+      try {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${request.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+          }
+        });
+        
+        if (response.ok) {
+          const fullRequest = await response.json();
+          console.log('Fetched full request data:', fullRequest);
+          setSelectedRequest(fullRequest);
+        } else {
+          console.error('Failed to fetch full request data');
+          setSelectedRequest(enrichedRequest);
+        }
+      } catch (error) {
+        console.error('Error fetching request details:', error);
+        setSelectedRequest(enrichedRequest);
+      }
+    } else {
+      setSelectedRequest(enrichedRequest);
+    }
+    
     setShowPaymentApprovalModal(true);
     setPaymentApprovalData({
       action: 'approve',
@@ -404,7 +470,7 @@ const EmployerRequestsPage = () => {
       setPaymentApprovalLoading(true);
       setPaymentApprovalError('');
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/payments/approve`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/payment-confirmations/review/${selectedRequest.latestPayment.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -687,6 +753,47 @@ const EmployerRequestsPage = () => {
       label: 'Request Date',
       sortable: true,
       type: 'date'
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      render: (item) => (
+        <div className="flex items-center gap-1">
+          {getAllActionButtons(item).slice(0, 4).map((action, index) => {
+            const IconComponent = action.icon;
+            return (
+              <button
+                key={index}
+                onClick={() => handleRowAction(action.key, item)}
+                className={`relative group p-2 rounded-lg transition-all duration-200 hover:scale-110 ${action.className} border border-gray-200 hover:border-current`}
+                title={action.title}
+              >
+                <IconComponent className="w-4 h-4" />
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                  {action.title}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
+                </div>
+              </button>
+            );
+          })}
+          {getAllActionButtons(item).length > 4 && (
+            <button
+              onClick={() => handleRowAction('openActions', item)}
+              className="relative group p-2 rounded-lg transition-all duration-200 hover:scale-110 text-gray-600 hover:bg-gray-50 border border-gray-200 hover:border-gray-400"
+              title="More actions"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                More actions
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
+              </div>
+            </button>
+          )}
+        </div>
+      )
     }
   ];
 
@@ -1122,22 +1229,16 @@ const EmployerRequestsPage = () => {
       { key: 'message', title: 'Message', icon: MessageSquare, className: 'text-indigo-600 hover:bg-indigo-50', group: 'contact' },
       
       // Payment - Available for pending requests
-      { key: 'payment', title: 'Request Payment', icon: DollarSign, className: 'text-green-600 hover:bg-green-50', group: 'payment' },
-      
-      // Payment Approval - Available for confirmed payments
-      { key: 'paymentApproval', title: 'Approve Payment', icon: CheckCircle, className: 'text-blue-600 hover:bg-blue-50', group: 'payment' },
-      
-      // Contact Group - Status-dependent
-      { key: 'call', title: 'Call', icon: Phone, className: 'text-purple-600 hover:bg-purple-50', group: 'contact' },
-      { key: 'contact', title: 'Contact Email', icon: Mail, className: 'text-green-600 hover:bg-green-50', group: 'contact' },
+      { key: 'payment', title: 'Request Payment', icon: Banknote, className: 'text-green-600 hover:bg-green-50', group: 'payment' },
     ];
 
-    // Add reply action only for non-terminal statuses
-    if (request.status !== 'completed' && request.status !== 'cancelled' && request.status !== 'approved') {
+    // Payment Approval - Only show for payment_confirmed status
+    if (request.status === 'payment_confirmed' || request._backendData?.status === 'payment_confirmed') {
       baseActions.push(
-        { key: 'reply', title: 'Reply', icon: MessageSquare, className: 'text-orange-600 hover:bg-orange-50', group: 'contact' }
+        { key: 'paymentApproval', title: 'Approve Payment', icon: CheckCircle, className: 'text-blue-600 hover:bg-blue-50', group: 'payment' }
       );
     }
+
 
     // Status-based actions
     const statusActions = [];
@@ -1145,15 +1246,13 @@ const EmployerRequestsPage = () => {
     switch (request.status) {
       case 'pending':
         statusActions.push(
-          { key: 'start', title: 'Start Processing', icon: Play, className: 'text-blue-600 hover:bg-blue-50', group: 'status' },
-          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+          { key: 'start', title: 'Start Processing', icon: Play, className: 'text-blue-600 hover:bg-blue-50', group: 'status' }
         );
         break;
         
       case 'in_progress':
         statusActions.push(
-          { key: 'approve', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' },
-          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' }
+          { key: 'approve', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
         );
         break;
         
@@ -1177,7 +1276,6 @@ const EmployerRequestsPage = () => {
       default:
         // For any other status, show all actions
         statusActions.push(
-          { key: 'select', title: 'Send Candidate Details', icon: User, className: 'text-indigo-600 hover:bg-indigo-50', group: 'candidate' },
           { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
         );
     }
@@ -1538,8 +1636,6 @@ const EmployerRequestsPage = () => {
         <DataTable
             data={filteredData}
           columns={columns}
-          onRowAction={handleRowAction}
-                actionButtons={getActionButtons}
             pagination={true}
             itemsPerPage={15}
             showSearch={false}
@@ -1799,19 +1895,26 @@ const EmployerRequestsPage = () => {
           maxWidth="max-w-md"
         >
           <div className="space-y-3">
-            {getAllActionButtons(selectedRequest).map((action, index) => {
-              const IconComponent = action.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleRowAction(action.key, selectedRequest)}
-                  className={`w-full flex items-center space-x-3 p-3 text-left rounded-lg transition-colors duration-200 ${action.className}`}
-                >
-                  <IconComponent className="w-5 h-5" />
-                  <span className="text-gray-900">{action.title}</span>
-                </button>
-              );
-            })}
+            <div className="grid grid-cols-4 gap-3">
+              {getAllActionButtons(selectedRequest).map((action, index) => {
+                const IconComponent = action.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleRowAction(action.key, selectedRequest)}
+                    className={`relative group flex items-center justify-center p-4 rounded-lg transition-all duration-200 hover:scale-105 ${action.className} border border-gray-200 hover:border-current`}
+                    title={action.title}
+                  >
+                    <IconComponent className="w-6 h-6" />
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                      {action.title}
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </Modal>
       )}
@@ -2420,24 +2523,106 @@ const EmployerRequestsPage = () => {
         >
           <form onSubmit={handlePaymentApproval} className="space-y-6">
             {/* Request Information */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Payment Details:</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="text-blue-700 font-medium">Employer:</span>
-                  <span className="text-blue-900 ml-1">{selectedRequest.employerName}</span>
+            <div className="space-y-6">
+              {/* Request Overview */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Request Overview
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white rounded-lg p-3 border border-blue-100">
+                    <span className="text-blue-600 font-medium block mb-1">Employer:</span>
+                    <span className="text-gray-900">{selectedRequest.employerName}</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-blue-100">
+                    <span className="text-blue-600 font-medium block mb-1">Company:</span>
+                    <span className="text-gray-900">{selectedRequest.companyName}</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-blue-100">
+                    <span className="text-blue-600 font-medium block mb-1">Candidate:</span>
+                    <span className="text-gray-900">{selectedRequest.candidateName}</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-blue-100">
+                    <span className="text-blue-600 font-medium block mb-1">Request Status:</span>
+                    <span className="text-gray-900 capitalize">{selectedRequest.status?.replace('_', ' ')}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-blue-700 font-medium">Company:</span>
-                  <span className="text-blue-900 ml-1">{selectedRequest.companyName}</span>
+              </div>
+
+              {/* Payment Confirmation Details */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                <h4 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Payment Confirmation Details
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-1">Payer Name:</span>
+                    <span className="text-gray-900">{selectedRequest.latestPayment?.payerName || selectedRequest.employerName || 'Not specified'}</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-1">Phone Number:</span>
+                    <span className="text-gray-900">{selectedRequest.latestPayment?.payerPhone || selectedRequest.employerContact?.phone || 'Not specified'}</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-1">Payment Reference:</span>
+                    <span className="text-gray-900 font-mono text-xs">{selectedRequest.latestPayment?.transactionReference || 'Not specified'}</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-1">Transfer Amount:</span>
+                    <span className="text-gray-900 font-semibold">
+                      {selectedRequest.latestPayment?.amount ? `${selectedRequest.latestPayment.amount} RWF` : 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-1">Transfer Date:</span>
+                    <span className="text-gray-900">
+                      {selectedRequest.latestPayment?.transferDate || selectedRequest.latestPayment?.confirmedAt || selectedRequest.latestPayment?.createdAt 
+                        ? new Date(selectedRequest.latestPayment.transferDate || selectedRequest.latestPayment.confirmedAt || selectedRequest.latestPayment.createdAt).toLocaleDateString()
+                        : 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-1">Payment Method:</span>
+                    <span className="text-gray-900">{selectedRequest.latestPayment?.paymentMethod || 'Not specified'}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-blue-700 font-medium">Candidate:</span>
-                  <span className="text-blue-900 ml-1">{selectedRequest.candidateName}</span>
-                </div>
-                <div>
-                  <span className="text-blue-700 font-medium">Status:</span>
-                  <span className="text-blue-900 ml-1">{selectedRequest.status}</span>
+                
+                {/* Additional Notes */}
+                {selectedRequest.latestPayment?.additionalNotes && selectedRequest.latestPayment.additionalNotes !== 'No additional notes' && (
+                  <div className="mt-4 bg-white rounded-lg p-3 border border-green-100">
+                    <span className="text-green-600 font-medium block mb-2">Additional Notes:</span>
+                    <p className="text-gray-900 text-sm leading-relaxed">{selectedRequest.latestPayment.additionalNotes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment System Details */}
+              <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-100">
+                <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  System Information
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white rounded-lg p-3 border border-purple-100">
+                    <span className="text-purple-600 font-medium block mb-1">Payment Type:</span>
+                    <span className="text-gray-900 capitalize">
+                      {selectedRequest.latestPayment?.paymentType?.replace('_', ' ') || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-purple-100">
+                    <span className="text-purple-600 font-medium block mb-1">Payment Status:</span>
+                    <span className="text-gray-900 capitalize">
+                      {selectedRequest.latestPayment?.status || 'Not specified'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
