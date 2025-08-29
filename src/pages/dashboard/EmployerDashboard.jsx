@@ -1,36 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
+  User, 
+  Building2, 
   Calendar, 
-  DollarSign, 
-  Eye, 
-  EyeOff, 
-  FileText, 
-  CheckCircle, 
   Clock, 
+  MessageSquare, 
+  Send, 
+  X, 
+  RefreshCw, 
+  DollarSign,
+  Eye,
+  FileText,
+  CheckCircle,
   AlertCircle,
-  TrendingUp,
-  Users,
-  MessageSquare,
-  ArrowRight,
-  Filter,
+  CreditCard,
+  History,
   Search,
-  RefreshCw,
-  Send,
-  Trash2
+  Filter
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
+import API_CONFIG from '../../api/config/apiConfig';
+import Modal from '../../components/ui/Modal';
+import RequestDetailsModal from '../../components/modals/RequestDetailsModal';
 import employerDashboardService from '../../api/services/employerDashboardService';
 import messagingService from '../../api/services/messagingService';
 import { useAuth } from '../../api/hooks/useAuth';
-import API_CONFIG from '../../api/config/apiConfig';
-import { Toaster } from 'react-hot-toast';
 
 const EmployerDashboard = () => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [loadingPaymentHistory, setLoadingPaymentHistory] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMessaging, setShowMessaging] = useState(false);
@@ -94,15 +97,66 @@ const EmployerDashboard = () => {
 
   // Fetch messages for a request
   const fetchMessages = async (requestId) => {
+    setMessagingLoading(true);
     try {
-      setMessagingLoading(true);
-      const data = await messagingService.getMessagesByRequest(requestId);
-      setMessages(data.messages || []);
+      const token = localStorage.getItem('job_portal_token');
+      console.log('Token found:', !!token, token ? 'exists' : 'missing');
+      
+      if (!token) {
+        console.error('No authentication token found');
+        setMessages([]);
+        return;
+      }
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/messaging/request/${requestId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages || []);
+      } else {
+        console.error('Failed to fetch messages, status:', response.status);
+        setMessages([]);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast.error('Failed to load messages');
+      setMessages([]);
     } finally {
       setMessagingLoading(false);
+    }
+  };
+
+  // Payment history functions
+  const fetchPaymentHistory = async (requestId) => {
+    setLoadingPaymentHistory(true);
+    try {
+      const token = localStorage.getItem('job_portal_token');
+      const response = await fetch(`${API_CONFIG.BASE_URL}/payments/details/${requestId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // The API returns a single payment object, but we'll structure it as an array for consistency
+        // In a real implementation, you might have an endpoint that returns all payments for a request
+        setPaymentHistory(data ? [data] : []);
+      } else {
+        console.error('Failed to fetch payment history');
+        setPaymentHistory([]);
+      }
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+      setPaymentHistory([]);
+    } finally {
+      setLoadingPaymentHistory(false);
     }
   };
 
@@ -148,6 +202,9 @@ const EmployerDashboard = () => {
   const closeDetails = () => {
     setShowDetails(false);
     setSelectedRequest(null);
+    setMessages([]);
+    setNewMessage('');
+    setPaymentHistory([]);
   };
 
   // Handle backdrop click to close modals
@@ -175,11 +232,13 @@ const EmployerDashboard = () => {
   };
 
   // Open details modal for a request
-  const openDetails = async (request) => {
+  const openDetails = (request) => {
     setSelectedRequest(request);
     setShowDetails(true);
-    // Fetch messages for this request to display in the details modal
-    await fetchMessages(request.id);
+    // Load messages for this request
+    fetchMessages(request.id);
+    // Load payment history for this request
+    fetchPaymentHistory(request.id);
   };
 
   // Load dashboard data on component mount
@@ -698,558 +757,23 @@ const EmployerDashboard = () => {
         </div>
       )}
 
-      {/* Details Modal */}
-      {showDetails && selectedRequest && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center z-40 p-4"
-          onClick={(e) => handleBackdropClick(e, 'details')}
-        >
-          {/* Semi-transparent backdrop */}
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-          
-          {/* Modal content */}
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Request Details - #{selectedRequest.id}
-              </h3>
-              <button
-                onClick={closeDetails}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <span className="sr-only">Close</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50">
-              {/* Request Information */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Request Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Request ID</p>
-                    <p className="text-base font-semibold text-gray-900">#{selectedRequest.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Status</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(selectedRequest.status)}`}>
-                      {selectedRequest.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Priority</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPriorityColor(selectedRequest.priority)}`}>
-                      {selectedRequest.priority.charAt(0).toUpperCase() + selectedRequest.priority.slice(1)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Created</p>
-                    <p className="text-base text-gray-900">{new Date(selectedRequest.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Progress</p>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${getProgressColor(getProgressPercentage(selectedRequest))}`}
-                          style={{ width: `${getProgressPercentage(selectedRequest)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-gray-500">{getProgressPercentage(selectedRequest)}%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Message Count</p>
-                    <p className="text-base text-gray-900">{selectedRequest.messageCount || 0}</p>
-                  </div>
-                </div>
-                
-                {/* Employer's Original Message */}
-                {selectedRequest.message && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700">Your Request Message</p>
-                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-gray-900">{selectedRequest.message}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Latest Progress Update */}
-                {selectedRequest.latestProgress && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700">Latest Progress Update</p>
-                    <div className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <p className="text-sm text-gray-900">{selectedRequest.latestProgress.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(selectedRequest.latestProgress.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Candidate Information */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Candidate Information</h4>
-                
-                {/* Candidate Photo */}
-                {selectedRequest.candidate?.photo && selectedRequest.imageAccessGranted ? (
-                  <div className="mb-4 flex justify-center">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200">
-                      <img 
-                        src={selectedRequest.candidate.photo} 
-                        alt="Candidate" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm" style={{ display: 'none' }}>
-                        Photo
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-4 flex justify-center">
-                    <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                      <div className="text-center">
-                        <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <p className="text-xs">
-                          {selectedRequest.imageAccessGranted ? 'No Photo' : 'Photo Access Required'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Name</p>
-                    <p className="text-base font-semibold text-gray-900">{selectedRequest.candidate?.name || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Skills</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.skills || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Experience</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.experience || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Experience Level</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.experienceLevel || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Education Level</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.educationLevel || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Monthly Rate</p>
-                    <p className="text-base text-gray-900">
-                      {selectedRequest.candidate?.monthlyRate ? `${selectedRequest.candidate.monthlyRate} RWF` : 'Not specified'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Location</p>
-                    <p className="text-base text-gray-900">
-                      {formatLocation(selectedRequest.candidate?.location, selectedRequest.candidate?.city, selectedRequest.candidate?.country)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Availability</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.availability || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Languages</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.languages || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Certifications</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.certifications || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Gender</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.gender || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Marital Status</p>
-                    <p className="text-base text-gray-900">{selectedRequest.candidate?.maritalStatus || 'Not specified'}</p>
-                  </div>
-                  
-                  {/* Job Category */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Job Category</p>
-                    <p className="text-base text-gray-900">
-                      {selectedRequest.candidate?.jobCategory?.name_en || 'Not specified'}
-                      {selectedRequest.candidate?.jobCategory?.name_rw && (
-                        <span className="block text-sm text-gray-500 mt-1">
-                          {selectedRequest.candidate.jobCategory.name_rw}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  
-                  {/* Contact Information - Only show if access granted */}
-                  {selectedRequest.contactAccessGranted ? (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Contact Number</p>
-                      <p className="text-base text-gray-900">{selectedRequest.candidate?.contactNumber || 'Not specified'}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Contact Number</p>
-                      <p className="text-base text-gray-400 italic">Contact access required</p>
-                    </div>
-                  )}
-                </div>
-                
-                {selectedRequest.candidate?.description && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700">Description</p>
-                    <p className="text-base text-gray-900 mt-1">{selectedRequest.candidate.description}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Selected User Information (if different from requested candidate) */}
-              {selectedRequest.selectedUser && selectedRequest.selectedUser.id !== selectedRequest.candidate?.id && (
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Selected Candidate Information</h4>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-800 mb-3">
-                      <strong>Note:</strong> Admin has selected a different candidate than the one you requested.
-                    </p>
-                    
-                    {/* Selected User Photo */}
-                    {selectedRequest.selectedUser?.photo && selectedRequest.imageAccessGranted ? (
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-blue-200">
-                          <img 
-                            src={selectedRequest.selectedUser.photo} 
-                            alt="Selected Candidate" 
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                          <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-500 text-xs" style={{ display: 'none' }}>
-                            Photo
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="mb-4 flex justify-center">
-                        <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
-                          <div className="text-center">
-                            <svg className="w-8 h-8 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <p className="text-xs">
-                              {selectedRequest.imageAccessGranted ? 'No Photo' : 'Photo Access Required'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Name</p>
-                        <p className="text-base font-semibold text-gray-900">{selectedRequest.selectedUser.name || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Skills</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser.skills || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Experience</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser.experience || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Experience Level</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser.experienceLevel || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Education Level</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser.educationLevel || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Monthly Rate</p>
-                        <p className="text-base text-gray-900">
-                          {selectedRequest.selectedUser.monthlyRate ? `${selectedRequest.selectedUser.monthlyRate} RWF` : 'Not specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Location</p>
-                        <p className="text-base text-gray-900">
-                          {formatLocation(selectedRequest.selectedUser.location, selectedRequest.selectedUser.city, selectedRequest.selectedUser.country)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Availability</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser.availability || 'Not specified'}</p>
-                      </div>
-                      
-                      {/* Contact Information - Only show if access granted */}
-                      {selectedRequest.contactAccessGranted ? (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Contact Number</p>
-                          <p className="text-base text-gray-900">{selectedRequest.selectedUser?.contactNumber || 'Not specified'}</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">Contact Number</p>
-                          <p className="text-base text-gray-400 italic">Contact access required</p>
-                        </div>
-                      )}
-                      
-                      {/* Job Category */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Job Category</p>
-                        <p className="text-base text-gray-900">
-                          {selectedRequest.selectedUser?.jobCategory?.name_en || 'Not specified'}
-                          {selectedRequest.selectedUser?.jobCategory?.name_rw && (
-                            <span className="block text-sm text-gray-500 mt-1">
-                              {selectedRequest.selectedUser.jobCategory.name_rw}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      
-                      {/* Languages */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Languages</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser?.languages || 'Not specified'}</p>
-                      </div>
-                      
-                      {/* Certifications */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Certifications</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser?.certifications || 'Not specified'}</p>
-                      </div>
-                      
-                      {/* Gender */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Gender</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser?.gender || 'Not specified'}</p>
-                      </div>
-                      
-                      {/* Marital Status */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Marital Status</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser?.maritalStatus || 'Not specified'}</p>
-                      </div>
-                      
-                      {/* ID Number and References - Only show if full access granted */}
-                      {selectedRequest.selectedUser?.accessLevel === 'full' && (
-                        <>
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">ID Number</p>
-                            <p className="text-base text-gray-900">{selectedRequest.selectedUser?.idNumber || 'Not specified'}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">References</p>
-                            <p className="text-base text-gray-900">{selectedRequest.selectedUser?.references || 'Not specified'}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Date of Birth</p>
-                            <p className="text-base text-gray-900">
-                              {selectedRequest.selectedUser?.dateOfBirth ? new Date(selectedRequest.selectedUser.dateOfBirth).toLocaleDateString() : 'Not specified'}
-                            </p>
-                          </div>
-                        </>
-                      )}
-                      
-                      {/* Access Level for Selected User */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Access Level</p>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          selectedRequest.selectedUser?.accessLevel === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
-                          selectedRequest.selectedUser?.accessLevel === 'photo' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                          'bg-red-100 text-red-800 border-red-200'
-                        }`}>
-                          {selectedRequest.selectedUser?.accessLevel === 'full' ? 'Full Access' :
-                           selectedRequest.selectedUser?.accessLevel === 'photo' ? 'Photo Access' : 'No Access'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {selectedRequest.selectedUser.description && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700">Description</p>
-                        <p className="text-base text-gray-900">{selectedRequest.selectedUser.description}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Access Information */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Access Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Photo Access</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedRequest.imageAccessGranted 
-                        ? 'bg-green-100 text-green-800 border-green-200' 
-                        : 'bg-red-100 text-red-800 border-red-200'
-                    }`}>
-                      {selectedRequest.imageAccessGranted ? 'Granted' : 'Not Granted'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Contact Access</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedRequest.contactAccessGranted 
-                        ? 'bg-green-100 text-green-800 border-green-200' 
-                        : 'bg-red-100 text-red-800 border-red-200'
-                    }`}>
-                      {selectedRequest.contactAccessGranted ? 'Granted' : 'Not Granted'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Access Level</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedRequest.candidate?.accessLevel === 'full' ? 'bg-green-100 text-green-800 border-green-200' :
-                      selectedRequest.candidate?.accessLevel === 'photo' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                      'bg-red-100 text-red-800 border-red-200'
-                    }`}>
-                      {selectedRequest.candidate?.accessLevel === 'full' ? 'Full Access' :
-                       selectedRequest.candidate?.accessLevel === 'photo' ? 'Photo Access' : 'No Access'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Information */}
-              {selectedRequest.paymentRequired && (
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Payment Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Amount Required</p>
-                      <p className="text-base font-semibold text-green-600">
-                        {selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Due Date</p>
-                      <p className="text-base text-gray-900">
-                        {selectedRequest.paymentDueDate ? new Date(selectedRequest.paymentDueDate).toLocaleDateString() : 'Not specified'}
-                      </p>
-                    </div>
-                    {selectedRequest.paymentDescription && (
-                      <div className="md:col-span-2">
-                        <p className="text-sm font-medium text-gray-700">Description</p>
-                        <p className="text-base text-gray-900">{selectedRequest.paymentDescription}</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Latest Payment Information */}
-                  {selectedRequest.latestPayment && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-gray-700">Latest Payment</p>
-                      <div className="mt-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Amount</p>
-                            <p className="text-base font-semibold text-gray-900">
-                              {selectedRequest.latestPayment.amount} {selectedRequest.latestPayment.currency}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Status</p>
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              selectedRequest.latestPayment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                              selectedRequest.latestPayment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {selectedRequest.latestPayment.status.charAt(0).toUpperCase() + selectedRequest.latestPayment.status.slice(1)}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {new Date(selectedRequest.latestPayment.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Messages Section */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Messages</h4>
-                {messagingLoading ? (
-                  <div className="text-center py-4">
-                    <RefreshCw className="animate-spin h-6 w-6 text-blue-500 mx-auto" />
-                    <p className="text-gray-600">Loading messages...</p>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="text-center py-4">
-                    <MessageSquare className="h-10 w-10 text-gray-400 mx-auto" />
-                    <p className="text-gray-600">No messages yet for this request.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-60 overflow-y-auto">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.fromAdmin ? 'justify-start' : 'justify-end'}`}
-                      >
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            message.fromAdmin
-                              ? 'bg-gray-100 text-gray-900'
-                              : 'bg-blue-600 text-white'
-                          }`}
-                        >
-                          <div className="text-sm">{message.content}</div>
-                          <div className={`text-xs mt-1 ${
-                            message.fromAdmin ? 'text-gray-500' : 'text-blue-100'
-                          }`}>
-                            {new Date(message.createdAt).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-200 bg-white rounded-b-xl">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim() || messagingLoading}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>Send</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Request Details Modal */}
+      <RequestDetailsModal
+        isOpen={showDetails && selectedRequest}
+        onClose={closeDetails}
+        selectedRequest={selectedRequest}
+        messages={messages}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        sendMessage={sendMessage}
+        messagingLoading={messagingLoading}
+        paymentHistory={paymentHistory}
+        loadingPaymentHistory={loadingPaymentHistory}
+        getStatusColor={getStatusColor}
+        getPriorityColor={getPriorityColor}
+        getProgressColor={getProgressColor}
+        getProgressPercentage={getProgressPercentage}
+      />
 
       {/* Payment Confirmation Modal */}
       {showPaymentModal && selectedRequest && (
