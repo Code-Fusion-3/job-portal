@@ -149,12 +149,30 @@ const EmployerDashboard = () => {
         // In a real implementation, you might have an endpoint that returns all payments for a request
         setPaymentHistory(data ? [data] : []);
       } else {
-        console.error('Failed to fetch payment history');
-        setPaymentHistory([]);
+        console.error('Failed to fetch payment history, using latestPayment if available');
+        console.log('selectedRequest:', selectedRequest);
+        console.log('latestPayment:', selectedRequest?.latestPayment);
+        // Fallback to latestPayment from the request object if API fails
+        if (selectedRequest?.latestPayment) {
+          console.log('Setting paymentHistory with latestPayment:', selectedRequest.latestPayment);
+          setPaymentHistory([selectedRequest.latestPayment]);
+        } else {
+          console.log('No latestPayment found, setting empty array');
+          setPaymentHistory([]);
+        }
       }
     } catch (error) {
       console.error('Error fetching payment history:', error);
-      setPaymentHistory([]);
+      console.log('selectedRequest in catch:', selectedRequest);
+      console.log('latestPayment in catch:', selectedRequest?.latestPayment);
+      // Fallback to latestPayment from the request object if API fails
+      if (selectedRequest?.latestPayment) {
+        console.log('Setting paymentHistory with latestPayment in catch:', selectedRequest.latestPayment);
+        setPaymentHistory([selectedRequest.latestPayment]);
+      } else {
+        console.log('No latestPayment found in catch, setting empty array');
+        setPaymentHistory([]);
+      }
     } finally {
       setLoadingPaymentHistory(false);
     }

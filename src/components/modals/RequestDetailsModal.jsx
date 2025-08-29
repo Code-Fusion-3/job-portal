@@ -231,38 +231,39 @@ const RequestDetailsModal = ({
                         <div>
                           <p className="text-sm font-medium text-gray-500">Amount</p>
                           <p className="text-base font-semibold text-gray-900">
-                            {payment.amount} {payment.currency}
+                            {payment.payment?.amount && payment.payment?.currency ? `${payment.payment.amount} ${payment.payment.currency}` : 'Not specified'}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Status</p>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            payment.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                            payment.payment?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            payment.payment?.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            payment.payment?.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                            payment.payment?.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                            {payment.status ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1) : 'Unknown'}
+                            {payment.payment?.status ? payment.payment.status.charAt(0).toUpperCase() + payment.payment.status.slice(1) : 'Unknown'}
                           </span>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Date</p>
                           <p className="text-sm text-gray-900">
-                            {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : 'Not specified'}
+                            {payment.payment?.createdAt ? new Date(payment.payment.createdAt).toLocaleDateString() : 'Not specified'}
                           </p>
                         </div>
                       </div>
-                      {payment.confirmationName && (
+                      {payment.payment?.confirmationName && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="font-medium text-gray-500">Confirmed by:</span>
-                              <span className="ml-2 text-gray-900">{payment.confirmationName}</span>
+                              <span className="ml-2 text-gray-900">{payment.payment.confirmationName}</span>
                             </div>
-                            {payment.confirmationPhone && (
+                            {payment.payment?.confirmationPhone && (
                               <div>
                                 <span className="font-medium text-gray-500">Phone:</span>
-                                <span className="ml-2 text-gray-900">{payment.confirmationPhone}</span>
+                                <span className="ml-2 text-gray-900">{payment.payment.confirmationPhone}</span>
                               </div>
                             )}
                           </div>
