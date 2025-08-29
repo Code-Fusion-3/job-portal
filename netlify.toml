@@ -5,6 +5,8 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# No plugins specified. Add plugins like below if needed:
-# [[plugins]]
-# package = "netlify-plugin-example"
+# Redirects for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
