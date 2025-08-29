@@ -23,13 +23,7 @@ export const requestInterceptor = (config) => {
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 Request interceptor: Adding token for URL:', config.url);
-      console.log('🔐 Token (first 20 chars):', token.substring(0, 20) + '...');
-    } else {
-      console.log('⚠️ Request interceptor: No token found for URL:', config.url);
     }
-  } else {
-    console.log('⚠️ Request interceptor: Token expired for URL:', config.url);
   }
 
   // Add timeout
@@ -84,7 +78,6 @@ export const errorInterceptor = async (error) => {
 
   // Handle 403 Forbidden (insufficient permissions)
   if (error.response?.status === 403) {
-    console.warn('Access forbidden - insufficient permissions');
     // Redirect to appropriate dashboard based on user role
     const token = getAuthToken();
     if (token) {
@@ -98,11 +91,10 @@ export const errorInterceptor = async (error) => {
           window.location.href = dashboardPath;
         }
       } catch (decodeError) {
-        console.error('Error decoding token:', decodeError);
         window.location.href = '/login';
       }
     } else {
-    window.location.href = '/login';
+      window.location.href = '/login';
     }
     
     return Promise.reject(error);

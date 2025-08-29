@@ -156,6 +156,11 @@ const Header = () => {
                   {t('nav.login')}
                 </Button>
               </Link>
+              <Link to="/employer/login">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20">
+                  {t('nav.employerLogin') || 'Employer Login'}
+                </Button>
+              </Link>
               <Link to="/register">
                 <Button as="div" variant="red" size="sm">
                   {t('nav.register')}
@@ -255,7 +260,7 @@ const Header = () => {
                     <div className="text-center mb-2">
                       <span className="text-sm text-white text-opacity-70">{t('nav.account') || 'Account'}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                         <Button 
                           as="div" 
@@ -264,6 +269,16 @@ const Header = () => {
                           className="w-full text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20 border border-white border-opacity-30 py-3"
                         >
                           {t('nav.login')}
+                        </Button>
+                      </Link>
+                      <Link to="/employer/login" onClick={() => setIsMenuOpen(false)}>
+                        <Button 
+                          as="div" 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20 border border-white border-opacity-30 py-3 text-xs"
+                        >
+                          {t('nav.employerLogin') || 'Employer'}
                         </Button>
                       </Link>
                       <Link to="/register" onClick={() => setIsMenuOpen(false)}>

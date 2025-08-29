@@ -13,6 +13,7 @@ const resources = {
       'nav.contact': 'Contact us',
       'nav.register': 'Register',
       'nav.login': 'Login',
+      'nav.employerLogin': 'Employer Login',
       'nav.language': 'Language',
       'nav.viewJobSeekers': 'View Job Seekers',
       'nav.adminInfo': 'Admin Info',
