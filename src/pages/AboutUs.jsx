@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import Header from '../components/layout/Header';
 import AboutUs from '../components/sections/AboutUs';
 import Footer from '../components/layout/Footer';

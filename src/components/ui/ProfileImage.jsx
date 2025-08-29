@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 

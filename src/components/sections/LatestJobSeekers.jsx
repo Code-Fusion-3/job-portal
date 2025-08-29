@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Calendar, Eye } from 'lucide-react';
 import { jobSeekerService } from '../../api/services/jobSeekerService.js';
