@@ -289,7 +289,7 @@ const EmployerRequestsPage = () => {
   // Payment functions
   const fetchPaymentMethods = async () => {
     try {
-      const response = await fetch('/payment-methods/active');
+      const response = await fetch(`${API_CONFIG.BASE_URL}/payment-methods/active`);
       const data = await response.json();
       setPaymentMethods(data.paymentMethods || []);
     } catch (error) {
@@ -337,11 +337,11 @@ const EmployerRequestsPage = () => {
       setPaymentLoading(true);
       setPaymentError('');
 
-      const response = await fetch('/payments/request', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/payments/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         },
         body: JSON.stringify({
           employerRequestId: selectedRequest.id,
@@ -404,11 +404,11 @@ const EmployerRequestsPage = () => {
       setPaymentApprovalLoading(true);
       setPaymentApprovalError('');
 
-      const response = await fetch('/payments/approve', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/payments/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         },
         body: JSON.stringify({
           paymentId: selectedRequest.latestPayment.id,

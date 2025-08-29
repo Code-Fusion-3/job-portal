@@ -23,6 +23,8 @@ import { toast } from 'react-hot-toast';
 import employerDashboardService from '../../api/services/employerDashboardService';
 import messagingService from '../../api/services/messagingService';
 import { useAuth } from '../../api/hooks/useAuth';
+import API_CONFIG from '../../api/config/apiConfig';
+import { Toaster } from 'react-hot-toast';
 
 const EmployerDashboard = () => {
   const { user } = useAuth();
@@ -49,6 +51,7 @@ const EmployerDashboard = () => {
   });
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState('');
 
   // Helper function to safely format location data
   const formatLocation = (location, city, country) => {
@@ -199,11 +202,12 @@ const EmployerDashboard = () => {
       confirmationName: '',
       confirmationPhone: '',
       paymentReference: '',
-      transferAmount: request.paymentAmount?.toString() || '',
-      transferDate: new Date().toISOString().split('T')[0],
+      transferAmount: '',
+      transferDate: '',
       notes: ''
     });
     setPaymentError('');
+    setPaymentSuccess('');
   };
 
   const closePaymentModal = () => {
@@ -217,6 +221,7 @@ const EmployerDashboard = () => {
       notes: ''
     });
     setPaymentError('');
+    setPaymentSuccess('');
   };
 
   const handlePaymentConfirmation = async (e) => {
@@ -231,17 +236,18 @@ const EmployerDashboard = () => {
       setPaymentLoading(true);
       setPaymentError('');
 
-      const response = await fetch('/payment-confirmations/confirm', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/payment-confirmations/confirm`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         },
         body: JSON.stringify({
           paymentId: selectedRequest.latestPayment?.id,
           confirmationName: paymentConfirmation.confirmationName,
           confirmationPhone: paymentConfirmation.confirmationPhone,
           paymentReference: paymentConfirmation.paymentReference,
-          transferAmount: paymentConfirmation.transferAmount,
+          transferAmount: selectedRequest.paymentAmount,
           transferDate: paymentConfirmation.transferDate,
           notes: paymentConfirmation.notes
         })
@@ -254,8 +260,20 @@ const EmployerDashboard = () => {
         closePaymentModal();
         // Refresh dashboard data
         fetchDashboardData();
+        // Reset payment confirmation form
+        setPaymentConfirmation({
+          confirmationName: '',
+          confirmationPhone: '',
+          paymentReference: '',
+          transferAmount: '',
+          transferDate: '',
+          notes: ''
+        });
+        setPaymentSuccess('Payment confirmation submitted successfully!');
       } else {
-        setPaymentError(data.error || 'Failed to submit payment confirmation');
+        const errorMessage = data.error || 'Failed to submit payment confirmation';
+        setPaymentError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error submitting payment confirmation:', error);
@@ -1263,18 +1281,44 @@ const EmployerDashboard = () => {
               <form onSubmit={handlePaymentConfirmation} className="space-y-6">
                 {/* Payment Information */}
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-blue-900 mb-2">Payment Details:</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
+                  <h4 className="text-sm font-medium text-blue-900 mb-3">Payment Details:</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
                       <span className="text-blue-700 font-medium">Amount:</span>
-                      <span className="text-blue-900 ml-1">{selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}</span>
+                      <span className="text-blue-900 font-semibold">{selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}</span>
                     </div>
-                    <div>
-                      <span className="text-blue-700 font-medium">Type:</span>
-                      <span className="text-blue-900 ml-1">
-                        {selectedRequest.paymentDescription || 'Payment for candidate access'}
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700 font-medium">Description:</span>
+                      <span className="text-blue-900">{selectedRequest.paymentDescription || 'Payment for candidate access'}</span>
                     </div>
+                   
+                    {selectedRequest.latestPayment?.paymentMethod && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 font-medium">Payment Method:</span>
+                          <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 font-medium">Account Name:</span>
+                          <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.accountName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 font-medium">Account Number:</span>
+                          <span className="text-blue-900 font-mono">{selectedRequest.latestPayment.paymentMethod.accountNumber}</span>
+                        </div>
+                        {selectedRequest.latestPayment.paymentMethod.bankName && (
+                          <div className="flex justify-between">
+                            <span className="text-blue-700 font-medium">Bank:</span>
+                            <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.bankName}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {!selectedRequest.latestPayment?.paymentMethod && (
+                      <div className="text-amber-700 text-xs bg-amber-50 p-2 rounded border border-amber-200">
+                        ⚠️ Payment method details not available. Please contact admin for payment instructions.
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1320,17 +1364,18 @@ const EmployerDashboard = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Transfer Amount
+                      Transfer Amount (Admin Requested)
                     </label>
                     <input
                       type="number"
-                      value={paymentConfirmation.transferAmount}
-                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, transferAmount: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={selectedRequest.paymentAmount || ''}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
                       placeholder="5000"
                       min="0"
                       step="100"
+                      readOnly
                     />
+                    <p className="text-xs text-gray-500 mt-1">This amount cannot be changed</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1367,6 +1412,13 @@ const EmployerDashboard = () => {
                   </div>
                 )}
 
+                {/* Success Message Display */}
+                {paymentSuccess && (
+                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
+                    {paymentSuccess}
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-3">
                   <button
@@ -1400,6 +1452,9 @@ const EmployerDashboard = () => {
           </div>
         </div>
       )}
+      
+      {/* Toast notifications */}
+      <Toaster position="top-right" />
     </div>
   );
 };
