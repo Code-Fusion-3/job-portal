@@ -205,7 +205,7 @@ export const adminService = {
 
   /**
    * Get admin profile (Admin) - Optimized with caching
-   * GET /profile/me (correct endpoint from Postman collection)
+   * GET /admin-profile/profile (correct endpoint for admin profile management)
    */
   getAdminProfile: async (forceRefresh = false) => {
     try {
@@ -221,7 +221,7 @@ export const adminService = {
         }
       }
 
-      const response = await apiClient.get('/profile/me', {
+      const response = await apiClient.get('/admin-profile/profile', {
         headers: getAuthHeaders()
       });
 
@@ -246,11 +246,11 @@ export const adminService = {
 
   /**
    * Update admin profile (Admin)
-   * PUT /profile/me (correct endpoint from Postman collection)
+   * PUT /admin-profile/profile (correct endpoint for admin profile management)
    */
   updateAdminProfile: async (profileData) => {
     try {
-      const response = await apiClient.put('/profile/me', profileData, {
+      const response = await apiClient.put('/admin-profile/profile', profileData, {
         headers: getAuthHeaders()
       });
 
@@ -294,11 +294,11 @@ export const adminService = {
 
   /**
    * Change admin password (Admin)
-   * PUT /security/change-password (correct endpoint from Postman collection)
+   * PUT /admin/change-password (admin-specific password change endpoint)
    */
   changeAdminPassword: async (passwordData) => {
     try {
-      const response = await apiClient.put('/security/change-password', passwordData, {
+      const response = await apiClient.put('/admin/change-password', passwordData, {
         headers: getAuthHeaders()
       });
 
