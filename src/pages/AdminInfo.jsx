@@ -21,7 +21,11 @@ import {
   Cloud,
   GitBranch,
   Zap,
-  User
+  User,
+  Facebook,
+  Linkedin,
+  Twitter,
+  Instagram
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Header from '../components/layout/Header';
@@ -230,8 +234,8 @@ const AdminInfo = () => {
               </motion.div>
             )}
 
-            {/* Contact & Social - Only show if contact info exists */}
-            {(personal.email || personal.phone || personal.location || personal.github) && (
+            {/* Social Media - Only show if social media links exist */}
+            {(personal.facebook || personal.linkedin || personal.twitter || personal.instagram) && (
               <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -239,37 +243,51 @@ const AdminInfo = () => {
               >
                 <Card className="p-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Phone className="w-5 h-5 text-blue-600" />
-                    Contact & Social
+                    <Globe className="w-5 h-5 text-blue-600" />
+                    Social Media
                   </h2>
                   <div className="space-y-3">
-                    {personal.email && (
+                    {personal.facebook && (
                       <div className="flex items-center gap-3">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        <a href={`mailto:${personal.email}`} className="text-blue-600 hover:text-blue-800">
-                          {personal.email}
+                        <Facebook className="w-4 h-4 text-blue-600" />
+                        <a href={personal.facebook.startsWith('http') ? personal.facebook : `https://${personal.facebook}`} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="text-blue-600 hover:text-blue-800">
+                          {personal.facebook.includes('facebook.com') ? 'Facebook Profile' : personal.facebook}
                         </a>
                       </div>
                     )}
-                    {personal.phone && (
+                    {personal.linkedin && (
                       <div className="flex items-center gap-3">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <a href={`tel:${personal.phone}`} className="text-blue-600 hover:text-blue-800">
-                          {personal.phone}
+                        <Linkedin className="w-4 h-4 text-blue-700" />
+                        <a href={personal.linkedin.startsWith('http') ? personal.linkedin : `https://${personal.linkedin}`} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="text-blue-600 hover:text-blue-800">
+                          {personal.linkedin.includes('linkedin.com') ? 'LinkedIn Profile' : personal.linkedin}
                         </a>
                       </div>
                     )}
-                    {personal.location && (
+                    {personal.twitter && (
                       <div className="flex items-center gap-3">
-                        <MapPin className="w-4 h-4 text-gray-500" />
-                        <span className="text-gray-700">{personal.location}</span>
+                        <Twitter className="w-4 h-4 text-blue-400" />
+                        <a href={personal.twitter.startsWith('http') ? personal.twitter : `https://${personal.twitter}`} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="text-blue-600 hover:text-blue-800">
+                          {personal.twitter.includes('twitter.com') ? 'Twitter Profile' : personal.twitter}
+                        </a>
                       </div>
                     )}
-                    {personal.github && (
+                    {personal.instagram && (
                       <div className="flex items-center gap-3">
-                        <GitBranch className="w-4 h-4 text-gray-500" />
-                        <a href={`https://${personal.github}`} className="text-blue-600 hover:text-blue-800">
-                          {personal.github}
+                        <Instagram className="w-4 h-4 text-pink-600" />
+                        <a href={personal.instagram.startsWith('http') ? personal.instagram : `https://${personal.instagram}`} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="text-blue-600 hover:text-blue-800">
+                          {personal.instagram.includes('instagram.com') ? 'Instagram Profile' : personal.instagram}
                         </a>
                       </div>
                     )}

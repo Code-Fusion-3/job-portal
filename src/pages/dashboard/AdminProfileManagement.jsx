@@ -15,7 +15,11 @@ import {
   Trash2,
   X,
   GitBranch,
-  Globe
+  Globe,
+  Facebook,
+  Linkedin,
+  Twitter,
+  Instagram
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Card from '../../components/ui/Card';
@@ -34,7 +38,11 @@ const AdminProfileManagement = () => {
       email: '',
       phone: '',
       aboutMe: '',
-      github: ''
+      github: '',
+      facebook: '',
+      linkedin: '',
+      twitter: '',
+      instagram: ''
     },
     skills: {
       frontend: [],
@@ -46,12 +54,7 @@ const AdminProfileManagement = () => {
     education: [],
     certifications: [],
     projects: [],
-    systemStats: {
-      jobSeekers: 0,
-      uptime: 0,
-      companies: 0,
-      experience: 0
-    }
+
   });
 
   const [editingSection, setEditingSection] = useState(null);
@@ -182,7 +185,7 @@ const AdminProfileManagement = () => {
   const education = profileData.education || [];
   const certifications = profileData.certifications || [];
   const projects = profileData.projects || [];
-  const systemStats = profileData.systemStats || {};
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -321,6 +324,58 @@ const AdminProfileManagement = () => {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                    <input
+                      type="text"
+                      value={personal.facebook}
+                      onChange={(e) => setProfileData(prev => ({
+                        ...prev,
+                        personal: { ...prev.personal, facebook: e.target.value }
+                      }))}
+                      placeholder="facebook.com/username or full URL"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                    <input
+                      type="text"
+                      value={personal.linkedin}
+                      onChange={(e) => setProfileData(prev => ({
+                        ...prev,
+                        personal: { ...prev.personal, linkedin: e.target.value }
+                      }))}
+                      placeholder="linkedin.com/in/username or full URL"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Twitter/X</label>
+                    <input
+                      type="text"
+                      value={personal.twitter}
+                      onChange={(e) => setProfileData(prev => ({
+                        ...prev,
+                        personal: { ...prev.personal, twitter: e.target.value }
+                      }))}
+                      placeholder="twitter.com/username or full URL"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                    <input
+                      type="text"
+                      value={personal.instagram}
+                      onChange={(e) => setProfileData(prev => ({
+                        ...prev,
+                        personal: { ...prev.personal, instagram: e.target.value }
+                      }))}
+                      placeholder="instagram.com/username or full URL"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">About Me</label>
                     <textarea
                       value={personal.aboutMe}
@@ -359,6 +414,30 @@ const AdminProfileManagement = () => {
                     <div className="flex items-center gap-3">
                       <GitBranch className="w-4 h-4 text-gray-500" />
                       <span className="text-gray-700">{personal.github}</span>
+                    </div>
+                  )}
+                  {personal.facebook && (
+                    <div className="flex items-center gap-3">
+                      <Facebook className="w-4 h-4 text-blue-600" />
+                      <span className="text-gray-700">{personal.facebook}</span>
+                    </div>
+                  )}
+                  {personal.linkedin && (
+                    <div className="flex items-center gap-3">
+                      <Linkedin className="w-4 h-4 text-blue-700" />
+                      <span className="text-gray-700">{personal.linkedin}</span>
+                    </div>
+                  )}
+                  {personal.twitter && (
+                    <div className="flex items-center gap-3">
+                      <Twitter className="w-4 h-4 text-blue-400" />
+                      <span className="text-gray-700">{personal.twitter}</span>
+                    </div>
+                  )}
+                  {personal.instagram && (
+                    <div className="flex items-center gap-3">
+                      <Instagram className="w-4 h-4 text-pink-600" />
+                      <span className="text-gray-700">{personal.instagram}</span>
                     </div>
                   )}
                   {personal.aboutMe && (
@@ -865,94 +944,7 @@ const AdminProfileManagement = () => {
               )}
             </Card>
 
-            {/* System Statistics */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Code className="w-5 h-5 text-blue-600" />
-                  System Statistics
-                </h2>
-                <Button
-                  onClick={() => setEditingSection(editingSection === 'stats' ? null : 'stats')}
-                  variant="outline"
-                  size="sm"
-                >
-                  {editingSection === 'stats' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                </Button>
-              </div>
-              
-              {editingSection === 'stats' ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Job Seekers</label>
-                    <input
-                      type="number"
-                      value={systemStats.jobSeekers}
-                      onChange={(e) => setProfileData(prev => ({
-                        ...prev,
-                        systemStats: { ...prev.systemStats, jobSeekers: parseInt(e.target.value) || 0 }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Uptime %</label>
-                    <input
-                      type="number"
-                      value={systemStats.uptime}
-                      onChange={(e) => setProfileData(prev => ({
-                        ...prev,
-                        systemStats: { ...prev.systemStats, uptime: parseInt(e.target.value) || 0 }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Companies</label>
-                    <input
-                      type="number"
-                      value={systemStats.companies}
-                      onChange={(e) => setProfileData(prev => ({
-                        ...prev,
-                        systemStats: { ...prev.systemStats, companies: parseInt(e.target.value) || 0 }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Experience Years</label>
-                    <input
-                      type="number"
-                      value={systemStats.experience}
-                      onChange={(e) => setProfileData(prev => ({
-                        ...prev,
-                        systemStats: { ...prev.systemStats, experience: parseInt(e.target.value) || 0 }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">{systemStats.jobSeekers}+</div>
-                    <div className="text-sm text-gray-600">Job Seekers</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 mb-1">{systemStats.uptime}%</div>
-                    <div className="text-sm text-gray-600">Uptime</div>
-                  </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 mb-1">{systemStats.companies}+</div>
-                    <div className="text-sm text-gray-600">Companies</div>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600 mb-1">{systemStats.experience}+</div>
-                    <div className="text-sm text-gray-600">Experience Years</div>
-                  </div>
-                </div>
-              )}
-            </Card>
+
           </div>
         </div>
 
