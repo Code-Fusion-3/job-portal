@@ -49,7 +49,7 @@ const API_CONFIG = {
 if (import.meta.env.DEV) {
   // Use VITE_DEV_API_URL as the primary source for development
   API_CONFIG.BASE_URL = import.meta.env.VITE_DEV_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:3000';
-  API_CONFIG.TIMEOUT = 8000; // Reduced from 10s to 8s for development
+  API_CONFIG.TIMEOUT = 15000; // Increased from 8s to 15s for development to handle complex queries
   API_CONFIG.LOG_REQUESTS = true;
   API_CONFIG.LOG_RESPONSES = true;
 }

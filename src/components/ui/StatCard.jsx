@@ -13,7 +13,8 @@ const StatCard = ({
   description,
   index = 0,
   trendPeriod = '7 days',
-  showTrend = true
+  showTrend = true,
+  loading = false
 }) => {
   return (
     <motion.div
@@ -26,7 +27,7 @@ const StatCard = ({
           <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center`}>
             <Icon className={`w-6 h-6 ${color}`} />
           </div>
-          {showTrend && change && (
+          {showTrend && change && !loading && (
             <div className="flex items-center space-x-2">
           <div className={`flex items-center space-x-1 text-sm ${
                 changeType === 'increase' ? 'text-green-600' : 
@@ -57,9 +58,19 @@ const StatCard = ({
           )}
         </div>
         <div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-          <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
-          <p className="text-xs text-gray-500">{description}</p>
+          {loading ? (
+            <div className="space-y-2">
+              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
+            </div>
+          ) : (
+            <>
+              <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
+              <p className="text-xs text-gray-500">{description}</p>
+            </>
+          )}
         </div>
       </Card>
     </motion.div>

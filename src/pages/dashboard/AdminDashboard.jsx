@@ -53,6 +53,7 @@ import ContactMessagesPage from './ContactMessagesPage';
 import SettingsPage from './SettingsPage';
 import JobCategoriesPage from './JobCategoriesPage';
 import PaymentMethodsPage from './PaymentMethodsPage';
+import AdminProfileManagement from './AdminProfileManagement';
 
 import { 
   getStatusColor, 
@@ -87,6 +88,12 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [requestStatusFilter, setRequestStatusFilter] = useState('all');
+  
+  // Individual loading states for better UX
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [jobSeekersLocalLoading, setJobSeekersLocalLoading] = useState(false);
+  const [requestsLocalLoading, setRequestsLocalLoading] = useState(false);
+  const [categoriesLocalLoading, setCategoriesLocalLoading] = useState(false);
 
   // Custom hooks for data management
   const {
@@ -117,30 +124,90 @@ const AdminDashboard = () => {
     autoFetch: false 
   });
 
-  // Load dashboard data
-  const loadDashboardData = async () => {
+  // Load dashboard data with retry mechanism
+  const loadDashboardData = async (retryCount = 0) => {
+    const maxRetries = 2;
+    
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch dashboard statistics
-      const statsResult = await adminService.getDashboardStats();
-      if (statsResult.success) {
-        setDashboardStats(statsResult.data);
-      } else {
-        setError('Failed to load dashboard statistics');
+      // Load data sequentially to avoid overwhelming the backend
+      console.log(`🔄 Loading dashboard data sequentially... (attempt ${retryCount + 1})`);
+
+      // 1. First load dashboard statistics (most important)
+      try {
+        setStatsLoading(true);
+        console.log('📊 Loading dashboard statistics...');
+        const statsResult = await adminService.getDashboardStats();
+        if (statsResult.success) {
+          setDashboardStats(statsResult.data);
+          console.log('✅ Dashboard statistics loaded');
+        } else {
+          console.warn('⚠️ Failed to load dashboard statistics');
+        }
+      } catch (error) {
+        console.error('❌ Error loading dashboard statistics:', error);
+      } finally {
+        setStatsLoading(false);
       }
 
-      // Fetch recent data
-      await Promise.all([
-        fetchJobSeekers(),
-        fetchRequests(),
-        fetchCategories()
-      ]);
+      // 2. Load job seekers data
+      try {
+        setJobSeekersLocalLoading(true);
+        console.log('👥 Loading job seekers data...');
+        await fetchJobSeekers();
+        console.log('✅ Job seekers data loaded');
+      } catch (error) {
+        console.error('❌ Error loading job seekers:', error);
+      } finally {
+        setJobSeekersLocalLoading(false);
+      }
+
+      // 3. Load employer requests
+      try {
+        setRequestsLocalLoading(true);
+        console.log('📝 Loading employer requests...');
+        await fetchRequests();
+        console.log('✅ Employer requests loaded');
+      } catch (error) {
+        console.error('❌ Error loading employer requests:', error);
+      } finally {
+        setRequestsLocalLoading(false);
+      }
+
+      // 4. Load job categories
+      try {
+        setCategoriesLocalLoading(true);
+        console.log('🏷️ Loading job categories...');
+        await fetchCategories();
+        console.log('✅ Job categories loaded');
+      } catch (error) {
+        console.error('❌ Error loading job categories:', error);
+      } finally {
+        setCategoriesLocalLoading(false);
+      }
+
+      console.log('✅ Dashboard data loading completed');
 
     } catch (error) {
-      setError('Failed to load dashboard data');
-      console.error('Dashboard load error:', error);
+      console.error('❌ Critical error in dashboard loading:', error);
+      
+      // Retry logic for critical errors
+      if (retryCount < maxRetries) {
+        console.log(`🔄 Retrying dashboard load... (${retryCount + 1}/${maxRetries})`);
+        setTimeout(() => {
+          loadDashboardData(retryCount + 1);
+        }, 2000 * (retryCount + 1)); // Exponential backoff
+        return;
+      }
+      
+      setError('Failed to load dashboard data after multiple attempts. Please refresh the page.');
+      addNotification({
+        message: 'Dashboard failed to load. Please refresh.',
+        type: 'error',
+        duration: 10000
+      });
     } finally {
       setLoading(false);
     }
@@ -342,12 +409,37 @@ const AdminDashboard = () => {
         {/* Live Status Indicator */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <LiveStatusIndicator
-            isConnected={isConnected}
-            lastUpdate={lastUpdate}
-            onRefresh={manualRefresh}
-            className="text-xs"
-          />
+          <div className="flex items-center gap-3">
+            <button
+              onClick={refreshDashboardData}
+              disabled={loading}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                loading 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Loading...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
+                </div>
+              )}
+            </button>
+            <LiveStatusIndicator
+              isConnected={isConnected}
+              lastUpdate={lastUpdate}
+              onRefresh={manualRefresh}
+              className="text-xs"
+            />
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -363,6 +455,7 @@ const AdminDashboard = () => {
             description="Active job seekers"
             index={0}
             trendPeriod="7 days"
+            loading={statsLoading}
           />
           
           <StatCard
@@ -376,6 +469,7 @@ const AdminDashboard = () => {
             description="Total requests"
             index={1}
             trendPeriod="7 days"
+            loading={requestsLocalLoading}
           />
           
           <StatCard
@@ -389,6 +483,7 @@ const AdminDashboard = () => {
             description="Awaiting review"
             index={2}
             trendPeriod="7 days"
+            loading={requestsLocalLoading}
           />
           
           <StatCard
@@ -402,6 +497,7 @@ const AdminDashboard = () => {
             description="Job categories"
             index={3}
             showTrend={false}
+            loading={categoriesLocalLoading}
           />
         </div>
 
@@ -593,6 +689,8 @@ const AdminDashboard = () => {
         return <SettingsPage />;
       case 'payment-methods':
         return <PaymentMethodsPage />;
+      case 'profile':
+        return <AdminProfileManagement />;
       default:
         return renderDashboardContent();
     }
@@ -631,7 +729,8 @@ const AdminDashboard = () => {
               ]
             },
             { id: 'settings', label: 'Settings', icon: 'Settings' },
-            { id: 'payment-methods', label: 'Payment Methods', icon: 'CreditCard' }
+            { id: 'payment-methods', label: 'Payment Methods', icon: 'CreditCard' },
+            { id: 'profile', label: 'Profile', icon: 'Shield' }
           ]}
           activeTab={activeTab}
           setActiveTab={setActiveTab}

@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import { 
   Shield, 
   Users, 
@@ -28,105 +27,58 @@ import Card from '../components/ui/Card';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import defaultProfileImage from '../assets/adminProfile.jpg';
+import adminProfileService from '../api/services/adminProfileService';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const AdminInfo = () => {
-  const { t } = useTranslation();
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const personalInfo = {
-    name: t('adminInfo.cv.personal.name'),
-    title: t('adminInfo.cv.title'),
-    location: t('adminInfo.cv.personal.location'),
-    email: t('adminInfo.cv.personal.email'),
-    phone: t('adminInfo.cv.personal.phone'),
-    linkedin: t('adminInfo.cv.personal.linkedin'),
-    github: t('adminInfo.cv.personal.github')
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    try {
+      setLoading(true);
+      const data = await adminProfileService.getPublicProfile();
+      setProfileData(data);
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      setError('Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const skills = [
-    { category: 'frontend', items: ['React.js', 'Vue.js', 'Angular', 'TypeScript', 'Tailwind CSS', 'Next.js'] },
-    { category: 'backend', items: ['Node.js', 'Express.js', 'Python', 'Django', 'PHP', 'Laravel'] },
-    { category: 'database', items: ['PostgreSQL', 'MongoDB', 'MySQL', 'Redis', 'Prisma ORM'] },
-    { category: 'devops', items: ['Docker', 'AWS', 'CI/CD', 'Git', 'Linux', 'Nginx'] }
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="large" />
+      </div>
+    );
+  }
 
-  const experience = [
-    {
-      company: t('adminInfo.cv.experience.jobPortal.company'),
-      position: t('adminInfo.cv.experience.jobPortal.title'),
-      period: t('adminInfo.cv.experience.jobPortal.period'),
-      description: t('adminInfo.cv.experience.jobPortal.description'),
-      achievements: [
-        t('adminInfo.cv.experience.jobPortal.achievement1'), 
-        t('adminInfo.cv.experience.jobPortal.achievement2'), 
-        t('adminInfo.cv.experience.jobPortal.achievement3')
-      ]
-    },
-    {
-      company: t('adminInfo.cv.experience.techSolutions.company'),
-      position: t('adminInfo.cv.experience.techSolutions.title'),
-      period: t('adminInfo.cv.experience.techSolutions.period'),
-      description: t('adminInfo.cv.experience.techSolutions.description'),
-      achievements: [
-        t('adminInfo.cv.experience.techSolutions.achievement1'), 
-        t('adminInfo.cv.experience.techSolutions.achievement2'), 
-        t('adminInfo.cv.experience.techSolutions.achievement3')
-      ]
-    },
-    {
-      company: t('adminInfo.cv.experience.digitalInnovations.company'),
-      position: t('adminInfo.cv.experience.digitalInnovations.title'),
-      period: t('adminInfo.cv.experience.digitalInnovations.period'),
-      description: t('adminInfo.cv.experience.digitalInnovations.description'),
-      achievements: [
-        t('adminInfo.cv.experience.digitalInnovations.achievement1'), 
-        t('adminInfo.cv.experience.digitalInnovations.achievement2'), 
-        t('adminInfo.cv.experience.digitalInnovations.achievement3')
-      ]
-    }
-  ];
+  if (error || !profileData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Available</h2>
+          <p className="text-gray-600 mb-4">{error || 'Profile data could not be loaded'}</p>
+          <button 
+            onClick={loadProfileData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const education = [
-    {
-      degree: t('adminInfo.cv.education.masters.degree'),
-      school: t('adminInfo.cv.education.masters.school'),
-      period: t('adminInfo.cv.education.masters.period'),
-      description: t('adminInfo.cv.education.masters.description')
-    },
-    {
-      degree: t('adminInfo.cv.education.bachelors.degree'),
-      school: t('adminInfo.cv.education.bachelors.school'),
-      period: t('adminInfo.cv.education.bachelors.period'),
-      description: t('adminInfo.cv.education.bachelors.description')
-    }
-  ];
-
-  const certifications = [
-    { name: t('adminInfo.cv.certifications.aws.name'), issuer: t('adminInfo.cv.certifications.aws.issuer'), year: t('adminInfo.cv.certifications.aws.year') },
-    { name: t('adminInfo.cv.certifications.azure.name'), issuer: t('adminInfo.cv.certifications.azure.issuer'), year: t('adminInfo.cv.certifications.azure.year') },
-    { name: t('adminInfo.cv.certifications.scrum.name'), issuer: t('adminInfo.cv.certifications.scrum.issuer'), year: t('adminInfo.cv.certifications.scrum.year') },
-    { name: t('adminInfo.cv.certifications.mongodb.name'), issuer: t('adminInfo.cv.certifications.mongodb.issuer'), year: t('adminInfo.cv.certifications.mongodb.year') }
-  ];
-
-  const projects = [
-    {
-      name: t('adminInfo.cv.projects.jobPortal.name'),
-      description: t('adminInfo.cv.projects.jobPortal.description'),
-      tech: t('adminInfo.cv.projects.jobPortal.tech').split(', '),
-      status: 'live'
-    },
-    {
-      name: t('adminInfo.cv.projects.elearning.name'),
-      description: t('adminInfo.cv.projects.elearning.description'),
-      tech: t('adminInfo.cv.projects.elearning.tech').split(', '),
-      status: 'live'
-    },
-    {
-      name: t('adminInfo.cv.projects.inventory.name'),
-      description: t('adminInfo.cv.projects.inventory.description'),
-      tech: t('adminInfo.cv.projects.inventory.tech').split(', '),
-      status: 'live'
-    }
-  ];
+  const { personal, skills, experience, education, certifications, projects, systemStats } = profileData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -156,7 +108,7 @@ const AdminInfo = () => {
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white border-opacity-30 shadow-2xl">
                   <img 
                     src={defaultProfileImage} 
-                    alt={`${personalInfo.name} - ${t('adminInfo.cv.title')}`}
+                    alt={`${personal.name} - ${personal.title}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.src = defaultProfileImage;
@@ -168,20 +120,20 @@ const AdminInfo = () => {
                 </div>
               </div>
             </motion.div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{personalInfo.name}</h1>
-            <p className="text-xl md:text-2xl text-blue-100 mb-6">{t('adminInfo.cv.title')}</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{personal.name}</h1>
+            <p className="text-xl md:text-2xl text-blue-100 mb-6">{personal.title}</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span>{personalInfo.location}</span>
+                <span>{personal.location}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                <span>{personalInfo.email}</span>
+                <span>{personal.email}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4" />
-                <span>{personalInfo.phone}</span>
+                <span>{personal.phone}</span>
               </div>
             </div>
           </motion.div>
@@ -203,11 +155,11 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
-                  {t('adminInfo.cv.aboutMe.title')}
-            </h2>
+                  About Me
+                </h2>
                 <p className="text-gray-700 leading-relaxed">
-                  {t('adminInfo.cv.aboutMe.description')}
-            </p>
+                  {personal.aboutMe}
+                </p>
               </Card>
             </motion.div>
           
@@ -220,14 +172,14 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Zap className="w-5 h-5 text-blue-600" />
-                  {t('adminInfo.cv.skills.title')}
+                  Skills
                 </h2>
                 <div className="space-y-4">
-                  {skills.map((skillGroup, index) => (
-                    <div key={index}>
-                      <h3 className="font-semibold text-gray-800 mb-2">{t(`adminInfo.cv.skills.${skillGroup.category.toLowerCase()}`)}</h3>
+                  {Object.entries(skills).map(([category, skillList]) => (
+                    <div key={category}>
+                      <h3 className="font-semibold text-gray-800 mb-2 capitalize">{category}</h3>
                       <div className="flex flex-wrap gap-2">
-                        {skillGroup.items.map((skill, skillIndex) => (
+                        {skillList.map((skill, skillIndex) => (
                           <span 
                             key={skillIndex}
                             className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
@@ -237,7 +189,7 @@ const AdminInfo = () => {
                         ))}
                       </div>
                     </div>
-                              ))}
+                  ))}
                 </div>
               </Card>
             </motion.div>
@@ -251,18 +203,18 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Award className="w-5 h-5 text-blue-600" />
-                  {t('adminInfo.cv.certifications.title')}
-            </h2>
+                  Certifications
+                </h2>
                 <div className="space-y-3">
                   {certifications.map((cert, index) => (
                     <div key={index} className="border-l-4 border-blue-500 pl-3">
                       <h4 className="font-semibold text-gray-800">{cert.name}</h4>
                       <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
-          </div>
+                    </div>
                   ))}
-                  </div>
-                </Card>
-              </motion.div>
+                </div>
+              </Card>
+            </motion.div>
 
             {/* Contact & Social */}
             <motion.div
@@ -273,32 +225,34 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Phone className="w-5 h-5 text-blue-600" />
-                  {t('adminInfo.cv.contact.title')}
+                  Contact & Social
                 </h2>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <Mail className="w-4 h-4 text-gray-500" />
-                    <a href={`mailto:${personalInfo.email}`} className="text-blue-600 hover:text-blue-800">
-                      {personalInfo.email}
+                    <a href={`mailto:${personal.email}`} className="text-blue-600 hover:text-blue-800">
+                      {personal.email}
                     </a>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="w-4 h-4 text-gray-500" />
-                    <a href={`tel:${personalInfo.phone}`} className="text-blue-600 hover:text-blue-800">
-                      {personalInfo.phone}
+                    <a href={`tel:${personal.phone}`} className="text-blue-600 hover:text-blue-800">
+                      {personal.phone}
                     </a>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">{personalInfo.location}</span>
+                    <span className="text-gray-700">{personal.location}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <GitBranch className="w-4 h-4 text-gray-500" />
-                    <a href={`https://${personalInfo.github}`} className="text-blue-600 hover:text-blue-800">
-                      {personalInfo.github}
-                    </a>
+                  {personal.github && (
+                    <div className="flex items-center gap-3">
+                      <GitBranch className="w-4 h-4 text-gray-500" />
+                      <a href={`https://${personal.github}`} className="text-blue-600 hover:text-blue-800">
+                        {personal.github}
+                      </a>
+                    </div>
+                  )}
                 </div>
-              </div>
               </Card>
             </motion.div>
           </div>
@@ -315,7 +269,7 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Briefcase className="w-6 h-6 text-blue-600" />
-                  {t('adminInfo.cv.experience.title')}
+                  Professional Experience
                 </h2>
                 <div className="space-y-6">
                   {experience.map((exp, index) => (
@@ -328,14 +282,16 @@ const AdminInfo = () => {
                       </div>
                       <h4 className="text-md font-medium text-blue-600 mb-2">{exp.company}</h4>
                       <p className="text-gray-700 mb-3 leading-relaxed">{exp.description}</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        {exp.achievements.map((achievement, achIndex) => (
-                          <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
-                        ))}
-                      </ul>
-                </div>
+                      {exp.achievements && exp.achievements.length > 0 && (
+                        <ul className="list-disc list-inside space-y-1">
+                          {exp.achievements.map((achievement, achIndex) => (
+                            <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   ))}
-              </div>
+                </div>
               </Card>
             </motion.div>
 
@@ -348,8 +304,8 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <GraduationCap className="w-6 h-6 text-blue-600" />
-                  {t('adminInfo.cv.education.title')}
-            </h2>
+                  Education
+                </h2>
                 <div className="space-y-4">
                   {education.map((edu, index) => (
                     <div key={index} className="border-l-4 border-green-500 pl-4">
@@ -363,7 +319,7 @@ const AdminInfo = () => {
                       <p className="text-gray-700 text-sm">{edu.description}</p>
                     </div>
                   ))}
-          </div>
+                </div>
               </Card>
             </motion.div>
           
@@ -376,7 +332,7 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Code className="w-6 h-6 text-blue-600" />
-                  {t('adminInfo.cv.projects.title')}
+                  Key Projects
                 </h2>
                 <div className="space-y-4">
                   {projects.map((project, index) => (
@@ -388,21 +344,27 @@ const AdminInfo = () => {
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {t(`adminInfo.cv.projectStatus.${project.status}`)}
+                          {project.status}
                         </span>
-                </div>
+                      </div>
                       <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {project.tech.map((tech, techIndex) => (
-                          <span 
-                            key={techIndex}
-                            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                          >
-                            {tech}
-                          </span>
-            ))}
-          </div>
-        </div>
+                      {project.tech && (
+                        <div className="flex flex-wrap gap-2">
+                          {Array.isArray(project.tech) ? project.tech.map((tech, techIndex) => (
+                            <span 
+                              key={techIndex}
+                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                            >
+                              {tech}
+                            </span>
+                          )) : (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                              {project.tech}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </Card>
@@ -417,24 +379,24 @@ const AdminInfo = () => {
               <Card className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <Server className="w-6 h-6 text-blue-600" />
-                  {t('adminInfo.cv.systemPerformance.title')}
+                  System Performance
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">500+</div>
-                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.jobSeekers')}</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-1">{systemStats.jobSeekers}+</div>
+                    <div className="text-sm text-gray-600">Job Seekers</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 mb-1">98%</div>
-                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.uptime')}</div>
+                    <div className="text-2xl font-bold text-green-600 mb-1">{systemStats.uptime}%</div>
+                    <div className="text-sm text-gray-600">Uptime</div>
                   </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 mb-1">50+</div>
-                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.companies')}</div>
+                    <div className="text-2xl font-bold text-purple-600 mb-1">{systemStats.companies}+</div>
+                    <div className="text-sm text-gray-600">Companies</div>
                   </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600 mb-1">5+</div>
-                    <div className="text-sm text-gray-600">{t('adminInfo.cv.stats.experience')}</div>
+                    <div className="text-2xl font-bold text-orange-600 mb-1">{systemStats.experience}+</div>
+                    <div className="text-sm text-gray-600">Experience Years</div>
                   </div>
                 </div>
               </Card>
@@ -451,9 +413,9 @@ const AdminInfo = () => {
         transition={{ duration: 0.8, delay: 1.2 }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">{t('adminInfo.cv.cta.title')}</h2>
+          <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            {t('adminInfo.cv.cta.description')}
+            Let's work together to find the perfect candidates for your organization or explore our platform's capabilities.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <motion.button
@@ -462,7 +424,7 @@ const AdminInfo = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
             >
-              {t('adminInfo.cv.cta.getInTouch')}
+              Get In Touch
             </motion.button>
             <motion.button
               onClick={() => window.location.href = '/job-seekers'}
@@ -470,7 +432,7 @@ const AdminInfo = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transition-colors duration-200"
             >
-              {t('adminInfo.cv.cta.viewPlatform')}
+              View Platform
             </motion.button>
           </div>
         </div>
