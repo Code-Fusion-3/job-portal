@@ -51,27 +51,19 @@ export const categoryService = {
   },
 
   /**
-   * Get all categories (Admin with pagination and profile counts)
-   * GET /categories/admin
+   * Get all categories (Admin with profile counts - no pagination)
+   * GET /categories/admin/all
    */
   getAllCategoriesAdmin: async (params = {}) => {
     try {
-      const { page = 1, limit = 10, ...otherParams } = params;
-      
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        ...otherParams
-      });
-
-      const response = await apiClient.get(`/categories/admin?${queryParams}`, {
+      const response = await apiClient.get('/categories/admin/all', {
         headers: getAuthHeaders()
       });
 
       return {
         success: true,
         data: response.data.categories,
-        pagination: response.data.pagination
+        total: response.data.total
       };
     } catch (error) {
       // Handle specific backend error cases

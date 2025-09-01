@@ -253,6 +253,7 @@ const JobCategoriesPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Job Categories</h1>
           <p className="text-gray-600">Manage job categories for the platform</p>
+          <p className="text-sm text-gray-500">All categories are displayed for easy management</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -304,6 +305,7 @@ const JobCategoriesPage = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Categories</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-xs text-gray-500">Showing all {stats.total} categories</p>
             </div>
             <Briefcase className="w-8 h-8 text-blue-600" />
           </div>
@@ -340,6 +342,14 @@ const JobCategoriesPage = () => {
       {/* Categories List */}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-700">Categories ({filteredCategories.length} of {stats.total})</h3>
+              <span className="text-xs text-gray-500">
+                {filteredCategories.length === stats.total ? 'Showing all categories' : `Filtered from ${stats.total} total`}
+              </span>
+            </div>
+          </div>
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
