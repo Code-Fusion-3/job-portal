@@ -78,7 +78,7 @@ const AdminInfo = () => {
     );
   }
 
-  const { personal, skills, experience, education, certifications, projects, systemStats } = profileData;
+  const { personal, skills, experience, education, certifications, projects } = profileData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,18 +123,24 @@ const AdminInfo = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{personal.name}</h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-6">{personal.title}</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>{personal.location}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span>{personal.email}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span>{personal.phone}</span>
-              </div>
+              {personal.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{personal.location}</span>
+                </div>
+              )}
+              {personal.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  <span>{personal.email}</span>
+                </div>
+              )}
+              {personal.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span>{personal.phone}</span>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -146,261 +152,251 @@ const AdminInfo = () => {
           {/* Left Sidebar - Personal Info & Skills */}
           <div className="lg:col-span-1 space-y-6">
             
-            {/* About Me */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-      >
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-blue-600" />
-                  About Me
-                </h2>
-                <p className="text-gray-700 leading-relaxed">
-                  {personal.aboutMe}
-                </p>
-              </Card>
-            </motion.div>
-          
-            {/* Skills */}
+            {/* About Me - Only show if aboutMe exists */}
+            {personal.aboutMe && (
               <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                  Skills
-                </h2>
-                <div className="space-y-4">
-                  {Object.entries(skills).map(([category, skillList]) => (
-                    <div key={category}>
-                      <h3 className="font-semibold text-gray-800 mb-2 capitalize">{category}</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {skillList.map((skill, skillIndex) => (
-                          <span 
-                            key={skillIndex}
-                            className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-600" />
+                    About Me
+                  </h2>
+                  <p className="text-gray-700 leading-relaxed">
+                    {personal.aboutMe}
+                  </p>
+                </Card>
+              </motion.div>
+            )}
+          
+            {/* Skills - Only show if skills exist and have content */}
+            {skills && Object.keys(skills).length > 0 && Object.values(skills).some(skillList => skillList && skillList.length > 0) && (
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-blue-600" />
+                    Skills
+                  </h2>
+                  <div className="space-y-4">
+                    {Object.entries(skills).map(([category, skillList]) => (
+                      skillList && skillList.length > 0 && (
+                        <div key={category}>
+                          <h3 className="font-semibold text-gray-800 mb-2 capitalize">{category}</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {skillList.map((skill, skillIndex) => (
+                              <span 
+                                key={skillIndex}
+                                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Certifications - Only show if certifications exist and have content */}
+            {certifications && certifications.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-blue-600" />
+                    Certifications
+                  </h2>
+                  <div className="space-y-3">
+                    {certifications.map((cert, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-3">
+                        <h4 className="font-semibold text-gray-800">{cert.name}</h4>
+                        <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
 
-            {/* Certifications */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, delay: 0.8 }}
-      >
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-blue-600" />
-                  Certifications
-                </h2>
-                <div className="space-y-3">
-                  {certifications.map((cert, index) => (
-                    <div key={index} className="border-l-4 border-blue-500 pl-3">
-                      <h4 className="font-semibold text-gray-800">{cert.name}</h4>
-                      <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-
-            {/* Contact & Social */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-blue-600" />
-                  Contact & Social
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-4 h-4 text-gray-500" />
-                    <a href={`mailto:${personal.email}`} className="text-blue-600 hover:text-blue-800">
-                      {personal.email}
-                    </a>
+            {/* Contact & Social - Only show if contact info exists */}
+            {(personal.email || personal.phone || personal.location || personal.github) && (
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 1.0 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-blue-600" />
+                    Contact & Social
+                  </h2>
+                  <div className="space-y-3">
+                    {personal.email && (
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-4 h-4 text-gray-500" />
+                        <a href={`mailto:${personal.email}`} className="text-blue-600 hover:text-blue-800">
+                          {personal.email}
+                        </a>
+                      </div>
+                    )}
+                    {personal.phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <a href={`tel:${personal.phone}`} className="text-blue-600 hover:text-blue-800">
+                          {personal.phone}
+                        </a>
+                      </div>
+                    )}
+                    {personal.location && (
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-700">{personal.location}</span>
+                      </div>
+                    )}
+                    {personal.github && (
+                      <div className="flex items-center gap-3">
+                        <GitBranch className="w-4 h-4 text-gray-500" />
+                        <a href={`https://${personal.github}`} className="text-blue-600 hover:text-blue-800">
+                          {personal.github}
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <a href={`tel:${personal.phone}`} className="text-blue-600 hover:text-blue-800">
-                      {personal.phone}
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-700">{personal.location}</span>
-                  </div>
-                  {personal.github && (
-                    <div className="flex items-center gap-3">
-                      <GitBranch className="w-4 h-4 text-gray-500" />
-                      <a href={`https://${personal.github}`} className="text-blue-600 hover:text-blue-800">
-                        {personal.github}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </motion.div>
+                </Card>
+              </motion.div>
+            )}
           </div>
 
           {/* Main Content - Experience & Projects */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Professional Experience */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
-                  Professional Experience
-                </h2>
-                <div className="space-y-6">
-                  {experience.map((exp, index) => (
-                    <div key={index} className="border-l-4 border-blue-500 pl-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{exp.position}</h3>
-                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          {exp.period}
-                        </span>
-                      </div>
-                      <h4 className="text-md font-medium text-blue-600 mb-2">{exp.company}</h4>
-                      <p className="text-gray-700 mb-3 leading-relaxed">{exp.description}</p>
-                      {exp.achievements && exp.achievements.length > 0 && (
-                        <ul className="list-disc list-inside space-y-1">
-                          {exp.achievements.map((achievement, achIndex) => (
-                            <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-
-            {/* Education */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <GraduationCap className="w-6 h-6 text-blue-600" />
-                  Education
-                </h2>
-                <div className="space-y-4">
-                  {education.map((edu, index) => (
-                    <div key={index} className="border-l-4 border-green-500 pl-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{edu.degree}</h3>
-                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          {edu.period}
-                        </span>
-                      </div>
-                      <h4 className="text-md font-medium text-green-600 mb-1">{edu.school}</h4>
-                      <p className="text-gray-700 text-sm">{edu.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-          
-            {/* Key Projects */}
+            {/* Professional Experience - Only show if experience exists and has content */}
+            {experience && experience.length > 0 && (
               <motion.div
-              initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <Code className="w-6 h-6 text-blue-600" />
-                  Key Projects
-                </h2>
-                <div className="space-y-4">
-                  {projects.map((project, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          project.status === 'live' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {project.status}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
-                      {project.tech && (
-                        <div className="flex flex-wrap gap-2">
-                          {Array.isArray(project.tech) ? project.tech.map((tech, techIndex) => (
-                            <span 
-                              key={techIndex}
-                              className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                            >
-                              {tech}
-                            </span>
-                          )) : (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                              {project.tech}
-                            </span>
-                          )}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <Briefcase className="w-6 h-6 text-blue-600" />
+                    Professional Experience
+                  </h2>
+                  <div className="space-y-6">
+                    {experience.map((exp, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{exp.position}</h3>
+                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {exp.period}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
+                        <h4 className="text-md font-medium text-blue-600 mb-2">{exp.company}</h4>
+                        <p className="text-gray-700 mb-3 leading-relaxed">{exp.description}</p>
+                        {exp.achievements && exp.achievements.length > 0 && (
+                          <ul className="list-disc list-inside space-y-1">
+                            {exp.achievements.map((achievement, achIndex) => (
+                              <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
 
-            {/* System Statistics */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-            >
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <Server className="w-6 h-6 text-blue-600" />
-                  System Performance
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">{systemStats.jobSeekers}+</div>
-                    <div className="text-sm text-gray-600">Job Seekers</div>
+            {/* Education - Only show if education exists and has content */}
+            {education && education.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <GraduationCap className="w-6 h-6 text-blue-600" />
+                    Education
+                  </h2>
+                  <div className="space-y-4">
+                    {education.map((edu, index) => (
+                      <div key={index} className="border-l-4 border-green-500 pl-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{edu.degree}</h3>
+                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {edu.period}
+                          </span>
+                        </div>
+                        <h4 className="text-md font-medium text-green-600 mb-1">{edu.school}</h4>
+                        <p className="text-gray-700 text-sm">{edu.description}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 mb-1">{systemStats.uptime}%</div>
-                    <div className="text-sm text-gray-600">Uptime</div>
+                </Card>
+              </motion.div>
+            )}
+          
+            {/* Key Projects - Only show if projects exist and have content */}
+            {projects && projects.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <Code className="w-6 h-6 text-blue-600" />
+                    Key Projects
+                  </h2>
+                  <div className="space-y-4">
+                    {projects.map((project, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+                          <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            project.status === 'live' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {project.status}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
+                        {project.tech && (
+                          <div className="flex flex-wrap gap-2">
+                            {Array.isArray(project.tech) ? project.tech.map((tech, techIndex) => (
+                              <span 
+                                key={techIndex}
+                                className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                              >
+                                {tech}
+                              </span>
+                            )) : (
+                              <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                                {project.tech}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 mb-1">{systemStats.companies}+</div>
-                    <div className="text-sm text-gray-600">Companies</div>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600 mb-1">{systemStats.experience}+</div>
-                    <div className="text-sm text-gray-600">Experience Years</div>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
+                </Card>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
