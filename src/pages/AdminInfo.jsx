@@ -210,29 +210,7 @@ const AdminInfo = () => {
               </motion.div>
             )}
 
-            {/* Certifications - Only show if certifications exist and have content */}
-            {certifications && certifications.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-blue-600" />
-                    Certifications
-                  </h2>
-                  <div className="space-y-3">
-                    {certifications.map((cert, index) => (
-                      <div key={index} className="border-l-4 border-blue-500 pl-3">
-                        <h4 className="font-semibold text-gray-800">{cert.name}</h4>
-                        <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </motion.div>
-            )}
+
 
             {/* Social Media - Only show if social media links exist */}
             {(personal.facebook || personal.linkedin || personal.twitter || personal.instagram) && (
@@ -360,6 +338,35 @@ const AdminInfo = () => {
                         </div>
                         <h4 className="text-md font-medium text-green-600 mb-1">{edu.school}</h4>
                         <p className="text-gray-700 text-sm">{edu.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Certifications - Only show if certifications exist and have content */}
+            {certifications && certifications.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+              >
+                <Card className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <Award className="w-6 h-6 text-blue-600" />
+                    Certifications
+                  </h2>
+                  <div className="space-y-4">
+                    {certifications.map((cert, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{cert.name}</h3>
+                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {cert.year}
+                          </span>
+                        </div>
+                        <h4 className="text-md font-medium text-blue-600 mb-1">{cert.issuer}</h4>
                       </div>
                     ))}
                   </div>

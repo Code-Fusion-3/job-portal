@@ -533,83 +533,7 @@ const AdminProfileManagement = () => {
               )}
             </Card>
 
-            {/* Certifications */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-blue-600" />
-                  Certifications
-                </h2>
-                <Button
-                  onClick={() => setEditingSection(editingSection === 'certifications' ? null : 'certifications')}
-                  variant="outline"
-                  size="sm"
-                >
-                  {editingSection === 'certifications' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                </Button>
-              </div>
-              
-              {editingSection === 'certifications' ? (
-                <div className="space-y-4">
-                  {certifications.map((cert, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
-                      <input
-                        type="text"
-                        value={cert.name}
-                        onChange={(e) => updateItem('certifications', index, { ...cert, name: e.target.value })}
-                        placeholder="Certification Name"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                      <input
-                        type="text"
-                        value={cert.issuer}
-                        onChange={(e) => updateItem('certifications', index, { ...cert, issuer: e.target.value })}
-                        placeholder="Issuing Organization"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                      <input
-                        type="text"
-                        value={cert.year}
-                        onChange={(e) => updateItem('certifications', index, { ...cert, year: e.target.value })}
-                        placeholder="Year"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                      <Button
-                        onClick={() => removeItem('certifications', index)}
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    onClick={() => addItem('certifications', { name: '', issuer: '', year: '' })}
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add Certification
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {certifications.length > 0 ? (
-                    certifications.map((cert, index) => (
-                      <div key={index} className="border-l-4 border-blue-500 pl-3">
-                        <h4 className="font-semibold text-gray-800">{cert.name}</h4>
-                        <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">No certifications added yet.</p>
-                  )}
-                </div>
-              )}
-            </Card>
+
           </div>
 
           {/* Right Column - Experience, Education, Projects, etc. */}
@@ -823,6 +747,84 @@ const AdminProfileManagement = () => {
                     ))
                   ) : (
                     <p className="text-gray-500 text-sm">No education added yet.</p>
+                  )}
+                </div>
+              )}
+            </Card>
+
+            {/* Certifications */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-blue-600" />
+                  Certifications
+                </h2>
+                <Button
+                  onClick={() => setEditingSection(editingSection === 'certifications' ? null : 'certifications')}
+                  variant="outline"
+                  size="sm"
+                >
+                  {editingSection === 'certifications' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                </Button>
+              </div>
+              
+              {editingSection === 'certifications' ? (
+                <div className="space-y-4">
+                  {certifications.map((cert, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                      <input
+                        type="text"
+                        value={cert.name}
+                        onChange={(e) => updateItem('certifications', index, { ...cert, name: e.target.value })}
+                        placeholder="Certification Name"
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={cert.issuer}
+                        onChange={(e) => updateItem('certifications', index, { ...cert, issuer: e.target.value })}
+                        placeholder="Issuing Organization"
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={cert.year}
+                        onChange={(e) => updateItem('certifications', index, { ...cert, year: e.target.value })}
+                        placeholder="Year"
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                      <Button
+                        onClick={() => removeItem('certifications', index)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    onClick={() => addItem('certifications', { name: '', issuer: '', year: '' })}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Certification
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {certifications.length > 0 ? (
+                    certifications.map((cert, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-3">
+                        <h4 className="font-semibold text-gray-800">{cert.name}</h4>
+                        <p className="text-sm text-gray-600">{cert.issuer} • {cert.year}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">No certifications added yet.</p>
                   )}
                 </div>
               )}
