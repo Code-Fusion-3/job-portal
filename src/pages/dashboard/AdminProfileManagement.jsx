@@ -48,7 +48,9 @@ const AdminProfileManagement = () => {
       frontend: [],
       backend: [],
       database: [],
-      devops: []
+      devops: [],
+      design: [],
+      management: []
     },
     experience: [],
     education: [],
@@ -466,10 +468,94 @@ const AdminProfileManagement = () => {
               </div>
               
               {editingSection === 'skills' ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Add New Category */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold text-gray-800 mb-3">Add New Skill Category</h3>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Category name (e.g., Design, Marketing, Languages)"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && e.target.value.trim()) {
+                            const newCategory = e.target.value.trim().toLowerCase();
+                            if (!skills[newCategory]) {
+                              setProfileData(prev => ({
+                                ...prev,
+                                skills: { ...prev.skills, [newCategory]: [] }
+                              }));
+                              e.target.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={(e) => {
+                          const input = e.target.previousElementSibling;
+                          const newCategory = input.value.trim().toLowerCase();
+                          if (newCategory && !skills[newCategory]) {
+                            setProfileData(prev => ({
+                              ...prev,
+                              skills: { ...prev.skills, [newCategory]: [] }
+                            }));
+                            input.value = '';
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap"
+                      >
+                        <Plus className="w-3 h-3 mr-1" />
+                        Add Category
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Existing Categories */}
                   {Object.entries(skills).map(([category, skillsList]) => (
-                    <div key={category}>
-                      <h3 className="font-semibold text-gray-800 mb-2 capitalize">{category}</h3>
+                    <div key={category} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={category}
+                            onChange={(e) => {
+                              const newCategory = e.target.value.trim().toLowerCase();
+                              if (newCategory && newCategory !== category) {
+                                const newSkills = { ...skills };
+                                newSkills[newCategory] = newSkills[category];
+                                delete newSkills[category];
+                                setProfileData(prev => ({
+                                  ...prev,
+                                  skills: newSkills
+                                }));
+                              }
+                            }}
+                            className="font-semibold text-gray-800 capitalize bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-1"
+                            placeholder="Category name"
+                          />
+                        </div>
+                        <Button
+                          onClick={() => {
+                            if (Object.keys(skills).length > 1) {
+                              const newSkills = { ...skills };
+                              delete newSkills[category];
+                              setProfileData(prev => ({
+                                ...prev,
+                                skills: newSkills
+                              }));
+                            }
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          disabled={Object.keys(skills).length <= 1}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      
                       <div className="space-y-2">
                         {skillsList.map((skill, index) => (
                           <div key={index} className="flex gap-2">
@@ -484,10 +570,17 @@ const AdminProfileManagement = () => {
                                   skills: { ...prev.skills, [category]: newSkills }
                                 }));
                               }}
+                              placeholder="Skill name"
                               className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                             />
                             <Button
-                              onClick={() => removeItem('skills', index)}
+                              onClick={() => {
+                                const newSkills = skillsList.filter((_, i) => i !== index);
+                                setProfileData(prev => ({
+                                  ...prev,
+                                  skills: { ...prev.skills, [category]: newSkills }
+                                }));
+                              }}
                               variant="outline"
                               size="sm"
                               className="text-red-600 hover:text-red-700"
