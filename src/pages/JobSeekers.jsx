@@ -286,6 +286,33 @@ const JobSeekers = () => {
 
   return (
     <div className="min-h-screen relative">
+      {/* Custom CSS for animations */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        
+        .float-animation {
+          animation: float 3s ease-in-out infinite;
+        }
+      `}</style>
+      
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${jobseekerBackground})` }}
@@ -294,24 +321,71 @@ const JobSeekers = () => {
       <Header />
       
       {/* Page Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4 text-reveal">
-            {t('jobSeekers.pageTitle', 'All Job Seekers')}
-          </h1>
-          <p className="text-xl text-white/70 max-w-3xl mx-auto mb-6 text-reveal">
-            {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
-          </p>
-          
-          {/* Total Job Seekers Count */}
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
-            <Users className="w-5 h-5 text-white" />
-            <span className="text-white font-semibold">
-              {t('jobSeekers.totalCount', 'Total Job Seekers')}: <span className="text-2xl">{jobSeekers.length}</span>
-            </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
+        {/* Floating decorative elements */}
+        <div className="absolute top-10 left-10 w-2 h-2 bg-white/30 rounded-full animate-pulse"></div>
+        <div className="absolute top-20 right-20 w-1 h-1 bg-white/40 rounded-full animate-ping"></div>
+        <div className="absolute bottom-10 left-20 w-1.5 h-1.5 bg-white/25 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-2 h-2 bg-white/35 rounded-full animate-ping"></div>
+        
+        <div className="text-center relative z-10">
+          {/* Main Title with Enhanced Styling */}
+          <div className="mb-6">
+            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 text-reveal tracking-tight relative"
+                style={{
+                  animation: 'fadeInUp 1s ease-out forwards',
+                  opacity: 0,
+                  transform: 'translateY(30px)'
+                }}>
+              <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-2xl relative z-10 hover:from-blue-100 hover:via-white hover:to-blue-100 transition-all duration-1000">
+                {t('jobSeekers.pageTitle', 'All Job Seekers')}
+              </span>
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-blue-200/20 to-white/20 blur-xl -z-10 animate-pulse"></div>
+            </h1>
+            
+            {/* Decorative Line with Animation */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-pulse"></div>
+              <div className="mx-4 w-2 h-2 bg-white/60 rounded-full animate-ping"></div>
+              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-pulse"></div>
+            </div>
           </div>
           
-
+          {/* Subtitle with Better Typography */}
+          <div className="mb-8">
+            <div className="relative">
+              <p className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto mb-4 text-reveal leading-relaxed font-light relative z-10">
+                {t('jobSeekers.pageSubtitle', 'Discover reliable workers for domestic, care, maintenance, and other essential services')}
+              </p>
+              {/* Subtle background highlight */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent rounded-lg -z-10"></div>
+            </div>
+            
+            {/* Additional Descriptive Text with Icon */}
+            <div className="flex items-center justify-center gap-3 max-w-2xl mx-auto text-reveal">
+              <div className="w-1 h-1 bg-white/60 rounded-full"></div>
+              <p className="text-lg text-white/70 font-medium">
+                {t('jobSeekers.pageDescription', 'Connect with skilled professionals ready to contribute to your organization')}
+              </p>
+              <div className="w-1 h-1 bg-white/60 rounded-full"></div>
+            </div>
+          </div>
+          
+          {/* Enhanced Total Job Seekers Count Card */}
+          <div className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-md rounded-2xl px-8 py-4 border border-white/25 shadow-2xl hover:bg-white/20 transition-all duration-300 group float-animation">
+            <div className="p-2 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-left">
+              <div className="text-sm text-white/80 font-medium uppercase tracking-wide">
+                {t('jobSeekers.totalCount', 'Total Job Seekers')}
+              </div>
+              <div className="text-3xl font-bold text-white">
+                {jobSeekers.length}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

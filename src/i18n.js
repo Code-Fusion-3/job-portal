@@ -79,7 +79,9 @@ const resources = {
       
       // Job Seekers Page
       'jobSeekers.pageTitle': 'All Job Seekers',
-      'jobSeekers.pageSubtitle': 'Discover reliable workers for domestic, care, maintenance, and other essential services',
+      'jobSeekers.pageSubtitle': 'Discover reliable workers for domestic services, construction (masons and helpers), mechanics, and many other essential services.',
+      'jobSeekers.pageDescription': 'Connect with skilled professionals ready to contribute to your job',
+      'jobSeekers.totalCount': 'Total Job Seekers',
       'jobSeekers.searchPlaceholder': 'Search by name, title, or skills...',
       'jobSeekers.filters.location': 'Location',
       'jobSeekers.filters.allLocations': 'All Locations',
@@ -90,6 +92,8 @@ const resources = {
       'jobSeekers.filters.highestRated': 'Highest Rated',
       'jobSeekers.filters.mostExperienced': 'Most Experienced',
       'jobSeekers.filters.name': 'Name A-Z',
+      'jobSeekers.filters.advancedFilters': 'Advanced Filters',
+      'jobSeekers.filters.description': 'Refine your search to find the perfect job seeker',
       'jobSeekers.filters.skills': 'Skills',
       'jobSeekers.filters.category': 'Category',
       'jobSeekers.filters.dailyRate': 'Daily Rate',
@@ -126,6 +130,7 @@ const resources = {
       'jobSeekers.filters.rwamagana': 'Rwamagana',
 
       // Filter Options - Gender
+      'jobSeekers.filters.gender': 'Gender',
       'jobSeekers.filters.allGenders': 'All Genders',
       'jobSeekers.filters.male': 'Male',
       'jobSeekers.filters.female': 'Female',
@@ -1219,7 +1224,9 @@ const resources = {
       
       // Job Seekers Page
       'jobSeekers.pageTitle': 'Abashaka Akazi Bose',
-      'jobSeekers.pageSubtitle': 'Menya inzobere ziteguye gutanga umusanzu ku kigo cyawe',
+      'jobSeekers.pageSubtitle': 'Menya abakozi b’inyangamugayo mu mirimo yo mu rugo, ubwubatsi(abafundi, abayede), abakanishi no mu zindi serivisi nyinshi z’ingenzi.',
+      'jobSeekers.pageDescription': 'Hangana n\'abakozi bafite ubumenyi buhagije bateguye kuguha umusanzu',
+      'jobSeekers.totalCount': 'Abashaka Akazi Bose',
       'jobSeekers.searchPlaceholder': 'Shaka izina, akazi cyangwa ubumenyi...',
       'jobSeekers.filters.location': 'Aho Aherereye',
       'jobSeekers.filters.allLocations': 'Aho hose',
@@ -1230,6 +1237,8 @@ const resources = {
       'jobSeekers.filters.highestRated': 'Bashimwe cyane',
       'jobSeekers.filters.mostExperienced': 'Bafite uburambe bwinshi',
       'jobSeekers.filters.name': 'Izina A-Z',
+      'jobSeekers.filters.advancedFilters': 'Shaka vuba byihuse',
+      'jobSeekers.filters.description': 'Komeza uyungurure ishakisha ryawe kugira ngo ubone umukandida mwiza w’akazi kandi vuba',
       'jobSeekers.filters.skills': 'Ubumenyi',
       'jobSeekers.filters.category': 'Umutekano',
       'jobSeekers.filters.dailyRate': "Igiciro cy'Umunsi",
@@ -1244,7 +1253,7 @@ const resources = {
       'jobSeekers.actions.requestCandidate': 'Saba Umukandida',
 
       // Filter Options - Experience Levels
-      'jobSeekers.filters.experienceLevel': "Urupapuro rw'Uburambe",
+      'jobSeekers.filters.experienceLevel': "Urwego rw`uburambe",
       'jobSeekers.filters.allExperienceLevels': 'Uburambe Bwose',
       'jobSeekers.filters.noExperience': 'Nta Uburambe (0 imyaka)',
       'jobSeekers.filters.beginner': 'Utangira (1-2 imyaka)',
@@ -1266,7 +1275,8 @@ const resources = {
       'jobSeekers.filters.rwamagana': 'Rwamagana',
 
       // Filter Options - Gender
-      'jobSeekers.filters.allGenders': 'Igitsina Cyose',
+      'jobSeekers.filters.gender': 'Igitsina',
+      'jobSeekers.filters.allGenders': 'ibitsina byombi',
       'jobSeekers.filters.male': 'Umugabo',
       'jobSeekers.filters.female': 'Umugore',
       'jobSeekers.filters.other': 'Ibindi',
