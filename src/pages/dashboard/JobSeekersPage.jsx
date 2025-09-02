@@ -29,7 +29,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
-import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { useAdminCategories } from '../../api/hooks/useCategories.js';
 import { useApprovalManagement } from '../../api/hooks/useApprovalManagement.js';
 import { 

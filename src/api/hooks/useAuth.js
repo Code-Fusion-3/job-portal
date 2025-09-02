@@ -3,6 +3,10 @@
  * Re-exports the useAuth hook from AuthContext for compatibility
  */
 
+import { useContext } from 'react';
+import { AuthContext } from '../../contexts/AuthContext.jsx';
+
+// Re-export the main useAuth hook
 export { useAuth } from '../../contexts/AuthContext.jsx';
 
 // Export individual hooks for specific functionality

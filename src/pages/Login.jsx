@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Shield, ArrowRight, AlertTriangle, LogIn, Sparkles } from 'lucide-react';
-import { useAuth } from '../api/hooks/useAuth.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import Button from '../components/ui/Button';
 import FormInput from '../components/ui/FormInput';
 import PasswordInput from '../components/ui/PasswordInput';

@@ -10,7 +10,7 @@ import {
   AlertCircle,
   RefreshCw
 } from 'lucide-react';
-import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { useApprovalManagement } from '../../api/hooks/useApprovalManagement.js';
 import {
   extractProfileId,

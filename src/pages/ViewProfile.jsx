@@ -22,7 +22,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { jobSeekerService } from '../api/index.js';
-import { useAuth } from '../api/hooks/useAuth.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import Button from '../components/ui/Button';
 import BackButton from '../components/ui/BackButton';
 import Card from '../components/ui/Card';

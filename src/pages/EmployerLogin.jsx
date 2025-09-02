@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '../components/ui/Button';
-import { useAuth } from '../api/hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 const EmployerLogin = () => {
   const { t } = useTranslation();

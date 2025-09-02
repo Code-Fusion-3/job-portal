@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../api/hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { userService } from '../api/services/userService';
 import { categoryService } from '../api/services/categoryService';
 import Button from '../components/ui/Button';

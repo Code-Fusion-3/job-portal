@@ -23,7 +23,7 @@ import {
   Banknote
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
-import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { categoryService } from '../../api/services/categoryService.js';
 import { useCategories } from '../../api/hooks/useCategories.js';
 import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';

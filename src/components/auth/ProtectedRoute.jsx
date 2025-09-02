@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 const ProtectedRoute = ({ 

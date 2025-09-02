@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { isTokenExpired, clearAuthTokens } from '../../api/config/apiConfig.js';
 
 // Define public routes that don't require authentication

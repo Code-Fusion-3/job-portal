@@ -11,7 +11,7 @@ import {
   CheckCircle,
   X
 } from 'lucide-react';
-import { useAuth } from '../../api/hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { adminService } from '../../api/services/adminService';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';

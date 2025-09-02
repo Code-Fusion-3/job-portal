@@ -25,7 +25,7 @@ import Modal from '../../components/ui/Modal';
 import RequestDetailsModal from '../../components/modals/RequestDetailsModal';
 import employerDashboardService from '../../api/services/employerDashboardService';
 import messagingService from '../../api/services/messagingService';
-import { useAuth } from '../../api/hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
 const EmployerDashboard = () => {
   const { user } = useAuth();

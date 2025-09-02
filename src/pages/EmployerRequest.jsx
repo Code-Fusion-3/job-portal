@@ -8,7 +8,7 @@ import Footer from '../components/layout/Footer';
 import BackButton from '../components/ui/BackButton';
 import EmployerRequestForm from '../components/forms/EmployerRequestForm';
 import { jobSeekerService } from '../api/index.js';
-import { useAuth } from '../api/hooks/useAuth.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';

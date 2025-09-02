@@ -28,7 +28,7 @@ import {
   Phone,
   CreditCard
 } from 'lucide-react';
-import { useAuth } from '../../api/hooks/useAuth.js';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { adminService } from '../../api/services/adminService.js';
 import { useAdminJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import API_CONFIG from '../../api/config/apiConfig.js';
