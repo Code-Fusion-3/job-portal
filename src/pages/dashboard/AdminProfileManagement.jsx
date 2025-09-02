@@ -65,6 +65,61 @@ const AdminProfileManagement = () => {
     loadProfileData();
   }, []);
 
+  // Data normalization function to ensure proper data structure
+  const normalizeProfileData = (data) => {
+    if (!data) {
+      console.warn('⚠️ AdminProfileManagement: No data received, using defaults');
+      return {
+        personal: {},
+        skills: { frontend: [], backend: [], database: [], devops: [], design: [], management: [] },
+        experience: [],
+        education: [],
+        certifications: [],
+        projects: []
+      };
+    }
+    
+    // Ensure projects have proper tech array structure
+    if (data.projects && Array.isArray(data.projects)) {
+      data.projects = data.projects.map(project => ({
+        ...project,
+        tech: Array.isArray(project.tech) ? project.tech : 
+              (typeof project.tech === 'string' ? project.tech.split(',').map(t => t.trim()).filter(t => t) : [])
+      }));
+    } else if (!data.projects) {
+      data.projects = [];
+    }
+    
+    // Ensure experience has proper achievements array structure
+    if (data.experience && Array.isArray(data.experience)) {
+      data.experience = data.experience.map(exp => ({
+        ...exp,
+        achievements: Array.isArray(exp.achievements) ? exp.achievements : []
+      }));
+    } else if (!data.experience) {
+      data.experience = [];
+    }
+    
+    // Ensure skills object has proper structure
+    if (data.skills && typeof data.skills === 'object') {
+      Object.keys(data.skills).forEach(key => {
+        if (!Array.isArray(data.skills[key])) {
+          data.skills[key] = [];
+        }
+      });
+    } else if (!data.skills) {
+      data.skills = { frontend: [], backend: [], database: [], devops: [], design: [], management: [] };
+    }
+    
+    // Ensure other arrays exist
+    if (!data.education) data.education = [];
+    if (!data.certifications) data.certifications = [];
+    if (!data.personal) data.personal = {};
+    
+    console.log('✅ AdminProfileManagement: Data normalized successfully:', data);
+    return data;
+  };
+
   const loadProfileData = async (retryCount = 0) => {
     const maxRetries = 2;
     
@@ -76,7 +131,11 @@ const AdminProfileManagement = () => {
       // Use public profile to avoid authentication issues
       const data = await adminProfileService.getPublicProfile();
       console.log('✅ AdminProfileManagement: Profile data loaded:', data);
-      setProfileData(data);
+      
+      // Normalize data structure to prevent runtime errors
+      const normalizedData = normalizeProfileData(data);
+      console.log('🔍 AdminProfileManagement: Setting normalized profile data:', normalizedData);
+      setProfileData(normalizedData);
     } catch (error) {
       console.error('❌ AdminProfileManagement: Error loading profile data:', error);
       
@@ -187,6 +246,23 @@ const AdminProfileManagement = () => {
   const education = profileData.education || [];
   const certifications = profileData.certifications || [];
   const projects = profileData.projects || [];
+
+  // Additional safety check for projects to ensure tech is always an array
+  const safeProjects = (projects || []).map(project => {
+    try {
+      return {
+        ...project,
+        tech: Array.isArray(project.tech) ? project.tech : 
+              (typeof project.tech === 'string' ? project.tech.split(',').map(t => t.trim()).filter(t => t) : [])
+      };
+    } catch (error) {
+      console.error('❌ AdminProfileManagement: Error processing project:', project, error);
+      return {
+        ...project,
+        tech: []
+      };
+    }
+  });
 
 
   return (
@@ -941,7 +1017,7 @@ const AdminProfileManagement = () => {
               
               {editingSection === 'projects' ? (
                 <div className="space-y-4">
-                  {projects.map((project, index) => (
+                  {safeProjects.map((project, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
                       <input
                         type="text"
@@ -1004,8 +1080,8 @@ const AdminProfileManagement = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {projects.length > 0 ? (
-                    projects.map((project, index) => (
+                  {safeProjects.length > 0 ? (
+                    safeProjects.map((project, index) => (
                       <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
                           <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
@@ -1018,7 +1094,7 @@ const AdminProfileManagement = () => {
                           </span>
                         </div>
                         <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
-                        {project.tech && project.tech.length > 0 && (
+                        {project.tech && Array.isArray(project.tech) && project.tech.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {project.tech.map((tech, techIndex) => (
                               <span 
