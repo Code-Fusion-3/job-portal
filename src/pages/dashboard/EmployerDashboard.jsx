@@ -377,6 +377,16 @@ const EmployerDashboard = () => {
       case 'payment_confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'approved': return 'bg-green-100 text-green-800 border-green-200';
       case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
+      // New workflow statuses
+      case 'first_payment_required': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'first_payment_confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'photo_access_granted': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'full_details_requested': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      case 'second_payment_required': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'second_payment_confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'full_access_granted': return 'bg-green-100 text-green-800 border-green-200';
+      case 'hiring_decision_made': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -395,12 +405,21 @@ const EmployerDashboard = () => {
   // Get progress percentage based on status
   const getProgressPercentage = (request) => {
     switch (request.status) {
-      case 'pending': return 20;
-      case 'reviewing': return 40;
+      case 'pending': return 10;
+      case 'reviewing': return 20;
+      case 'approved': return 30;
+      case 'first_payment_required': return 40;
+      case 'first_payment_confirmed': return 50;
+      case 'photo_access_granted': return 60;
+      case 'full_details_requested': return 65;
+      case 'second_payment_required': return 70;
+      case 'second_payment_confirmed': return 80;
+      case 'full_access_granted': return 90;
+      case 'hiring_decision_made': return 95;
+      case 'completed': return 100;
+      // Legacy statuses for backward compatibility
       case 'payment_required': return 60;
       case 'payment_confirmed': return 80;
-      case 'approved': return 90;
-      case 'completed': return 100;
       default: return 0;
     }
   };
@@ -544,10 +563,20 @@ const EmployerDashboard = () => {
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="reviewing">Reviewing</option>
-                <option value="payment_required">Payment Required</option>
-                <option value="payment_confirmed">Payment Confirmed</option>
                 <option value="approved">Approved</option>
+                <option value="first_payment_required">First Payment Required</option>
+                <option value="first_payment_confirmed">First Payment Confirmed</option>
+                <option value="photo_access_granted">Photo Access Granted</option>
+                <option value="full_details_requested">Full Details Requested</option>
+                <option value="second_payment_required">Second Payment Required</option>
+                <option value="second_payment_confirmed">Second Payment Confirmed</option>
+                <option value="full_access_granted">Full Access Granted</option>
+                <option value="hiring_decision_made">Hiring Decision Made</option>
                 <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                {/* Legacy statuses for backward compatibility */}
+                <option value="payment_required">Payment Required (Legacy)</option>
+                <option value="payment_confirmed">Payment Confirmed (Legacy)</option>
               </select>
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -646,7 +675,7 @@ const EmployerDashboard = () => {
                           >
                             View Details
                           </button>
-                          {request.status === 'payment_required' && request.paymentRequired && (
+                          {(request.status === 'payment_required' || request.status === 'first_payment_required' || request.status === 'second_payment_required') && request.paymentRequired && (
                             <button
                               onClick={() => openPaymentModal(request)}
                               className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs transition-colors flex items-center space-x-1"

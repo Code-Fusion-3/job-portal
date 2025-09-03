@@ -1,5 +1,6 @@
 import { Search, Filter, Bell, User, RefreshCw } from 'lucide-react';
 import Button from '../ui/Button';
+import NotificationCenter from '../notifications/NotificationCenter';
 
 const AdminHeader = ({
   user,
@@ -64,9 +65,7 @@ const AdminHeader = ({
           )}
 
           {/* Notifications */}
-          <Button variant="ghost" size="sm">
-            <Bell className="w-5 h-5" />
-          </Button>
+          <NotificationCenter />
 
           {/* User menu */}
           <div className="relative">

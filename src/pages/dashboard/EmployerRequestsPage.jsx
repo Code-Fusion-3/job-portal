@@ -20,7 +20,9 @@ import {
   X,
   Send,
   DollarSign,
-  Banknote
+  Banknote,
+  Bell,
+  BellRing
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../contexts/AuthContext.jsx';
@@ -28,6 +30,10 @@ import { categoryService } from '../../api/services/categoryService.js';
 import { useCategories } from '../../api/hooks/useCategories.js';
 import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import messagingService from '../../api/services/messagingService.js';
+import EmployerRequestService from '../../api/services/employerRequestService.js';
+import NotificationService from '../../api/services/notificationService.js';
+import WorkflowStatus from '../../components/workflow/WorkflowStatus.jsx';
+import WorkflowProgress from '../../components/workflow/WorkflowProgress.jsx';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import StatsGrid from '../../components/ui/StatsGrid';
@@ -78,10 +84,20 @@ const EmployerRequestsPage = () => {
     status: [
       { value: '', label: 'All Statuses' },
       { value: 'pending', label: 'Pending' },
-      { value: 'in_progress', label: 'In Progress' },
       { value: 'approved', label: 'Approved' },
+      { value: 'first_payment_required', label: 'First Payment Required' },
+      { value: 'first_payment_confirmed', label: 'First Payment Confirmed' },
+      { value: 'photo_access_granted', label: 'Photo Access Granted' },
+      { value: 'full_details_requested', label: 'Full Details Requested' },
+      { value: 'second_payment_required', label: 'Second Payment Required' },
+      { value: 'second_payment_confirmed', label: 'Second Payment Confirmed' },
+      { value: 'full_access_granted', label: 'Full Access Granted' },
+      { value: 'hiring_decision_made', label: 'Hiring Decision Made' },
       { value: 'completed', label: 'Completed' },
-      { value: 'cancelled', label: 'Cancelled' }
+      { value: 'cancelled', label: 'Cancelled' },
+      // Legacy statuses for backward compatibility
+      { value: 'payment_required', label: 'Payment Required (Legacy)' },
+      { value: 'payment_confirmed', label: 'Payment Confirmed (Legacy)' }
     ],
     priority: [
       { value: '', label: 'All Priorities' },
@@ -134,8 +150,22 @@ const EmployerRequestsPage = () => {
 
   // Completion state
   const [completionLoading, setCompletionLoading] = useState(false);
+
+  // New workflow state
+  const [showWorkflowModal, setShowWorkflowModal] = useState(false);
+  const [workflowAction, setWorkflowAction] = useState(null);
+  const [workflowLoading, setWorkflowLoading] = useState(false);
+  const [workflowError, setWorkflowError] = useState('');
+  const [workflowNotes, setWorkflowNotes] = useState('');
   const [completionError, setCompletionError] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
+  const [actionLoadingStates, setActionLoadingStates] = useState({});
+
+  // Notification state
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationLoading, setNotificationLoading] = useState(false);
 
   // Messaging state
   const [showMessagingModal, setShowMessagingModal] = useState(false);
@@ -287,6 +317,94 @@ const EmployerRequestsPage = () => {
     }
   }, [showMessagingModal, selectedRequest]);
 
+  // Notification functions
+  const fetchNotifications = async () => {
+    try {
+      setNotificationLoading(true);
+      const data = await NotificationService.getWorkflowNotifications();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      // Fallback to empty state
+      setNotifications([]);
+      setUnreadCount(0);
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await NotificationService.markAsRead(notificationId);
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await NotificationService.markAllAsRead();
+      
+      // Update local state
+      setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const addWorkflowNotification = (type, message, requestId, status) => {
+    const notification = {
+      id: Date.now(),
+      type,
+      message,
+      requestId,
+      status,
+      timestamp: new Date(),
+      isRead: false
+    };
+    
+    setNotifications(prev => [notification, ...prev]);
+    setUnreadCount(prev => prev + 1);
+    
+    // Show toast notification
+    toast.success(message, {
+      duration: 5000,
+      position: 'top-right'
+    });
+  };
+
+  // Load notifications on component mount
+  useEffect(() => {
+    fetchNotifications();
+    
+    // Set up polling for new notifications
+    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showNotifications && !event.target.closest('.notification-dropdown')) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNotifications]);
+
   // Payment functions
   const fetchPaymentMethods = async () => {
     try {
@@ -379,66 +497,33 @@ const EmployerRequestsPage = () => {
     console.log('Request latestPayment:', request.latestPayment);
     console.log('Request _backendData:', request._backendData);
     
-    // Extract payment data from _backendData if available
-    let enrichedRequest = { ...request };
-    
-    // Check if we have actual Payment model data in latestPayment or need to construct from _backendData
-    if (request.latestPayment) {
-      // We have actual Payment model data - use it directly
-      console.log('Using existing latestPayment from Payment model:', request.latestPayment);
-      enrichedRequest.latestPayment = {
-        ...request.latestPayment,
-        // Map Payment model fields to our expected structure
-        payerName: request.latestPayment.confirmationName || 'Not specified',
-        payerPhone: request.latestPayment.confirmationPhone || 'Not specified',
-        transferDate: request.latestPayment.confirmationDate || request.latestPayment.createdAt,
-        additionalNotes: request.latestPayment.adminNotes || request.latestPayment.description || 'No additional notes',
-        transactionReference: request.latestPayment.paymentReference || `PAY-${request.latestPayment.id}`
-      };
-    } else if (request._backendData && !request.latestPayment) {
-      // Fallback: Create latestPayment object from _backendData
-      enrichedRequest.latestPayment = {
-        id: request._backendData.id, // Use request ID as payment ID for now
-        amount: request._backendData.paymentAmount || request.paymentAmount,
-        currency: request._backendData.paymentCurrency || request.paymentCurrency || 'RWF',
-        paymentType: request._backendData.paymentDescription?.includes('photo') ? 'photo_access' : 'full_details',
-        status: 'confirmed', // Since status is payment_confirmed
-        confirmedAt: request._backendData.updatedAt || request.date,
-        createdAt: request._backendData.createdAt || request.date,
-        paymentMethod: 'Mobile Money', // Default for now
-        transactionReference: `REQ-${request.id}-${Date.now()}`,
-        // Payment confirmation details from employer (fallback)
-        payerName: request._backendData?.employerAccount?.user?.name || request.employerName || 'Not specified',
-        payerPhone: request._backendData?.employerAccount?.phoneNumber || request.employerContact?.phone || 'Not specified',
-        transferDate: request._backendData.updatedAt || request.date,
-        additionalNotes: request._backendData.paymentDescription || 'No additional notes'
-      };
-      console.log('Created latestPayment from _backendData:', enrichedRequest.latestPayment);
-    }
-    
-    // Try to fetch full payment details if still not available
-    if (!enrichedRequest.latestPayment || !enrichedRequest.latestPayment.amount) {
-      try {
-        const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${request.id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
-          }
-        });
-        
-        if (response.ok) {
-          const fullRequest = await response.json();
-          console.log('Fetched full request data:', fullRequest);
-          setSelectedRequest(fullRequest);
-        } else {
-          console.error('Failed to fetch full request data');
-          setSelectedRequest(enrichedRequest);
+    try {
+      // Always fetch fresh data from the backend to ensure we have the latest payment information
+      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${request.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         }
-      } catch (error) {
-        console.error('Error fetching request details:', error);
-        setSelectedRequest(enrichedRequest);
+      });
+      
+      if (response.ok) {
+        const backendRequest = await response.json();
+        console.log('Fetched full request data from backend:', backendRequest);
+        
+        // Transform the backend data to frontend format
+        const transformedRequest = transformRequestData(backendRequest);
+        console.log('Transformed request data:', transformedRequest);
+        
+        // Set the transformed request as selected
+        setSelectedRequest(transformedRequest);
+      } else {
+        console.error('Failed to fetch full request data');
+        // Fallback to the original request data
+        setSelectedRequest(request);
       }
-    } else {
-      setSelectedRequest(enrichedRequest);
+    } catch (error) {
+      console.error('Error fetching request details:', error);
+      // Fallback to the original request data
+      setSelectedRequest(request);
     }
     
     setShowPaymentApprovalModal(true);
@@ -461,8 +546,8 @@ const EmployerRequestsPage = () => {
   const handlePaymentApproval = async (e) => {
     e.preventDefault();
     
-    if (!selectedRequest?.latestPayment?.id) {
-      setPaymentApprovalError('No payment found to approve');
+    if (!selectedRequest) {
+      setPaymentApprovalError('No request selected');
       return;
     }
 
@@ -470,33 +555,41 @@ const EmployerRequestsPage = () => {
       setPaymentApprovalLoading(true);
       setPaymentApprovalError('');
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/payment-confirmations/review/${selectedRequest.latestPayment.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
-        },
-        body: JSON.stringify({
-          paymentId: selectedRequest.latestPayment.id,
-          action: paymentApprovalData.action,
-          notes: paymentApprovalData.notes
-        })
-      });
+      let result;
+      const requestId = selectedRequest.id;
+      
+      // Determine which approval action to take based on the current status
+      if (selectedRequest.status === 'first_payment_confirmed' || selectedRequest.status === 'payment_confirmed') {
+        // Approve first payment
+        if (paymentApprovalData.action === 'approve') {
+          result = await EmployerRequestService.approveFirstPayment(requestId, paymentApprovalData.notes);
+        } else {
+          result = await EmployerRequestService.rejectFirstPayment(requestId, paymentApprovalData.notes);
+        }
+      } else if (selectedRequest.status === 'second_payment_confirmed') {
+        // Approve second payment
+        if (paymentApprovalData.action === 'approve') {
+          result = await EmployerRequestService.approveSecondPayment(requestId, paymentApprovalData.notes);
+        } else {
+          result = await EmployerRequestService.rejectSecondPayment(requestId, paymentApprovalData.notes);
+        }
+      } else {
+        setPaymentApprovalError('Invalid status for payment approval');
+        return;
+      }
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result) {
         const actionText = paymentApprovalData.action === 'approve' ? 'approved' : 'rejected';
         toast.success(`Payment ${actionText} successfully!`);
         closePaymentApprovalModal();
         // Refresh the requests to show updated status
         handleRefresh();
       } else {
-        setPaymentApprovalError(data.error || 'Failed to process payment approval');
+        setPaymentApprovalError('Failed to process payment approval');
       }
     } catch (error) {
       console.error('Error processing payment approval:', error);
-      setPaymentApprovalError('Network error. Please try again.');
+      setPaymentApprovalError(error.message || 'Network error. Please try again.');
     } finally {
       setPaymentApprovalLoading(false);
     }
@@ -544,8 +637,8 @@ const EmployerRequestsPage = () => {
 
       return {
         id: backendRequest.id,
-        employerName: backendRequest.name || 'Unknown',
-        companyName: backendRequest.companyName || 'Private',
+        employerName: backendRequest.employerAccount?.user?.name || backendRequest.name || 'Unknown',
+        companyName: backendRequest.employerAccount?.companyName || backendRequest.companyName || 'Private',
         candidateName: backendRequest.requestedCandidate 
           ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
           : 'Not specified',
@@ -555,14 +648,29 @@ const EmployerRequestsPage = () => {
         date: backendRequest.createdAt,
         monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
         message: backendRequest.message || '',
-      employerContact: {
-          email: backendRequest.email || '',
-          phone: backendRequest.phoneNumber || ''
-      },
-      adminNotes: '',
+        employerContact: {
+          email: backendRequest.employerAccount?.user?.email || backendRequest.email || '',
+          phone: backendRequest.employerAccount?.phoneNumber || backendRequest.phoneNumber || ''
+        },
+        adminNotes: '',
         lastContactDate: backendRequest.updatedAt,
         isCompleted: backendRequest.status === 'completed',
         category: backendRequest.requestedCandidate?.profile?.jobCategory?.name_en || 'General',
+        // Payment information
+        latestPayment: backendRequest.payments && backendRequest.payments.length > 0 ? {
+          id: backendRequest.payments[0].id,
+          amount: backendRequest.payments[0].amount,
+          currency: backendRequest.payments[0].currency || 'RWF',
+          paymentType: backendRequest.payments[0].paymentType,
+          status: backendRequest.payments[0].status,
+          confirmationName: backendRequest.payments[0].confirmationName,
+          confirmationPhone: backendRequest.payments[0].confirmationPhone,
+          confirmationDate: backendRequest.payments[0].confirmationDate,
+          paymentReference: backendRequest.payments[0].paymentReference,
+          adminNotes: backendRequest.payments[0].adminNotes,
+          createdAt: backendRequest.payments[0].createdAt,
+          updatedAt: backendRequest.payments[0].updatedAt
+        } : null,
         // Additional candidate fields for detailed view
         candidateExperience: backendRequest.requestedCandidate?.profile?.experience || 'Not specified',
         candidateExperienceLevel: backendRequest.requestedCandidate?.profile?.experienceLevel || 'Not specified',
@@ -762,17 +870,23 @@ const EmployerRequestsPage = () => {
         <div className="flex items-center gap-1">
           {getAllActionButtons(item).slice(0, 4).map((action, index) => {
             const IconComponent = action.icon;
+            const isLoading = actionLoadingStates[`${action.key}-${item.id}`];
             return (
               <button
                 key={index}
                 onClick={() => handleRowAction(action.key, item)}
-                className={`relative group p-2 rounded-lg transition-all duration-200 hover:scale-110 ${action.className} border border-gray-200 hover:border-current`}
+                disabled={isLoading}
+                className={`relative group p-2 rounded-lg transition-all duration-200 hover:scale-110 ${action.className} border border-gray-200 hover:border-current ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title={action.title}
               >
-                <IconComponent className="w-4 h-4" />
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                ) : (
+                  <IconComponent className="w-4 h-4" />
+                )}
                 {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                  {action.title}
+                  {isLoading ? 'Processing...' : action.title}
                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
                 </div>
               </button>
@@ -974,17 +1088,19 @@ const EmployerRequestsPage = () => {
       icon: Clock,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      description: 'Awaiting admin review'
+      description: 'Awaiting admin approval'
     },
     {
-      title: 'In Progress',
-      value: filteredData.filter(r => r.status === 'in_progress').length.toString(),
+      title: 'Payment Pending',
+      value: filteredData.filter(r => 
+        ['first_payment_required', 'second_payment_required', 'first_payment_confirmed', 'second_payment_confirmed', 'payment_required', 'payment_confirmed'].includes(r.status)
+      ).length.toString(),
       change: '+1',
       changeType: 'increase',
-      icon: AlertCircle,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Under negotiation'
+      icon: DollarSign,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      description: 'Payment processing'
     },
     {
       title: 'Completed',
@@ -995,6 +1111,16 @@ const EmployerRequestsPage = () => {
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       description: 'Successfully closed'
+    },
+    {
+      title: 'Notifications',
+      value: unreadCount.toString(),
+      change: unreadCount > 0 ? `${unreadCount} unread` : 'All caught up',
+      changeType: unreadCount > 0 ? 'increase' : 'neutral',
+      icon: unreadCount > 0 ? BellRing : Bell,
+      color: unreadCount > 0 ? 'text-orange-600' : 'text-gray-600',
+      bgColor: unreadCount > 0 ? 'bg-orange-50' : 'bg-gray-50',
+      description: 'Workflow updates'
     }
   ], [filteredData, safeDataForRendering, activeFiltersCount]);
 
@@ -1044,6 +1170,63 @@ const EmployerRequestsPage = () => {
         setCurrentAction('select');
         setShowActionModal(true);
         break;
+        
+      // New workflow actions
+      case 'approveRequest':
+        handleWorkflowAction('approveRequest', request);
+        break;
+      case 'rejectRequest':
+        handleWorkflowAction('rejectRequest', request);
+        break;
+      case 'requestFirstPayment':
+        handleWorkflowAction('requestFirstPayment', request);
+        break;
+      case 'viewPaymentDetails':
+        handleWorkflowAction('viewPaymentDetails', request);
+        break;
+
+      case 'approveFirstPayment':
+        handleWorkflowAction('approveFirstPayment', request);
+        break;
+      case 'rejectFirstPayment':
+        handleWorkflowAction('rejectFirstPayment', request);
+        break;
+      case 'requestSecondPayment':
+        handleWorkflowAction('requestSecondPayment', request);
+        break;
+      case 'viewPhotoAccess':
+        handleWorkflowAction('viewPhotoAccess', request);
+        break;
+
+      case 'approveFullDetailsRequest':
+        handleWorkflowAction('approveFullDetailsRequest', request);
+        break;
+      case 'rejectFullDetailsRequest':
+        handleWorkflowAction('rejectFullDetailsRequest', request);
+        break;
+      case 'approveSecondPayment':
+        handleWorkflowAction('approveSecondPayment', request);
+        break;
+      case 'rejectSecondPayment':
+        handleWorkflowAction('rejectSecondPayment', request);
+        break;
+      case 'viewFullDetails':
+        handleWorkflowAction('viewFullDetails', request);
+        break;
+      case 'waitForHiringDecision':
+        handleWorkflowAction('waitForHiringDecision', request);
+        break;
+      case 'reviewHiringDecision':
+        handleWorkflowAction('reviewHiringDecision', request);
+        break;
+      case 'updateCandidateAvailability':
+        handleWorkflowAction('updateCandidateAvailability', request);
+        break;
+      case 'viewCompletedRequest':
+        handleWorkflowAction('viewCompletedRequest', request);
+        break;
+        
+      // Legacy actions (for backward compatibility)
       case 'start':
         handleStatusUpdate('in_progress', 'Starting to process this request');
         resetModalStates(); // Use centralized cleanup
@@ -1208,6 +1391,416 @@ const EmployerRequestsPage = () => {
     }
   };
 
+  // New workflow functions
+  const handleRequestFullDetails = async () => {
+    if (!selectedRequest) return;
+    
+    try {
+      setWorkflowLoading(true);
+      setWorkflowError('');
+      
+      const result = await EmployerRequestService.requestFullDetails(
+        selectedRequest.id, 
+        workflowNotes
+      );
+      
+      if (result.message) {
+        toast.success(result.message);
+        setShowWorkflowModal(false);
+        setWorkflowNotes('');
+        handleRefresh();
+      }
+    } catch (error) {
+      console.error('Error requesting full details:', error);
+      setWorkflowError(error.message || 'Failed to request full details');
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const handleMarkHiringDecision = async (decision) => {
+    if (!selectedRequest) return;
+    
+    try {
+      setWorkflowLoading(true);
+      setWorkflowError('');
+      
+      const result = await EmployerRequestService.markHiringDecision(
+        selectedRequest.id,
+        decision,
+        workflowNotes
+      );
+      
+      if (result.message) {
+        toast.success(result.message);
+        setShowWorkflowModal(false);
+        setWorkflowNotes('');
+        handleRefresh();
+      }
+    } catch (error) {
+      console.error('Error marking hiring decision:', error);
+      setWorkflowError(error.message || 'Failed to mark hiring decision');
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const handleGetPhotoAccess = async () => {
+    if (!selectedRequest) return;
+    
+    try {
+      setWorkflowLoading(true);
+      setWorkflowError('');
+      
+      const data = await EmployerRequestService.getPhotoAccess(selectedRequest.id);
+      
+      // Show photo access data in a modal or update the candidate details
+      setSelectedCandidate(data);
+      setCandidateDetailsType('photo');
+      setShowCandidateDetails(true);
+      setShowWorkflowModal(false);
+    } catch (error) {
+      console.error('Error getting photo access:', error);
+      setWorkflowError(error.message || 'Failed to get photo access');
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const handleGetFullDetails = async () => {
+    if (!selectedRequest) return;
+    
+    try {
+      setWorkflowLoading(true);
+      setWorkflowError('');
+      
+      const data = await EmployerRequestService.getFullDetails(selectedRequest.id);
+      
+      // Show full details data in a modal or update the candidate details
+      setSelectedCandidate(data);
+      setCandidateDetailsType('full');
+      setShowCandidateDetails(true);
+      setShowWorkflowModal(false);
+    } catch (error) {
+      console.error('Error getting full details:', error);
+      setWorkflowError(error.message || 'Failed to get full details');
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const openWorkflowAction = (action, request) => {
+    setWorkflowAction(action);
+    setSelectedRequest(request);
+    setWorkflowError('');
+    setWorkflowNotes('');
+    setShowWorkflowModal(true);
+  };
+
+  // Get workflow action title
+  const getWorkflowActionTitle = (action) => {
+    const titles = {
+      'approveRequest': 'Approve Request',
+      'rejectRequest': 'Reject Request',
+      'requestFirstPayment': 'Request First Payment',
+      'viewPaymentDetails': 'View Payment Details',
+      'approveFirstPayment': 'Approve First Payment',
+      'rejectFirstPayment': 'Reject First Payment',
+      'requestSecondPayment': 'Request Second Payment',
+      'viewPhotoAccess': 'View Photo Access',
+      'approveFullDetailsRequest': 'Approve Full Details Request',
+      'rejectFullDetailsRequest': 'Reject Full Details Request',
+      'approveSecondPayment': 'Approve Second Payment',
+      'rejectSecondPayment': 'Reject Second Payment',
+      'viewFullDetails': 'View Full Details',
+      'waitForHiringDecision': 'Wait for Hiring Decision',
+      'reviewHiringDecision': 'Review Hiring Decision',
+      'updateCandidateAvailability': 'Update Candidate Availability',
+      'viewCompletedRequest': 'View Completed Request',
+      'request_full_details': 'Request Full Details',
+      'mark_hired': 'Mark as Hired',
+      'mark_not_hired': 'Mark as Not Hired',
+      'get_photo_access': 'View Photo Access',
+      'get_full_details': 'View Full Details'
+    };
+    return titles[action] || 'Workflow Action';
+  };
+
+  // Get workflow action content
+  const getWorkflowActionContent = (action) => {
+    const needsNotes = [
+      'approveRequest', 'rejectRequest', 'requestFirstPayment', 'approveFirstPayment', 
+      'rejectFirstPayment', 'requestSecondPayment', 'approveFullDetailsRequest', 
+      'rejectFullDetailsRequest', 'approveSecondPayment', 'rejectSecondPayment',
+      'updateCandidateAvailability', 'request_full_details', 'mark_hired', 'mark_not_hired'
+    ];
+
+    if (needsNotes.includes(action)) {
+      return (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {getWorkflowActionNotesLabel(action)}
+          </label>
+          <textarea
+            value={workflowNotes}
+            onChange={(e) => setWorkflowNotes(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder={getWorkflowActionPlaceholder(action)}
+          />
+        </div>
+      );
+    }
+
+    // View actions - show information
+    if (action.startsWith('view') || action === 'reviewHiringDecision' || action === 'waitForHiringDecision') {
+      return (
+        <div className="bg-blue-50 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-2">Information</h4>
+          <p className="text-blue-800 text-sm">
+            {getWorkflowActionInfo(action)}
+          </p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Get workflow action notes label
+  const getWorkflowActionNotesLabel = (action) => {
+    const labels = {
+      'approveRequest': 'Approval Notes (Optional)',
+      'rejectRequest': 'Rejection Reason (Required)',
+      'requestFirstPayment': 'Payment Request Notes (Optional)',
+      'approveFirstPayment': 'Approval Notes (Optional)',
+      'rejectFirstPayment': 'Rejection Reason (Required)',
+      'requestSecondPayment': 'Payment Request Notes (Optional)',
+      'approveFullDetailsRequest': 'Approval Notes (Optional)',
+      'rejectFullDetailsRequest': 'Rejection Reason (Required)',
+      'approveSecondPayment': 'Approval Notes (Optional)',
+      'rejectSecondPayment': 'Rejection Reason (Required)',
+      'updateCandidateAvailability': 'Update Notes (Optional)',
+      'request_full_details': 'Reason for requesting full details (optional)',
+      'mark_hired': 'Notes about hiring decision (optional)',
+      'mark_not_hired': 'Notes about not hiring (optional)'
+    };
+    return labels[action] || 'Notes (Optional)';
+  };
+
+  // Get workflow action placeholder
+  const getWorkflowActionPlaceholder = (action) => {
+    const placeholders = {
+      'approveRequest': 'Add any notes about approving this request...',
+      'rejectRequest': 'Explain why this request is being rejected...',
+      'requestFirstPayment': 'Add any notes about the payment request...',
+      'approveFirstPayment': 'Add any notes about approving the first payment...',
+      'rejectFirstPayment': 'Explain why the first payment is being rejected...',
+      'requestSecondPayment': 'Add any notes about the second payment request...',
+      'approveFullDetailsRequest': 'Add any notes about approving full details access...',
+      'rejectFullDetailsRequest': 'Explain why full details access is being rejected...',
+      'approveSecondPayment': 'Add any notes about approving the second payment...',
+      'rejectSecondPayment': 'Explain why the second payment is being rejected...',
+      'updateCandidateAvailability': 'Add any notes about updating candidate availability...',
+      'request_full_details': 'Explain why you need full details...',
+      'mark_hired': 'Add any notes about the hiring decision...',
+      'mark_not_hired': 'Add any notes about why the candidate was not hired...'
+    };
+    return placeholders[action] || 'Add notes...';
+  };
+
+  // Get workflow action info
+  const getWorkflowActionInfo = (action) => {
+    const info = {
+      'viewPaymentDetails': 'View payment confirmation details and approve or reject the payment.',
+      'viewPhotoAccess': 'View the photo access that has been granted to the employer.',
+      'viewFullDetails': 'View the full details access that has been granted to the employer.',
+      'reviewHiringDecision': 'Review the hiring decision made by the employer and update candidate availability.',
+      'waitForHiringDecision': 'The employer has full access and should make a hiring decision soon.',
+      'viewCompletedRequest': 'This request has been completed successfully.'
+    };
+    return info[action] || 'No additional information available.';
+  };
+
+  // Get loading text for different actions
+  const getLoadingText = (action) => {
+    const loadingTexts = {
+      'approveRequest': 'Approving Request...',
+      'rejectRequest': 'Rejecting Request...',
+      'requestFirstPayment': 'Requesting Payment...',
+      'approveFirstPayment': 'Approving Payment...',
+      'rejectFirstPayment': 'Rejecting Payment...',
+      'requestSecondPayment': 'Requesting Payment...',
+      'approveFullDetailsRequest': 'Approving Full Details...',
+      'rejectFullDetailsRequest': 'Rejecting Full Details...',
+      'approveSecondPayment': 'Approving Payment...',
+      'rejectSecondPayment': 'Rejecting Payment...',
+      'updateCandidateAvailability': 'Updating Status...',
+      'request_full_details': 'Requesting Details...',
+      'mark_hired': 'Marking as Hired...',
+      'mark_not_hired': 'Marking as Not Hired...',
+      'get_photo_access': 'Loading Photo Access...',
+      'get_full_details': 'Loading Full Details...'
+    };
+    return loadingTexts[action] || 'Processing...';
+  };
+
+  // Get workflow action buttons
+  const getWorkflowActionButtons = (action) => {
+    const buttonConfigs = {
+      'approveRequest': { text: 'Approve Request', className: 'bg-green-600 hover:bg-green-700', onClick: () => handleWorkflowAction('approveRequest', selectedRequest) },
+      'rejectRequest': { text: 'Reject Request', className: 'bg-red-600 hover:bg-red-700', onClick: () => handleWorkflowAction('rejectRequest', selectedRequest) },
+      'requestFirstPayment': { text: 'Request First Payment', className: 'bg-yellow-600 hover:bg-yellow-700', onClick: () => handleWorkflowAction('requestFirstPayment', selectedRequest) },
+      'approveFirstPayment': { text: 'Approve First Payment', className: 'bg-green-600 hover:bg-green-700', onClick: () => handleWorkflowAction('approveFirstPayment', selectedRequest) },
+      'rejectFirstPayment': { text: 'Reject First Payment', className: 'bg-red-600 hover:bg-red-700', onClick: () => handleWorkflowAction('rejectFirstPayment', selectedRequest) },
+      'requestSecondPayment': { text: 'Request Second Payment', className: 'bg-yellow-600 hover:bg-yellow-700', onClick: () => handleWorkflowAction('requestSecondPayment', selectedRequest) },
+      'approveFullDetailsRequest': { text: 'Approve Full Details', className: 'bg-green-600 hover:bg-green-700', onClick: () => handleWorkflowAction('approveFullDetailsRequest', selectedRequest) },
+      'rejectFullDetailsRequest': { text: 'Reject Full Details', className: 'bg-red-600 hover:bg-red-700', onClick: () => handleWorkflowAction('rejectFullDetailsRequest', selectedRequest) },
+      'approveSecondPayment': { text: 'Approve Second Payment', className: 'bg-green-600 hover:bg-green-700', onClick: () => handleWorkflowAction('approveSecondPayment', selectedRequest) },
+      'rejectSecondPayment': { text: 'Reject Second Payment', className: 'bg-red-600 hover:bg-red-700', onClick: () => handleWorkflowAction('rejectSecondPayment', selectedRequest) },
+      'updateCandidateAvailability': { text: 'Update Candidate Status', className: 'bg-purple-600 hover:bg-purple-700', onClick: () => handleWorkflowAction('updateCandidateAvailability', selectedRequest) },
+      'request_full_details': { text: 'Request Full Details', className: 'bg-purple-600 hover:bg-purple-700', onClick: handleRequestFullDetails },
+      'mark_hired': { text: 'Mark as Hired', className: 'bg-green-600 hover:bg-green-700', onClick: () => handleMarkHiringDecision('hired') },
+      'mark_not_hired': { text: 'Mark as Not Hired', className: 'bg-red-600 hover:bg-red-700', onClick: () => handleMarkHiringDecision('not_hired') },
+      'get_photo_access': { text: 'View Photo Access', className: 'bg-blue-600 hover:bg-blue-700', onClick: handleGetPhotoAccess },
+      'get_full_details': { text: 'View Full Details', className: 'bg-indigo-600 hover:bg-indigo-700', onClick: handleGetFullDetails }
+    };
+
+    const config = buttonConfigs[action];
+    if (!config) return null;
+
+    return (
+      <Button
+        onClick={config.onClick}
+        disabled={workflowLoading}
+        className={config.className}
+      >
+        {workflowLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            {getLoadingText(action)}
+          </>
+        ) : (
+          config.text
+        )}
+      </Button>
+    );
+  };
+
+  // New workflow action handler
+  const handleWorkflowAction = async (action, request) => {
+    setSelectedRequest(request);
+    setWorkflowAction(action);
+    setWorkflowError('');
+    setWorkflowNotes('');
+    
+    // Set loading state for this specific action
+    const actionKey = `${action}-${request.id}`;
+    setActionLoadingStates(prev => ({ ...prev, [actionKey]: true }));
+    
+    try {
+      setWorkflowLoading(true);
+      
+      let result;
+      const requestId = request.id;
+      
+      switch (action) {
+        case 'approveRequest':
+          result = await EmployerRequestService.approveRequest(requestId, workflowNotes);
+          break;
+        case 'rejectRequest':
+          result = await EmployerRequestService.rejectRequest(requestId, workflowNotes);
+          break;
+        case 'requestFirstPayment':
+          result = await EmployerRequestService.requestFirstPayment(requestId, workflowNotes);
+          break;
+        case 'viewPaymentDetails':
+          // This will open a modal to view payment details
+          setShowWorkflowModal(true);
+          return;
+
+        case 'approveFirstPayment':
+          console.log('Approving first payment for request:', requestId, 'with notes:', workflowNotes);
+          result = await EmployerRequestService.approveFirstPayment(requestId, workflowNotes);
+          console.log('First payment approval result:', result);
+          break;
+        case 'rejectFirstPayment':
+          result = await EmployerRequestService.rejectFirstPayment(requestId, workflowNotes);
+          break;
+        case 'requestSecondPayment':
+          result = await EmployerRequestService.requestSecondPayment(requestId, workflowNotes);
+          break;
+        case 'viewPhotoAccess':
+          // This will open a modal to view photo access
+          setShowWorkflowModal(true);
+          return;
+
+        case 'approveFullDetailsRequest':
+          result = await EmployerRequestService.approveFullDetailsRequest(requestId, workflowNotes);
+          break;
+        case 'rejectFullDetailsRequest':
+          result = await EmployerRequestService.rejectFullDetailsRequest(requestId, workflowNotes);
+          break;
+        case 'approveSecondPayment':
+          result = await EmployerRequestService.approveSecondPayment(requestId, workflowNotes);
+          break;
+        case 'rejectSecondPayment':
+          result = await EmployerRequestService.rejectSecondPayment(requestId, workflowNotes);
+          break;
+        case 'viewFullDetails':
+          // This will open a modal to view full details
+          setShowWorkflowModal(true);
+          return;
+        case 'waitForHiringDecision':
+          // This is informational - no action needed
+          toast.info('Waiting for employer to make hiring decision...');
+          return;
+        case 'reviewHiringDecision':
+          // This will open a modal to review hiring decision
+          setShowWorkflowModal(true);
+          return;
+        case 'updateCandidateAvailability':
+          result = await EmployerRequestService.updateCandidateAvailability(requestId, workflowNotes);
+          break;
+        case 'viewCompletedRequest':
+          // This will open a modal to view completed request
+          setShowWorkflowModal(true);
+          return;
+        default:
+          throw new Error(`Unknown workflow action: ${action}`);
+      }
+      
+      if (result) {
+        const successMessage = result.message || `${action.replace(/([A-Z])/g, ' $1').toLowerCase()} completed successfully`;
+        toast.success(successMessage);
+        
+        // Add workflow notification
+        addWorkflowNotification(
+          action,
+          successMessage,
+          requestId,
+          result.newStatus || 'updated'
+        );
+        
+        handleRefresh();
+      } else {
+        // Fallback success message if no result
+        const successMessage = `${action.replace(/([A-Z])/g, ' $1').toLowerCase()} completed successfully`;
+        toast.success(successMessage);
+        handleRefresh();
+      }
+      
+    } catch (error) {
+      console.error(`Error in workflow action ${action}:`, error);
+      setWorkflowError(error.message || `Failed to ${action.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+      toast.error(`Failed to ${action.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+    } finally {
+      setWorkflowLoading(false);
+      // Clear loading state for this specific action
+      setActionLoadingStates(prev => ({ ...prev, [actionKey]: false }));
+    }
+  };
+
   const getActionButtons = (request) => {
     return [
       {
@@ -1219,7 +1812,7 @@ const EmployerRequestsPage = () => {
     ];
   };
 
-  // Get all action buttons for the modal
+  // Get all action buttons for the modal based on new workflow
   const getAllActionButtons = (request) => {
     const baseActions = [
       // View Details - Always available
@@ -1227,56 +1820,107 @@ const EmployerRequestsPage = () => {
       
       // Messaging - Always available
       { key: 'message', title: 'Message', icon: MessageSquare, className: 'text-indigo-600 hover:bg-indigo-50', group: 'contact' },
-      
-      // Payment - Available for pending requests
-      { key: 'payment', title: 'Request Payment', icon: Banknote, className: 'text-green-600 hover:bg-green-50', group: 'payment' },
     ];
 
-    // Payment Approval - Only show for payment_confirmed status
-    if (request.status === 'payment_confirmed' || request._backendData?.status === 'payment_confirmed') {
-      baseActions.push(
-        { key: 'paymentApproval', title: 'Approve Payment', icon: CheckCircle, className: 'text-blue-600 hover:bg-blue-50', group: 'payment' }
-      );
-    }
-
-
-    // Status-based actions
+    // Status-based actions for new workflow
     const statusActions = [];
     
     switch (request.status) {
       case 'pending':
         statusActions.push(
-          { key: 'start', title: 'Start Processing', icon: Play, className: 'text-blue-600 hover:bg-blue-50', group: 'status' }
+          { key: 'approveRequest', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' },
+          { key: 'rejectRequest', title: 'Reject Request', icon: XCircle, className: 'text-red-600 hover:bg-red-50', group: 'workflow' }
         );
         break;
         
-      case 'in_progress':
+      case 'approved':
         statusActions.push(
-          { key: 'approve', title: 'Approve Request', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+          { key: 'requestFirstPayment', title: 'Request First Payment', icon: DollarSign, className: 'text-yellow-600 hover:bg-yellow-50', group: 'workflow' }
         );
         break;
         
-          case 'approved':
-      statusActions.push(
-        { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
-        // Candidate selection removed - backend rejects it for approved requests
-      );
-      break;
+      case 'first_payment_required':
+        statusActions.push(
+          { key: 'viewPaymentDetails', title: 'View Payment Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'first_payment_confirmed':
+        statusActions.push(
+          { key: 'paymentApproval', title: 'Approve First Payment', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'photo_access_granted':
+        statusActions.push(
+          { key: 'requestSecondPayment', title: 'Request Second Payment', icon: DollarSign, className: 'text-yellow-600 hover:bg-yellow-50', group: 'workflow' },
+          { key: 'viewPhotoAccess', title: 'View Photo Access', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'full_details_requested':
+        statusActions.push(
+          { key: 'approveFullDetailsRequest', title: 'Approve Full Details', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' },
+          { key: 'rejectFullDetailsRequest', title: 'Reject Full Details', icon: XCircle, className: 'text-red-600 hover:bg-red-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'second_payment_required':
+        statusActions.push(
+          { key: 'viewPaymentDetails', title: 'View Payment Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'second_payment_confirmed':
+        statusActions.push(
+          { key: 'paymentApproval', title: 'Approve Second Payment', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'payment_required':
+        // Legacy status - treat as first payment required
+        statusActions.push(
+          { key: 'viewPaymentDetails', title: 'View Payment Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'payment_confirmed':
+        // Legacy status - treat as first payment confirmed
+        statusActions.push(
+          { key: 'paymentApproval', title: 'Approve Payment', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'full_access_granted':
+        statusActions.push(
+          { key: 'viewFullDetails', title: 'View Full Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' },
+          { key: 'waitForHiringDecision', title: 'Wait for Hiring Decision', icon: Clock, className: 'text-orange-600 hover:bg-orange-50', group: 'workflow' }
+        );
+        break;
+        
+      case 'hiring_decision_made':
+        statusActions.push(
+          { key: 'reviewHiringDecision', title: 'Review Hiring Decision', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' },
+          { key: 'updateCandidateAvailability', title: 'Update Candidate Status', icon: User, className: 'text-purple-600 hover:bg-purple-50', group: 'workflow' }
+        );
+        break;
         
       case 'completed':
-        // No additional actions for completed requests
+        statusActions.push(
+          { key: 'viewCompletedRequest', title: 'View Completed Request', icon: Eye, className: 'text-gray-600 hover:bg-gray-50', group: 'workflow' }
+        );
         break;
         
       case 'cancelled':
         statusActions.push(
-          { key: 'reactivate', title: 'Reactivate', icon: RefreshCw, className: 'text-blue-600 hover:bg-blue-50', group: 'status' }
+          { key: 'reactivate', title: 'Reactivate', icon: RefreshCw, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
         break;
         
       default:
-        // For any other status, show all actions
+        // For any other status, show basic actions
         statusActions.push(
-          { key: 'complete', title: 'Mark Complete', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'status' }
+          { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
     }
 
@@ -1362,6 +2006,94 @@ const EmployerRequestsPage = () => {
               <span className="ml-2 text-xl font-bold text-gray-900">Employer Requests</span>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Notification Bell */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Workflow Notifications"
+                >
+                  {unreadCount > 0 ? (
+                    <BellRing className="h-5 w-5 text-orange-500" />
+                  ) : (
+                    <Bell className="h-5 w-5" />
+                  )}
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Dropdown */}
+                {showNotifications && (
+                  <div className="notification-dropdown absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                    <div className="p-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Workflow Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllNotificationsAsRead}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="max-h-96 overflow-y-auto">
+                      {notificationLoading ? (
+                        <div className="p-4 text-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                          <p className="text-sm text-gray-600 mt-2">Loading notifications...</p>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-4 text-center text-gray-500">
+                          <Bell className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p className="text-sm">No notifications yet</p>
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                              !notification.isRead ? 'bg-blue-50' : ''
+                            }`}
+                            onClick={() => {
+                              if (!notification.isRead) {
+                                markNotificationAsRead(notification.id);
+                              }
+                              // Optionally navigate to the request
+                              if (notification.requestId) {
+                                // You could add navigation logic here
+                              }
+                            }}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
+                                !notification.isRead ? 'bg-blue-500' : 'bg-gray-300'
+                              }`} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-900">{notification.message}</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {new Date(notification.timestamp).toLocaleString()}
+                                </p>
+                                {notification.status && (
+                                  <span className="inline-block mt-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                                    Status: {notification.status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -2563,15 +3295,15 @@ const EmployerRequestsPage = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="bg-white rounded-lg p-3 border border-green-100">
                     <span className="text-green-600 font-medium block mb-1">Payer Name:</span>
-                    <span className="text-gray-900">{selectedRequest.latestPayment?.payerName || selectedRequest.employerName || 'Not specified'}</span>
+                    <span className="text-gray-900">{selectedRequest.latestPayment?.confirmationName || 'Not specified'}</span>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-green-100">
                     <span className="text-green-600 font-medium block mb-1">Phone Number:</span>
-                    <span className="text-gray-900">{selectedRequest.latestPayment?.payerPhone || selectedRequest.employerContact?.phone || 'Not specified'}</span>
+                    <span className="text-gray-900">{selectedRequest.latestPayment?.confirmationPhone || 'Not specified'}</span>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-green-100">
                     <span className="text-green-600 font-medium block mb-1">Payment Reference:</span>
-                    <span className="text-gray-900 font-mono text-xs">{selectedRequest.latestPayment?.transactionReference || 'Not specified'}</span>
+                    <span className="text-gray-900 font-mono text-xs">{selectedRequest.latestPayment?.paymentReference || 'Not specified'}</span>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-green-100">
                     <span className="text-green-600 font-medium block mb-1">Transfer Amount:</span>
@@ -2580,24 +3312,21 @@ const EmployerRequestsPage = () => {
                     </span>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <span className="text-green-600 font-medium block mb-1">Transfer Date:</span>
+                    <span className="text-green-600 font-medium block mb-1">Confirmation Date:</span>
                     <span className="text-gray-900">
-                      {selectedRequest.latestPayment?.transferDate || selectedRequest.latestPayment?.confirmedAt || selectedRequest.latestPayment?.createdAt 
-                        ? new Date(selectedRequest.latestPayment.transferDate || selectedRequest.latestPayment.confirmedAt || selectedRequest.latestPayment.createdAt).toLocaleDateString()
+                      {selectedRequest.latestPayment?.confirmationDate 
+                        ? new Date(selectedRequest.latestPayment.confirmationDate).toLocaleDateString()
                         : 'Not specified'}
                     </span>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <span className="text-green-600 font-medium block mb-1">Payment Method:</span>
-                    <span className="text-gray-900">{selectedRequest.latestPayment?.paymentMethod || 'Not specified'}</span>
-                  </div>
+
                 </div>
                 
                 {/* Additional Notes */}
-                {selectedRequest.latestPayment?.additionalNotes && selectedRequest.latestPayment.additionalNotes !== 'No additional notes' && (
+                {selectedRequest.latestPayment?.adminNotes && selectedRequest.latestPayment.adminNotes !== 'No additional notes' && (
                   <div className="mt-4 bg-white rounded-lg p-3 border border-green-100">
                     <span className="text-green-600 font-medium block mb-2">Additional Notes:</span>
-                    <p className="text-gray-900 text-sm leading-relaxed">{selectedRequest.latestPayment.additionalNotes}</p>
+                    <p className="text-gray-900 text-sm leading-relaxed">{selectedRequest.latestPayment.adminNotes}</p>
                   </div>
                 )}
               </div>
@@ -2712,6 +3441,98 @@ const EmployerRequestsPage = () => {
               </Button>
             </div>
           </form>
+        </Modal>
+      )}
+
+      {/* New Workflow Modal */}
+      {showWorkflowModal && selectedRequest && (
+        <Modal
+          isOpen={showWorkflowModal}
+          onClose={workflowLoading ? undefined : () => setShowWorkflowModal(false)}
+          title={`${getWorkflowActionTitle(workflowAction)}`}
+          className="max-w-2xl"
+        >
+          <div className="space-y-6 relative">
+            {/* Loading Overlay */}
+            {workflowLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="text-sm font-medium text-gray-700">
+                    Processing your request...
+                  </div>
+                  <div className="text-xs text-gray-500 text-center max-w-xs">
+                    This may take a few moments as we send notifications and update the system.
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Request Info */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-900 mb-2">Request Information</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Request ID:</span>
+                  <span className="ml-2 font-medium">#{selectedRequest.id}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Status:</span>
+                  <span className="ml-2">
+                    <WorkflowStatus status={selectedRequest.status} />
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Employer:</span>
+                  <span className="ml-2 font-medium">{selectedRequest.employerName}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Candidate:</span>
+                  <span className="ml-2 font-medium">{selectedRequest.candidateName}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Created:</span>
+                  <span className="ml-2">{new Date(selectedRequest.date).toLocaleDateString()}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Company:</span>
+                  <span className="ml-2 font-medium">{selectedRequest.companyName}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Workflow Progress */}
+            <WorkflowProgress currentStatus={selectedRequest.status} />
+
+            {/* Action-specific content */}
+            {getWorkflowActionContent(workflowAction)}
+
+            {/* Error Display */}
+            {workflowError && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Error</h3>
+                    <div className="mt-2 text-sm text-red-700">{workflowError}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowWorkflowModal(false)}
+                disabled={workflowLoading}
+              >
+                Cancel
+              </Button>
+              
+              {getWorkflowActionButtons(workflowAction)}
+            </div>
+          </div>
         </Modal>
       )}
       
