@@ -197,6 +197,9 @@ const EmployerRequestsPage = () => {
     notes: ''
   });
 
+  // Request details loading state
+  const [requestDetailsLoading, setRequestDetailsLoading] = useState(false);
+
   // Search and Filter state
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [localFilters, setLocalFilters] = useState({
@@ -243,6 +246,7 @@ const EmployerRequestsPage = () => {
       notes: ''
     });
     setPaymentApprovalError('');
+    setRequestDetailsLoading(false);
   }, []);
 
   // Messaging functions
@@ -491,6 +495,48 @@ const EmployerRequestsPage = () => {
     }
   };
 
+  // Request details functions
+  const openRequestDetailsModal = async (request) => {
+    console.log('Opening request details modal for request:', request);
+    
+    try {
+      setRequestDetailsLoading(true);
+      
+      // Always fetch fresh data from the backend to ensure we have the latest information
+      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${request.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+        }
+      });
+      
+      if (response.ok) {
+        const backendRequest = await response.json();
+        console.log('Fetched full request data from backend:', backendRequest);
+        console.log('Employer Account data:', backendRequest.employerAccount);
+        console.log('Employer User data:', backendRequest.employerAccount?.user);
+        
+        // Transform the backend data to frontend format
+        const transformedRequest = transformRequestData(backendRequest);
+        console.log('Transformed request data:', transformedRequest);
+        
+        // Set the transformed request as selected
+        setSelectedRequest(transformedRequest);
+      } else {
+        console.error('Failed to fetch full request data');
+        // Fallback to the original request data
+        setSelectedRequest(request);
+      }
+    } catch (error) {
+      console.error('Error fetching request details:', error);
+      // Fallback to the original request data
+      setSelectedRequest(request);
+    } finally {
+      setRequestDetailsLoading(false);
+    }
+    
+    setShowDetailsModal(true);
+  };
+
   // Payment approval functions
   const openPaymentApprovalModal = async (request) => {
     console.log('Opening payment approval modal for request:', request);
@@ -637,7 +683,7 @@ const EmployerRequestsPage = () => {
 
       return {
         id: backendRequest.id,
-        employerName: backendRequest.employerAccount?.user?.name || backendRequest.name || 'Unknown',
+        employerName: backendRequest.employerAccount?.user?.name || backendRequest.employerAccount?.companyName || backendRequest.name || 'Unknown',
         companyName: backendRequest.employerAccount?.companyName || backendRequest.companyName || 'Private',
         candidateName: backendRequest.requestedCandidate 
           ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
@@ -649,8 +695,18 @@ const EmployerRequestsPage = () => {
         monthlyRate: formatMonthlyRate(backendRequest.requestedCandidate?.profile?.monthlyRate),
         message: backendRequest.message || '',
         employerContact: {
-          email: backendRequest.employerAccount?.user?.email || backendRequest.email || '',
-          phone: backendRequest.employerAccount?.phoneNumber || backendRequest.phoneNumber || ''
+          email: backendRequest.employerAccount?.user?.email || backendRequest.employerAccount?.email || backendRequest.email || '',
+          phone: backendRequest.employerAccount?.phoneNumber || backendRequest.employerAccount?.user?.phoneNumber || backendRequest.phoneNumber || ''
+        },
+        // Additional employer details for enhanced display
+        employerDetails: {
+          companyAddress: backendRequest.employerAccount?.companyAddress || '',
+          industry: backendRequest.employerAccount?.industry || '',
+          companySize: backendRequest.employerAccount?.companySize || '',
+          website: backendRequest.employerAccount?.website || '',
+          description: backendRequest.employerAccount?.description || '',
+          establishedYear: backendRequest.employerAccount?.establishedYear || '',
+          contactPerson: backendRequest.employerAccount?.contactPerson || ''
         },
         adminNotes: '',
         lastContactDate: backendRequest.updatedAt,
@@ -1142,7 +1198,7 @@ const EmployerRequestsPage = () => {
         setCurrentAction(null); // Ensure clean state
         break;
       case 'view':
-        setShowDetailsModal(true);
+        openRequestDetailsModal(request);
         setShowActionModal(false);
         break;
       case 'contact':
@@ -2388,62 +2444,186 @@ const EmployerRequestsPage = () => {
         onClose={() => {
           setShowDetailsModal(false);
           setSelectedRequest(null);
+          setRequestDetailsLoading(false);
         }}
-        title="Request Details"
-          size="lg"
+        title={`Request Details - #${selectedRequest.id}`}
+        size="xl"
       >
-          <div className="space-y-6">
-            {/* Employer Information */}
-              <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Employer Information</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Name</label>
-                    <p className="text-gray-900">{selectedRequest.employerName}</p>
+          <div className="space-y-6 relative">
+            {/* Loading Overlay */}
+            {requestDetailsLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="text-sm font-medium text-gray-700">
+                    Loading request details...
+                  </div>
+                  <div className="text-xs text-gray-500 text-center max-w-xs">
+                    Fetching the latest information from the database.
+                  </div>
                 </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Company</label>
-                    <p className="text-gray-900">{selectedRequest.companyName}</p>
-                </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Email</label>
-                    <p className="text-gray-900">{selectedRequest.employerContact.email}</p>
               </div>
-              <div>
-                    <label className="text-sm font-medium text-gray-500">Phone</label>
-                    <p className="text-gray-900">{selectedRequest.employerContact.phone}</p>
+            )}
+            {/* Request Header with Status */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Request #{selectedRequest.id}</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Created on {new Date(selectedRequest.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
                 </div>
+                <div className="flex flex-col items-end space-y-2">
+                  <WorkflowStatus status={selectedRequest.status} />
+                  <Badge color={getPriorityColor(selectedRequest.priority)}>
+                    {selectedRequest.priority} Priority
+                  </Badge>
                 </div>
+              </div>
+              
+
+            </div>
+
+            {/* Employer Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Building className="w-5 h-5 mr-2 text-blue-600" />
+                Employer Information
+              </h3>
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <label className="text-sm font-medium text-blue-600 block mb-1">Full Name</label>
+                      <p className="text-gray-900 font-medium">{selectedRequest.employerName}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <label className="text-sm font-medium text-blue-600 block mb-1">Company Name</label>
+                      <p className="text-gray-900 font-medium">{selectedRequest.companyName}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <label className="text-sm font-medium text-blue-600 block mb-1 flex items-center">
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email Address
+                      </label>
+                      <p className="text-gray-900 font-medium">{selectedRequest.employerContact.email || 'Not provided'}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <label className="text-sm font-medium text-blue-600 block mb-1 flex items-center">
+                        <Phone className="w-4 h-4 mr-1" />
+                        Phone Number
+                      </label>
+                      <p className="text-gray-900 font-medium">{selectedRequest.employerContact.phone || 'Not provided'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Additional Employer Details */}
+                {(selectedRequest.employerDetails.companyAddress || selectedRequest.employerDetails.industry || selectedRequest.employerDetails.companySize || selectedRequest.employerDetails.website || selectedRequest.employerDetails.description || selectedRequest.employerDetails.establishedYear || selectedRequest.employerDetails.contactPerson) && (
+                  <div className="mt-6 pt-6 border-t border-blue-200">
+                    <h4 className="text-md font-semibold text-blue-900 mb-3">Additional Company Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedRequest.employerDetails.companyAddress && (
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-1">Company Address</label>
+                          <p className="text-gray-900 text-sm">{selectedRequest.employerDetails.companyAddress}</p>
+                        </div>
+                      )}
+                      {selectedRequest.employerDetails.industry && (
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-1">Industry</label>
+                          <p className="text-gray-900 text-sm">{selectedRequest.employerDetails.industry}</p>
+                        </div>
+                      )}
+                      {selectedRequest.employerDetails.companySize && (
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-1">Company Size</label>
+                          <p className="text-gray-900 text-sm">{selectedRequest.employerDetails.companySize}</p>
+                        </div>
+                      )}
+                      {selectedRequest.employerDetails.website && (
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-1">Website</label>
+                          <a href={selectedRequest.employerDetails.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 text-sm underline">
+                            {selectedRequest.employerDetails.website}
+                          </a>
+                        </div>
+                      )}
+                      {selectedRequest.employerDetails.establishedYear && (
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-1">Established Year</label>
+                          <p className="text-gray-900 text-sm">{selectedRequest.employerDetails.establishedYear}</p>
+                        </div>
+                      )}
+                      {selectedRequest.employerDetails.contactPerson && (
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-1">Contact Person</label>
+                          <p className="text-gray-900 text-sm">{selectedRequest.employerDetails.contactPerson}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Company Description */}
+                    {selectedRequest.employerDetails.description && (
+                      <div className="mt-4">
+                        <div className="bg-white rounded-lg p-4 border border-blue-100">
+                          <label className="text-sm font-medium text-blue-600 block mb-2">Company Description</label>
+                          <p className="text-gray-900 text-sm leading-relaxed">{selectedRequest.employerDetails.description}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Request Details */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Request Details</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Status</label>
-                    <Badge color={getStatusColor(selectedRequest.status)}>
-                    {selectedRequest.status}
-                  </Badge>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <MessageSquare className="w-5 h-5 mr-2 text-green-600" />
+                Request Information
+              </h3>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border border-green-100">
+                    <label className="text-sm font-medium text-green-600 block mb-2">Request Message</label>
+                    <p className="text-gray-900 leading-relaxed">{selectedRequest.message || 'No message provided'}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Priority</label>
-                    <Badge color={getPriorityColor(selectedRequest.priority)}>
-                    {selectedRequest.priority}
-                  </Badge>
-                </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Request Date</label>
-                    <p className="text-gray-900">
-                      {new Date(selectedRequest.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Message</label>
-                    <p className="text-gray-900 mt-1">{selectedRequest.message}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-green-100">
+                      <label className="text-sm font-medium text-green-600 block mb-1">Request Date</label>
+                      <p className="text-gray-900 font-medium">
+                        {new Date(selectedRequest.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-green-100">
+                      <label className="text-sm font-medium text-green-600 block mb-1">Last Updated</label>
+                      <p className="text-gray-900 font-medium">
+                        {new Date(selectedRequest.lastContactDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-green-100">
+                      <label className="text-sm font-medium text-green-600 block mb-1">Request ID</label>
+                      <p className="text-gray-900 font-mono text-sm">#{selectedRequest.id}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2452,165 +2632,276 @@ const EmployerRequestsPage = () => {
             {/* Candidate Information */}
             {selectedRequest.candidateName !== 'Not specified' && (
             <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Candidate Information</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="space-y-4">
-                    {/* Profile Header with Image */}
-                    <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
-                      {(() => {
-                        const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
-                        const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
-                        return (
-                          <Avatar
-                            src={url}
-                            alt={selectedRequest.candidateName}
-                            size="lg"
-                            fallback={selectedRequest.candidateName}
-                            fallbackSrc={defaultProfileImage}
-                          />
-                        );
-                      })()}
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">{selectedRequest.candidateName}</h4>
-                        <p className="text-sm text-gray-600">{selectedRequest.category} • {selectedRequest.position}</p>
-                        <p className="text-sm font-medium text-green-600">{selectedRequest.monthlyRate}</p>
-              </div>
-            </div>
-
-                    {/* Basic Information */}
-                    <div className="grid grid-cols-2 gap-4">
-            <div>
-                        <label className="text-sm font-medium text-gray-500">Job Category</label>
-                        <p className="text-gray-900">{selectedRequest.category}</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <User className="w-5 h-5 mr-2 text-purple-600" />
+                Candidate Information
+              </h3>
+              <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-100">
+                {/* Profile Header with Image */}
+                <div className="flex items-center space-x-6 pb-6 border-b border-purple-200 mb-6">
+                  {(() => {
+                    const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
+                    const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+                    return (
+                      <Avatar
+                        src={url}
+                        alt={selectedRequest.candidateName}
+                        size="xl"
+                        fallback={selectedRequest.candidateName}
+                        fallbackSrc={defaultProfileImage}
+                      />
+                    );
+                  })()}
+                  <div className="flex-1">
+                    <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedRequest.candidateName}</h4>
+                    <div className="flex items-center space-x-4 mb-3">
+                      <Badge color="text-purple-600 bg-purple-100 border-purple-200">
+                        {selectedRequest.category}
+                      </Badge>
+                      <Badge color="text-blue-600 bg-blue-100 border-blue-200">
+                        {selectedRequest.position}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                        <span className="text-lg font-semibold text-green-600">{selectedRequest.monthlyRate}</span>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Skills/Position</label>
-                        <p className="text-gray-900">{selectedRequest.position}</p>
-                      </div>
-            </div>
-
-                    {/* Additional Candidate Details from Backend */}
-                    {selectedRequest.candidateExperience !== 'Not specified' && (
-                      <>
-                        {/* Experience and Education */}
-                        <div className="grid grid-cols-2 gap-4">
-            <div>
-                            <label className="text-sm font-medium text-gray-500">Experience Level</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateExperienceLevel}
-                            </p>
-                          </div>
-                  <div>
-                            <label className="text-sm font-medium text-gray-500">Education</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateEducation}
-                            </p>
+                      {selectedRequest.candidateExperienceLevel !== 'Not specified' && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600">Experience:</span>
+                          <span className="text-sm font-medium text-gray-900">{selectedRequest.candidateExperienceLevel}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                        {/* Location Information */}
-                        <div className="grid grid-cols-3 gap-4">
-                    <div>
-                            <label className="text-sm font-medium text-gray-500">Location</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateLocation}
-                            </p>
+                {/* Candidate Details Sections */}
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div>
+                    <h4 className="text-md font-semibold text-purple-900 mb-3">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Job Category</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.category}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Skills/Position</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.position}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Experience Level</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateExperienceLevel}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Education Level</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateEducation}</p>
+                      </div>
                     </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">City</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateCity}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Country</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateCountry}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Contact Information */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Contact Number</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateContact}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Email</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateEmail}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Additional Details */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Languages</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateLanguages}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Certifications</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateCertifications}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Availability and Personal Details */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Availability</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateAvailability}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Gender</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateGender}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Description and References */}
-                        {selectedRequest.candidateDescription !== 'Not specified' && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Description</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateDescription}
-                            </p>
                   </div>
-                )}
 
-                        {selectedRequest.candidateReferences !== 'Not specified' && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">References</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateReferences}
-                            </p>
+                  {/* Contact Information */}
+                  <div>
+                    <h4 className="text-md font-semibold text-purple-900 mb-3">Contact Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1 flex items-center">
+                          <Phone className="w-4 h-4 mr-1" />
+                          Contact Number
+                        </label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateContact}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1 flex items-center">
+                          <Mail className="w-4 h-4 mr-1" />
+                          Email Address
+                        </label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateEmail}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Location Information */}
+                  <div>
+                    <h4 className="text-md font-semibold text-purple-900 mb-3">Location Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Location</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateLocation}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">City</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateCity}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Country</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateCountry}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Skills and Qualifications */}
+                  <div>
+                    <h4 className="text-md font-semibold text-purple-900 mb-3">Skills & Qualifications</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Languages</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateLanguages}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Certifications</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateCertifications}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Personal Information */}
+                  <div>
+                    <h4 className="text-md font-semibold text-purple-900 mb-3">Personal Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Gender</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateGender}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Marital Status</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateMaritalStatus}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">ID Number</label>
+                        <p className="text-gray-900 font-medium font-mono text-sm">{selectedRequest.candidateIdNumber}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Availability */}
+                  <div>
+                    <h4 className="text-md font-semibold text-purple-900 mb-3">Availability</h4>
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <label className="text-sm font-medium text-purple-600 block mb-1">Availability Status</label>
+                      <p className="text-gray-900 font-medium">{selectedRequest.candidateAvailability}</p>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {selectedRequest.candidateDescription !== 'Not specified' && (
+                    <div>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Description</h4>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <p className="text-gray-900 leading-relaxed">{selectedRequest.candidateDescription}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* References */}
+                  {selectedRequest.candidateReferences !== 'Not specified' && (
+                    <div>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">References</h4>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <p className="text-gray-900 leading-relaxed">{selectedRequest.candidateReferences}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-                        )}
-
-                        {/* ID Number */}
-                        {selectedRequest.candidateIdNumber !== 'Not specified' && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">ID Number</label>
-                            <p className="text-gray-900">
-                              {selectedRequest.candidateIdNumber}
-                            </p>
             </div>
-                        )}
-                      </>
-                    )}
+            )}
 
-                   
+            {/* Payment Information */}
+            {selectedRequest.latestPayment && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                  Payment Information
+                </h3>
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Type</label>
+                        <Badge color="text-green-600 bg-green-100 border-green-200">
+                          {selectedRequest.latestPayment.paymentType?.replace('_', ' ').toUpperCase() || 'Not specified'}
+                        </Badge>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <label className="text-sm font-medium text-green-600 block mb-1">Amount</label>
+                        <p className="text-gray-900 font-semibold text-lg">
+                          {selectedRequest.latestPayment.amount} {selectedRequest.latestPayment.currency}
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Status</label>
+                        <Badge color={selectedRequest.latestPayment.status === 'confirmed' ? 'text-green-600 bg-green-100 border-green-200' : 'text-yellow-600 bg-yellow-100 border-yellow-200'}>
+                          {selectedRequest.latestPayment.status?.toUpperCase() || 'Not specified'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Reference</label>
+                        <p className="text-gray-900 font-mono text-sm">{selectedRequest.latestPayment.paymentReference || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <label className="text-sm font-medium text-green-600 block mb-1">Confirmation Date</label>
+                        <p className="text-gray-900 font-medium">
+                          {selectedRequest.latestPayment.confirmationDate 
+                            ? new Date(selectedRequest.latestPayment.confirmationDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })
+                            : 'Not provided'}
+                        </p>
+                      </div>
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Date</label>
+                        <p className="text-gray-900 font-medium">
+                          {new Date(selectedRequest.latestPayment.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
                   </div>
+                  
+                  {/* Payment Confirmation Details */}
+                  {(selectedRequest.latestPayment.confirmationName || selectedRequest.latestPayment.confirmationPhone) && (
+                    <div className="mt-6 pt-6 border-t border-green-200">
+                      <h4 className="text-md font-semibold text-green-900 mb-3">Payment Confirmation Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {selectedRequest.latestPayment.confirmationName && (
+                          <div className="bg-white rounded-lg p-4 border border-green-100">
+                            <label className="text-sm font-medium text-green-600 block mb-1">Payer Name</label>
+                            <p className="text-gray-900 font-medium">{selectedRequest.latestPayment.confirmationName}</p>
+                          </div>
+                        )}
+                        {selectedRequest.latestPayment.confirmationPhone && (
+                          <div className="bg-white rounded-lg p-4 border border-green-100">
+                            <label className="text-sm font-medium text-green-600 block mb-1">Payer Phone</label>
+                            <p className="text-gray-900 font-medium">{selectedRequest.latestPayment.confirmationPhone}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Admin Notes */}
+                  {selectedRequest.latestPayment.adminNotes && selectedRequest.latestPayment.adminNotes !== 'No additional notes' && (
+                    <div className="mt-6 pt-6 border-t border-green-200">
+                      <h4 className="text-md font-semibold text-green-900 mb-3">Admin Notes</h4>
+                      <div className="bg-white rounded-lg p-4 border border-green-100">
+                        <p className="text-gray-900 leading-relaxed">{selectedRequest.latestPayment.adminNotes}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
