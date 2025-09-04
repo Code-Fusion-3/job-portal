@@ -145,9 +145,32 @@ const EmployerDashboard = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        // The API returns a single payment object, but we'll structure it as an array for consistency
-        // In a real implementation, you might have an endpoint that returns all payments for a request
-        setPaymentHistory(data ? [data] : []);
+        // The API now returns an array of payments with more details
+        if (data.payments && Array.isArray(data.payments)) {
+          // Transform payments data to match the expected structure
+          const transformedPayments = data.payments.map(payment => ({
+            id: payment.id,
+            payment: {
+              id: payment.id,
+              amount: payment.amount,
+              currency: payment.currency,
+              paymentMethod: payment.paymentMethod,
+              paymentType: payment.paymentType,
+              status: payment.status,
+              description: payment.description,
+              createdAt: payment.createdAt,
+              updatedAt: payment.updatedAt,
+              confirmationName: payment.confirmationName,
+              confirmationPhone: payment.confirmationPhone,
+              confirmationDate: payment.confirmationDate,
+              confirmationReference: payment.confirmationReference,
+              adminNotes: payment.adminNotes
+            }
+          }));
+          setPaymentHistory(transformedPayments);
+        } else {
+          setPaymentHistory([]);
+        }
       } else {
         console.error('Failed to fetch payment history, using latestPayment if available');
         console.log('selectedRequest:', selectedRequest);

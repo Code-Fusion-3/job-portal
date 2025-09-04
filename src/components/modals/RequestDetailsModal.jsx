@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   User, 
   MessageSquare, 
@@ -6,7 +6,18 @@ import {
   RefreshCw, 
   FileText,
   CreditCard,
-  History
+  History,
+  Download,
+  Eye,
+  EyeOff,
+  Shield,
+  ShieldCheck,
+  ShieldX,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import Modal from '../ui/Modal';
 import API_CONFIG from '../../api/config/apiConfig';
@@ -27,7 +38,236 @@ const RequestDetailsModal = ({
   getProgressColor,
   getProgressPercentage
 }) => {
+  const [showFullImage, setShowFullImage] = useState(false);
+
   if (!selectedRequest) return null;
+
+  // Helper function to determine payment status based on payment data and request status
+  const getPaymentStatusText = (payment, requestStatus) => {
+    if (!payment) return 'Unknown';
+    
+    // Debug logging
+    console.log('🔍 Payment Status Debug:', {
+      paymentType: payment.paymentType,
+      paymentStatus: payment.status,
+      requestStatus: requestStatus,
+      paymentId: payment.id
+    });
+    
+    // Check if payment is approved based on request status
+    // Handle both explicit paymentType and implicit type based on request status
+    const isPhotoPaymentApproved = (
+      (payment.paymentType === 'photo_access' || payment.paymentType === 'photo' || 
+       (!payment.paymentType && ['photo_access_granted', 'second_payment_required', 'second_payment_confirmed', 'full_access_granted', 'completed'].includes(requestStatus))) &&
+      ['photo_access_granted', 'second_payment_required', 'second_payment_confirmed', 'full_access_granted', 'completed'].includes(requestStatus)
+    );
+    
+    const isFullPaymentApproved = (
+      (payment.paymentType === 'full_details' || payment.paymentType === 'full' || 
+       (!payment.paymentType && ['full_access_granted', 'completed'].includes(requestStatus))) &&
+      ['full_access_granted', 'completed'].includes(requestStatus)
+    );
+    
+    console.log('🔍 Approval Check:', {
+      isPhotoPaymentApproved,
+      isFullPaymentApproved,
+      finalResult: isPhotoPaymentApproved || isFullPaymentApproved ? 'Approved by Admin' : 'Not approved'
+    });
+    
+    if (isPhotoPaymentApproved || isFullPaymentApproved) {
+      return 'Approved by Admin';
+    }
+    
+    switch (payment.status) {
+      case 'confirmed':
+        return 'Confirmed - Pending Admin Approval';
+      case 'approved':
+        return 'Approved by Admin';
+      case 'completed':
+        return 'Completed';
+      case 'pending':
+        return 'Pending Payment';
+      case 'rejected':
+        return 'Rejected';
+      case 'failed':
+        return 'Failed';
+      default:
+        return payment.status ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1) : 'Unknown';
+    }
+  };
+
+  // Helper function to get payment status color
+  const getPaymentStatusColor = (payment, requestStatus) => {
+    if (!payment) return 'bg-gray-100 text-gray-800';
+    
+    // Check if payment is approved based on request status
+    // Handle both explicit paymentType and implicit type based on request status
+    const isPhotoPaymentApproved = (
+      (payment.paymentType === 'photo_access' || payment.paymentType === 'photo' || 
+       (!payment.paymentType && ['photo_access_granted', 'second_payment_required', 'second_payment_confirmed', 'full_access_granted', 'completed'].includes(requestStatus))) &&
+      ['photo_access_granted', 'second_payment_required', 'second_payment_confirmed', 'full_access_granted', 'completed'].includes(requestStatus)
+    );
+    
+    const isFullPaymentApproved = (
+      (payment.paymentType === 'full_details' || payment.paymentType === 'full' || 
+       (!payment.paymentType && ['full_access_granted', 'completed'].includes(requestStatus))) &&
+      ['full_access_granted', 'completed'].includes(requestStatus)
+    );
+    
+    if (isPhotoPaymentApproved || isFullPaymentApproved) {
+      return 'bg-green-100 text-green-800';
+    }
+    
+    switch (payment.status) {
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-800';
+      case 'approved':
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'rejected':
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Helper function for Access Control payment status text
+  const getAccessControlStatusText = () => {
+    const status = selectedRequest.status;
+    
+    // Debug logging for Access Control
+    console.log('🎯 Access Control Debug:', {
+      requestStatus: status,
+      selectedRequest: selectedRequest
+    });
+    
+    switch (status) {
+      case 'pending':
+      case 'approved':
+      case 'first_payment_required':
+      case 'second_payment_required':
+        return (
+          <>
+            <Clock className="h-3 w-3 mr-1" />
+            Payment Required
+          </>
+        );
+      case 'first_payment_confirmed':
+      case 'second_payment_confirmed':
+      case 'payment_confirmed': // Legacy status
+        return (
+          <>
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Paid - Pending Approval
+          </>
+        );
+      case 'photo_access_granted':
+        return (
+          <>
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Photo Access Approved
+          </>
+        );
+      case 'full_access_granted':
+      case 'completed':
+        return (
+          <>
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Fully Paid & Approved
+          </>
+        );
+      default:
+        return (
+          <>
+            <Clock className="h-3 w-3 mr-1" />
+            Payment Required
+          </>
+        );
+    }
+  };
+
+  // Helper function for Access Control payment status color
+  const getAccessControlStatusColor = () => {
+    const status = selectedRequest.status;
+    
+    switch (status) {
+      case 'photo_access_granted':
+      case 'full_access_granted':
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'first_payment_confirmed':
+      case 'second_payment_confirmed':
+      case 'payment_confirmed': // Legacy status
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-orange-100 text-orange-800';
+    }
+  };
+
+  // Helper functions to determine access status based on request status
+  const getAccessInfo = () => {
+    const status = selectedRequest.status;
+    const hasPhotoAccess = selectedRequest.imageAccessGranted || selectedRequest.candidate?.accessGranted?.photo;
+    const hasContactAccess = selectedRequest.contactAccessGranted || selectedRequest.candidate?.accessGranted?.contact;
+    const hasFullAccess = selectedRequest.candidate?.accessGranted?.full || (hasPhotoAccess && hasContactAccess);
+    
+    const paymentStatuses = [
+      'first_payment_confirmed', 'photo_access_granted', 
+      'second_payment_confirmed', 'full_details_granted',
+      'payment_confirmed', 'completed'
+    ];
+    
+    const photoAccessStatuses = [
+      'photo_access_granted', 'second_payment_confirmed', 
+      'full_details_granted', 'completed'
+    ];
+    
+    const isPaid = paymentStatuses.includes(status);
+    
+    // More comprehensive photo access logic
+    const canViewPhoto = hasPhotoAccess || 
+                        photoAccessStatuses.includes(status) ||
+                        selectedRequest.candidate?.accessLevel === 'photo' ||
+                        selectedRequest.candidate?.accessLevel === 'full';
+    
+    // Access logic improved to handle status-based permissions
+    
+    return {
+      canViewPhoto,
+      canViewContact: hasContactAccess || ['full_details_granted', 'completed'].includes(status) || selectedRequest.candidate?.accessLevel === 'full',
+      canDownloadPhoto: canViewPhoto && isPaid,
+      hasFullAccess,
+      isPaid,
+      status
+    };
+  };
+
+  const downloadImage = async (imageUrl, candidateName) => {
+    if (!imageUrl) return;
+    
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${candidateName.replace(/\s+/g, '_')}_photo.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      alert('Failed to download image. Please try again.');
+    }
+  };
+
+  const accessInfo = getAccessInfo();
+
+  // Photo access and display logic resolved
 
   return (
     <Modal
@@ -85,31 +325,93 @@ const RequestDetailsModal = ({
             <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-blue-600" />
               Candidate Information
+              <div className="ml-auto flex items-center space-x-2">
+                {accessInfo.hasFullAccess && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <ShieldCheck className="h-3 w-3 mr-1" />
+                    Full Access
+                  </span>
+                )}
+                {accessInfo.canViewPhoto && !accessInfo.hasFullAccess && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <Eye className="h-3 w-3 mr-1" />
+                    Photo Access
+                  </span>
+                )}
+                {!accessInfo.canViewPhoto && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <ShieldX className="h-3 w-3 mr-1" />
+                    No Access
+                  </span>
+                )}
+              </div>
             </h4>
             <div className="bg-gray-50 rounded-lg p-4">
               {/* Profile Header with Image */}
               <div className="flex items-center space-x-4 mb-4 pb-4 border-b border-gray-200">
-                {selectedRequest.candidate.photo ? (
-                  <img
-                    src={selectedRequest.candidate.photo.startsWith('http') 
-                      ? selectedRequest.candidate.photo 
-                      : `${API_CONFIG.BASE_URL}/${selectedRequest.candidate.photo.replace(/^\//, '')}`
-                    }
-                    alt={selectedRequest.candidate.name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                    onError={(e) => {
-                      e.target.src = '/api/placeholder/64/64';
-                    }}
-                  />
+                {accessInfo.canViewPhoto ? (
+                  selectedRequest.candidate.photo ? (
+                    <div className="relative group">
+                      <img
+                        src={(() => {
+                          const photo = selectedRequest.candidate.photo;
+                          if (!photo) return '/api/placeholder/64/64';
+                          if (photo.startsWith('http')) return photo;
+                          const cleanPath = photo.replace(/^\/+/, '');
+                          const fullUrl = `${API_CONFIG.BASE_URL}/${cleanPath}`;
+                          return fullUrl;
+                        })()}
+                        alt={selectedRequest.candidate.name}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+                        onError={(e) => {
+                          e.target.src = '/api/placeholder/64/64';
+                        }}
+                        onClick={() => setShowFullImage(true)}
+                      />
+                      {accessInfo.canDownloadPhoto && (
+                        <button
+                          onClick={() => {
+                            const photo = selectedRequest.candidate.photo;
+                            const imageUrl = photo.startsWith('http') 
+                              ? photo 
+                              : `${API_CONFIG.BASE_URL}/${photo.replace(/^\/+/, '')}`;
+                            downloadImage(imageUrl, selectedRequest.candidate.name);
+                          }}
+                          className="absolute -top-1 -right-1 p-1 bg-blue-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-700"
+                          title="Download Image"
+                        >
+                          <Download className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    // Photo access granted but no photo available
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300 relative">
+                      <User className="h-8 w-8 text-gray-500" />
+                      <div className="absolute -bottom-1 -right-1 p-1 bg-green-500 text-white rounded-full">
+                        <Eye className="h-3 w-3" />
+                      </div>
+                    </div>
+                  )
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center">
-                    <User className="h-8 w-8 text-gray-600" />
+                  // No photo access
+                  <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center relative">
+                    <Lock className="h-6 w-6 text-gray-500" />
+                    <div className="absolute -bottom-1 -right-1 p-1 bg-red-500 text-white rounded-full">
+                      <ShieldX className="h-3 w-3" />
+                    </div>
                   </div>
                 )}
-                <div>
+                <div className="flex-1">
                   <h5 className="text-lg font-semibold text-gray-900">{selectedRequest.candidate.name}</h5>
                   <p className="text-sm text-gray-600">{selectedRequest.candidate.skills}</p>
                   <p className="text-sm font-medium text-green-600">{selectedRequest.candidate.monthlyRate}</p>
+                  {!accessInfo.canViewPhoto && (
+                    <div className="mt-2 flex items-center text-xs text-orange-600">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Photo access requires payment approval
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -127,56 +429,204 @@ const RequestDetailsModal = ({
                       : selectedRequest.candidate.location || 'Not specified'}
                   </p>
                 </div>
-                {selectedRequest.candidate.contactNumber && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Contact</p>
-                    <p className="text-gray-900">{selectedRequest.candidate.contactNumber}</p>
-                  </div>
-                )}
-                {selectedRequest.candidate.email && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Email</p>
-                    <p className="text-gray-900">{selectedRequest.candidate.email}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm font-medium text-gray-500 flex items-center">
+                    Contact
+                    {!accessInfo.canViewContact && (
+                      <Lock className="h-3 w-3 ml-1 text-red-500" />
+                    )}
+                  </p>
+                  <p className="text-gray-900">
+                    {accessInfo.canViewContact 
+                      ? (selectedRequest.candidate.contactNumber || 'Not provided') 
+                      : '***-***-***'}
+                  </p>
+                  {!accessInfo.canViewContact && (
+                    <p className="text-xs text-orange-600 mt-1">Requires full details access</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 flex items-center">
+                    Email
+                    {!accessInfo.canViewContact && (
+                      <Lock className="h-3 w-3 ml-1 text-red-500" />
+                    )}
+                  </p>
+                  <p className="text-gray-900">
+                    {accessInfo.canViewContact 
+                      ? (selectedRequest.candidate.email || 'Not provided') 
+                      : '***@***.***'}
+                  </p>
+                  {!accessInfo.canViewContact && (
+                    <p className="text-xs text-orange-600 mt-1">Requires full details access</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Education Level</p>
+                  <p className="text-gray-900">{selectedRequest.candidate.educationLevel}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Experience Level</p>
+                  <p className="text-gray-900">{selectedRequest.candidate.experienceLevel}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Availability</p>
+                  <p className="text-gray-900">{selectedRequest.candidate.availability}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Languages</p>
+                  <p className="text-gray-900">{selectedRequest.candidate.languages}</p>
+                </div>
               </div>
+              
+              {/* Additional Information */}
+              {selectedRequest.candidate.description && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-500 mb-2">Description</p>
+                  <p className="text-gray-900 text-sm leading-relaxed">{selectedRequest.candidate.description}</p>
+                </div>
+              )}
+              
+              {selectedRequest.candidate.certifications && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-500 mb-2">Certifications</p>
+                  <p className="text-gray-900 text-sm">{selectedRequest.candidate.certifications}</p>
+                </div>
+              )}
 
-              {/* Access Control */}
+              {/* Access Control Status */}
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h5 className="text-sm font-semibold text-gray-700 mb-3">Access Control</h5>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Image Access</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedRequest.imageAccessGranted 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedRequest.imageAccessGranted ? 'Granted' : 'Not Granted'}
-                    </span>
+                <h5 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Access Control & Status
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                      <div className="flex items-center">
+                        <Eye className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-sm font-medium">Photo Access</span>
+                      </div>
+                      <div className="flex items-center">
+                        {accessInfo.canViewPhoto ? (
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-orange-500 mr-1" />
+                        )}
+                        <span className={`text-xs font-medium ${
+                          accessInfo.canViewPhoto ? 'text-green-600' : 'text-orange-600'
+                        }`}>
+                          {accessInfo.canViewPhoto ? 'Granted' : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 mr-2 text-purple-500" />
+                        <span className="text-sm font-medium">Contact Access</span>
+                      </div>
+                      <div className="flex items-center">
+                        {accessInfo.canViewContact ? (
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-orange-500 mr-1" />
+                        )}
+                        <span className={`text-xs font-medium ${
+                          accessInfo.canViewContact ? 'text-green-600' : 'text-orange-600'
+                        }`}>
+                          {accessInfo.canViewContact ? 'Granted' : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Contact Access</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedRequest.contactAccessGranted 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedRequest.contactAccessGranted ? 'Granted' : 'Not Granted'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Access Level</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      selectedRequest.candidate?.accessLevel === 'full' ? 'bg-green-100 text-green-800' :
-                      selectedRequest.candidate?.accessLevel === 'photo' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedRequest.candidate?.accessLevel === 'full' ? 'Full Access' :
-                       selectedRequest.candidate?.accessLevel === 'photo' ? 'Photo Access' : 'No Access'}
-                    </span>
+                  
+                  <div className="space-y-3">
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="flex items-center mb-2">
+                        <Unlock className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="text-sm font-medium">Current Access Level</span>
+                      </div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        accessInfo.hasFullAccess ? 'bg-green-100 text-green-800' :
+                        accessInfo.canViewPhoto ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {accessInfo.hasFullAccess ? (
+                          <>
+                            <ShieldCheck className="h-3 w-3 mr-1" />
+                            Full Access
+                          </>
+                        ) : accessInfo.canViewPhoto ? (
+                          <>
+                            <Eye className="h-3 w-3 mr-1" />
+                            Photo Only
+                          </>
+                        ) : (
+                          <>
+                            <ShieldX className="h-3 w-3 mr-1" />
+                            No Access
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="flex items-center mb-2">
+                        <CreditCard className="h-4 w-4 mr-2 text-blue-500" />
+                        <span className="text-sm font-medium">Payment Status</span>
+                      </div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        getAccessControlStatusColor()
+                      }`}>
+                        {getAccessControlStatusText()}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                
+                {/* Status-based Information */}
+                {!accessInfo.canViewPhoto && (
+                  <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="flex items-start">
+                      <AlertCircle className="h-5 w-5 text-orange-500 mr-3 mt-0.5" />
+                      <div>
+                        <h6 className="text-sm font-medium text-orange-800">Photo Access Required</h6>
+                        <p className="text-sm text-orange-700 mt-1">
+                          Complete the first payment to unlock candidate photo and basic information.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {accessInfo.canViewPhoto && !accessInfo.canViewContact && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start">
+                      <AlertCircle className="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
+                      <div>
+                        <h6 className="text-sm font-medium text-blue-800">Full Details Access Available</h6>
+                        <p className="text-sm text-blue-700 mt-1">
+                          Complete the second payment to unlock contact information and full candidate details.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {accessInfo.hasFullAccess && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
+                      <div>
+                        <h6 className="text-sm font-medium text-green-800">Full Access Granted</h6>
+                        <p className="text-sm text-green-700 mt-1">
+                          You have complete access to all candidate information including contact details.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -237,13 +687,9 @@ const RequestDetailsModal = ({
                         <div>
                           <p className="text-sm font-medium text-gray-500">Status</p>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            payment.payment?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            payment.payment?.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            payment.payment?.status === 'approved' ? 'bg-blue-100 text-blue-800' :
-                            payment.payment?.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
+                            getPaymentStatusColor(payment.payment, selectedRequest.status)
                           }`}>
-                            {payment.payment?.status ? payment.payment.status.charAt(0).toUpperCase() + payment.payment.status.slice(1) : 'Unknown'}
+                            {getPaymentStatusText(payment.payment, selectedRequest.status)}
                           </span>
                         </div>
                         <div>
@@ -253,8 +699,35 @@ const RequestDetailsModal = ({
                           </p>
                         </div>
                       </div>
+                      
+                      {/* Payment Type and Method */}
+                      {(payment.payment?.paymentType || payment.payment?.paymentMethod) && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            {payment.payment?.paymentType && (
+                              <div>
+                                <span className="font-medium text-gray-500">Payment Type:</span>
+                                <span className="ml-2 text-gray-900 capitalize">
+                                  {payment.payment.paymentType === 'photo_access' ? 'Photo Access' : 
+                                   payment.payment.paymentType === 'full_details' ? 'Full Details Access' : 
+                                   payment.payment.paymentType}
+                                </span>
+                              </div>
+                            )}
+                            {payment.payment?.paymentMethod && (
+                              <div>
+                                <span className="font-medium text-gray-500">Payment Method:</span>
+                                <span className="ml-2 text-gray-900">{payment.payment.paymentMethod}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Confirmation Details */}
                       {payment.payment?.confirmationName && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
+                          <h6 className="text-sm font-semibold text-gray-700 mb-2">Payment Confirmation Details</h6>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="font-medium text-gray-500">Confirmed by:</span>
@@ -264,6 +737,20 @@ const RequestDetailsModal = ({
                               <div>
                                 <span className="font-medium text-gray-500">Phone:</span>
                                 <span className="ml-2 text-gray-900">{payment.payment.confirmationPhone}</span>
+                              </div>
+                            )}
+                            {payment.payment?.confirmationReference && (
+                              <div>
+                                <span className="font-medium text-gray-500">Reference:</span>
+                                <span className="ml-2 text-gray-900">{payment.payment.confirmationReference}</span>
+                              </div>
+                            )}
+                            {payment.payment?.confirmationDate && (
+                              <div>
+                                <span className="font-medium text-gray-500">Confirmed on:</span>
+                                <span className="ml-2 text-gray-900">
+                                  {new Date(payment.payment.confirmationDate).toLocaleDateString()}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -364,6 +851,71 @@ const RequestDetailsModal = ({
           </div>
         </div>
       </div>
+
+      {/* Full Image Modal */}
+      {showFullImage && accessInfo.canViewPhoto && selectedRequest.candidate.photo && (
+        <Modal
+          isOpen={showFullImage}
+          onClose={() => setShowFullImage(false)}
+          title={`${selectedRequest.candidate.name} - Profile Photo`}
+          maxWidth="max-w-3xl"
+        >
+          <div className="space-y-4">
+            <div className="relative">
+              <img
+                src={(() => {
+                  const photo = selectedRequest.candidate.photo;
+                  if (!photo) return '/api/placeholder/400/400';
+                  if (photo.startsWith('http')) return photo;
+                  return `${API_CONFIG.BASE_URL}/${photo.replace(/^\/+/, '')}`;
+                })()}
+                alt={selectedRequest.candidate.name}
+                className="w-full max-h-96 object-contain rounded-lg"
+                onError={(e) => {
+                  e.target.src = '/api/placeholder/400/400';
+                }}
+              />
+              {accessInfo.canDownloadPhoto && (
+                <button
+                  onClick={() => {
+                    const photo = selectedRequest.candidate.photo;
+                    const imageUrl = photo.startsWith('http') 
+                      ? photo 
+                      : `${API_CONFIG.BASE_URL}/${photo.replace(/^\/+/, '')}`;
+                    downloadImage(imageUrl, selectedRequest.candidate.name);
+                  }}
+                  className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 shadow-lg transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download</span>
+                </button>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h5 className="font-medium text-gray-900">{selectedRequest.candidate.name}</h5>
+                <p className="text-sm text-gray-600">{selectedRequest.candidate.skills}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-green-600">{selectedRequest.candidate.monthlyRate}</p>
+                <p className="text-xs text-gray-500">Monthly Rate</p>
+              </div>
+            </div>
+            
+            {!accessInfo.canDownloadPhoto && (
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertCircle className="h-4 w-4 text-orange-500 mr-2" />
+                  <span className="text-sm text-orange-700">
+                    Download requires payment approval
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </Modal>
   );
 };
