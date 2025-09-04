@@ -361,11 +361,11 @@ const RequestDetailsModal = ({
                           const fullUrl = `${API_CONFIG.BASE_URL}/${cleanPath}`;
                           return fullUrl;
                         })()}
-                        alt={selectedRequest.candidate.name}
+                    alt={selectedRequest.candidate.name}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
-                        onError={(e) => {
-                          e.target.src = '/api/placeholder/64/64';
-                        }}
+                    onError={(e) => {
+                      e.target.src = '/api/placeholder/64/64';
+                    }}
                         onClick={() => setShowFullImage(true)}
                       />
                       {accessInfo.canDownloadPhoto && (
@@ -429,7 +429,7 @@ const RequestDetailsModal = ({
                       : selectedRequest.candidate.location || 'Not specified'}
                   </p>
                 </div>
-                <div>
+                  <div>
                   <p className="text-sm font-medium text-gray-500 flex items-center">
                     Contact
                     {!accessInfo.canViewContact && (
@@ -444,7 +444,7 @@ const RequestDetailsModal = ({
                   {!accessInfo.canViewContact && (
                     <p className="text-xs text-orange-600 mt-1">Requires full details access</p>
                   )}
-                </div>
+                  </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 flex items-center">
                     Email
@@ -473,12 +473,12 @@ const RequestDetailsModal = ({
                   <p className="text-sm font-medium text-gray-500">Availability</p>
                   <p className="text-gray-900">{selectedRequest.candidate.availability}</p>
                 </div>
-                <div>
+                  <div>
                   <p className="text-sm font-medium text-gray-500">Languages</p>
                   <p className="text-gray-900">{selectedRequest.candidate.languages}</p>
-                </div>
+                  </div>
               </div>
-              
+
               {/* Additional Information */}
               {selectedRequest.candidate.description && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
@@ -517,8 +517,8 @@ const RequestDetailsModal = ({
                           accessInfo.canViewPhoto ? 'text-green-600' : 'text-orange-600'
                         }`}>
                           {accessInfo.canViewPhoto ? 'Granted' : 'Pending'}
-                        </span>
-                      </div>
+                    </span>
+                  </div>
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
@@ -536,7 +536,7 @@ const RequestDetailsModal = ({
                           accessInfo.canViewContact ? 'text-green-600' : 'text-orange-600'
                         }`}>
                           {accessInfo.canViewContact ? 'Granted' : 'Pending'}
-                        </span>
+                    </span>
                       </div>
                     </div>
                   </div>
@@ -550,8 +550,8 @@ const RequestDetailsModal = ({
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                         accessInfo.hasFullAccess ? 'bg-green-100 text-green-800' :
                         accessInfo.canViewPhoto ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      'bg-red-100 text-red-800'
+                    }`}>
                         {accessInfo.hasFullAccess ? (
                           <>
                             <ShieldCheck className="h-3 w-3 mr-1" />
@@ -580,7 +580,7 @@ const RequestDetailsModal = ({
                         getAccessControlStatusColor()
                       }`}>
                         {getAccessControlStatusText()}
-                      </span>
+                    </span>
                     </div>
                   </div>
                 </div>

@@ -1262,7 +1262,7 @@ const resources = {
       'jobSeekers.filters.expert': 'Ufite Uburambe Bwinshi (10+ imyaka)',
 
       // Filter Options - Categories
-      'jobSeekers.filters.allCategories': 'Ibice Byose',
+      'jobSeekers.filters.allCategories': 'Ibyiciro Byose',
 
       // Filter Options - Locations
       'jobSeekers.filters.kigali': 'Kigali',
@@ -1294,11 +1294,11 @@ const resources = {
       // Loading and Error States
       'jobSeekers.loading.approvedSeekers': 'Turimo kurukurikirana abashaka akazi bemewe...',
       'jobSeekers.loading.verifiedProfiles': 'Imirondoro yemewe gusa niyo igaragara',
-      'jobSeekers.loading.categories': 'Turimo kurukurikirana ibice...',
+      'jobSeekers.loading.categories': 'Turimo kurukurikirana ibyiciro...',
       'jobSeekers.errors.loadingJobSeekers': 'Ikibazo mu Kurukurikirana Abashaka Akazi',
       'jobSeekers.errors.tryAgain': 'Ongera Ugerageze',
-      'jobSeekers.errors.categoriesLoad': "Ntibishoboye kurukurikirana ibice by'akazi",
-      'jobSeekers.errors.categoriesUnavailable': "Hari ikibazo mu kurukurikirana ibice by'akazi. Gushungura ibice ntibishoboye kugeza ubu.",
+      'jobSeekers.errors.categoriesLoad': "Ntibishoboye kurukurikirana ibyiciro by'akazi",
+      'jobSeekers.errors.categoriesUnavailable': "Hari ikibazo mu kurukurikirana ibyiciro by'akazi. Gushungura ibyiciro ntibishoboye kugeza ubu.",
 
       // Statistics Cards
       'jobSeekers.stats.totalJobSeekers': 'Abashaka Akazi Bose',
@@ -1489,8 +1489,8 @@ const resources = {
       'register.certificationsPlaceholder': 'Andika impamyabumenyi cyangwa amahugurwa',
       'register.descriptionPlaceholder': 'Ibisobanura gito kuri wewe',
       'register.referencesPlaceholder': 'Abashinze b\'umwuga cyangwa abakoresha ba vuba...',
-      'register.loadingCategories': 'Turimo gukurikirana ibice...',
-      'register.errorLoadingCategories': 'Ikibazo mu kurukurikirana ibice:',
+      'register.loadingCategories': 'Turimo kureba ibyiciro...',
+      'register.errorLoadingCategories': 'Ikibazo mu kurukurikirana ibyiciro:',
       'register.errors.skillsRequired': 'Ubumenyi bumwe bukenewe',
       'register.errors.languagesRequired': 'Indimi imwe ikenewe',
       'register.errors.experienceLevelRequired': 'Uburambe buhagije bukenewe',
@@ -2002,7 +2002,7 @@ const resources = {
       'admin.dashboard.subtitle': 'Gukurikirana ibikorwa by\'abakozi b\'ubumenyi buke',
       'admin.dashboard.stats.totalJobSeekers': 'Abakozi Bose',
       'admin.dashboard.stats.pendingRequests': 'Amasaba Atararangiye',
-      'admin.dashboard.stats.activeCategories': 'Ibice Bikora',
+      'admin.dashboard.stats.activeCategories': 'Ibyiciro Bikora',
       'admin.dashboard.stats.growthRate': 'Umubare w\'Ikura',
       'admin.dashboard.recentRequests': 'Amasaba ya Vuba',
       'admin.dashboard.recentJobSeekers': 'Abakozi ba Vuba',

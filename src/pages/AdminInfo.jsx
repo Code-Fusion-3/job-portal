@@ -128,22 +128,22 @@ const AdminInfo = () => {
             <p className="text-xl md:text-2xl text-blue-100 mb-6">{personal.title}</p>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               {personal.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
                   <span>{personal.location}</span>
-                </div>
+              </div>
               )}
               {personal.email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
                   <span>{personal.email}</span>
-                </div>
+              </div>
               )}
               {personal.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4" />
                   <span>{personal.phone}</span>
-                </div>
+              </div>
               )}
             </div>
           </motion.div>
@@ -158,53 +158,53 @@ const AdminInfo = () => {
             
             {/* About Me - Only show if aboutMe exists */}
             {personal.aboutMe && (
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-600" />
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+              <Card className="p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-blue-600" />
                     About Me
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed">
+            </h2>
+                <p className="text-gray-700 leading-relaxed">
                     {personal.aboutMe}
-                  </p>
-                </Card>
-              </motion.div>
+            </p>
+              </Card>
+            </motion.div>
             )}
           
             {/* Skills - Only show if skills exist and have content */}
             {skills && Object.keys(skills).length > 0 && Object.values(skills).some(skillList => skillList && skillList.length > 0) && (
               <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-blue-600" />
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <Card className="p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-blue-600" />
                     Skills
-                  </h2>
-                  <div className="space-y-4">
+                </h2>
+                <div className="space-y-4">
                     {Object.entries(skills).map(([category, skillList]) => (
                       skillList && skillList.length > 0 && (
                         <div key={category}>
                           <h3 className="font-semibold text-gray-800 mb-2 capitalize">{category}</h3>
-                          <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2">
                             {skillList.map((skill, skillIndex) => (
-                              <span 
-                                key={skillIndex}
-                                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                          <span 
+                            key={skillIndex}
+                            className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                       )
-                    ))}
+                  ))}
                   </div>
                 </Card>
               </motion.div>
@@ -214,41 +214,41 @@ const AdminInfo = () => {
 
             {/* Social Media - Only show if social media links exist */}
             {(personal.facebook || personal.linkedin || personal.twitter || personal.instagram) && (
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 1.0 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 1.0 }}
+            >
+              <Card className="p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Globe className="w-5 h-5 text-blue-600" />
                     Social Media
-                  </h2>
-                  <div className="space-y-3">
+                </h2>
+                <div className="space-y-3">
                     {personal.facebook && (
-                      <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                         <Facebook className="w-4 h-4 text-blue-600" />
                         <a href={personal.facebook.startsWith('http') ? personal.facebook : `https://${personal.facebook}`} 
                            target="_blank" 
                            rel="noopener noreferrer"
                            className="text-blue-600 hover:text-blue-800">
                           {personal.facebook.includes('facebook.com') ? 'Facebook Profile' : personal.facebook}
-                        </a>
-                      </div>
+                    </a>
+                  </div>
                     )}
                     {personal.linkedin && (
-                      <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                         <Linkedin className="w-4 h-4 text-blue-700" />
                         <a href={personal.linkedin.startsWith('http') ? personal.linkedin : `https://${personal.linkedin}`} 
                            target="_blank" 
                            rel="noopener noreferrer"
                            className="text-blue-600 hover:text-blue-800">
                           {personal.linkedin.includes('linkedin.com') ? 'LinkedIn Profile' : personal.linkedin}
-                        </a>
-                      </div>
+                    </a>
+                  </div>
                     )}
                     {personal.twitter && (
-                      <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                         <Twitter className="w-4 h-4 text-blue-400" />
                         <a href={personal.twitter.startsWith('http') ? personal.twitter : `https://${personal.twitter}`} 
                            target="_blank" 
@@ -256,22 +256,22 @@ const AdminInfo = () => {
                            className="text-blue-600 hover:text-blue-800">
                           {personal.twitter.includes('twitter.com') ? 'Twitter Profile' : personal.twitter}
                         </a>
-                      </div>
+                  </div>
                     )}
                     {personal.instagram && (
-                      <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                         <Instagram className="w-4 h-4 text-pink-600" />
                         <a href={personal.instagram.startsWith('http') ? personal.instagram : `https://${personal.instagram}`} 
                            target="_blank" 
                            rel="noopener noreferrer"
                            className="text-blue-600 hover:text-blue-800">
                           {personal.instagram.includes('instagram.com') ? 'Instagram Profile' : personal.instagram}
-                        </a>
-                      </div>
+                    </a>
+                </div>
                     )}
-                  </div>
-                </Card>
-              </motion.div>
+              </div>
+              </Card>
+            </motion.div>
             )}
           </div>
 
@@ -280,69 +280,69 @@ const AdminInfo = () => {
             
             {/* Professional Experience - Only show if experience exists and has content */}
             {experience && experience.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <Briefcase className="w-6 h-6 text-blue-600" />
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Briefcase className="w-6 h-6 text-blue-600" />
                     Professional Experience
-                  </h2>
-                  <div className="space-y-6">
-                    {experience.map((exp, index) => (
-                      <div key={index} className="border-l-4 border-blue-500 pl-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{exp.position}</h3>
-                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            {exp.period}
-                          </span>
-                        </div>
-                        <h4 className="text-md font-medium text-blue-600 mb-2">{exp.company}</h4>
-                        <p className="text-gray-700 mb-3 leading-relaxed">{exp.description}</p>
-                        {exp.achievements && exp.achievements.length > 0 && (
-                          <ul className="list-disc list-inside space-y-1">
-                            {exp.achievements.map((achievement, achIndex) => (
-                              <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
-                            ))}
-                          </ul>
-                        )}
+                </h2>
+                <div className="space-y-6">
+                  {experience.map((exp, index) => (
+                    <div key={index} className="border-l-4 border-blue-500 pl-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{exp.position}</h3>
+                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {exp.period}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </Card>
-              </motion.div>
+                      <h4 className="text-md font-medium text-blue-600 mb-2">{exp.company}</h4>
+                      <p className="text-gray-700 mb-3 leading-relaxed">{exp.description}</p>
+                        {exp.achievements && exp.achievements.length > 0 && (
+                      <ul className="list-disc list-inside space-y-1">
+                        {exp.achievements.map((achievement, achIndex) => (
+                          <li key={achIndex} className="text-sm text-gray-600">{achievement}</li>
+                        ))}
+                      </ul>
+                        )}
+                </div>
+                  ))}
+              </div>
+              </Card>
+            </motion.div>
             )}
 
             {/* Education - Only show if education exists and has content */}
             {education && education.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <GraduationCap className="w-6 h-6 text-blue-600" />
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <GraduationCap className="w-6 h-6 text-blue-600" />
                     Education
-                  </h2>
-                  <div className="space-y-4">
-                    {education.map((edu, index) => (
-                      <div key={index} className="border-l-4 border-green-500 pl-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{edu.degree}</h3>
-                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            {edu.period}
-                          </span>
-                        </div>
-                        <h4 className="text-md font-medium text-green-600 mb-1">{edu.school}</h4>
-                        <p className="text-gray-700 text-sm">{edu.description}</p>
+            </h2>
+                <div className="space-y-4">
+                  {education.map((edu, index) => (
+                    <div key={index} className="border-l-4 border-green-500 pl-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{edu.degree}</h3>
+                        <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {edu.period}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </Card>
-              </motion.div>
+                      <h4 className="text-md font-medium text-green-600 mb-1">{edu.school}</h4>
+                      <p className="text-gray-700 text-sm">{edu.description}</p>
+                    </div>
+                  ))}
+          </div>
+              </Card>
+            </motion.div>
             )}
 
             {/* Certifications - Only show if certifications exist and have content */}
@@ -377,50 +377,50 @@ const AdminInfo = () => {
             {/* Key Projects - Only show if projects exist and have content */}
             {projects && projects.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-              >
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <Code className="w-6 h-6 text-blue-600" />
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Code className="w-6 h-6 text-blue-600" />
                     Key Projects
-                  </h2>
-                  <div className="space-y-4">
-                    {projects.map((project, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
-                          <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            project.status === 'live' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                </h2>
+                <div className="space-y-4">
+                  {projects.map((project, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          project.status === 'live' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                             {project.status}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
+                        </span>
+                </div>
+                      <p className="text-gray-700 mb-3 text-sm leading-relaxed">{project.description}</p>
                         {project.tech && (
-                          <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2">
                             {Array.isArray(project.tech) ? project.tech.map((tech, techIndex) => (
-                              <span 
-                                key={techIndex}
-                                className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
-                              >
-                                {tech}
-                              </span>
+                          <span 
+                            key={techIndex}
+                            className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                          >
+                            {tech}
+                          </span>
                             )) : (
                               <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                                 {project.tech}
                               </span>
                             )}
-                          </div>
+          </div>
                         )}
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </motion.div>
+        </div>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
             )}
           </div>
         </div>
