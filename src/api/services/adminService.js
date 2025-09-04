@@ -531,4 +531,20 @@ export const adminService = {
   }
 };
 
+// System administration functions
+const cleanTestingData = async () => {
+  try {
+    const response = await apiClient.post('/admin/clean-testing-data', {}, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error cleaning testing data:', error);
+    throw handleError(error);
+  }
+};
+
+// Add cleanTestingData to the adminService object
+adminService.cleanTestingData = cleanTestingData;
+
 export default adminService; 

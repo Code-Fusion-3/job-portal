@@ -22,7 +22,8 @@ import {
   DollarSign,
   Banknote,
   Bell,
-  BellRing
+  BellRing,
+  Trash as TrashIcon
 } from 'lucide-react';
 import { useRequests } from '../../api/hooks/useRequests.js';
 import { useAuth } from '../../contexts/AuthContext.jsx';
@@ -32,6 +33,7 @@ import { useJobSeekers } from '../../api/hooks/useJobSeekers.js';
 import messagingService from '../../api/services/messagingService.js';
 import EmployerRequestService from '../../api/services/employerRequestService.js';
 import NotificationService from '../../api/services/notificationService.js';
+import adminService from '../../api/services/adminService.js';
 import WorkflowStatus from '../../components/workflow/WorkflowStatus.jsx';
 import WorkflowProgress from '../../components/workflow/WorkflowProgress.jsx';
 import Card from '../../components/ui/Card';
@@ -63,6 +65,7 @@ const EmployerRequestsPage = () => {
   const [pageInfo, setPageInfo] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({});
+  const [cleaningData, setCleaningData] = useState(false);
   
   // Fetch data using the new rich data endpoint
   const fetchRequests = useCallback(async (page = currentPage, search = searchTerm, filterParams = filters) => {
@@ -162,6 +165,74 @@ const EmployerRequestsPage = () => {
   // Legacy functions for compatibility
   const replyToRequest = () => {};
   const selectJobSeekerForRequest = () => {};
+
+  // Clean testing data handler
+  const handleCleanTestingData = async () => {
+    const isConfirmed = window.confirm(
+      '⚠️ DANGER: This will permanently delete all testing data!\n\n' +
+      'This includes:\n' +
+      '• All job seekers and their profiles\n' +
+      '• All employer accounts and requests\n' +
+      '• All payments and messages\n' +
+      '• All notifications and progress data\n\n' +
+      'This action CANNOT be undone!\n\n' +
+      'Admin accounts and job categories will be preserved.\n\n' +
+      'Are you absolutely sure you want to continue?'
+    );
+
+    if (!isConfirmed) return;
+
+    // Double confirmation
+    const secondConfirm = window.confirm(
+      '🚨 FINAL WARNING!\n\n' +
+      'You are about to delete ALL testing data.\n\n' +
+      'Type "DELETE" in the next prompt to confirm:'
+    );
+
+    if (!secondConfirm) return;
+
+    const userInput = window.prompt('Type "DELETE" to confirm deletion:');
+    if (userInput !== 'DELETE') {
+      alert('Deletion cancelled. You must type "DELETE" exactly as shown.');
+      return;
+    }
+
+    setCleaningData(true);
+
+    try {
+      const result = await adminService.cleanTestingData();
+      
+      if (result.success) {
+        alert(
+          '✅ Testing data cleaned successfully!\n\n' +
+          `Summary:\n` +
+          `• ${result.summary.users || 0} users deleted\n` +
+          `• ${result.summary.employerRequests || 0} employer requests deleted\n` +
+          `• ${result.summary.profiles || 0} job seeker profiles deleted\n` +
+          `• ${result.summary.payments || 0} payments deleted\n` +
+          `• ${result.summary.messages || 0} messages deleted\n` +
+          `• ${result.summary.notifications || 0} notifications deleted\n` +
+          `• ${result.summary.contacts || 0} contacts deleted\n` +
+          `• ${result.summary.auditLogs || 0} audit logs deleted\n\n` +
+          'Preserved: Admin accounts, Job categories'
+        );
+
+        // Refresh the page data
+        fetchRequests(1, '', {});
+      } else {
+        throw new Error(result.details || 'Failed to clean data');
+      }
+    } catch (error) {
+      console.error('Error cleaning testing data:', error);
+      alert(
+        '❌ Failed to clean testing data!\n\n' +
+        `Error: ${error.message}\n\n` +
+        'Please check the console for more details and try again.'
+      );
+    } finally {
+      setCleaningData(false);
+    }
+  };
   const updateRequestStatus = () => {};
 
   const { categories, loadingCategories, fetchCategories } = useCategories();
@@ -1267,16 +1338,6 @@ const EmployerRequestsPage = () => {
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       description: 'Successfully closed'
-    },
-    {
-      title: 'Notifications',
-      value: unreadCount.toString(),
-      change: unreadCount > 0 ? `${unreadCount} unread` : 'All caught up',
-      changeType: unreadCount > 0 ? 'increase' : 'neutral',
-      icon: unreadCount > 0 ? BellRing : Bell,
-      color: unreadCount > 0 ? 'text-orange-600' : 'text-gray-600',
-      bgColor: unreadCount > 0 ? 'bg-orange-50' : 'bg-gray-50',
-      description: 'Workflow updates'
     }
   ], [filteredData, safeDataForRendering, activeFiltersCount]);
 
@@ -2162,6 +2223,26 @@ const EmployerRequestsPage = () => {
               <span className="ml-2 text-xl font-bold text-gray-900">Employer Requests</span>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Clean Testing Data Button */}
+              <button
+                onClick={handleCleanTestingData}
+                disabled={cleaningData}
+                className="flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Clean all testing data (preserves admin accounts and job categories)"
+              >
+                {cleaningData ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                    Cleaning...
+                  </>
+                ) : (
+                  <>
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    Clean Data
+                  </>
+                )}
+              </button>
+              
               {/* Notification Bell */}
               <div className="relative">
                 <button
