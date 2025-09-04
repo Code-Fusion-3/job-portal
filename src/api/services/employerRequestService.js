@@ -439,6 +439,62 @@ class EmployerRequestService {
     }
   }
 
+  /**
+   * Get all admin employer requests with rich data (Admin)
+   * @param {Object} params - Query parameters
+   */
+  static async getAllAdminRequests(params = {}) {
+    try {
+      const { page = 1, limit = 10, status, priority, search, sortBy, sortOrder, category, dateFrom, dateTo, ...otherParams } = params;
+      
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...otherParams
+      });
+
+      // Add optional filters
+      if (status) queryParams.append('status', status);
+      if (priority) queryParams.append('priority', priority);
+      if (search) queryParams.append('search', search);
+      if (sortBy) queryParams.append('sortBy', sortBy);
+      if (sortOrder) queryParams.append('sortOrder', sortOrder);
+      if (category) queryParams.append('category', category);
+      if (dateFrom) queryParams.append('dateFrom', dateFrom);
+      if (dateTo) queryParams.append('dateTo', dateTo);
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data: {
+          requests: data.requests || [],
+          pagination: data.pagination || {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: 0,
+            totalPages: 1
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error getting all admin requests:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
 
 }
 

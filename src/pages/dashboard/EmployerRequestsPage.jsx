@@ -53,29 +53,116 @@ const EmployerRequestsPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   
-  // Hooks
-  const {
-    requests: safeData, 
-    loading,
-    error,
-    currentPage,
-    totalPages,
-    totalItems,
-    pageInfo,
-    hasNextPage,
-    hasPrevPage,
-    searchTerm,
-    setSearchTerm,
-    filters,
-    setFilters,
-    goToPage,
-    nextPage,
-    prevPage,
-    applyFilters,
-    replyToRequest,
-    selectJobSeekerForRequest,
-    updateRequestStatus // Added updateRequestStatus to useRequests hook
-  } = useRequests({ includeAdmin: true });
+  // Custom hook for rich data
+  const [safeData, setSafeData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageInfo, setPageInfo] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({});
+  
+  // Fetch data using the new rich data endpoint
+  const fetchRequests = useCallback(async (page = currentPage, search = searchTerm, filterParams = filters) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const queryParams = {
+        page,
+        limit: 10,
+        search,
+        ...filterParams
+      };
+
+      const result = await EmployerRequestService.getAllAdminRequests(queryParams);
+      if (result.success) {
+        setSafeData(result.data.requests || []);
+        setTotalPages(result.data.pagination?.totalPages || 1);
+        setTotalItems(result.data.pagination?.total || 0);
+        setCurrentPage(result.data.pagination?.page || 1);
+        setPageInfo(result.data.pagination || {});
+      } else {
+        setError(result.error || 'Failed to fetch requests');
+      }
+    } catch (error) {
+      setError('An error occurred while fetching requests');
+      console.error('Error fetching requests:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, searchTerm, filters]);
+
+  // Pagination functions
+  const goToPage = useCallback((page) => {
+    setCurrentPage(page);
+    fetchRequests(page, searchTerm, filters);
+  }, [fetchRequests, searchTerm, filters]);
+
+  const nextPage = useCallback(() => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  }, [currentPage, totalPages, goToPage]);
+
+  const prevPage = useCallback(() => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  }, [currentPage, goToPage]);
+
+  const hasNextPage = useMemo(() => currentPage < totalPages, [currentPage, totalPages]);
+  const hasPrevPage = useMemo(() => currentPage > 1, [currentPage]);
+  
+  const applyFilters = useCallback(() => {
+    fetchRequests(currentPage, searchTerm, filters);
+  }, [fetchRequests, currentPage, searchTerm, filters]);
+
+  // Load initial data
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  // Search and filter functions
+  const handleSearchChange = useCallback((term) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page when searching
+    fetchRequests(1, term, filters);
+  }, [filters, fetchRequests]);
+
+  const handleFilterChange = useCallback((key, value) => {
+    // Update both server-side filters and local form state
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    
+    // Also update local filters for form display
+    setLocalFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    
+    setCurrentPage(1); // Reset to first page when filtering
+    fetchRequests(1, searchTerm, newFilters);
+  }, [filters, searchTerm, fetchRequests]);
+
+  // Update search term function
+  const setSearchTermUpdated = useCallback((term) => {
+    handleSearchChange(term);
+  }, [handleSearchChange]);
+
+  // Update filters function  
+  const setFiltersUpdated = useCallback((newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+    fetchRequests(1, searchTerm, newFilters);
+  }, [searchTerm, fetchRequests]);
+
+  // Legacy functions for compatibility
+  const replyToRequest = () => {};
+  const selectJobSeekerForRequest = () => {};
+  const updateRequestStatus = () => {};
 
   const { categories, loadingCategories, fetchCategories } = useCategories();
 
@@ -200,8 +287,9 @@ const EmployerRequestsPage = () => {
   // Request details loading state
   const [requestDetailsLoading, setRequestDetailsLoading] = useState(false);
 
-  // Search and Filter state
-  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  // Search and Filter state (now using server-side filtering)
+  // const [localSearchTerm, setLocalSearchTerm] = useState(''); // Replaced by searchTerm
+  // const [localFilters, setLocalFilters] = useState({ // Replaced by filters
   const [localFilters, setLocalFilters] = useState({
     status: '',
     priority: '',
@@ -772,7 +860,13 @@ const EmployerRequestsPage = () => {
   };
 
   // Transform the data for display
-  const transformedRequests = safeData.map(transformRequestData).filter(Boolean);
+  const transformedRequests = useMemo(() => {
+    if (!safeData || !Array.isArray(safeData)) return [];
+    
+    const transformed = safeData.map(transformRequestData).filter(Boolean);
+    
+    return transformed;
+  }, [safeData]);
 
   // Ensure data is safe for rendering
   const safeDataForRendering = transformedRequests.map(item => {
@@ -992,13 +1086,20 @@ const EmployerRequestsPage = () => {
   }, [validateModalStates]);
 
 
-  // Search and filter logic
+  // For display purposes, we'll use the already transformed data since server-side filtering is applied
   const filteredData = useMemo(() => {
+    // Server-side filtering is applied, so we mostly use the data as-is
+    // But we can still apply local filters if needed
     let filtered = safeDataForRendering || [];
 
-    // Apply search term
-    if (localSearchTerm.trim()) {
-      const searchLower = localSearchTerm.toLowerCase();
+    // Apply local filters (status, priority, etc.) if they're not sent to server
+    if (localFilters.status && localFilters.status !== 'all') {
+      filtered = filtered.filter(item => item.status === localFilters.status);
+    }
+    
+    // Additional client-side search if needed (but server-side search is primary)
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
         item.employerName?.toLowerCase().includes(searchLower) ||
         item.companyName?.toLowerCase().includes(searchLower) ||
@@ -1079,11 +1180,11 @@ const EmployerRequestsPage = () => {
     }
 
     return filtered;
-  }, [safeDataForRendering, localSearchTerm, localFilters]);
+  }, [safeDataForRendering, searchTerm, localFilters]);
 
-  // Handle search change with debouncing
-  const handleSearchChange = useCallback((value) => {
-    setLocalSearchTerm(value);
+  // Handle search change with debouncing (now triggers server-side search)
+  const handleSearchChangeDebounced = useCallback((value) => {
+    handleSearchChange(value);
     setIsSearching(true);
     
     // Debounce the search
@@ -1094,35 +1195,34 @@ const EmployerRequestsPage = () => {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Handle filter change
-  const handleFilterChange = useCallback((filterKey, value) => {
-    setLocalFilters(prev => ({
-      ...prev,
-      [filterKey]: value
-    }));
-  }, []);
 
     // Clear all filters
   const clearAllFilters = useCallback(() => {
-    setLocalFilters({
+    // Clear both server and local filters
+    const emptyFilters = {
       status: '',
       priority: '',
       category: '',
       dateRange: '',
       monthlyRateRange: ''
-    });
-    setLocalSearchTerm('');
-  }, []);
+    };
+    
+    setLocalFilters(emptyFilters);
+    setFilters(emptyFilters);
+    handleSearchChange('');
+    setCurrentPage(1);
+    fetchRequests(1, '', emptyFilters);
+  }, [fetchRequests, handleSearchChange]);
 
   // Get active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (localSearchTerm.trim()) count++;
+    if (searchTerm.trim()) count++;
     Object.values(localFilters).forEach(value => {
       if (value) count++;
     });
     return count;
-  }, [localSearchTerm, localFilters]);
+  }, [searchTerm, localFilters]);
 
   // Statistics calculation
   const stats = useMemo(() => [
@@ -2204,8 +2304,8 @@ const EmployerRequestsPage = () => {
                 <input
                   type="text"
                   placeholder="Search by employer name, company, candidate, or message..."
-                  value={localSearchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChangeDebounced(e.target.value)}
                   className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
                 />
                 {isSearching && (
@@ -2213,9 +2313,9 @@ const EmployerRequestsPage = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
                   </div>
                 )}
-                {localSearchTerm && (
+                {searchTerm && (
                   <button
-                    onClick={() => setLocalSearchTerm('')}
+                    onClick={() => handleSearchChange('')}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
@@ -2359,11 +2459,11 @@ const EmployerRequestsPage = () => {
                   {activeFiltersCount > 0 && (
                     <div className="pt-4 border-t border-gray-200">
                       <div className="flex flex-wrap gap-2">
-                        {localSearchTerm && (
+                        {searchTerm && (
                           <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                            Search: "{localSearchTerm}"
+                            Search: "{searchTerm}"
                             <button
-                              onClick={() => setLocalSearchTerm('')}
+                              onClick={() => handleSearchChange('')}
                               className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
                             >
                               <X className="h-3 w-3" />
@@ -2809,102 +2909,7 @@ const EmployerRequestsPage = () => {
             </div>
             )}
 
-            {/* Payment Information */}
-            {selectedRequest.latestPayment && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-green-600" />
-                  Payment Information
-                </h3>
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Type</label>
-                        <Badge color="text-green-600 bg-green-100 border-green-200">
-                          {selectedRequest.latestPayment.paymentType?.replace('_', ' ').toUpperCase() || 'Not specified'}
-                        </Badge>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <label className="text-sm font-medium text-green-600 block mb-1">Amount</label>
-                        <p className="text-gray-900 font-semibold text-lg">
-                          {selectedRequest.latestPayment.amount} {selectedRequest.latestPayment.currency}
-                        </p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Status</label>
-                        <Badge color={selectedRequest.latestPayment.status === 'confirmed' ? 'text-green-600 bg-green-100 border-green-200' : 'text-yellow-600 bg-yellow-100 border-yellow-200'}>
-                          {selectedRequest.latestPayment.status?.toUpperCase() || 'Not specified'}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Reference</label>
-                        <p className="text-gray-900 font-mono text-sm">{selectedRequest.latestPayment.paymentReference || 'Not provided'}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <label className="text-sm font-medium text-green-600 block mb-1">Confirmation Date</label>
-                        <p className="text-gray-900 font-medium">
-                          {selectedRequest.latestPayment.confirmationDate 
-                            ? new Date(selectedRequest.latestPayment.confirmationDate).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })
-                            : 'Not provided'}
-                        </p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <label className="text-sm font-medium text-green-600 block mb-1">Payment Date</label>
-                        <p className="text-gray-900 font-medium">
-                          {new Date(selectedRequest.latestPayment.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Payment Confirmation Details */}
-                  {(selectedRequest.latestPayment.confirmationName || selectedRequest.latestPayment.confirmationPhone) && (
-                    <div className="mt-6 pt-6 border-t border-green-200">
-                      <h4 className="text-md font-semibold text-green-900 mb-3">Payment Confirmation Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedRequest.latestPayment.confirmationName && (
-                          <div className="bg-white rounded-lg p-4 border border-green-100">
-                            <label className="text-sm font-medium text-green-600 block mb-1">Payer Name</label>
-                            <p className="text-gray-900 font-medium">{selectedRequest.latestPayment.confirmationName}</p>
-                          </div>
-                        )}
-                        {selectedRequest.latestPayment.confirmationPhone && (
-                          <div className="bg-white rounded-lg p-4 border border-green-100">
-                            <label className="text-sm font-medium text-green-600 block mb-1">Payer Phone</label>
-                            <p className="text-gray-900 font-medium">{selectedRequest.latestPayment.confirmationPhone}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Admin Notes */}
-                  {selectedRequest.latestPayment.adminNotes && selectedRequest.latestPayment.adminNotes !== 'No additional notes' && (
-                    <div className="mt-6 pt-6 border-t border-green-200">
-                      <h4 className="text-md font-semibold text-green-900 mb-3">Admin Notes</h4>
-                      <div className="bg-white rounded-lg p-4 border border-green-100">
-                        <p className="text-gray-900 leading-relaxed">{selectedRequest.latestPayment.adminNotes}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+          
           </div>
         </Modal>
       )}
