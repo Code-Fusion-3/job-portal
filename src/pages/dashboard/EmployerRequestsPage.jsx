@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  MessageSquare, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertCircle,
-  Eye, 
-  Mail, 
+  Eye,
+  Mail,
   Phone,
   Calendar,
   User,
@@ -54,7 +54,7 @@ import toast, { Toaster } from 'react-hot-toast';
 const EmployerRequestsPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  
+
   // Custom hook for rich data
   const [safeData, setSafeData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -66,12 +66,12 @@ const EmployerRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({});
   const [cleaningData, setCleaningData] = useState(false);
-  
+
   // Fetch data using the new rich data endpoint
   const fetchRequests = useCallback(async (page = currentPage, search = searchTerm, filterParams = filters) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const queryParams = {
         page,
@@ -118,7 +118,7 @@ const EmployerRequestsPage = () => {
 
   const hasNextPage = useMemo(() => currentPage < totalPages, [currentPage, totalPages]);
   const hasPrevPage = useMemo(() => currentPage > 1, [currentPage]);
-  
+
   const applyFilters = useCallback(() => {
     fetchRequests(currentPage, searchTerm, filters);
   }, [fetchRequests, currentPage, searchTerm, filters]);
@@ -139,13 +139,13 @@ const EmployerRequestsPage = () => {
     // Update both server-side filters and local form state
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    
+
     // Also update local filters for form display
     setLocalFilters(prev => ({
       ...prev,
       [key]: value
     }));
-    
+
     setCurrentPage(1); // Reset to first page when filtering
     fetchRequests(1, searchTerm, newFilters);
   }, [filters, searchTerm, fetchRequests]);
@@ -163,8 +163,8 @@ const EmployerRequestsPage = () => {
   }, [searchTerm, fetchRequests]);
 
   // Legacy functions for compatibility
-  const replyToRequest = () => {};
-  const selectJobSeekerForRequest = () => {};
+  const replyToRequest = () => { };
+  const selectJobSeekerForRequest = () => { };
 
   // Clean testing data handler
   const handleCleanTestingData = async () => {
@@ -201,7 +201,7 @@ const EmployerRequestsPage = () => {
 
     try {
       const result = await adminService.cleanTestingData();
-      
+
       if (result.success) {
         alert(
           '✅ Testing data cleaned successfully!\n\n' +
@@ -233,7 +233,7 @@ const EmployerRequestsPage = () => {
       setCleaningData(false);
     }
   };
-  const updateRequestStatus = () => {};
+  const updateRequestStatus = () => { };
 
   const { categories, loadingCategories, fetchCategories } = useCategories();
 
@@ -251,6 +251,9 @@ const EmployerRequestsPage = () => {
       { value: 'second_payment_confirmed', label: 'Second Payment Confirmed' },
       { value: 'full_access_granted', label: 'Full Access Granted' },
       { value: 'hiring_decision_made', label: 'Hiring Decision Made' },
+      { value: 'hired', label: 'Hired' },
+      { value: 'available', label: 'Available' },
+      { value: 'process_complete', label: 'Process Complete' },
       { value: 'completed', label: 'Completed' },
       { value: 'cancelled', label: 'Cancelled' },
       // Legacy statuses for backward compatibility
@@ -281,10 +284,10 @@ const EmployerRequestsPage = () => {
     ],
     monthlyRateRange: [
       { value: '', label: 'All Rates' },
-              { value: '0-50000', label: '0 - 50,000 frw' },
-        { value: '50000-100000', label: '50,000 - 100,000 frw' },
-        { value: '100000-200000', label: '100,000 - 200,000 frw' },
-        { value: '200000+', label: '200,000+ frw' }
+      { value: '0-50000', label: '0 - 50,000 frw' },
+      { value: '50000-100000', label: '50,000 - 100,000 frw' },
+      { value: '100000-200000', label: '100,000 - 200,000 frw' },
+      { value: '200000+', label: '200,000+ frw' }
     ],
 
   };
@@ -298,7 +301,7 @@ const EmployerRequestsPage = () => {
   const [replyMessage, setReplyMessage] = useState('');
   const [replyLoading, setReplyLoading] = useState(false);
   const [replyError, setReplyError] = useState('');
-  
+
   // Candidate selection state
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [candidateSelectionLoading, setCandidateSelectionLoading] = useState(false);
@@ -415,7 +418,7 @@ const EmployerRequestsPage = () => {
       setShowMessagingModal(true);
       setMessagingLoading(true);
       setMessagingError('');
-      
+
       const response = await messagingService.getMessagesByRequest(request.id);
       setMessages(response.messages || []);
     } catch (error) {
@@ -440,12 +443,12 @@ const EmployerRequestsPage = () => {
     try {
       setMessagingLoading(true);
       setMessagingError('');
-      
+
       await messagingService.sendMessage(selectedRequest.id, {
         content: newMessage.trim(),
         messageType: 'text'
       });
-      
+
       setNewMessage('');
       // Refresh messages
       const response = await messagingService.getMessagesByRequest(selectedRequest.id);
@@ -500,10 +503,10 @@ const EmployerRequestsPage = () => {
   const markNotificationAsRead = async (notificationId) => {
     try {
       await NotificationService.markAsRead(notificationId);
-      
+
       // Update local state
-      setNotifications(prev => 
-        prev.map(notif => 
+      setNotifications(prev =>
+        prev.map(notif =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif
         )
       );
@@ -516,7 +519,7 @@ const EmployerRequestsPage = () => {
   const markAllNotificationsAsRead = async () => {
     try {
       await NotificationService.markAllAsRead();
-      
+
       // Update local state
       setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
       setUnreadCount(0);
@@ -535,10 +538,10 @@ const EmployerRequestsPage = () => {
       timestamp: new Date(),
       isRead: false
     };
-    
+
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(prev => prev + 1);
-    
+
     // Show toast notification
     toast.success(message, {
       duration: 5000,
@@ -549,10 +552,10 @@ const EmployerRequestsPage = () => {
   // Load notifications on component mount
   useEffect(() => {
     fetchNotifications();
-    
+
     // Set up polling for new notifications
     const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -609,7 +612,7 @@ const EmployerRequestsPage = () => {
 
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!paymentFormData.paymentMethodId || !paymentFormData.amount) {
       setPaymentError('Please select a payment method and enter amount');
       return;
@@ -657,27 +660,27 @@ const EmployerRequestsPage = () => {
   // Request details functions
   const openRequestDetailsModal = async (request) => {
     console.log('Opening request details modal for request:', request);
-    
+
     try {
       setRequestDetailsLoading(true);
-      
+
       // Always fetch fresh data from the backend to ensure we have the latest information
       const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${request.id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         }
       });
-      
+
       if (response.ok) {
         const backendRequest = await response.json();
         console.log('Fetched full request data from backend:', backendRequest);
         console.log('Employer Account data:', backendRequest.employerAccount);
         console.log('Employer User data:', backendRequest.employerAccount?.user);
-        
+
         // Transform the backend data to frontend format
         const transformedRequest = transformRequestData(backendRequest);
         console.log('Transformed request data:', transformedRequest);
-        
+
         // Set the transformed request as selected
         setSelectedRequest(transformedRequest);
       } else {
@@ -692,7 +695,7 @@ const EmployerRequestsPage = () => {
     } finally {
       setRequestDetailsLoading(false);
     }
-    
+
     setShowDetailsModal(true);
   };
 
@@ -701,7 +704,7 @@ const EmployerRequestsPage = () => {
     console.log('Opening payment approval modal for request:', request);
     console.log('Request latestPayment:', request.latestPayment);
     console.log('Request _backendData:', request._backendData);
-    
+
     try {
       // Always fetch fresh data from the backend to ensure we have the latest payment information
       const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${request.id}`, {
@@ -709,15 +712,15 @@ const EmployerRequestsPage = () => {
           'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         }
       });
-      
+
       if (response.ok) {
         const backendRequest = await response.json();
         console.log('Fetched full request data from backend:', backendRequest);
-        
+
         // Transform the backend data to frontend format
         const transformedRequest = transformRequestData(backendRequest);
         console.log('Transformed request data:', transformedRequest);
-        
+
         // Set the transformed request as selected
         setSelectedRequest(transformedRequest);
       } else {
@@ -730,7 +733,7 @@ const EmployerRequestsPage = () => {
       // Fallback to the original request data
       setSelectedRequest(request);
     }
-    
+
     setShowPaymentApprovalModal(true);
     setPaymentApprovalData({
       action: 'approve',
@@ -750,7 +753,7 @@ const EmployerRequestsPage = () => {
 
   const handlePaymentApproval = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedRequest) {
       setPaymentApprovalError('No request selected');
       return;
@@ -762,7 +765,7 @@ const EmployerRequestsPage = () => {
 
       let result;
       const requestId = selectedRequest.id;
-      
+
       // Determine which approval action to take based on the current status
       if (selectedRequest.status === 'first_payment_confirmed' || selectedRequest.status === 'payment_confirmed') {
         // Approve first payment
@@ -809,12 +812,12 @@ const EmployerRequestsPage = () => {
   // Transform backend data to frontend format
   const transformRequestData = (backendRequest) => {
     if (!backendRequest) return null;
-    
+
     try {
       // Format monthly rate for display
       const formatMonthlyRate = (rate) => {
         if (!rate || rate === 'Not specified') return 'Not specified';
-        
+
         // If it's already a number, format it
         if (typeof rate === 'number') {
           return new Intl.NumberFormat('en-RW', {
@@ -823,7 +826,7 @@ const EmployerRequestsPage = () => {
             minimumFractionDigits: 0
           }).format(rate);
         }
-        
+
         // If it's a string, try to parse it
         if (typeof rate === 'string') {
           const numRate = parseFloat(rate);
@@ -836,7 +839,7 @@ const EmployerRequestsPage = () => {
           }
           return rate; // Return as is if it can't be parsed
         }
-        
+
         return 'Not specified';
       };
 
@@ -844,7 +847,7 @@ const EmployerRequestsPage = () => {
         id: backendRequest.id,
         employerName: backendRequest.employerAccount?.user?.name || backendRequest.employerAccount?.companyName || backendRequest.name || 'Unknown',
         companyName: backendRequest.employerAccount?.companyName || backendRequest.companyName || 'Private',
-        candidateName: backendRequest.requestedCandidate 
+        candidateName: backendRequest.requestedCandidate
           ? `${backendRequest.requestedCandidate.profile?.firstName || ''} ${backendRequest.requestedCandidate.profile?.lastName || ''}`.trim() || 'Not specified'
           : 'Not specified',
         position: backendRequest.requestedCandidate?.profile?.skills || 'General',
@@ -933,9 +936,9 @@ const EmployerRequestsPage = () => {
   // Transform the data for display
   const transformedRequests = useMemo(() => {
     if (!safeData || !Array.isArray(safeData)) return [];
-    
+
     const transformed = safeData.map(transformRequestData).filter(Boolean);
-    
+
     return transformed;
   }, [safeData]);
 
@@ -959,7 +962,7 @@ const EmployerRequestsPage = () => {
         }
       };
     }
-    
+
     // Normal data processing
     return {
       ...item,
@@ -983,9 +986,9 @@ const EmployerRequestsPage = () => {
     try {
       transformedRequests.forEach(r => {
         const raw = r._backendData?.requestedCandidate?.profile?.photo || r._backendData?.requestedCandidate?.photo || null;
-       
+
       });
-    
+
     } catch (err) {
       console.log('EmployerRequestsPage: debug logging error', err);
     }
@@ -1021,7 +1024,7 @@ const EmployerRequestsPage = () => {
         const avatarUrl = rawPhoto ? (/^https?:\/\//i.test(rawPhoto) ? rawPhoto : `${API_CONFIG.BASE_URL}/${rawPhoto.replace(/^\//, '')}`) : null;
         if (rawPhoto && !avatarUrl) {
         }
-        
+
         return (
           <div className="flex items-center space-x-3">
             <Avatar
@@ -1167,11 +1170,11 @@ const EmployerRequestsPage = () => {
     if (localFilters.status && localFilters.status !== 'all') {
       filtered = filtered.filter(item => item.status === localFilters.status);
     }
-    
+
     // Additional client-side search if needed (but server-side search is primary)
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.employerName?.toLowerCase().includes(searchLower) ||
         item.companyName?.toLowerCase().includes(searchLower) ||
         item.candidateName?.toLowerCase().includes(searchLower) ||
@@ -1190,7 +1193,7 @@ const EmployerRequestsPage = () => {
     }
 
     if (localFilters.category) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.category?.toLowerCase() === localFilters.category.toLowerCase()
       );
     }
@@ -1200,10 +1203,10 @@ const EmployerRequestsPage = () => {
     if (localFilters.dateRange) {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       filtered = filtered.filter(item => {
         const itemDate = new Date(item.date);
-        
+
         switch (localFilters.dateRange) {
           case 'today':
             return itemDate >= today;
@@ -1229,12 +1232,12 @@ const EmployerRequestsPage = () => {
       filtered = filtered.filter(item => {
         const rate = item.monthlyRate;
         if (rate === 'Not specified') return false;
-        
-        const numericRate = typeof rate === 'string' ? 
+
+        const numericRate = typeof rate === 'string' ?
           parseFloat(rate.replace(/[^\d.]/g, '')) : rate;
-        
+
         if (isNaN(numericRate)) return false;
-        
+
         switch (localFilters.monthlyRateRange) {
           case '0-50000':
             return numericRate >= 0 && numericRate <= 50000;
@@ -1257,17 +1260,17 @@ const EmployerRequestsPage = () => {
   const handleSearchChangeDebounced = useCallback((value) => {
     handleSearchChange(value);
     setIsSearching(true);
-    
+
     // Debounce the search
     const timeoutId = setTimeout(() => {
       setIsSearching(false);
     }, 300);
-    
+
     return () => clearTimeout(timeoutId);
   }, []);
 
 
-    // Clear all filters
+  // Clear all filters
   const clearAllFilters = useCallback(() => {
     // Clear both server and local filters
     const emptyFilters = {
@@ -1277,7 +1280,7 @@ const EmployerRequestsPage = () => {
       dateRange: '',
       monthlyRateRange: ''
     };
-    
+
     setLocalFilters(emptyFilters);
     setFilters(emptyFilters);
     handleSearchChange('');
@@ -1319,7 +1322,7 @@ const EmployerRequestsPage = () => {
     },
     {
       title: 'Payment Pending',
-      value: filteredData.filter(r => 
+      value: filteredData.filter(r =>
         ['first_payment_required', 'second_payment_required', 'first_payment_confirmed', 'second_payment_confirmed', 'payment_required', 'payment_confirmed'].includes(r.status)
       ).length.toString(),
       change: '+1',
@@ -1352,7 +1355,7 @@ const EmployerRequestsPage = () => {
   const handleRowAction = (action, request) => {
     setSelectedRequest(request);
     setAdminNotes(request.adminNotes || '');
-    
+
     switch (action) {
       case 'openActions':
         setShowActionModal(true);
@@ -1387,7 +1390,7 @@ const EmployerRequestsPage = () => {
         setCurrentAction('select');
         setShowActionModal(true);
         break;
-        
+
       // New workflow actions
       case 'approveRequest':
         handleWorkflowAction('approveRequest', request);
@@ -1442,7 +1445,7 @@ const EmployerRequestsPage = () => {
       case 'viewCompletedRequest':
         handleWorkflowAction('viewCompletedRequest', request);
         break;
-        
+
       // Legacy actions (for backward compatibility)
       case 'start':
         handleStatusUpdate('in_progress', 'Starting to process this request');
@@ -1468,19 +1471,19 @@ const EmployerRequestsPage = () => {
 
   const handleStatusUpdate = async (newStatus, message) => {
     if (!selectedRequest) return;
-    
+
     try {
-      
+
       const result = await updateRequestStatus(selectedRequest.id, {
-                status: newStatus, 
+        status: newStatus,
         adminNotes: message
       });
-      
+
       if (result.success) {
-        
+
         // Show success message
         toast.success(`Request status updated to ${newStatus}. ${message || ''}`);
-        
+
         // Refresh the requests to show updated data
         handleRefresh();
       } else {
@@ -1495,30 +1498,30 @@ const EmployerRequestsPage = () => {
 
   const handleReplySubmit = async () => {
     if (!selectedRequest || !replyMessage.trim()) return;
-    
+
     setReplyLoading(true);
     setReplyError('');
 
     try {
-      
+
       const result = await replyToRequest(selectedRequest.id, {
         content: replyMessage
       });
-      
+
       if (result.success) {
-        
+
         // Show success message with details
-        const successMessage = result.data.emailSent 
+        const successMessage = result.data.emailSent
           ? `Reply sent successfully to ${selectedRequest.employerName} at ${selectedRequest.employerContact.email}`
           : `Reply saved but email delivery failed. Please check the email configuration.`;
-        
+
         toast.success(successMessage);
-        
+
         // Clear form and close modal
         setReplyMessage('');
         setAdminNotes('');
         resetModalStates(); // Use centralized cleanup
-        
+
         // Refresh the requests to show updated data
         handleRefresh();
       } else {
@@ -1535,23 +1538,23 @@ const EmployerRequestsPage = () => {
 
   const handleJobSeekerSelection = async (jobSeekerId, detailsType = 'picture') => {
     if (!selectedRequest) return;
-    
+
     setCandidateSelectionLoading(true);
     setCandidateSelectionError('');
 
     try {
-      
+
       const result = await selectJobSeekerForRequest(selectedRequest.id, jobSeekerId, detailsType);
-      
+
       if (result.success) {
-        
-        const successMessage = detailsType === 'picture' 
+
+        const successMessage = detailsType === 'picture'
           ? `Candidate profile picture sent to ${selectedRequest.employerName}`
           : `Complete candidate details sent to ${selectedRequest.employerName}`;
-        
+
         toast.success(successMessage);
         resetModalStates(); // Use centralized cleanup
-        
+
         // Refresh the requests to show updated data
         handleRefresh();
       } else {
@@ -1574,26 +1577,26 @@ const EmployerRequestsPage = () => {
 
   const handleRequestCompletion = async () => {
     if (!selectedRequest) return;
-    
+
     setCompletionLoading(true);
     setCompletionError('');
 
     try {
-      
+
       const result = await updateRequestStatus(selectedRequest.id, {
         status: 'completed',
         adminNotes: completionNotes
       });
-      
-      
+
+
       if (result.success) {
-        
+
         toast.success(`Request completed successfully. ${completionNotes ? 'Notes have been saved.' : ''}`);
-        
+
         // Clear form and close modal
         setCompletionNotes('');
         resetModalStates(); // Use centralized cleanup
-        
+
         // Refresh the requests to show updated data
         handleRefresh();
       } else {
@@ -1611,16 +1614,16 @@ const EmployerRequestsPage = () => {
   // New workflow functions
   const handleRequestFullDetails = async () => {
     if (!selectedRequest) return;
-    
+
     try {
       setWorkflowLoading(true);
       setWorkflowError('');
-      
+
       const result = await EmployerRequestService.requestFullDetails(
-        selectedRequest.id, 
+        selectedRequest.id,
         workflowNotes
       );
-      
+
       if (result.message) {
         toast.success(result.message);
         setShowWorkflowModal(false);
@@ -1637,17 +1640,17 @@ const EmployerRequestsPage = () => {
 
   const handleMarkHiringDecision = async (decision) => {
     if (!selectedRequest) return;
-    
+
     try {
       setWorkflowLoading(true);
       setWorkflowError('');
-      
+
       const result = await EmployerRequestService.markHiringDecision(
         selectedRequest.id,
         decision,
         workflowNotes
       );
-      
+
       if (result.message) {
         toast.success(result.message);
         setShowWorkflowModal(false);
@@ -1664,13 +1667,13 @@ const EmployerRequestsPage = () => {
 
   const handleGetPhotoAccess = async () => {
     if (!selectedRequest) return;
-    
+
     try {
       setWorkflowLoading(true);
       setWorkflowError('');
-      
+
       const data = await EmployerRequestService.getPhotoAccess(selectedRequest.id);
-      
+
       // Show photo access data in a modal or update the candidate details
       setSelectedCandidate(data);
       setCandidateDetailsType('photo');
@@ -1686,13 +1689,13 @@ const EmployerRequestsPage = () => {
 
   const handleGetFullDetails = async () => {
     if (!selectedRequest) return;
-    
+
     try {
       setWorkflowLoading(true);
       setWorkflowError('');
-      
+
       const data = await EmployerRequestService.getFullDetails(selectedRequest.id);
-      
+
       // Show full details data in a modal or update the candidate details
       setSelectedCandidate(data);
       setCandidateDetailsType('full');
@@ -1746,8 +1749,8 @@ const EmployerRequestsPage = () => {
   // Get workflow action content
   const getWorkflowActionContent = (action) => {
     const needsNotes = [
-      'approveRequest', 'rejectRequest', 'requestFirstPayment', 'approveFirstPayment', 
-      'rejectFirstPayment', 'requestSecondPayment', 'approveFullDetailsRequest', 
+      'approveRequest', 'rejectRequest', 'requestFirstPayment', 'approveFirstPayment',
+      'rejectFirstPayment', 'requestSecondPayment', 'approveFullDetailsRequest',
       'rejectFullDetailsRequest', 'approveSecondPayment', 'rejectSecondPayment',
       'updateCandidateAvailability', 'request_full_details', 'mark_hired', 'mark_not_hired'
     ];
@@ -1910,17 +1913,17 @@ const EmployerRequestsPage = () => {
     setWorkflowAction(action);
     setWorkflowError('');
     setWorkflowNotes('');
-    
+
     // Set loading state for this specific action
     const actionKey = `${action}-${request.id}`;
     setActionLoadingStates(prev => ({ ...prev, [actionKey]: true }));
-    
+
     try {
       setWorkflowLoading(true);
-      
+
       let result;
       const requestId = request.id;
-      
+
       switch (action) {
         case 'approveRequest':
           result = await EmployerRequestService.approveRequest(requestId, workflowNotes);
@@ -1986,11 +1989,11 @@ const EmployerRequestsPage = () => {
         default:
           throw new Error(`Unknown workflow action: ${action}`);
       }
-      
+
       if (result) {
         const successMessage = result.message || `${action.replace(/([A-Z])/g, ' $1').toLowerCase()} completed successfully`;
         toast.success(successMessage);
-        
+
         // Add workflow notification
         addWorkflowNotification(
           action,
@@ -1998,7 +2001,7 @@ const EmployerRequestsPage = () => {
           requestId,
           result.newStatus || 'updated'
         );
-        
+
         handleRefresh();
       } else {
         // Fallback success message if no result
@@ -2006,7 +2009,7 @@ const EmployerRequestsPage = () => {
         toast.success(successMessage);
         handleRefresh();
       }
-      
+
     } catch (error) {
       console.error(`Error in workflow action ${action}:`, error);
       setWorkflowError(error.message || `Failed to ${action.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
@@ -2034,14 +2037,14 @@ const EmployerRequestsPage = () => {
     const baseActions = [
       // View Details - Always available
       { key: 'view', title: 'View Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'view' },
-      
+
       // Messaging - Always available
       { key: 'message', title: 'Message', icon: MessageSquare, className: 'text-indigo-600 hover:bg-indigo-50', group: 'contact' },
     ];
 
     // Status-based actions for new workflow
     const statusActions = [];
-    
+
     switch (request.status) {
       case 'pending':
         statusActions.push(
@@ -2049,91 +2052,91 @@ const EmployerRequestsPage = () => {
           { key: 'rejectRequest', title: 'Reject Request', icon: XCircle, className: 'text-red-600 hover:bg-red-50', group: 'workflow' }
         );
         break;
-        
+
       case 'approved':
         statusActions.push(
           { key: 'requestFirstPayment', title: 'Request First Payment', icon: DollarSign, className: 'text-yellow-600 hover:bg-yellow-50', group: 'workflow' }
         );
         break;
-        
+
       case 'first_payment_required':
         statusActions.push(
           { key: 'viewPaymentDetails', title: 'View Payment Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
         break;
-        
+
       case 'first_payment_confirmed':
         statusActions.push(
           { key: 'paymentApproval', title: 'Approve First Payment', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' }
         );
         break;
-        
+
       case 'photo_access_granted':
         statusActions.push(
           { key: 'requestSecondPayment', title: 'Request Second Payment', icon: DollarSign, className: 'text-yellow-600 hover:bg-yellow-50', group: 'workflow' },
           { key: 'viewPhotoAccess', title: 'View Photo Access', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
         break;
-        
+
       case 'full_details_requested':
         statusActions.push(
           { key: 'approveFullDetailsRequest', title: 'Approve Full Details', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' },
           { key: 'rejectFullDetailsRequest', title: 'Reject Full Details', icon: XCircle, className: 'text-red-600 hover:bg-red-50', group: 'workflow' }
         );
         break;
-        
+
       case 'second_payment_required':
         statusActions.push(
           { key: 'viewPaymentDetails', title: 'View Payment Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
         break;
-        
+
       case 'second_payment_confirmed':
         statusActions.push(
           { key: 'paymentApproval', title: 'Approve Second Payment', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' }
         );
         break;
-        
+
       case 'payment_required':
         // Legacy status - treat as first payment required
         statusActions.push(
           { key: 'viewPaymentDetails', title: 'View Payment Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
         break;
-        
+
       case 'payment_confirmed':
         // Legacy status - treat as first payment confirmed
         statusActions.push(
           { key: 'paymentApproval', title: 'Approve Payment', icon: CheckCircle, className: 'text-green-600 hover:bg-green-50', group: 'workflow' }
         );
         break;
-        
+
       case 'full_access_granted':
         statusActions.push(
           { key: 'viewFullDetails', title: 'View Full Details', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' },
           { key: 'waitForHiringDecision', title: 'Wait for Hiring Decision', icon: Clock, className: 'text-orange-600 hover:bg-orange-50', group: 'workflow' }
         );
         break;
-        
+
       case 'hiring_decision_made':
         statusActions.push(
           { key: 'reviewHiringDecision', title: 'Review Hiring Decision', icon: Eye, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' },
           { key: 'updateCandidateAvailability', title: 'Update Candidate Status', icon: User, className: 'text-purple-600 hover:bg-purple-50', group: 'workflow' }
         );
         break;
-        
+
       case 'completed':
         statusActions.push(
           { key: 'viewCompletedRequest', title: 'View Completed Request', icon: Eye, className: 'text-gray-600 hover:bg-gray-50', group: 'workflow' }
         );
         break;
-        
+
       case 'cancelled':
         statusActions.push(
           { key: 'reactivate', title: 'Reactivate', icon: RefreshCw, className: 'text-blue-600 hover:bg-blue-50', group: 'workflow' }
         );
         break;
-        
+
       default:
         // For any other status, show basic actions
         statusActions.push(
@@ -2146,7 +2149,7 @@ const EmployerRequestsPage = () => {
 
   // Loading state
   if (loading || !safeData || !safeDataForRendering) {
-  return (
+    return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading employer requests..." />
       </div>
@@ -2242,7 +2245,7 @@ const EmployerRequestsPage = () => {
                   </>
                 )}
               </button>
-              
+
               {/* Notification Bell */}
               <div className="relative">
                 <button
@@ -2278,7 +2281,7 @@ const EmployerRequestsPage = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="max-h-96 overflow-y-auto">
                       {notificationLoading ? (
                         <div className="p-4 text-center">
@@ -2294,9 +2297,8 @@ const EmployerRequestsPage = () => {
                         notifications.map((notification) => (
                           <div
                             key={notification.id}
-                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                              !notification.isRead ? 'bg-blue-50' : ''
-                            }`}
+                            className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.isRead ? 'bg-blue-50' : ''
+                              }`}
                             onClick={() => {
                               if (!notification.isRead) {
                                 markNotificationAsRead(notification.id);
@@ -2308,9 +2310,8 @@ const EmployerRequestsPage = () => {
                             }}
                           >
                             <div className="flex items-start space-x-3">
-                              <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                                !notification.isRead ? 'bg-blue-500' : 'bg-gray-300'
-                              }`} />
+                              <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${!notification.isRead ? 'bg-blue-500' : 'bg-gray-300'
+                                }`} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-gray-900">{notification.message}</p>
                                 <p className="text-xs text-gray-500 mt-1">
@@ -2346,13 +2347,13 @@ const EmployerRequestsPage = () => {
       </header>
 
       <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Statistics */}
+        {/* Statistics */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-      <StatsGrid stats={stats} />
+          <StatsGrid stats={stats} />
         </motion.div>
 
         {/* Main Content */}
@@ -2364,9 +2365,9 @@ const EmployerRequestsPage = () => {
           <Card className="p-6">
             <div className="flex justify-between items-center mb-6">
               <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-gray-900">
                   Employer Requests ({filteredData.length})
-            </h2>
+                </h2>
                 {activeFiltersCount > 0 && (
                   <p className="text-sm text-gray-600 mt-1">
                     Showing {filteredData.length} of {(safeDataForRendering || []).length} total requests
@@ -2408,11 +2409,10 @@ const EmployerRequestsPage = () => {
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                    showFilters 
-                      ? 'bg-red-50 border-red-200 text-red-700' 
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters
+                      ? 'bg-red-50 border-red-200 text-red-700'
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <Filter className="h-4 w-4" />
                   <span className="text-sm font-medium">Filters</span>
@@ -2435,7 +2435,7 @@ const EmployerRequestsPage = () => {
               </div>
 
               {/* Filter Dropdowns */}
-                {showFilters && (
+              {showFilters && (
                 <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Status Filter */}
@@ -2454,7 +2454,7 @@ const EmployerRequestsPage = () => {
                           </option>
                         ))}
                       </select>
-          </div>
+                    </div>
 
                     {/* Priority Filter */}
                     <div>
@@ -2555,7 +2555,7 @@ const EmployerRequestsPage = () => {
                           if (!value) return null;
                           const option = filterOptions[key]?.find(opt => opt.value === value);
                           if (!option) return null;
-                          
+
                           return (
                             <span key={key} className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
                               {option.label}
@@ -2577,59 +2577,59 @@ const EmployerRequestsPage = () => {
 
             {/* Data Table */}
             <div className="space-y-4">
-        
-        {filteredData.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <div className="mx-auto w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-              <Search className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
-            <p className="text-gray-600 mb-4">
-              {activeFiltersCount > 0 
-                ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
-                : 'There are no employer requests to display.'
-              }
-            </p>
-            {activeFiltersCount > 0 && (
+
+              {filteredData.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <div className="mx-auto w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+                    <Search className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+                  <p className="text-gray-600 mb-4">
+                    {activeFiltersCount > 0
+                      ? 'Try adjusting your search terms or filters to find what you\'re looking for.'
+                      : 'There are no employer requests to display.'
+                    }
+                  </p>
+                  {activeFiltersCount > 0 && (
                     <Button
-                onClick={clearAllFilters}
+                      onClick={clearAllFilters}
                       variant="outline"
                       size="sm"
-                className="mx-auto"
-              >
-                Clear All Filters
+                      className="mx-auto"
+                    >
+                      Clear All Filters
                     </Button>
-                )}
-        </div>
-        ) : (
-        <DataTable
-            data={filteredData}
-          columns={columns}
-            pagination={true}
-            itemsPerPage={15}
-            showSearch={false}
-          />
-        )}
+                  )}
+                </div>
+              ) : (
+                <DataTable
+                  data={filteredData}
+                  columns={columns}
+                  pagination={true}
+                  itemsPerPage={15}
+                  showSearch={false}
+                />
+              )}
 
-    </div>
+            </div>
 
-                          {/* Server-side pagination is handled by the DataTable component */}
-      </Card>
+            {/* Server-side pagination is handled by the DataTable component */}
+          </Card>
         </motion.div>
       </div>
 
       {/* Request Details Modal */}
       {showDetailsModal && selectedRequest && (
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => {
-          setShowDetailsModal(false);
-          setSelectedRequest(null);
-          setRequestDetailsLoading(false);
-        }}
-        title={`Request Details - #${selectedRequest.id}`}
-        size="xl"
-      >
+        <Modal
+          isOpen={showDetailsModal}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedRequest(null);
+            setRequestDetailsLoading(false);
+          }}
+          title={`Request Details - #${selectedRequest.id}`}
+          size="xl"
+        >
           <div className="space-y-6 relative">
             {/* Loading Overlay */}
             {requestDetailsLoading && (
@@ -2668,7 +2668,7 @@ const EmployerRequestsPage = () => {
                   </Badge>
                 </div>
               </div>
-              
+
 
             </div>
 
@@ -2707,7 +2707,7 @@ const EmployerRequestsPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Additional Employer Details */}
                 {(selectedRequest.employerDetails.companyAddress || selectedRequest.employerDetails.industry || selectedRequest.employerDetails.companySize || selectedRequest.employerDetails.website || selectedRequest.employerDetails.description || selectedRequest.employerDetails.establishedYear || selectedRequest.employerDetails.contactPerson) && (
                   <div className="mt-6 pt-6 border-t border-blue-200">
@@ -2752,7 +2752,7 @@ const EmployerRequestsPage = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Company Description */}
                     {selectedRequest.employerDetails.description && (
                       <div className="mt-4">
@@ -2779,7 +2779,7 @@ const EmployerRequestsPage = () => {
                     <label className="text-sm font-medium text-green-600 block mb-2">Request Message</label>
                     <p className="text-gray-900 leading-relaxed">{selectedRequest.message || 'No message provided'}</p>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-white rounded-lg p-4 border border-green-100">
                       <label className="text-sm font-medium text-green-600 block mb-1">Request Date</label>
@@ -2812,185 +2812,185 @@ const EmployerRequestsPage = () => {
 
             {/* Candidate Information */}
             {selectedRequest.candidateName !== 'Not specified' && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <User className="w-5 h-5 mr-2 text-purple-600" />
-                Candidate Information
-              </h3>
-              <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-100">
-                {/* Profile Header with Image */}
-                <div className="flex items-center space-x-6 pb-6 border-b border-purple-200 mb-6">
-                  {(() => {
-                    const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
-                    const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
-                    return (
-                      <Avatar
-                        src={url}
-                        alt={selectedRequest.candidateName}
-                        size="xl"
-                        fallback={selectedRequest.candidateName}
-                        fallbackSrc={defaultProfileImage}
-                      />
-                    );
-                  })()}
-                  <div className="flex-1">
-                    <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedRequest.candidateName}</h4>
-                    <div className="flex items-center space-x-4 mb-3">
-                      <Badge color="text-purple-600 bg-purple-100 border-purple-200">
-                        {selectedRequest.category}
-                      </Badge>
-                      <Badge color="text-blue-600 bg-blue-100 border-blue-200">
-                        {selectedRequest.position}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="w-4 h-4 text-green-600" />
-                        <span className="text-lg font-semibold text-green-600">{selectedRequest.monthlyRate}</span>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <User className="w-5 h-5 mr-2 text-purple-600" />
+                  Candidate Information
+                </h3>
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-100">
+                  {/* Profile Header with Image */}
+                  <div className="flex items-center space-x-6 pb-6 border-b border-purple-200 mb-6">
+                    {(() => {
+                      const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
+                      const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+                      return (
+                        <Avatar
+                          src={url}
+                          alt={selectedRequest.candidateName}
+                          size="xl"
+                          fallback={selectedRequest.candidateName}
+                          fallbackSrc={defaultProfileImage}
+                        />
+                      );
+                    })()}
+                    <div className="flex-1">
+                      <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedRequest.candidateName}</h4>
+                      <div className="flex items-center space-x-4 mb-3">
+                        <Badge color="text-purple-600 bg-purple-100 border-purple-200">
+                          {selectedRequest.category}
+                        </Badge>
+                        <Badge color="text-blue-600 bg-blue-100 border-blue-200">
+                          {selectedRequest.position}
+                        </Badge>
                       </div>
-                      {selectedRequest.candidateExperienceLevel !== 'Not specified' && (
+                      <div className="flex items-center space-x-6">
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">Experience:</span>
-                          <span className="text-sm font-medium text-gray-900">{selectedRequest.candidateExperienceLevel}</span>
+                          <DollarSign className="w-4 h-4 text-green-600" />
+                          <span className="text-lg font-semibold text-green-600">{selectedRequest.monthlyRate}</span>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Candidate Details Sections */}
-                <div className="space-y-6">
-                  {/* Basic Information */}
-                  <div>
-                    <h4 className="text-md font-semibold text-purple-900 mb-3">Basic Information</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Job Category</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.category}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Skills/Position</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.position}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Experience Level</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateExperienceLevel}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Education Level</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateEducation}</p>
+                        {selectedRequest.candidateExperienceLevel !== 'Not specified' && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">Experience:</span>
+                            <span className="text-sm font-medium text-gray-900">{selectedRequest.candidateExperienceLevel}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Contact Information */}
-                  <div>
-                    <h4 className="text-md font-semibold text-purple-900 mb-3">Contact Information</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1 flex items-center">
-                          <Phone className="w-4 h-4 mr-1" />
-                          Contact Number
-                        </label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateContact}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1 flex items-center">
-                          <Mail className="w-4 h-4 mr-1" />
-                          Email Address
-                        </label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateEmail}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Location Information */}
-                  <div>
-                    <h4 className="text-md font-semibold text-purple-900 mb-3">Location Details</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Location</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateLocation}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">City</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateCity}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Country</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateCountry}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Skills and Qualifications */}
-                  <div>
-                    <h4 className="text-md font-semibold text-purple-900 mb-3">Skills & Qualifications</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Languages</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateLanguages}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Certifications</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateCertifications}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Personal Information */}
-                  <div>
-                    <h4 className="text-md font-semibold text-purple-900 mb-3">Personal Information</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Gender</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateGender}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">Marital Status</label>
-                        <p className="text-gray-900 font-medium">{selectedRequest.candidateMaritalStatus}</p>
-                      </div>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <label className="text-sm font-medium text-purple-600 block mb-1">ID Number</label>
-                        <p className="text-gray-900 font-medium font-mono text-sm">{selectedRequest.candidateIdNumber}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Availability */}
-                  <div>
-                    <h4 className="text-md font-semibold text-purple-900 mb-3">Availability</h4>
-                    <div className="bg-white rounded-lg p-4 border border-purple-100">
-                      <label className="text-sm font-medium text-purple-600 block mb-1">Availability Status</label>
-                      <p className="text-gray-900 font-medium">{selectedRequest.candidateAvailability}</p>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  {selectedRequest.candidateDescription !== 'Not specified' && (
+                  {/* Candidate Details Sections */}
+                  <div className="space-y-6">
+                    {/* Basic Information */}
                     <div>
-                      <h4 className="text-md font-semibold text-purple-900 mb-3">Description</h4>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <p className="text-gray-900 leading-relaxed">{selectedRequest.candidateDescription}</p>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Basic Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Job Category</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.category}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Skills/Position</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.position}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Experience Level</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateExperienceLevel}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Education Level</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateEducation}</p>
+                        </div>
                       </div>
                     </div>
-                  )}
 
-                  {/* References */}
-                  {selectedRequest.candidateReferences !== 'Not specified' && (
+                    {/* Contact Information */}
                     <div>
-                      <h4 className="text-md font-semibold text-purple-900 mb-3">References</h4>
-                      <div className="bg-white rounded-lg p-4 border border-purple-100">
-                        <p className="text-gray-900 leading-relaxed">{selectedRequest.candidateReferences}</p>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Contact Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1 flex items-center">
+                            <Phone className="w-4 h-4 mr-1" />
+                            Contact Number
+                          </label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateContact}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1 flex items-center">
+                            <Mail className="w-4 h-4 mr-1" />
+                            Email Address
+                          </label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateEmail}</p>
+                        </div>
                       </div>
                     </div>
-                  )}
+
+                    {/* Location Information */}
+                    <div>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Location Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Location</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateLocation}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">City</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateCity}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Country</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateCountry}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Skills and Qualifications */}
+                    <div>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Skills & Qualifications</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Languages</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateLanguages}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Certifications</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateCertifications}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Personal Information */}
+                    <div>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Personal Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Gender</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateGender}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">Marital Status</label>
+                          <p className="text-gray-900 font-medium">{selectedRequest.candidateMaritalStatus}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <label className="text-sm font-medium text-purple-600 block mb-1">ID Number</label>
+                          <p className="text-gray-900 font-medium font-mono text-sm">{selectedRequest.candidateIdNumber}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Availability */}
+                    <div>
+                      <h4 className="text-md font-semibold text-purple-900 mb-3">Availability</h4>
+                      <div className="bg-white rounded-lg p-4 border border-purple-100">
+                        <label className="text-sm font-medium text-purple-600 block mb-1">Availability Status</label>
+                        <p className="text-gray-900 font-medium">{selectedRequest.candidateAvailability}</p>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {selectedRequest.candidateDescription !== 'Not specified' && (
+                      <div>
+                        <h4 className="text-md font-semibold text-purple-900 mb-3">Description</h4>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <p className="text-gray-900 leading-relaxed">{selectedRequest.candidateDescription}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* References */}
+                    {selectedRequest.candidateReferences !== 'Not specified' && (
+                      <div>
+                        <h4 className="text-md font-semibold text-purple-900 mb-3">References</h4>
+                        <div className="bg-white rounded-lg p-4 border border-purple-100">
+                          <p className="text-gray-900 leading-relaxed">{selectedRequest.candidateReferences}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
             )}
 
-          
+
           </div>
         </Modal>
       )}
@@ -3033,9 +3033,9 @@ const EmployerRequestsPage = () => {
         <Modal
           isOpen={showActionModal}
           onClose={resetModalStates} // Use centralized cleanup
-          title={currentAction === 'reply' ? 'Reply to Request' : 
-                 currentAction === 'select' ? 'Send Candidate Details' : 
-                 currentAction === 'complete' ? 'Complete Request' : 'Action'}
+          title={currentAction === 'reply' ? 'Reply to Request' :
+            currentAction === 'select' ? 'Send Candidate Details' :
+              currentAction === 'complete' ? 'Complete Request' : 'Action'}
           size="md"
         >
           {currentAction === 'reply' && (
@@ -3102,15 +3102,15 @@ const EmployerRequestsPage = () => {
                 </p>
               </div>
               <div className="flex justify-end space-x-3">
-              <Button
-                variant="outline"
+                <Button
+                  variant="outline"
                   onClick={() => {
                     resetModalStates(); // Use centralized cleanup
                   }}
                   disabled={replyLoading}
                 >
                   Cancel
-              </Button>
+                </Button>
                 <Button
                   variant="primary"
                   onClick={handleReplySubmit}
@@ -3164,23 +3164,23 @@ const EmployerRequestsPage = () => {
                   <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                          {(() => {
-                            const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
-                            const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
-                            return (
-                              <Avatar
-                                src={url}
-                                alt={selectedRequest.candidateName}
-                                size="md"
-                                fallback={selectedRequest.candidateName}
-                                fallbackSrc={defaultProfileImage}
-                              />
-                            );
-                          })()}
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-900 text-lg">
-                              {selectedRequest.candidateName}
-                            </h5>
+                        {(() => {
+                          const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
+                          const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+                          return (
+                            <Avatar
+                              src={url}
+                              alt={selectedRequest.candidateName}
+                              size="md"
+                              fallback={selectedRequest.candidateName}
+                              fallbackSrc={defaultProfileImage}
+                            />
+                          );
+                        })()}
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 text-lg">
+                            {selectedRequest.candidateName}
+                          </h5>
                           <p className="text-sm text-gray-600 mb-2">
                             {selectedRequest.position} • {selectedRequest.candidateExperience}
                           </p>
@@ -3201,22 +3201,22 @@ const EmployerRequestsPage = () => {
                         </div>
                       </div>
                       <div className="flex flex-col space-y-2">
-                  <Button
-                    variant="outline"
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'picture')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Profile Picture
-                  </Button>
-                  <Button
-                    variant="primary"
+                        </Button>
+                        <Button
+                          variant="primary"
                           size="sm"
                           onClick={() => handleJobSeekerSelection(selectedRequest._backendData.requestedCandidate.id, 'full')}
                           disabled={candidateSelectionLoading}
                         >
                           Send Complete Details
-                  </Button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -3226,14 +3226,14 @@ const EmployerRequestsPage = () => {
                     <p>No candidate specified in this request</p>
                     <p className="text-sm text-gray-400 mt-1">The employer did not specify a particular candidate</p>
                   </div>
-              )}
-            </div>
+                )}
+              </div>
 
               {candidateSelectionError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                   {candidateSelectionError}
-          </div>
-        )}
+                </div>
+              )}
 
               {candidateSelectionLoading && (
                 <div className="text-sm text-gray-600 flex items-center justify-center">
@@ -3257,7 +3257,7 @@ const EmployerRequestsPage = () => {
           )}
 
           {currentAction === 'complete' && (
-        <div className="space-y-4">
+            <div className="space-y-4">
               {/* Request Information */}
               <div className="bg-orange-50 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-orange-900 mb-2">Completing Request:</h4>
@@ -3305,7 +3305,7 @@ const EmployerRequestsPage = () => {
                     <span className="text-yellow-800 text-xs">!</span>
                   </div>
                   <p className="text-sm text-yellow-800">
-                    <strong>Warning:</strong> This action will permanently mark the request as completed and close it. 
+                    <strong>Warning:</strong> This action will permanently mark the request as completed and close it.
                     This action cannot be undone.
                   </p>
                 </div>
@@ -3325,16 +3325,16 @@ const EmployerRequestsPage = () => {
               )}
 
               <div className="flex justify-end space-x-3">
-            <Button
-              variant="outline"
+                <Button
+                  variant="outline"
                   onClick={() => {
                     resetModalStates(); // Use centralized cleanup
                   }}
                   disabled={completionLoading}
-            >
-              Cancel
-            </Button>
-            <Button
+                >
+                  Cancel
+                </Button>
+                <Button
                   variant="primary"
                   onClick={handleRequestCompletion}
                   disabled={completionLoading}
@@ -3348,13 +3348,13 @@ const EmployerRequestsPage = () => {
                   ) : (
                     'Complete Request'
                   )}
-            </Button>
-          </div>
-        </div>
+                </Button>
+              </div>
+            </div>
           )}
-      </Modal>
+        </Modal>
       )}
-      
+
       {/* Messaging Modal */}
       {showMessagingModal && selectedRequest && (
         <Modal
@@ -3384,23 +3384,21 @@ const EmployerRequestsPage = () => {
                     className={`flex ${msg.fromAdmin ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
-                        msg.fromAdmin
+                      className={`max-w-[70%] p-3 rounded-lg shadow-sm ${msg.fromAdmin
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-100 text-gray-800 border border-gray-200'
-                      }`}
+                        }`}
                     >
                       <p className="text-sm">{msg.content}</p>
-                      <p className={`text-xs mt-1 ${
-                        msg.fromAdmin ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
+                      <p className={`text-xs mt-1 ${msg.fromAdmin ? 'text-blue-100' : 'text-gray-500'
+                        }`}>
                         {new Date(msg.createdAt).toLocaleString()}
                       </p>
                     </div>
                   </div>
                 ))
               )}
-              
+
               {messagingError && (
                 <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
                   {messagingError}
@@ -3434,7 +3432,7 @@ const EmployerRequestsPage = () => {
           </div>
         </Modal>
       )}
-      
+
       {/* Payment Modal */}
       {showPaymentModal && selectedRequest && (
         <Modal
@@ -3479,7 +3477,7 @@ const EmployerRequestsPage = () => {
                     name="paymentType"
                     value="photo_access"
                     checked={paymentFormData.paymentType === 'photo_access'}
-                    onChange={(e) => setPaymentFormData({...paymentFormData, paymentType: e.target.value})}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentType: e.target.value })}
                     className="mr-2"
                   />
                   <div>
@@ -3493,7 +3491,7 @@ const EmployerRequestsPage = () => {
                     name="paymentType"
                     value="full_details"
                     checked={paymentFormData.paymentType === 'full_details'}
-                    onChange={(e) => setPaymentFormData({...paymentFormData, paymentType: e.target.value})}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentType: e.target.value })}
                     className="mr-2"
                   />
                   <div>
@@ -3511,7 +3509,7 @@ const EmployerRequestsPage = () => {
               </label>
               <select
                 value={paymentFormData.paymentMethodId}
-                onChange={(e) => setPaymentFormData({...paymentFormData, paymentMethodId: e.target.value})}
+                onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMethodId: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
@@ -3533,7 +3531,7 @@ const EmployerRequestsPage = () => {
                 <input
                   type="number"
                   value={paymentFormData.amount}
-                  onChange={(e) => setPaymentFormData({...paymentFormData, amount: e.target.value})}
+                  onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="5000"
                   min="0"
@@ -3547,7 +3545,7 @@ const EmployerRequestsPage = () => {
                 </label>
                 <select
                   value={paymentFormData.currency}
-                  onChange={(e) => setPaymentFormData({...paymentFormData, currency: e.target.value})}
+                  onChange={(e) => setPaymentFormData({ ...paymentFormData, currency: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="RWF">RWF (Rwandan Franc)</option>
@@ -3564,7 +3562,7 @@ const EmployerRequestsPage = () => {
               </label>
               <textarea
                 value={paymentFormData.description}
-                onChange={(e) => setPaymentFormData({...paymentFormData, description: e.target.value})}
+                onChange={(e) => setPaymentFormData({ ...paymentFormData, description: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="3"
                 placeholder={`Payment for ${paymentFormData.paymentType === 'photo_access' ? 'photo access' : 'full details'} access to candidate information`}
@@ -3579,7 +3577,7 @@ const EmployerRequestsPage = () => {
               <input
                 type="date"
                 value={paymentFormData.dueDate}
-                onChange={(e) => setPaymentFormData({...paymentFormData, dueDate: e.target.value})}
+                onChange={(e) => setPaymentFormData({ ...paymentFormData, dueDate: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 min={new Date().toISOString().split('T')[0]}
               />
@@ -3621,7 +3619,7 @@ const EmployerRequestsPage = () => {
           </form>
         </Modal>
       )}
-      
+
       {/* Payment Approval Modal */}
       {showPaymentApprovalModal && selectedRequest && (
         <Modal
@@ -3691,14 +3689,14 @@ const EmployerRequestsPage = () => {
                   <div className="bg-white rounded-lg p-3 border border-green-100">
                     <span className="text-green-600 font-medium block mb-1">Confirmation Date:</span>
                     <span className="text-gray-900">
-                      {selectedRequest.latestPayment?.confirmationDate 
+                      {selectedRequest.latestPayment?.confirmationDate
                         ? new Date(selectedRequest.latestPayment.confirmationDate).toLocaleDateString()
                         : 'Not specified'}
                     </span>
                   </div>
 
                 </div>
-                
+
                 {/* Additional Notes */}
                 {selectedRequest.latestPayment?.adminNotes && selectedRequest.latestPayment.adminNotes !== 'No additional notes' && (
                   <div className="mt-4 bg-white rounded-lg p-3 border border-green-100">
@@ -3745,7 +3743,7 @@ const EmployerRequestsPage = () => {
                     name="action"
                     value="approve"
                     checked={paymentApprovalData.action === 'approve'}
-                    onChange={(e) => setPaymentApprovalData({...paymentApprovalData, action: e.target.value})}
+                    onChange={(e) => setPaymentApprovalData({ ...paymentApprovalData, action: e.target.value })}
                     className="mr-2"
                   />
                   <div>
@@ -3759,7 +3757,7 @@ const EmployerRequestsPage = () => {
                     name="action"
                     value="reject"
                     checked={paymentApprovalData.action === 'reject'}
-                    onChange={(e) => setPaymentApprovalData({...paymentApprovalData, action: e.target.value})}
+                    onChange={(e) => setPaymentApprovalData({ ...paymentApprovalData, action: e.target.value })}
                     className="mr-2"
                   />
                   <div>
@@ -3777,7 +3775,7 @@ const EmployerRequestsPage = () => {
               </label>
               <textarea
                 value={paymentApprovalData.notes}
-                onChange={(e) => setPaymentApprovalData({...paymentApprovalData, notes: e.target.value})}
+                onChange={(e) => setPaymentApprovalData({ ...paymentApprovalData, notes: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows="3"
                 placeholder="Add any additional notes for the payment approval..."
@@ -3844,7 +3842,7 @@ const EmployerRequestsPage = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Request Info */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-2">Request Information</h4>
@@ -3906,13 +3904,13 @@ const EmployerRequestsPage = () => {
               >
                 Cancel
               </Button>
-              
+
               {getWorkflowActionButtons(workflowAction)}
             </div>
           </div>
         </Modal>
       )}
-      
+
       <Toaster position="top-right" />
     </div>
   );

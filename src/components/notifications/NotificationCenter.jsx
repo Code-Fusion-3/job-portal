@@ -8,10 +8,12 @@ const NotificationCenter = () => {
   const [stats, setStats] = useState({ total: 0, unread: 0, read: 0 });
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [optOutTypes, setOptOutTypes] = useState([]);
 
   useEffect(() => {
     fetchNotifications();
     fetchStats();
+    fetchOptOutTypes();
   }, []);
 
   const fetchNotifications = async () => {
@@ -39,9 +41,9 @@ const NotificationCenter = () => {
   const markAsRead = async (notificationId) => {
     try {
       await NotificationService.markAsRead(notificationId);
-      setNotifications(prev => 
-        prev.map(notif => 
-          notif.id === notificationId 
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId
             ? { ...notif, isRead: true, readAt: new Date().toISOString() }
             : notif
         )
@@ -60,7 +62,7 @@ const NotificationCenter = () => {
   const markAllAsRead = async () => {
     try {
       await NotificationService.markAllAsRead();
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(notif => ({ ...notif, isRead: true, readAt: new Date().toISOString() }))
       );
       setStats(prev => ({
@@ -75,9 +77,29 @@ const NotificationCenter = () => {
     }
   };
 
+  const fetchOptOutTypes = async () => {
+    try {
+      const data = await NotificationService.getNotificationPreferences();
+      setOptOutTypes(data.optedOutTypes || []);
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error);
+    }
+  };
+  const toggleOptOut = async (type) => {
+    try {
+      await NotificationService.toggleNotificationPreference(type);
+      fetchOptOutTypes();
+    } catch (error) {
+      console.error('Error toggling notification preference:', error);
+    }
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'request_approved':
+      case 'request_received': return <Info className="w-5 h-5 text-blue-500" />;
+      case 'request_approved': return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'hired': return <CheckCheck className="w-5 h-5 text-emerald-600" />;
+      case 'cancelled': return <X className="w-5 h-5 text-red-500" />;
       case 'payment_confirmed':
       case 'photo_access_granted':
       case 'full_access_granted':
@@ -91,7 +113,7 @@ const NotificationCenter = () => {
       case 'full_details_requested':
         return <Info className="w-5 h-5 text-blue-500" />;
       default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
+        return <Bell className="w-5 h-5 text-gray-400" />;
     }
   };
 
@@ -161,9 +183,8 @@ const NotificationCenter = () => {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                    !notification.isRead ? 'bg-blue-50' : ''
-                  }`}
+                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${!notification.isRead ? 'bg-blue-50' : ''
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     {getNotificationIcon(notification.type)}
@@ -196,6 +217,25 @@ const NotificationCenter = () => {
               ))
             )}
           </div>
+
+          {/* Opt-out controls for candidates */}
+          {/* Assuming 'user' is available in the component's scope or passed as a prop */}
+          {/* For now, adding a placeholder for user role */}
+          {/* In a real application, you'd fetch user data or pass it as a prop */}
+          {/* <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Notification Preferences</h4>
+            <div className="flex flex-wrap gap-2">
+              {['request_received', 'request_approved', 'hired', 'cancelled'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => toggleOptOut(type)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border ${optOutTypes.includes(type) ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-blue-100 text-blue-700 border-blue-200'}`}
+                >
+                  {optOutTypes.includes(type) ? 'Opted Out' : 'Opt In'}: {type.replace('_', ' ')}
+                </button>
+              ))}
+            </div>
+          </div> */}
 
           {/* Footer */}
           {notifications.length > 0 && (

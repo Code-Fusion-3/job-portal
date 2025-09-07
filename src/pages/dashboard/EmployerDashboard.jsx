@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  User, 
-  Building2, 
-  Calendar, 
-  Clock, 
-  MessageSquare, 
-  Send, 
-  X, 
-  RefreshCw, 
+import {
+  User,
+  Building2,
+  Calendar,
+  Clock,
+  MessageSquare,
+  Send,
+  X,
+  RefreshCw,
   DollarSign,
   Eye,
   FileText,
@@ -101,7 +101,7 @@ const EmployerDashboard = () => {
     try {
       const token = localStorage.getItem('job_portal_token');
       console.log('Token found:', !!token, token ? 'exists' : 'missing');
-      
+
       if (!token) {
         console.error('No authentication token found');
         setMessages([]);
@@ -114,9 +114,9 @@ const EmployerDashboard = () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log('Response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         setMessages(data.messages || []);
@@ -211,7 +211,7 @@ const EmployerDashboard = () => {
         content: newMessage.trim(),
         messageType: 'text'
       });
-      
+
       setNewMessage('');
       // Refresh messages
       await fetchMessages(selectedRequest.id);
@@ -326,7 +326,7 @@ const EmployerDashboard = () => {
 
   const handlePaymentConfirmation = async (e) => {
     e.preventDefault();
-    
+
     if (!paymentConfirmation.confirmationName || !paymentConfirmation.confirmationPhone) {
       setPaymentError('Please provide your name and phone number');
       return;
@@ -387,20 +387,15 @@ const EmployerDashboard = () => {
   const filteredRequests = dashboardData?.requests?.filter(request => {
     const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
     const matchesSearch = request.candidate?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.candidate?.skills?.toLowerCase().includes(searchTerm.toLowerCase());
+      request.candidate?.skills?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   }) || [];
 
-  // Get status color
+  // 1. Update status color and progress logic for all new statuses
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'reviewing': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'payment_required': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'payment_confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'approved': return 'bg-green-100 text-green-800 border-green-200';
-      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
-      // New workflow statuses
       case 'first_payment_required': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'first_payment_confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'photo_access_granted': return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -409,7 +404,11 @@ const EmployerDashboard = () => {
       case 'second_payment_confirmed': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'full_access_granted': return 'bg-green-100 text-green-800 border-green-200';
       case 'hiring_decision_made': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'hired': return 'bg-green-200 text-green-900 border-green-300';
+      case 'available': return 'bg-blue-200 text-blue-900 border-blue-300';
+      case 'process_complete': return 'bg-gray-200 text-gray-900 border-gray-300';
       case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -425,24 +424,46 @@ const EmployerDashboard = () => {
     }
   };
 
+  // 2. Show/hide action buttons based on status
+  const getAvailableActions = (request) => {
+    const actions = [];
+    if (request.status === 'first_payment_required' || request.status === 'second_payment_required') {
+      actions.push('pay');
+    }
+    if (request.status === 'photo_access_granted') {
+      actions.push('request_full_details');
+      actions.push('exit_process');
+    }
+    if (request.status === 'full_access_granted') {
+      actions.push('hiring_decision');
+    }
+    // Add more as needed
+    return actions;
+  };
+
+  // 3. Hide employer identity from candidate until 'hired' status
+  // (Assume candidate view logic is handled elsewhere, but ensure employer details are not shown unless request.status === 'hired')
+  // 4. Add TODO for in-app notification display
+  // TODO: Integrate in-app notification display here
+
   // Get progress percentage based on status
   const getProgressPercentage = (request) => {
     switch (request.status) {
       case 'pending': return 10;
-      case 'reviewing': return 20;
-      case 'approved': return 30;
-      case 'first_payment_required': return 40;
-      case 'first_payment_confirmed': return 50;
-      case 'photo_access_granted': return 60;
-      case 'full_details_requested': return 65;
+      case 'approved': return 20;
+      case 'first_payment_required': return 30;
+      case 'first_payment_confirmed': return 40;
+      case 'photo_access_granted': return 50;
+      case 'full_details_requested': return 60;
       case 'second_payment_required': return 70;
       case 'second_payment_confirmed': return 80;
       case 'full_access_granted': return 90;
       case 'hiring_decision_made': return 95;
+      case 'hired': return 100;
+      case 'available': return 100;
+      case 'process_complete': return 100;
+      case 'cancelled': return 0;
       case 'completed': return 100;
-      // Legacy statuses for backward compatibility
-      case 'payment_required': return 60;
-      case 'payment_confirmed': return 80;
       default: return 0;
     }
   };
@@ -472,7 +493,7 @@ const EmployerDashboard = () => {
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-gray-600">Failed to load dashboard data</p>
-          <button 
+          <button
             onClick={fetchDashboardData}
             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
           >
@@ -489,7 +510,7 @@ const EmployerDashboard = () => {
       value: dashboardData.stats.totalRequests,
       icon: FileText,
       color: 'bg-blue-500',
-  
+
     },
     {
       title: 'Pending Payments',
@@ -513,6 +534,17 @@ const EmployerDashboard = () => {
     }
   ];
 
+  // Unify Confirm Payment and Messages modal appearance with Request Details modal
+  // Use the same overlay and modal styling for all three modals
+  const ModalOverlay = ({ children, onClose }) => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black bg-opacity-20" onClick={onClose}></div>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200">
+        {children}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 relative">
       {/* Header */}
@@ -522,12 +554,12 @@ const EmployerDashboard = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Employer Dashboard</h1>
               <p className="text-gray-600 mt-1">
-                Welcome back, {dashboardData.employer?.name || 'Employer'}! 
+                Welcome back, {dashboardData.employer?.name || 'Employer'}!
                 Manage your job seeker requests and payments
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <button 
+              <button
                 onClick={fetchDashboardData}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
               >
@@ -612,7 +644,7 @@ const EmployerDashboard = () => {
         {/* Requests Table */}
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Your Requests</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Your Requestsyyy</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -692,7 +724,7 @@ const EmployerDashboard = () => {
                             <MessageSquare className="h-3 w-3" />
                             <span>Message</span>
                           </button>
-                          <button 
+                          <button
                             onClick={() => openDetails(request)}
                             className="text-blue-600 hover:text-blue-900 text-xs"
                           >
@@ -723,7 +755,7 @@ const EmployerDashboard = () => {
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No requests found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || filterStatus !== 'all' 
+              {searchTerm || filterStatus !== 'all'
                 ? 'Try adjusting your search or filters.'
                 : 'Get started by submitting your first job seeker request.'
               }
@@ -734,97 +766,71 @@ const EmployerDashboard = () => {
 
       {/* Messaging Modal */}
       {showMessaging && selectedRequest && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center z-40 p-4"
-          onClick={(e) => handleBackdropClick(e, 'messaging')}
+        <Modal
+          isOpen={showMessaging}
+          onClose={closeMessaging}
+          title={`Messages`}
+          maxWidth="max-w-2xl"
         >
-          {/* Semi-transparent backdrop */}
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-          
           {/* Modal content */}
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Messages - Request #{selectedRequest.id}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {selectedRequest.candidate?.name || 'N/A'} • {selectedRequest.status}
-                </p>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+            {messagingLoading ? (
+              <div className="text-center py-8">
+                <RefreshCw className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4" />
+                <p className="text-gray-600">Loading messages...</p>
               </div>
-              <button
-                onClick={closeMessaging}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <span className="sr-only">Close</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-              {messagingLoading ? (
-                <div className="text-center py-8">
-                  <RefreshCw className="animate-spin h-8 w-8 text-blue-500 mx-auto mb-4" />
-                  <p className="text-gray-600">Loading messages...</p>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No messages yet</p>
-                  <p className="text-sm text-gray-500">Start the conversation!</p>
-                </div>
-              ) : (
-                messages.map((message) => (
+            ) : messages.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No messages yet</p>
+                <p className="text-sm text-gray-500">Start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.fromAdmin ? 'justify-start' : 'justify-end'}`}
+                >
                   <div
-                    key={message.id}
-                    className={`flex ${message.fromAdmin ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${
-                        message.fromAdmin
-                          ? 'bg-white text-gray-900 border border-gray-200'
-                          : 'bg-blue-600 text-white'
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${message.fromAdmin
+                      ? 'bg-white text-gray-900 border border-gray-200'
+                      : 'bg-blue-600 text-white'
                       }`}
-                    >
-                      <div className="text-sm">{message.content}</div>
-                      <div className={`text-xs mt-1 ${
-                        message.fromAdmin ? 'text-gray-500' : 'text-blue-100'
+                  >
+                    <div className="text-sm">{message.content}</div>
+                    <div className={`text-xs mt-1 ${message.fromAdmin ? 'text-gray-500' : 'text-blue-100'
                       }`}>
-                        {new Date(message.createdAt).toLocaleString()}
-                      </div>
+                      {new Date(message.createdAt).toLocaleString()}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              ))
+            )}
+          </div>
 
-            {/* Message Input */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-white rounded-b-xl">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim() || messagingLoading}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>Send</span>
-                </button>
-              </div>
+          {/* Message Input */}
+          <div className="px-6 py-4 border-t border-gray-200 bg-white rounded-b-xl">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!newMessage.trim() || messagingLoading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <Send className="h-4 w-4" />
+                <span>Send</span>
+              </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Request Details Modal */}
@@ -847,206 +853,178 @@ const EmployerDashboard = () => {
 
       {/* Payment Confirmation Modal */}
       {showPaymentModal && selectedRequest && (
-        <div 
-          className="absolute inset-0 flex items-center justify-center z-40 p-4"
-          onClick={(e) => e.target === e.currentTarget && closePaymentModal()}
+        <Modal
+          isOpen={showPaymentModal}
+          onClose={closePaymentModal}
+          title={`Confirm Payment`}
+          maxWidth="max-w-2xl"
         >
-          {/* Semi-transparent backdrop */}
-          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-          
-          {/* Modal content */}
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50 rounded-t-xl">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Confirm Payment - Request #{selectedRequest.id}
-              </h3>
-              <button
-                onClick={closePaymentModal}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <span className="sr-only">Close</span>
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+          {/* Modal content */}       
 
-            <div className="flex-1 p-6 bg-gray-50">
-              <form onSubmit={handlePaymentConfirmation} className="space-y-6">
-                {/* Payment Information */}
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-blue-900 mb-3">Payment Details:</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-blue-700 font-medium">Amount:</span>
-                      <span className="text-blue-900 font-semibold">{selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-blue-700 font-medium">Description:</span>
-                      <span className="text-blue-900">{selectedRequest.paymentDescription || 'Payment for candidate access'}</span>
-                    </div>
-                   
-                    {selectedRequest.latestPayment?.paymentMethod && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700 font-medium">Payment Method:</span>
-                          <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700 font-medium">Account Name:</span>
-                          <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.accountName}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-blue-700 font-medium">Account Number:</span>
-                          <span className="text-blue-900 font-mono">{selectedRequest.latestPayment.paymentMethod.accountNumber}</span>
-                        </div>
-                        {selectedRequest.latestPayment.paymentMethod.bankName && (
-                          <div className="flex justify-between">
-                            <span className="text-blue-700 font-medium">Bank:</span>
-                            <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.bankName}</span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {!selectedRequest.latestPayment?.paymentMethod && (
-                      <div className="text-amber-700 text-xs bg-amber-50 p-2 rounded border border-amber-200">
-                        ⚠️ Payment method details not available. Please contact admin for payment instructions.
+          <div className="flex-1 p-6 bg-gray-50">
+            <form onSubmit={handlePaymentConfirmation} className="space-y-6">
+              {/* Payment Information */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-900 mb-3">Payment Details:</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-blue-700 font-medium">Amount:</span>
+                    <span className="text-blue-900 font-semibold">{selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700 font-medium">Description:</span>
+                    <span className="text-blue-900">{selectedRequest.paymentDescription || 'Payment for candidate access'}</span>
+                  </div>
+
+                  {selectedRequest.latestPayment?.paymentMethod && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700 font-medium">Payment Method:</span>
+                        <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.name}</span>
                       </div>
-                    )}
-                  </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700 font-medium">Account Name:</span>
+                        <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.accountName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700 font-medium">Account Number:</span>
+                        <span className="text-blue-900 font-mono">{selectedRequest.latestPayment.paymentMethod.accountNumber}</span>
+                      </div>
+                      {selectedRequest.latestPayment.paymentMethod.bankName && (
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 font-medium">Bank:</span>
+                          <span className="text-blue-900">{selectedRequest.latestPayment.paymentMethod.bankName}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {!selectedRequest.latestPayment?.paymentMethod && (
+                    <div className="text-amber-700 text-xs bg-amber-50 p-2 rounded border border-amber-200">
+                      ⚠️ Payment method details not available. Please contact admin for payment instructions.
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                {/* Confirmation Form */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentConfirmation.confirmationName}
-                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, confirmationName: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="As shown on transfer"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={paymentConfirmation.confirmationPhone}
-                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, confirmationPhone: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="+250123456789"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Payment Reference
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentConfirmation.paymentReference}
-                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, paymentReference: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="MTN123456 or transfer ID"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Transfer Amount (Admin Requested)
-                    </label>
-                    <input
-                      type="number"
-                      value={selectedRequest.paymentAmount || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                      placeholder="5000"
-                      min="0"
-                      step="100"
-                      readOnly
-                    />
-                    <p className="text-xs text-gray-500 mt-1">This amount cannot be changed</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Transfer Date
-                    </label>
-                    <input
-                      type="date"
-                      value={paymentConfirmation.transferDate}
-                      onChange={(e) => setPaymentConfirmation({...paymentConfirmation, transferDate: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      max={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
-                </div>
-
-                {/* Notes */}
+              {/* Confirmation Form */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Additional Notes
+                    Your Name <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    value={paymentConfirmation.notes}
-                    onChange={(e) => setPaymentConfirmation({...paymentConfirmation, notes: e.target.value})}
+                  <input
+                    type="text"
+                    value={paymentConfirmation.confirmationName}
+                    onChange={(e) => setPaymentConfirmation({ ...paymentConfirmation, confirmationName: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows="3"
-                    placeholder="Any additional information about your payment..."
+                    placeholder="As shown on transfer"
+                    required
                   />
                 </div>
-
-                {/* Error Display */}
-                {paymentError && (
-                  <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
-                    {paymentError}
-                  </div>
-                )}
-
-                {/* Success Message Display */}
-                {paymentSuccess && (
-                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
-                    {paymentSuccess}
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={closePaymentModal}
-                    disabled={paymentLoading}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={paymentLoading}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center space-x-2"
-                  >
-                    {paymentLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <DollarSign className="h-4 w-4" />
-                        <span>Confirm Payment</span>
-                      </>
-                    )}
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={paymentConfirmation.confirmationPhone}
+                    onChange={(e) => setPaymentConfirmation({ ...paymentConfirmation, confirmationPhone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="+250123456789"
+                    required
+                  />
                 </div>
-              </form>
-            </div>
+                {/* Payment Reference is now hidden in the Confirm Payment modal. */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Transfer Amount (Admin Requested)
+                  </label>
+                  <input
+                    type="number"
+                    value={selectedRequest.paymentAmount || ''}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                    placeholder="5000"
+                    min="0"
+                    step="100"
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">This amount cannot be changed</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Transfer Date
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentConfirmation.transferDate}
+                    onChange={(e) => setPaymentConfirmation({ ...paymentConfirmation, transferDate: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Additional Notes
+                </label>
+                <textarea
+                  value={paymentConfirmation.notes}
+                  onChange={(e) => setPaymentConfirmation({ ...paymentConfirmation, notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows="3"
+                  placeholder="Any additional information about your payment..."
+                />
+              </div>
+
+              {/* Error Display */}
+              {paymentError && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                  {paymentError}
+                </div>
+              )}
+
+              {/* Success Message Display */}
+              {paymentSuccess && (
+                <div className="text-sm text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
+                  {paymentSuccess}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={closePaymentModal}
+                  disabled={paymentLoading}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={paymentLoading}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {paymentLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign className="h-4 w-4" />
+                      <span>Confirm Payment</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
+        </Modal>
       )}
-      
+
       {/* Toast notifications */}
       <Toaster position="top-right" />
     </div>
