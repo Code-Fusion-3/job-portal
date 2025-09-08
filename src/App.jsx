@@ -8,6 +8,7 @@ import SessionMonitor from './components/auth/SessionMonitor';
 import Header from './components/layout/Header';
 import Hero from './components/sections/Hero';
 import Features from './components/sections/Features';
+import JobCategories from './components/sections/JobCategories';
 import LatestJobSeekers from './components/sections/LatestJobSeekers';
 import Statistics from './components/sections/Statistics';
 import { useScrollAnimations } from './hooks/useScrollAnimations';
@@ -48,7 +49,7 @@ const AdminPaymentReview = lazy(() => import('./pages/dashboard/AdminPaymentRevi
 import './App.css';
 
 
-  // Starting full application
+// Starting full application
 
 // Error Boundary Component
 const ErrorBoundary = ({ children }) => {
@@ -115,11 +116,11 @@ const LoadingSpinner = () => (
 const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-      // Component starting to render
+
+  // Component starting to render
 
   let containerRef = null;
-  
+
   try {
     const scrollAnimations = useScrollAnimations();
     containerRef = scrollAnimations.containerRef;
@@ -152,8 +153,8 @@ const HomePage = () => {
     );
   }
 
-      // Rendering main content
-  
+  // Rendering main content
+
   try {
     return (
       <motion.div
@@ -167,6 +168,7 @@ const HomePage = () => {
         <main className="w-full">
           <Hero />
           <Features />
+          <JobCategories />
           <LatestJobSeekers />
           {/* <Statistics /> */}
         </main>
@@ -190,11 +192,11 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
   const [appError, setAppError] = useState(null);
 
-      // Component starting to render
+  // Component starting to render
 
   useEffect(() => {
     // Initializing application
-    
+
     try {
       // Check if required dependencies are available
       if (typeof window === 'undefined') {
@@ -206,9 +208,9 @@ function App() {
         throw new Error('Location object not available');
       }
 
-              // All dependencies available, setting ready state
+      // All dependencies available, setting ready state
       setIsAppReady(true);
-      
+
     } catch (error) {
       console.error('App: Error during initialization:', error);
       setAppError(error);
@@ -217,7 +219,7 @@ function App() {
 
   if (appError) {
     console.error('App: Fatal error:', appError);
-  return (
+    return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Application Error</h1>
@@ -240,7 +242,7 @@ function App() {
     return <LoadingSpinner />;
   }
 
-      // Application ready, rendering router
+  // Application ready, rendering router
 
   try {
     return (
@@ -254,82 +256,82 @@ function App() {
               }}
             >
               <SessionMonitor />
-              <Suspense fallback={<LoadingSpinner />}> 
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/job-seekers" element={<JobSeekers />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/admin" element={<AdminLogin />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/employer/login" element={<EmployerLogin />} />
-                <Route path="/employer-request" element={<EmployerRequestGeneral />} />
-                <Route path="/employer-request/:id" element={<EmployerRequest />} />
-                <Route path="/about" element={<AboutUsPage />} />
-                <Route path="/admin-info" element={<AdminInfo />} />
-                <Route path="/contact" element={<ContactUsPage />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/test-approval" element={<ApprovalComponentsTest />} />
-                <Route path="/pending-approval" element={<PendingApproval />} />
-                <Route path="/api-test" element={<ApiTest />} />
-              <Route path="/dashboard/jobseeker" element={
-                  <ProtectedRoute requiredRole="jobseeker">
-                    <JobSeekerDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/admin" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/jobseekers" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <JobSeekersPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/job-categories" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <JobCategoriesPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/employer-requests" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <EmployerRequestsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/reports" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <ReportsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/approval-queue" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <ApprovalQueue />
-                  </ProtectedRoute>
-                } />
-                
-                {/* New Payment Workflow Routes */}
-                <Route path="/dashboard/employer" element={
-                  <ProtectedRoute requiredRole="employer">
-                    <EmployerDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/admin/payments" element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminPaymentReview />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/view-profile/:id" element={<ViewProfile />} />
-                <Route path="/update-profile" element={
-                  <ProtectedRoute requiredRole="jobseeker">
-                    <UpdateProfile />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/job-seekers" element={<JobSeekers />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/admin" element={<AdminLogin />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/employer/login" element={<EmployerLogin />} />
+                  <Route path="/employer-request" element={<EmployerRequestGeneral />} />
+                  <Route path="/employer-request/:id" element={<EmployerRequest />} />
+                  <Route path="/about" element={<AboutUsPage />} />
+                  <Route path="/admin-info" element={<AdminInfo />} />
+                  <Route path="/contact" element={<ContactUsPage />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/test-approval" element={<ApprovalComponentsTest />} />
+                  <Route path="/pending-approval" element={<PendingApproval />} />
+                  <Route path="/api-test" element={<ApiTest />} />
+                  <Route path="/dashboard/jobseeker" element={
+                    <ProtectedRoute requiredRole="jobseeker">
+                      <JobSeekerDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/admin" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/jobseekers" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <JobSeekersPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/job-categories" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <JobCategoriesPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/employer-requests" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <EmployerRequestsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/reports" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <ReportsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/approval-queue" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <ApprovalQueue />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* New Payment Workflow Routes */}
+                  <Route path="/dashboard/employer" element={
+                    <ProtectedRoute requiredRole="employer">
+                      <EmployerDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/admin/payments" element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminPaymentReview />
+                    </ProtectedRoute>
+                  } />
+
+                  <Route path="/view-profile/:id" element={<ViewProfile />} />
+                  <Route path="/update-profile" element={
+                    <ProtectedRoute requiredRole="jobseeker">
+                      <UpdateProfile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
               </Suspense>
             </Router>
           </LiveUpdateProvider>

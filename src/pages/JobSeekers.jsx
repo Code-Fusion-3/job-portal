@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  Search, 
-  Filter, 
-  MapPin, 
-  Users, 
+import { useLocation, useSearchParams } from 'react-router-dom';
+import {
+  Search,
+  Filter,
+  MapPin,
+  Users,
   Eye,
   Briefcase,
   X,
@@ -24,12 +25,16 @@ import { maskName } from '../utils/helpers';
 
 const JobSeekers = () => {
   const { t } = useTranslation();
-  
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get initial category from URL parameters
+  const initialCategory = searchParams.get('category') || '';
+
   // Professional filter options will be created dynamically using useMemo
   const [jobSeekers, setJobSeekers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedExperienceLevel, setSelectedExperienceLevel] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
   const [sortBy, setSortBy] = useState('Most Recent');
@@ -95,6 +100,32 @@ const JobSeekers = () => {
     }
   }, [categoriesError, selectedCategory]);
 
+  // Handle URL parameter changes
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && categoryParam !== selectedCategory) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams, selectedCategory]);
+
+  // Update URL when category filter changes (optional - to maintain state in URL)
+  useEffect(() => {
+    const currentCategory = searchParams.get('category');
+    if (selectedCategory && selectedCategory !== currentCategory) {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('category', selectedCategory);
+        return newParams;
+      }, { replace: true });
+    } else if (!selectedCategory && currentCategory) {
+      setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        newParams.delete('category');
+        return newParams;
+      }, { replace: true });
+    }
+  }, [selectedCategory, setSearchParams]);
+
   // Get active filters count
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -107,13 +138,13 @@ const JobSeekers = () => {
   };
 
   // Use the public job seekers hook
-  const { 
-    jobSeekers: publicJobSeekers, 
-    loading: jobSeekersLoading, 
-    error: jobSeekersError 
-  } = usePublicJobSeekers({ 
-    autoFetch: true, 
-    itemsPerPage: 50 
+  const {
+    jobSeekers: publicJobSeekers,
+    loading: jobSeekersLoading,
+    error: jobSeekersError
+  } = usePublicJobSeekers({
+    autoFetch: true,
+    itemsPerPage: 50
   });
 
   // Update local state when public data changes
@@ -143,13 +174,13 @@ const JobSeekers = () => {
         const firstName = seeker.firstName || seeker.profile?.firstName || seeker.user?.firstName || '';
         const lastName = seeker.lastName || seeker.profile?.lastName || seeker.user?.lastName || '';
         const name = `${firstName} ${lastName}`.toLowerCase();
-        
+
         // Try different possible skills field structures
         const skills = (seeker.skills || seeker.profile?.skills || seeker.user?.skills || '').toLowerCase();
-        
+
         // Try different possible location field structures
         const location = (seeker.location || seeker.profile?.location || seeker.city || '').toLowerCase();
-        
+
         if (!name.includes(searchLower) && !skills.includes(searchLower) && !location.includes(searchLower)) {
           return false;
         }
@@ -165,10 +196,10 @@ const JobSeekers = () => {
 
       // Category filter
       if (selectedCategory) {
-        const seekerCategory = seeker.jobCategory?.name_en || 
-                              seeker.profile?.jobCategory?.name_en || 
-                              seeker.user?.jobCategory?.name_en ||
-                              seeker.category;
+        const seekerCategory = seeker.jobCategory?.name_en ||
+          seeker.profile?.jobCategory?.name_en ||
+          seeker.user?.jobCategory?.name_en ||
+          seeker.category;
         if (seekerCategory?.toLowerCase() !== selectedCategory.toLowerCase()) {
           return false;
         }
@@ -207,7 +238,7 @@ const JobSeekers = () => {
     } else if (sortBy === 'Most Experienced') {
       filtered.sort((a, b) => {
         const getExperienceValue = (level) => {
-          switch(level) {
+          switch (level) {
             case 'expert': return 5;
             case 'experienced': return 4;
             case 'intermediate': return 3;
@@ -232,9 +263,12 @@ const JobSeekers = () => {
     setSelectedExperienceLevel('');
     setSelectedGender('');
     setSortBy('Most Recent');
+
+    // Clear URL parameters
+    setSearchParams(new URLSearchParams());
   };
 
-  
+
 
 
 
@@ -245,7 +279,7 @@ const JobSeekers = () => {
   if (jobSeekersLoading) {
     return (
       <div className="min-h-screen relative">
-        <div 
+        <div
           className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${jobseekerBackground})` }}
         />
@@ -262,7 +296,7 @@ const JobSeekers = () => {
   if (jobSeekersError) {
     return (
       <div className="min-h-screen relative">
-        <div 
+        <div
           className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${jobseekerBackground})` }}
         />
@@ -312,25 +346,25 @@ const JobSeekers = () => {
           animation: float 3s ease-in-out infinite;
         }
       `}</style>
-      
-      <div 
+
+      <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${jobseekerBackground})` }}
       />
-      
+
       <Header />
-      
+
       {/* Page Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 relative">        
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 relative">
         <div className="text-center relative z-10">
           {/* Main Title with Enhanced Styling */}
           <div className="mb-6">
             <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 text-reveal tracking-tight relative"
-                style={{
-                  animation: 'fadeInUp 1s ease-out forwards',
-                  opacity: 0,
-                  transform: 'translateY(30px)'
-                }}>
+              style={{
+                animation: 'fadeInUp 1s ease-out forwards',
+                opacity: 0,
+                transform: 'translateY(30px)'
+              }}>
               <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-2xl relative z-10 hover:from-blue-100 hover:via-white hover:to-blue-100 transition-all duration-1000">
                 {t('jobSeekers.pageTitle', 'All Job Seekers')}
               </span>
@@ -438,7 +472,7 @@ const JobSeekers = () => {
                 <p className="text-sm text-gray-600">
                   {t('jobSeekers.filters.description', 'Refine your search to find the perfect job seeker')}
                 </p>
-                
+
                 {/* Active Filters Summary */}
                 {getActiveFiltersCount() > 0 && (
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -478,7 +512,7 @@ const JobSeekers = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Experience Level Filter */}
                 <div>
@@ -623,7 +657,7 @@ const JobSeekers = () => {
         {/* Job Seekers Grid/List */}
         {filteredSeekers.length > 0 ? (
           <div
-            className={viewMode === 'grid' 
+            className={viewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-reveal'
               : 'space-y-6 text-reveal'
             }
@@ -638,7 +672,7 @@ const JobSeekers = () => {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center">
                             <div className="mr-4">
-                              <ProfileImage 
+                              <ProfileImage
                                 size="lg"
                                 variant="rounded"
                                 showBorder={true}
@@ -665,7 +699,7 @@ const JobSeekers = () => {
                             <Eye className="w-4 h-4" />
                             {t('jobSeekers.actions.viewProfile', 'View Profile')}
                           </Link>
-                          
+
                           {/* Fallback Link for navigation - REMOVED as it might interfere with button navigation */}
                         </div>
                       </div>
@@ -741,7 +775,7 @@ const JobSeekers = () => {
           </div>
         )}
       </main>
-      
+
       <div className="relative z-10">
         <Footer />
       </div>

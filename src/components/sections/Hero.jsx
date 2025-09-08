@@ -2,8 +2,10 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { Briefcase, ChevronRight } from 'lucide-react';
 import Button from '../ui/Button';
 import ImageSlideshow from '../ui/ImageSlideshow';
+import { usePublicCategories } from '../../api/hooks/useCategories.js';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -17,6 +19,9 @@ const Hero = () => {
   const sceneRef = useRef(null);
   const rendererRef = useRef(null);
   const animationIdRef = useRef(null);
+
+  // Fetch job categories for quick access
+  const { categories, loading: categoriesLoading } = usePublicCategories();
 
   // Three.js setup
   useEffect(() => {
@@ -128,52 +133,67 @@ const Hero = () => {
     const tl = gsap.timeline({ delay: 0.5 });
 
     // Hero content animations
-    tl.fromTo('.hero-title', 
-      { 
-        opacity: 0, 
-        y: -100, 
+    tl.fromTo('.hero-title',
+      {
+        opacity: 0,
+        y: -100,
         scale: 0.8,
         rotationX: -90
       },
-      { 
-        opacity: 1, 
-        y: 0, 
+      {
+        opacity: 1,
+        y: 0,
         scale: 1,
         rotationX: 0,
         duration: 1.5,
         ease: 'back.out(1.7)'
       }
     )
-    .fromTo('.hero-subtitle',
-      {
-        opacity: 0,
-        y: 50,
-        scale: 0.9
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 1,
-        ease: 'power2.out'
-      },
-      '-=0.5'
-    )
-    .fromTo('.hero-buttons',
-      {
-        opacity: 0,
-        y: 80,
-        scale: 0.8
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 1,
-        ease: 'power2.out'
-      },
-      '-=0.3'
-    );
+      .fromTo('.hero-subtitle',
+        {
+          opacity: 0,
+          y: 50,
+          scale: 0.9
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 1,
+          ease: 'power2.out'
+        },
+        '-=0.5'
+      )
+      .fromTo('.hero-buttons',
+        {
+          opacity: 0,
+          y: 80,
+          scale: 0.8
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 1,
+          ease: 'power2.out'
+        },
+        '-=0.3'
+      )
+      .fromTo('.hero-categories',
+        {
+          opacity: 0,
+          y: 50,
+          scale: 0.9
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.8,
+          ease: 'power2.out'
+        },
+        '-=0.2'
+      );
 
     // Parallax effect for Three.js background
     gsap.to(canvasRef.current, {
@@ -219,9 +239,9 @@ const Hero = () => {
             {/* CTA Buttons */}
             <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/login">
-              <Button variant="primary" size="lg">
-                {t('hero.cta.primary')}
-              </Button>
+                <Button variant="primary" size="lg">
+                  {t('hero.cta.primary')}
+                </Button>
               </Link>
               <Link to="/job-seekers">
                 <Button as="div" variant="secondary" size="lg">
@@ -229,6 +249,56 @@ const Hero = () => {
                 </Button>
               </Link>
             </div>
+
+            {/* Quick Categories Access */}
+            {!categoriesLoading && categories && categories.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+                className="hero-categories mt-8 max-w-4xl mx-auto"
+              >
+                <div className="text-center mb-4">
+                  <p className="text-white/80 text-sm md:text-base font-medium">
+                    {t('hero.categories.title', 'Popular Categories')}
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+                  {categories.slice(0, 6).map((category, index) => (
+                    <motion.div
+                      key={category.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
+                    >
+                      <Link
+                        to={`/job-seekers?category=${encodeURIComponent(category.name_en.toLowerCase())}`}
+                        className="group inline-flex items-center px-3 md:px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs md:text-sm font-medium hover:bg-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105"
+                      >
+                        <Briefcase className="h-3 w-3 md:h-4 md:w-4 mr-2 opacity-80 group-hover:opacity-100" />
+                        <span>{category.name_en}</span>
+                        <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+                    </motion.div>
+                  ))}
+                  {categories.length > 6 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 2 }}
+                    >
+                      <Link
+                        to="/job-seekers"
+                        className="inline-flex items-center px-3 md:px-4 py-2 bg-red-600/80 backdrop-blur-sm border border-red-500/50 rounded-full text-white text-xs md:text-sm font-medium hover:bg-red-600 hover:border-red-500 transition-all duration-300 hover:scale-105"
+                      >
+                        <span>View All ({categories.length})</span>
+                        <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1" />
+                      </Link>
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 
