@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import toast, { Toaster } from 'react-hot-toast';
 import {
   MessageSquare,
   Clock,
@@ -49,7 +50,6 @@ import API_CONFIG from '../../api/config/apiConfig.js';
 
 import { getStatusColor, getPriorityColor, handleContactEmployer } from '../../utils/adminHelpers';
 import { motion } from 'framer-motion';
-import toast, { Toaster } from 'react-hot-toast';
 
 const EmployerRequestsPage = () => {
   const { t } = useTranslation();
@@ -2121,7 +2121,10 @@ const EmployerRequestsPage = () => {
           return;
         case 'waitForHiringDecision':
           // This is informational - no action needed
-          toast.info('Waiting for employer to make hiring decision...');
+          toast('Waiting for employer to make hiring decision...', {
+            icon: '⏳',
+            duration: 3000,
+          });
           return;
         case 'reviewHiringDecision':
           // This will open a modal to review hiring decision

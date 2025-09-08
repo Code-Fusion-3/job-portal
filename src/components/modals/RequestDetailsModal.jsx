@@ -555,7 +555,7 @@ const RequestDetailsModal = ({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 flex items-center">
-                    Contact
+                    Phone Number
                     {!accessInfo.canViewContact && (
                       <Lock className="h-3 w-3 ml-1 text-red-500" />
                     )}
@@ -571,7 +571,7 @@ const RequestDetailsModal = ({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 flex items-center">
-                    Email
+                    Email Address
                     {!accessInfo.canViewContact && (
                       <Lock className="h-3 w-3 ml-1 text-red-500" />
                     )}

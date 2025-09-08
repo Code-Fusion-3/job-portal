@@ -13,6 +13,8 @@ import {
   Eye,
   FileText,
   CheckCircle,
+  UserCheck,
+  UserX,
   AlertCircle,
   CreditCard,
   History,
@@ -55,6 +57,12 @@ const EmployerDashboard = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState('');
+
+  // Hiring decision modal states
+  const [showHiringDecisionModal, setShowHiringDecisionModal] = useState(false);
+  const [hiringDecision, setHiringDecision] = useState('');
+  const [hiringDecisionNotes, setHiringDecisionNotes] = useState('');
+  const [hiringDecisionLoading, setHiringDecisionLoading] = useState(false);
 
   // Helper function to safely format location data
   const formatLocation = (location, city, country) => {
@@ -303,6 +311,60 @@ const EmployerDashboard = () => {
       }
     } catch (error) {
       toast.error('Network error. Please try again.');
+    }
+  };
+
+  // Open hiring decision modal
+  const openHiringDecisionModal = (request, decision) => {
+    setSelectedRequest(request);
+    setHiringDecision(decision);
+    setHiringDecisionNotes('');
+    setShowHiringDecisionModal(true);
+  };
+
+  // Close hiring decision modal
+  const closeHiringDecisionModal = () => {
+    setShowHiringDecisionModal(false);
+    setSelectedRequest(null);
+    setHiringDecision('');
+    setHiringDecisionNotes('');
+  };
+
+  // Submit hiring decision
+  const submitHiringDecision = async () => {
+    if (!selectedRequest || !hiringDecision) return;
+
+    setHiringDecisionLoading(true);
+    try {
+      const endpoint = hiringDecision === 'hired'
+        ? `${API_CONFIG.BASE_URL}/employer/requests/${selectedRequest.id}/mark-hired`
+        : `${API_CONFIG.BASE_URL}/employer/requests/${selectedRequest.id}/mark-not-hired`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+        },
+        body: JSON.stringify({
+          decision: hiringDecision,
+          notes: hiringDecisionNotes
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(`Hiring decision recorded: ${hiringDecision === 'hired' ? 'Hired' : 'Not Hired'}`);
+        closeHiringDecisionModal();
+        fetchDashboardData();
+      } else {
+        toast.error(data.error || 'Failed to submit hiring decision');
+      }
+    } catch (error) {
+      console.error('Error submitting hiring decision:', error);
+      toast.error('Failed to submit hiring decision');
+    } finally {
+      setHiringDecisionLoading(false);
     }
   };
 
@@ -782,6 +844,24 @@ const EmployerDashboard = () => {
                               <span>Request Full Details</span>
                             </button>
                           )}
+                          {request.status === 'full_access_granted' && (
+                            <>
+                              <button
+                                onClick={() => openHiringDecisionModal(request, 'hired')}
+                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs transition-colors flex items-center space-x-1"
+                              >
+                                <UserCheck className="h-3 w-3" />
+                                <span>Hire</span>
+                              </button>
+                              <button
+                                onClick={() => openHiringDecisionModal(request, 'not_hired')}
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs transition-colors flex items-center space-x-1"
+                              >
+                                <UserX className="h-3 w-3" />
+                                <span>Not Hire</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </motion.tr>
@@ -1085,6 +1165,85 @@ const EmployerDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </Modal>
+      )}
+
+      {/* Hiring Decision Modal */}
+      {showHiringDecisionModal && selectedRequest && (
+        <Modal
+          isOpen={showHiringDecisionModal}
+          onClose={closeHiringDecisionModal}
+          title={`${hiringDecision === 'hired' ? 'Hire' : 'Not Hire'} Candidate`}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${hiringDecision === 'hired' ? 'bg-green-100' : 'bg-red-100'
+                }`}>
+                {hiringDecision === 'hired' ? (
+                  <UserCheck className={`h-6 w-6 text-green-600`} />
+                ) : (
+                  <UserX className={`h-6 w-6 text-red-600`} />
+                )}
+              </div>
+              <h3 className="mt-2 text-lg font-medium text-gray-900">
+                {hiringDecision === 'hired' ? 'Hire Candidate' : 'Not Hire Candidate'}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Are you sure you want to mark <strong>{selectedRequest.candidate?.name}</strong> as{' '}
+                {hiringDecision === 'hired' ? 'hired' : 'not hired'}?
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="hiringNotes" className="block text-sm font-medium text-gray-700 mb-2">
+                Notes (Optional)
+              </label>
+              <textarea
+                id="hiringNotes"
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder={`Add any notes about your ${hiringDecision === 'hired' ? 'hiring' : 'rejection'} decision...`}
+                value={hiringDecisionNotes}
+                onChange={(e) => setHiringDecisionNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={closeHiringDecisionModal}
+                className="flex-1 bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submitHiringDecision}
+                disabled={hiringDecisionLoading}
+                className={`flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${hiringDecision === 'hired'
+                  ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                  : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                  } disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center`}
+              >
+                {hiringDecisionLoading ? (
+                  <>
+                    <RefreshCw className="animate-spin h-4 w-4 mr-2" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    {hiringDecision === 'hired' ? (
+                      <UserCheck className="h-4 w-4 mr-2" />
+                    ) : (
+                      <UserX className="h-4 w-4 mr-2" />
+                    )}
+                    <span>Confirm {hiringDecision === 'hired' ? 'Hire' : 'Not Hire'}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </Modal>
       )}

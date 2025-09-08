@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Briefcase, 
-  GraduationCap, 
-  Award, 
-  Code, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Code,
   Save,
   Edit,
   Plus,
@@ -78,18 +78,18 @@ const AdminProfileManagement = () => {
         projects: []
       };
     }
-    
+
     // Ensure projects have proper tech array structure
     if (data.projects && Array.isArray(data.projects)) {
       data.projects = data.projects.map(project => ({
         ...project,
-        tech: Array.isArray(project.tech) ? project.tech : 
-              (typeof project.tech === 'string' ? project.tech.split(',').map(t => t.trim()).filter(t => t) : [])
+        tech: Array.isArray(project.tech) ? project.tech :
+          (typeof project.tech === 'string' ? project.tech.split(',').map(t => t.trim()).filter(t => t) : [])
       }));
     } else if (!data.projects) {
       data.projects = [];
     }
-    
+
     // Ensure experience has proper achievements array structure
     if (data.experience && Array.isArray(data.experience)) {
       data.experience = data.experience.map(exp => ({
@@ -99,7 +99,7 @@ const AdminProfileManagement = () => {
     } else if (!data.experience) {
       data.experience = [];
     }
-    
+
     // Ensure skills object has proper structure
     if (data.skills && typeof data.skills === 'object') {
       Object.keys(data.skills).forEach(key => {
@@ -110,35 +110,35 @@ const AdminProfileManagement = () => {
     } else if (!data.skills) {
       data.skills = { frontend: [], backend: [], database: [], devops: [], design: [], management: [] };
     }
-    
+
     // Ensure other arrays exist
     if (!data.education) data.education = [];
     if (!data.certifications) data.certifications = [];
     if (!data.personal) data.personal = {};
-    
+
     console.log('✅ AdminProfileManagement: Data normalized successfully:', data);
     return data;
   };
 
   const loadProfileData = async (retryCount = 0) => {
     const maxRetries = 2;
-    
+
     try {
       setLoading(true);
       setError(null);
       console.log('🔍 AdminProfileManagement: Loading profile data...');
-      
+
       // Use public profile to avoid authentication issues
       const data = await adminProfileService.getPublicProfile();
       console.log('✅ AdminProfileManagement: Profile data loaded:', data);
-      
+
       // Normalize data structure to prevent runtime errors
       const normalizedData = normalizeProfileData(data);
       console.log('🔍 AdminProfileManagement: Setting normalized profile data:', normalizedData);
       setProfileData(normalizedData);
     } catch (error) {
       console.error('❌ AdminProfileManagement: Error loading profile data:', error);
-      
+
       // Retry logic for temporary failures
       if (retryCount < maxRetries) {
         console.log(`🔄 Retrying profile load... (${retryCount + 1}/${maxRetries})`);
@@ -147,7 +147,7 @@ const AdminProfileManagement = () => {
         }, 2000 * (retryCount + 1)); // Exponential backoff
         return;
       }
-      
+
       setError('Failed to load profile data after multiple attempts. Please try again.');
       toast.error('Failed to load profile data');
     } finally {
@@ -159,7 +159,7 @@ const AdminProfileManagement = () => {
     try {
       setSaving(true);
       console.log('🔍 AdminProfileManagement: Saving profile data...');
-      
+
       // Since we're using public profile, we need to check if user is authenticated
       try {
         await adminProfileService.updateProfile(profileData);
@@ -168,10 +168,13 @@ const AdminProfileManagement = () => {
         console.log('✅ AdminProfileManagement: Profile saved successfully');
       } catch (updateError) {
         console.error('❌ AdminProfileManagement: Update failed, trying to create new profile...');
-        
+
         // If update fails, try to create a new profile
         if (updateError.response?.status === 404) {
-          toast.info('Creating new profile...');
+          toast('Creating new profile...', {
+            icon: 'ℹ️',
+            duration: 2000,
+          });
           // The backend should handle profile creation automatically
           await loadProfileData(); // Reload to get the newly created profile
           toast.success('Profile created successfully!');
@@ -228,7 +231,7 @@ const AdminProfileManagement = () => {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Data Not Available</h2>
           <p className="text-gray-600 mb-4">Unable to load profile data. Please try refreshing the page.</p>
-          <button 
+          <button
             onClick={loadProfileData}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -252,8 +255,8 @@ const AdminProfileManagement = () => {
     try {
       return {
         ...project,
-        tech: Array.isArray(project.tech) ? project.tech : 
-              (typeof project.tech === 'string' ? project.tech.split(',').map(t => t.trim()).filter(t => t) : [])
+        tech: Array.isArray(project.tech) ? project.tech :
+          (typeof project.tech === 'string' ? project.tech.split(',').map(t => t.trim()).filter(t => t) : [])
       };
     } catch (error) {
       console.error('❌ AdminProfileManagement: Error processing project:', project, error);
@@ -306,10 +309,10 @@ const AdminProfileManagement = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column - Personal Info & Skills */}
           <div className="lg:col-span-1 space-y-6">
-            
+
             {/* Personal Information */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -325,7 +328,7 @@ const AdminProfileManagement = () => {
                   {editingSection === 'personal' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                 </Button>
               </div>
-              
+
               {editingSection === 'personal' ? (
                 <div className="space-y-4">
                   <div>
@@ -542,7 +545,7 @@ const AdminProfileManagement = () => {
                   {editingSection === 'skills' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                 </Button>
               </div>
-              
+
               {editingSection === 'skills' ? (
                 <div className="space-y-6">
                   {/* Add New Category */}
@@ -631,7 +634,7 @@ const AdminProfileManagement = () => {
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
-                      
+
                       <div className="space-y-2">
                         {skillsList.map((skill, index) => (
                           <div key={index} className="flex gap-2">
@@ -707,7 +710,7 @@ const AdminProfileManagement = () => {
 
           {/* Right Column - Experience, Education, Projects, etc. */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Professional Experience */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -723,7 +726,7 @@ const AdminProfileManagement = () => {
                   {editingSection === 'experience' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                 </Button>
               </div>
-              
+
               {editingSection === 'experience' ? (
                 <div className="space-y-4">
                   {experience.map((exp, index) => (
@@ -760,9 +763,9 @@ const AdminProfileManagement = () => {
                         <label className="block text-sm font-medium text-gray-700">Achievements (one per line)</label>
                         <textarea
                           value={exp.achievements ? exp.achievements.join('\n') : ''}
-                          onChange={(e) => updateItem('experience', index, { 
-                            ...exp, 
-                            achievements: e.target.value.split('\n').filter(line => line.trim()) 
+                          onChange={(e) => updateItem('experience', index, {
+                            ...exp,
+                            achievements: e.target.value.split('\n').filter(line => line.trim())
                           })}
                           placeholder="List your key achievements..."
                           rows={2}
@@ -781,12 +784,12 @@ const AdminProfileManagement = () => {
                     </div>
                   ))}
                   <Button
-                    onClick={() => addItem('experience', { 
-                      position: '', 
-                      company: '', 
-                      period: '', 
-                      description: '', 
-                      achievements: [] 
+                    onClick={() => addItem('experience', {
+                      position: '',
+                      company: '',
+                      period: '',
+                      description: '',
+                      achievements: []
                     })}
                     variant="outline"
                     size="sm"
@@ -840,7 +843,7 @@ const AdminProfileManagement = () => {
                   {editingSection === 'education' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                 </Button>
               </div>
-              
+
               {editingSection === 'education' ? (
                 <div className="space-y-4">
                   {education.map((edu, index) => (
@@ -885,11 +888,11 @@ const AdminProfileManagement = () => {
                     </div>
                   ))}
                   <Button
-                    onClick={() => addItem('education', { 
-                      degree: '', 
-                      school: '', 
-                      period: '', 
-                      description: '' 
+                    onClick={() => addItem('education', {
+                      degree: '',
+                      school: '',
+                      period: '',
+                      description: ''
                     })}
                     variant="outline"
                     size="sm"
@@ -936,7 +939,7 @@ const AdminProfileManagement = () => {
                   {editingSection === 'certifications' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                 </Button>
               </div>
-              
+
               {editingSection === 'certifications' ? (
                 <div className="space-y-4">
                   {certifications.map((cert, index) => (
@@ -1014,7 +1017,7 @@ const AdminProfileManagement = () => {
                   {editingSection === 'projects' ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                 </Button>
               </div>
-              
+
               {editingSection === 'projects' ? (
                 <div className="space-y-4">
                   {safeProjects.map((project, index) => (
@@ -1045,9 +1048,9 @@ const AdminProfileManagement = () => {
                       <input
                         type="text"
                         value={Array.isArray(project.tech) ? project.tech.join(', ') : project.tech}
-                        onChange={(e) => updateItem('projects', index, { 
-                          ...project, 
-                          tech: e.target.value.split(',').map(t => t.trim()).filter(t => t) 
+                        onChange={(e) => updateItem('projects', index, {
+                          ...project,
+                          tech: e.target.value.split(',').map(t => t.trim()).filter(t => t)
                         })}
                         placeholder="Technologies (comma-separated)"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -1064,11 +1067,11 @@ const AdminProfileManagement = () => {
                     </div>
                   ))}
                   <Button
-                    onClick={() => addItem('projects', { 
-                      name: '', 
-                      status: 'development', 
-                      description: '', 
-                      tech: [] 
+                    onClick={() => addItem('projects', {
+                      name: '',
+                      status: 'development',
+                      description: '',
+                      tech: []
                     })}
                     variant="outline"
                     size="sm"
@@ -1085,11 +1088,10 @@ const AdminProfileManagement = () => {
                       <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
                           <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            project.status === 'live' 
-                              ? 'bg-green-100 text-green-800' 
+                          <span className={`text-xs px-2 py-1 rounded-full ${project.status === 'live'
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                            }`}>
                             {project.status}
                           </span>
                         </div>
@@ -1097,7 +1099,7 @@ const AdminProfileManagement = () => {
                         {project.tech && Array.isArray(project.tech) && project.tech.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {project.tech.map((tech, techIndex) => (
-                              <span 
+                              <span
                                 key={techIndex}
                                 className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
                               >
