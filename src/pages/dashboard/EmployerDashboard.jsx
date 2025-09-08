@@ -19,7 +19,10 @@ import {
   CreditCard,
   History,
   Search,
-  Filter
+  Filter,
+  LogOut,
+  Home,
+  ArrowLeft
 } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 import API_CONFIG from '../../api/config/apiConfig';
@@ -30,7 +33,7 @@ import messagingService from '../../api/services/messagingService';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 
 const EmployerDashboard = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -368,6 +371,22 @@ const EmployerDashboard = () => {
     }
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+    }
+  };
+
+  // Handle back to platform (homepage)
+  const handleBackToPlatform = () => {
+    window.location.href = '/';
+  };
+
   // Load dashboard data on component mount
   useEffect(() => {
     fetchDashboardData();
@@ -656,11 +675,27 @@ const EmployerDashboard = () => {
             </div>
             <div className="flex items-center space-x-3">
               <button
+                onClick={handleBackToPlatform}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                title="Back to Platform"
+              >
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Platform</span>
+              </button>
+              <button
                 onClick={fetchDashboardData}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span>Refresh</span>
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>

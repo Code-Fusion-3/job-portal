@@ -179,6 +179,78 @@ class NotificationService {
       throw error;
     }
   }
+
+  /**
+   * Get notification preferences (opt-out settings)
+   */
+  static async getNotificationPreferences() {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/notifications/preferences`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update notification preferences
+   * @param {string} type - Notification type to opt out/in
+   * @param {boolean} optedOut - Whether to opt out
+   */
+  static async updateNotificationPreference(type, optedOut) {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/notifications/preferences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+        },
+        body: JSON.stringify({
+          type,
+          optedOut
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating notification preference:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle notification preference (convenience method)
+   * @param {string} type - Notification type to toggle
+   */
+  static async toggleNotificationPreference(type) {
+    try {
+      // First get current preferences to determine current state
+      const preferences = await this.getNotificationPreferences();
+      const currentlyOptedOut = preferences.optedOutTypes.includes(type);
+
+      // Toggle the state
+      return await this.updateNotificationPreference(type, !currentlyOptedOut);
+    } catch (error) {
+      console.error('Error toggling notification preference:', error);
+      throw error;
+    }
+  }
 }
 
 export default NotificationService;
