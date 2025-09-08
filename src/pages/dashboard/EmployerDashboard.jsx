@@ -282,6 +282,30 @@ const EmployerDashboard = () => {
     fetchPaymentHistory(request.id);
   };
 
+  // Add 'Request Full Details' action for employer
+  const requestFullDetails = async (request) => {
+    if (!request || request.status !== 'photo_access_granted') return;
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/employer/requests/${request.id}/request-full-details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+        },
+        body: JSON.stringify({ reason: '' })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success('Full details request submitted. Admin will review your request.');
+        fetchDashboardData();
+      } else {
+        toast.error(data.error || 'Failed to request full details.');
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.');
+    }
+  };
+
   // Load dashboard data on component mount
   useEffect(() => {
     fetchDashboardData();
@@ -296,6 +320,16 @@ const EmployerDashboard = () => {
 
   // Payment confirmation functions
   const openPaymentModal = (request) => {
+    console.log('🔍 PAYMENT MODAL DEBUG:', {
+      request_id: request.id,
+      status: request.status,
+      latestPayment_exists: !!request.latestPayment,
+      latestPayment_id: request.latestPayment?.id,
+      latestPayment_amount: request.latestPayment?.amount,
+      paymentMethod_exists: !!request.latestPayment?.paymentMethod,
+      paymentMethod_name: request.latestPayment?.paymentMethod?.name,
+      full_latestPayment: request.latestPayment
+    });
     setSelectedRequest(request);
     setShowPaymentModal(true);
     setPaymentConfirmation({
@@ -347,7 +381,7 @@ const EmployerDashboard = () => {
           confirmationName: paymentConfirmation.confirmationName,
           confirmationPhone: paymentConfirmation.confirmationPhone,
           paymentReference: paymentConfirmation.paymentReference,
-          transferAmount: selectedRequest.paymentAmount,
+          transferAmount: selectedRequest.latestPayment?.amount || selectedRequest.paymentAmount,
           transferDate: paymentConfirmation.transferDate,
           notes: paymentConfirmation.notes
         })
@@ -739,6 +773,15 @@ const EmployerDashboard = () => {
                               <span>Confirm Payment</span>
                             </button>
                           )}
+                          {request.status === 'photo_access_granted' && (
+                            <button
+                              onClick={() => requestFullDetails(request)}
+                              className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md text-xs transition-colors flex items-center space-x-1"
+                            >
+                              <Eye className="h-3 w-3" />
+                              <span>Request Full Details</span>
+                            </button>
+                          )}
                         </div>
                       </td>
                     </motion.tr>
@@ -859,7 +902,7 @@ const EmployerDashboard = () => {
           title={`Confirm Payment`}
           maxWidth="max-w-2xl"
         >
-          {/* Modal content */}       
+          {/* Modal content */}
 
           <div className="flex-1 p-6 bg-gray-50">
             <form onSubmit={handlePaymentConfirmation} className="space-y-6">
@@ -869,11 +912,28 @@ const EmployerDashboard = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-blue-700 font-medium">Amount:</span>
-                    <span className="text-blue-900 font-semibold">{selectedRequest.paymentAmount} {selectedRequest.paymentCurrency}</span>
+                    <span className="text-blue-900 font-semibold">
+                      {selectedRequest.latestPayment
+                        ? `${selectedRequest.latestPayment.amount} ${selectedRequest.latestPayment.currency}`
+                        : `${selectedRequest.paymentAmount} ${selectedRequest.paymentCurrency}` // Fallback
+                      }
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-blue-700 font-medium">Description:</span>
-                    <span className="text-blue-900">{selectedRequest.paymentDescription || 'Payment for candidate access'}</span>
+                    <span className="text-blue-900">
+                      {selectedRequest.latestPayment?.description ||
+                        (selectedRequest.status === 'second_payment_required'
+                          ? 'Second payment for full candidate details access'
+                          : 'First payment for candidate photo access')
+                      }
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700 font-medium">Payment Type:</span>
+                    <span className="text-blue-900 capitalize">
+                      {selectedRequest.latestPayment?.paymentType?.replace('_', ' ') || 'First Installment'}
+                    </span>
                   </div>
 
                   {selectedRequest.latestPayment?.paymentMethod && (
@@ -941,9 +1001,13 @@ const EmployerDashboard = () => {
                   </label>
                   <input
                     type="number"
-                    value={selectedRequest.paymentAmount || ''}
+                    value={
+                      selectedRequest.latestPayment?.amount ||
+                      selectedRequest.paymentAmount ||
+                      ''
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                    placeholder="5000"
+                    placeholder="Amount set by admin"
                     min="0"
                     step="100"
                     readOnly

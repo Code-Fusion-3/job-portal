@@ -318,6 +318,7 @@ const EmployerRequestsPage = () => {
   const [workflowLoading, setWorkflowLoading] = useState(false);
   const [workflowError, setWorkflowError] = useState('');
   const [workflowNotes, setWorkflowNotes] = useState('');
+  const [workflowAdminNotes, setWorkflowAdminNotes] = useState('');
   const [completionError, setCompletionError] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
   const [actionLoadingStates, setActionLoadingStates] = useState({});
@@ -1748,10 +1749,98 @@ const EmployerRequestsPage = () => {
 
   // Get workflow action content
   const getWorkflowActionContent = (action) => {
+    // Handle requestSecondPayment FIRST before generic needsNotes
+    if (action === 'requestSecondPayment' && user?.role === 'admin') {
+      return (
+        <div>
+          {/* Request Information */}
+          <div className="mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Request Information</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div><span className="font-medium">Request ID:</span> #{selectedRequest.id}</div>
+              <div><span className="font-medium">Status:</span> {selectedRequest.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+              <div><span className="font-medium">Employer:</span> {selectedRequest.employerName}</div>
+              <div><span className="font-medium">Candidate:</span> {selectedRequest.candidateName}</div>
+              <div><span className="font-medium">Company:</span> {selectedRequest.companyName}</div>
+              <div><span className="font-medium">Created:</span> {new Date(selectedRequest.date).toLocaleDateString()}</div>
+            </div>
+          </div>
+          {/* Amount input (required) */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Second Payment Amount <span className="text-red-500">*</span></label>
+            <input
+              type="number"
+              value={workflowNotes}
+              onChange={(e) => setWorkflowNotes(e.target.value)}
+              className="w-full px-3 py-2 border-2 border-blue-500 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold"
+              placeholder="Enter amount (e.g. 10000)"
+              min="1"
+              required
+            />
+          </div>
+          {/* Payment Request Notes (optional) */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Payment Request Notes (Optional)</label>
+            <textarea
+              value={workflowAdminNotes}
+              onChange={(e) => setWorkflowAdminNotes(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              placeholder="Add any notes about the second payment request..."
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Handle approveFullDetailsRequest - admin must enter amount
+    if (action === 'approveFullDetailsRequest' && user?.role === 'admin') {
+      return (
+        <div>
+          {/* Request Information */}
+          <div className="mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Approve Full Details Request</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div><span className="font-medium">Request ID:</span> #{selectedRequest.id}</div>
+              <div><span className="font-medium">Status:</span> {selectedRequest.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+              <div><span className="font-medium">Employer:</span> {selectedRequest.employerName}</div>
+              <div><span className="font-medium">Candidate:</span> {selectedRequest.candidateName}</div>
+              <div><span className="font-medium">Company:</span> {selectedRequest.companyName}</div>
+              <div><span className="font-medium">Created:</span> {new Date(selectedRequest.date).toLocaleDateString()}</div>
+            </div>
+          </div>
+          {/* Amount input (required) */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Second Payment Amount <span className="text-red-500">*</span></label>
+            <input
+              type="number"
+              value={workflowNotes}
+              onChange={(e) => setWorkflowNotes(e.target.value)}
+              className="w-full px-3 py-2 border-2 border-green-500 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg font-semibold"
+              placeholder="Enter amount (e.g. 10000)"
+              min="1"
+              required
+            />
+            <p className="text-sm text-gray-600 mt-1">Set the amount for the second payment to grant full details access</p>
+          </div>
+          {/* Approval Notes (optional) */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Approval Notes (Optional)</label>
+            <textarea
+              value={workflowAdminNotes}
+              onChange={(e) => setWorkflowAdminNotes(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              rows={3}
+              placeholder="Add any notes about approving full details access..."
+            />
+          </div>
+        </div>
+      );
+    }
+
     const needsNotes = [
       'approveRequest', 'rejectRequest', 'requestFirstPayment', 'approveFirstPayment',
-      'rejectFirstPayment', 'requestSecondPayment', 'approveFullDetailsRequest',
-      'rejectFullDetailsRequest', 'approveSecondPayment', 'rejectSecondPayment',
+      'rejectFirstPayment', 'rejectFullDetailsRequest', 'approveSecondPayment', 'rejectSecondPayment',
       'updateCandidateAvailability', 'request_full_details', 'mark_hired', 'mark_not_hired'
     ];
 
@@ -1948,7 +2037,55 @@ const EmployerRequestsPage = () => {
           result = await EmployerRequestService.rejectFirstPayment(requestId, workflowNotes);
           break;
         case 'requestSecondPayment':
-          result = await EmployerRequestService.requestSecondPayment(requestId, workflowNotes);
+          if (selectedRequest?.status === 'second_payment_required') {
+            toast.error('Second payment already requested for this request.');
+            return;
+          }
+          // Show modal/form to enter amount if not already shown
+          if (!showWorkflowModal) {
+            setWorkflowAction('requestSecondPayment');
+            setWorkflowError('');
+            setWorkflowNotes('');
+            setWorkflowAdminNotes('');
+            setShowWorkflowModal(true);
+            return;
+          }
+          // Validate amount
+          if (!workflowNotes || isNaN(Number(workflowNotes)) || Number(workflowNotes) <= 0) {
+            setWorkflowError('Please enter a valid amount for the second payment.');
+            toast.error('Please enter a valid amount for the second payment.');
+            return;
+          }
+          // Log/notify admin action
+          console.log(`Admin ${user?.id || user?.email} is requesting second payment of ${workflowNotes} for request #${selectedRequest.id}`);
+          // Call backend to set second payment
+          try {
+            setWorkflowLoading(true);
+            const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${selectedRequest.id}/request-second-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
+              },
+              body: JSON.stringify({ amount: workflowNotes, notes: workflowAdminNotes })
+            });
+            const data = await response.json();
+            if (response.ok) {
+              toast.success('Second payment requested successfully.');
+              setShowWorkflowModal(false);
+              setWorkflowNotes('');
+              setWorkflowAdminNotes('');
+              handleRefresh();
+            } else {
+              setWorkflowError(data.error || 'Failed to request second payment.');
+              toast.error(data.error || 'Failed to request second payment.');
+            }
+          } catch (error) {
+            setWorkflowError('Network error. Please try again.');
+            toast.error('Network error. Please try again.');
+          } finally {
+            setWorkflowLoading(false);
+          }
           break;
         case 'viewPhotoAccess':
           // This will open a modal to view photo access
@@ -1956,7 +2093,18 @@ const EmployerRequestsPage = () => {
           return;
 
         case 'approveFullDetailsRequest':
-          result = await EmployerRequestService.approveFullDetailsRequest(requestId, workflowNotes);
+          // Show modal to enter amount and notes if not already shown
+          if (!showWorkflowModal) {
+            setWorkflowAction('approveFullDetailsRequest');
+            setWorkflowError('');
+            setWorkflowNotes('');
+            setWorkflowAdminNotes('');
+            setShowWorkflowModal(true);
+            return;
+          }
+          // If modal is already shown, proceed with the action
+          // workflowNotes contains the amount, workflowAdminNotes contains the notes
+          result = await EmployerRequestService.approveFullDetailsRequest(requestId, workflowNotes, workflowAdminNotes);
           break;
         case 'rejectFullDetailsRequest':
           result = await EmployerRequestService.rejectFullDetailsRequest(requestId, workflowNotes);
@@ -2002,11 +2150,22 @@ const EmployerRequestsPage = () => {
           result.newStatus || 'updated'
         );
 
+        // Close modal and refresh data
+        setShowWorkflowModal(false);
+        setWorkflowAction(null);
+        setWorkflowNotes('');
+        setWorkflowError('');
         handleRefresh();
       } else {
         // Fallback success message if no result
         const successMessage = `${action.replace(/([A-Z])/g, ' $1').toLowerCase()} completed successfully`;
         toast.success(successMessage);
+
+        // Close modal and refresh data
+        setShowWorkflowModal(false);
+        setWorkflowAction(null);
+        setWorkflowNotes('');
+        setWorkflowError('');
         handleRefresh();
       }
 
@@ -2410,8 +2569,8 @@ const EmployerRequestsPage = () => {
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters
-                      ? 'bg-red-50 border-red-200 text-red-700'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                    ? 'bg-red-50 border-red-200 text-red-700'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   <Filter className="h-4 w-4" />
@@ -3385,8 +3544,8 @@ const EmployerRequestsPage = () => {
                   >
                     <div
                       className={`max-w-[70%] p-3 rounded-lg shadow-sm ${msg.fromAdmin
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-800 border border-gray-200'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-800 border border-gray-200'
                         }`}
                     >
                       <p className="text-sm">{msg.content}</p>
@@ -3876,8 +4035,10 @@ const EmployerRequestsPage = () => {
               </div>
             </div>
 
-            {/* Workflow Progress */}
-            <WorkflowProgress currentStatus={selectedRequest.status} />
+            {/* Workflow Progress - Hide for Request Second Payment and Approve Full Details */}
+            {workflowAction !== 'requestSecondPayment' && workflowAction !== 'approveFullDetailsRequest' && (
+              <WorkflowProgress currentStatus={selectedRequest.status} />
+            )}
 
             {/* Action-specific content */}
             {getWorkflowActionContent(workflowAction)}

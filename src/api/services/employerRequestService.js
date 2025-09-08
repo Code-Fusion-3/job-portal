@@ -183,9 +183,10 @@ class EmployerRequestService {
   /**
    * Approve full details request
    * @param {number} requestId - Employer request ID
+   * @param {number} amount - Second payment amount
    * @param {string} notes - Optional approval notes
    */
-  static async approveFullDetailsRequest(requestId, notes = '') {
+  static async approveFullDetailsRequest(requestId, amount, notes = '') {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/admin/employer-requests/${requestId}/approve-full-details-request`, {
         method: 'POST',
@@ -193,7 +194,11 @@ class EmployerRequestService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem(API_CONFIG.AUTH_CONFIG.tokenKey)}`
         },
-        body: JSON.stringify({ notes })
+        body: JSON.stringify({
+          action: 'approve',
+          amount: parseFloat(amount) || 10000,
+          notes
+        })
       });
 
       if (!response.ok) {
@@ -446,7 +451,7 @@ class EmployerRequestService {
   static async getAllAdminRequests(params = {}) {
     try {
       const { page = 1, limit = 10, status, priority, search, sortBy, sortOrder, category, dateFrom, dateTo, ...otherParams } = params;
-      
+
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
