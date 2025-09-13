@@ -1293,7 +1293,7 @@ const resources = {
 
       // Loading and Error States
       'jobSeekers.loading.approvedSeekers': 'Turimo kurukurikirana abashaka akazi bemewe...',
-      'jobSeekers.loading.verifiedProfiles': 'Imirondoro yemewe gusa niyo igaragara',
+      'jobSeekers.loading.verifiedProfiles': 'Imyirondoro yemewe gusa niyo igaragara',
       'jobSeekers.loading.categories': 'Turimo kurukurikirana ibyiciro...',
       'jobSeekers.errors.loadingJobSeekers': 'Ikibazo mu Kurukurikirana Abashaka Akazi',
       'jobSeekers.errors.tryAgain': 'Ongera Ugerageze',
@@ -1308,9 +1308,9 @@ const resources = {
       // No Results States
       'jobSeekers.noResults.noResultsFound': 'Nta ibyavuye babonetse',
       'jobSeekers.noResults.adjustCriteria': 'Hindura uburyo bwo gushakisha cyangwa imipaka washyizemo kugira ngo usangire abashaka akazi benshi.',
-      'jobSeekers.noResults.noApprovedSeekers': 'Nta bashaka akazi bemewe bihagaze',
-      'jobSeekers.noResults.noProfilesAvailable': "Nta mirondoro y'abashaka akazi bemewe bihagaze kugira ngo abantu babye. Kwiyandikisha gushya kuri gusuzumwa n'itsinda ryawe.",
-      'jobSeekers.noResults.profilesReviewed': "💡 Imirondoro y'abashaka akazi igenzurwa kandi ikemewe kugira ngo haboneke ubwiza n'ukuri.",
+      'jobSeekers.noResults.noApprovedSeekers': 'Nta bashaka akazi bemewe bahari',
+      'jobSeekers.noResults.noProfilesAvailable': "Nta myirondoro y'abashaka akazi bemewe bihagaze. Abiyandikishije bashya bari gusuzumwa n'itsinda ryacu.",
+      'jobSeekers.noResults.profilesReviewed': "💡 Imyirondoro y'abashaka akazi igenzurwa kandi ikemezwa kugira ngo haboneke iyukuri.",
 
       // Job Seeker Card Content
       'jobSeekers.card.experienceLevel': "Urupapuro rw'Uburambe",
@@ -1446,7 +1446,7 @@ const resources = {
 
       // Availability Options
       'availability.available': 'Bihagaze',
-      'availability.partTime': 'Igihe Kitoya',
+      'availability.partTime': 'Igihe Gitoya',
       'availability.contract': 'Kubera Hamagara',
       'availability.freelance': 'Bihindutse',
       'availability.notAvailable': 'Ntibihagaze',
@@ -1921,7 +1921,7 @@ const resources = {
       ],
       'termsOfService.sections.prohibitedActivities.title': 'Ibikorwa bitemewe',
       'termsOfService.sections.prohibitedActivities.items': [
-        'Gukora imirondoro y\'ibinyoma',
+        'Gukora imyirondoro y\'ibinyoma',
         'Guhangayika abandi',
         'Gukoresha serivisi ku ntego z\'ubucuruzi',
         'Gegerageza guhanga urubuga',
