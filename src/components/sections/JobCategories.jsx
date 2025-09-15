@@ -130,7 +130,7 @@ const JobCategories = () => {
               <p className="text-sm text-gray-600">Job Categories</p>
             </div>
             <div className="w-px h-12 bg-gray-200"></div>
-            <div className="text-center">
+            <div className="text-center hidden">
               <p className="text-2xl font-bold text-green-600">100+</p>
               <p className="text-sm text-gray-600">Skilled Workers</p>
             </div>
