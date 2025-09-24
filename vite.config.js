@@ -1,10 +1,30 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { copyFileSync } from 'fs'
+import { resolve } from 'path'
 
 // Advanced chunking to reduce initial bundle size and improve caching
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // Plugin to copy .htaccess file after build
+    {
+      name: 'copy-htaccess',
+      writeBundle() {
+        try {
+          copyFileSync(
+            resolve(__dirname, 'public/.htaccess'),
+            resolve(__dirname, 'dist/.htaccess')
+          )
+          console.log('✅ .htaccess file copied to dist folder')
+        } catch (error) {
+          console.warn('⚠️ Could not copy .htaccess file:', error.message)
+        }
+      }
+    }
+  ],
   build: {
     sourcemap: false,
     rollupOptions: {

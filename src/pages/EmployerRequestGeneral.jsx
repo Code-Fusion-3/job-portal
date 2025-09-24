@@ -40,16 +40,14 @@ const EmployerRequestGeneral = () => {
 
     try {
       const response = await api.post(ENDPOINTS.EMPLOYER.SUBMIT_REQUEST, formData);
-
-      if (response) {
+ console.log('Request submission response:', response);
+      if (response && response.data) {
         setIsSubmitted(true);
-        
-        // If a new account was created, show the credentials
-        if (response.account && response.account.plainPassword) {
-          // Store credentials temporarily for display
+        // If backend returned login credentials, store for display
+        if (response.data.loginCredentials) {
           localStorage.setItem('tempCredentials', JSON.stringify({
-            email: response.account.email,
-            password: response.account.plainPassword
+            email: response.data.loginCredentials.email,
+            password: response.data.loginCredentials.password
           }));
         }
       } else {
@@ -83,13 +81,11 @@ const EmployerRequestGeneral = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Request Submitted Successfully!
+              {t('employerRequest.success.title', 'Request Sent!')}
             </h2>
-            
             <p className="text-gray-600 mb-6">
-              Thank you for your request. Our team will review it and get back to you within 24-48 business hours.
+              {t('employerRequest.success.message', "Thank you for your interest. We'll contact you soon to discuss next steps.")}
             </p>
 
             {/* Show credentials if new account was created */}
@@ -98,7 +94,6 @@ const EmployerRequestGeneral = () => {
               if (tempCredentials) {
                 const credentials = JSON.parse(tempCredentials);
                 localStorage.removeItem('tempCredentials');
-                
                 return (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                     <h3 className="text-lg font-semibold text-green-800 mb-3">
@@ -121,6 +116,20 @@ const EmployerRequestGeneral = () => {
               return null;
             })()}
 
+            {/* Always show the static info/fee message */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+              <h3 className="text-base font-semibold text-blue-900 mb-2">
+                {t('employerRequest.success.whatHappensNext', 'What happens next?')}
+              </h3>
+              <ul className="list-disc pl-5 text-blue-800 text-sm mb-2">
+                <li>{t('employerRequest.success.emailConfirmation', "You'll receive an email confirmation")}</li>
+                <li>{t('employerRequest.success.contactNextSteps', "We'll contact you to discuss next steps")}</li>
+              </ul>
+              <div className="text-blue-800 text-sm">
+                {t('employerRequest.fullDetail.content', 'Sir, Madam, we have gladly received the service you need from us. Before you are given full information about this worker or service, you must first pay a non-refundable fee of 5,000 Frw. After that, you will be given further details, and then you can pay the remaining amount as agreed. Finally, we will connect you with the person you needed.')}
+              </div>
+            </div>
+
             <div className="space-y-3">
               <Link
                 to="/employer/login"
@@ -128,7 +137,6 @@ const EmployerRequestGeneral = () => {
               >
                 Login to Dashboard
               </Link>
-              
               <Link
                 to="/"
                 className="block w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"

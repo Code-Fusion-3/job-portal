@@ -20,6 +20,7 @@ const EmployerRequest = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const [requestSent, setRequestSent] = useState(false);
+  const [loginCredentials, setLoginCredentials] = useState(null);
   const [jobSeeker, setJobSeeker] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,8 +60,9 @@ const EmployerRequest = () => {
     fetchJobSeeker();
   }, [id, user]);
 
-  const handleSuccess = () => {
+  const handleSuccess = (credentials) => {
     setRequestSent(true);
+    setLoginCredentials(credentials);
   };
 
   const handleError = (error) => {
@@ -130,6 +132,27 @@ const EmployerRequest = () => {
               <p className="text-gray-600 mb-8 text-lg leading-relaxed">
                 {t('employerRequest.success.message', 'Your request has been sent to our admin team. We\'ll review it and get back to you within 24 hours.')}
               </p>
+
+              {/* Show credentials if new account was created */}
+              {loginCredentials && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                  <h3 className="text-lg font-semibold text-green-800 mb-3">
+                    🔐 Your Login Credentials
+                  </h3>
+                  <div className="bg-white p-3 rounded border border-green-300 text-left">
+                    <p className="text-sm text-green-700 mb-2">
+                      <strong>Email:</strong> {loginCredentials.email}
+                    </p>
+                    <p className="text-sm text-green-700 mb-2">
+                      <strong>Password:</strong> {loginCredentials.password}
+                    </p>
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">
+                    {loginCredentials.message || 'Please save these credentials. You can use them to login to your employer dashboard.'}
+                  </p>
+                </div>
+              )}
+
               <div className="bg-green-50 rounded-xl p-6 mb-8">
                 <h3 className="font-semibold text-green-800 mb-2">{t('employerRequest.success.whatHappensNext')}</h3>
                 <ul className="text-sm text-green-700 space-y-1">
@@ -141,9 +164,9 @@ const EmployerRequest = () => {
               </div>
               <div className="space-y-4">
                 <BackButton 
-                  to={`/view-profile/${id}`}
-                  text={t('employerRequest.success.backToProfile', 'Back to Profile')}
-                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold"
+                  to="/employer/login"
+                  text={t('employerRequest.success.loginToDashboard', 'Login to Access Dashboard')}
+                  className="inline-block hover:bg-blue-700 text-red-600 px-6 py-3 rounded-xl font-semibold"
                 />
               </div>
             </motion.div>

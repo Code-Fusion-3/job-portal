@@ -25,7 +25,7 @@ const BackButton = ({
       <Button
         variant="ghost"
         onClick={handleClick}
-        className="text-gray-200 hover:text-gray-500 bg-white hover:bg-gray-50 border border-gray-200"
+        className="text-red-400 hover:text-gray-500 bg-white hover:bg-gray-50 border border-gray-200"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         {text}

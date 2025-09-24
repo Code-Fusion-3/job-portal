@@ -128,7 +128,7 @@ const EmployerRequestForm = ({
       // Use environment variable for API URL
       const apiUrl = import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000';
       const endpoint = `${apiUrl}/employer/request`;
-      
+
       const requestBody = {
         name: formData.employerName,
         companyName: formData.companyName,
@@ -138,43 +138,45 @@ const EmployerRequestForm = ({
         requestedCandidateId: (() => {
           // Extract the numeric ID from JS-prefixed IDs
           let candidateId = formData.jobSeekerId;
-          
+
           if (typeof candidateId === 'string' && candidateId.startsWith('JS')) {
             const numericId = parseInt(candidateId.replace(/^JS/, ''), 10);
             return numericId;
           }
-          
+
           // If it's already a number, use it directly
           if (typeof candidateId === 'number') {
             return candidateId;
           }
-          
+
           // If it's a string number, convert it
           const parsedId = parseInt(candidateId, 10);
           return parsedId;
         })(),
         priority: formData.priority
       };
-      
+
       // Validate that requestedCandidateId is a valid number
       if (isNaN(requestBody.requestedCandidateId) || !requestBody.requestedCandidateId) {
         throw new Error('Invalid candidate ID. Please refresh the page and try again.');
       }
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Request failed: ${response.status} ${response.statusText}`);
       }
-      
+
       const responseData = await response.json();
-      
-      onSuccess();
+      console.log('Request submission login response:', responseData.loginCredentials || 'no data returned');
+
+      // Pass login credentials up to parent if present
+      onSuccess(responseData.loginCredentials || null);
       setFormData({
         employerName: '',
         companyName: '',
