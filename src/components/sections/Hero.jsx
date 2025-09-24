@@ -14,7 +14,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const Hero = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(); 
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const rendererRef = useRef(null);
@@ -22,7 +22,7 @@ const Hero = () => {
 
   // Fetch job categories for quick access
   const { categories, loading: categoriesLoading } = usePublicCategories();
-
+console.log(categories, categoriesLoading);
   // Three.js setup
   useEffect(() => {
     if (!canvasRef.current) return;

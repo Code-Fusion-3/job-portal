@@ -22,7 +22,7 @@ const MinimalFooter = ({
             <div className="w-8 h-8 bg-gradient-to-r from-red-600 to-red-700 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">J</span>
             </div>
-            <span className="ml-2 text-lg font-bold">Brazi Connect Portal</span>
+            <span className="ml-2 text-lg font-bold">Braziconnect Portal</span>
           </div>
 
           {/* Social Links (Optional) */}

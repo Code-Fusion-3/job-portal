@@ -190,6 +190,7 @@ export const useCategories = (options = {}) => {
 // Specialized hooks for different use cases
 export const usePublicCategories = (options = {}) => {
   return useCategories({ ...options, includeAdmin: false });
+  
 };
 
 export const useAdminCategories = (options = {}) => {

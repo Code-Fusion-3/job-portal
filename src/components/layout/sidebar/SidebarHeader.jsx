@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const SidebarHeader = ({ 
   logo = "J", 
   title = "Admin Panel", 
-  subtitle = "Job Portal Management" 
+  subtitle = "Braziconnect Portal Management" 
 }) => {
   return (
     <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-slate-50/60">

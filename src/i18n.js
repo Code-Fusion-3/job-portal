@@ -201,7 +201,7 @@ const resources = {
       'contact.info.office.details': 'Kigali, Rwanda',
       'contact.info.office.desc': 'Visit our office',
       'contact.info.title': 'Get in Touch',
-      'contact.info.description': 'Whether you have questions about our services, suggestions to improve the platform, feedback from your experience, requests for new features, or any ideas on how we can better serve you, we\'re here to listen and assist. Your input is invaluable in helping us create a more effective and user-friendly job portal for everyone.',
+      'contact.info.description': 'Whether you have questions about our services, suggestions to improve the platform, feedback from your experience, requests for new features, or any ideas on how we can better serve you, we\'re here to listen and assist. Your input is invaluable in helping us create a more effective and user-friendly Braziconnect Portal for everyone.',
       'contact.form.namePlaceholder': 'Enter your full name',
       'contact.form.emailPlaceholder': 'Enter your email address',
       'contact.form.subjectPlaceholder': 'Enter subject',
@@ -237,7 +237,7 @@ const resources = {
       'footer.contact': 'Contact',
       'footer.privacy': 'Privacy Policy',
       'footer.terms': 'Terms of Service',
-      'footer.copyright': '© 2025 Job Portal. All rights reserved.',
+      'footer.copyright': '© 2025 Braziconnect Portal. All rights reserved.',
       'footer.legal': 'Legal',
       'footer.cookies': 'Cookie Policy',
       'footer.backToTop': 'Back to Top',
@@ -618,7 +618,7 @@ const resources = {
       'privacyPolicy.subtitle': 'Your privacy and data security are our top priorities',
       'privacyPolicy.backToHome': 'Back to Home',
       'privacyPolicy.introduction.title': 'Our Commitment to Privacy',
-      'privacyPolicy.introduction.description': 'At Brazi Connect Portal, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, share, and protect your data when you use our platform.',
+      'privacyPolicy.introduction.description': 'At Braziconnect Portal, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, share, and protect your data when you use our platform.',
       'privacyPolicy.introduction.lastUpdated': 'Last updated',
       'privacyPolicy.sections.informationWeCollect.title': 'Information We Collect',
       'privacyPolicy.sections.informationWeCollect.items': [
@@ -630,7 +630,7 @@ const resources = {
       ],
       'privacyPolicy.sections.howWeUse.title': 'How We Use Your Information',
       'privacyPolicy.sections.howWeUse.items': [
-        'To provide and maintain our job portal services',
+        'To provide and maintain our Braziconnect Portal services',
         'To match job seekers with potential employers',
         'To communicate important updates and opportunities',
         'To improve our platform and user experience',
@@ -684,11 +684,11 @@ const resources = {
       'termsOfService.subtitle': 'Please read these terms carefully before using our platform',
       'termsOfService.backToHome': 'Back to Home',
       'termsOfService.introduction.title': 'Agreement to Terms',
-      'termsOfService.introduction.description': 'These Terms of Service ("Terms") govern your use of the Brazi Connect Portal website and services. By using our platform, you agree to these terms and our Privacy Policy.',
+      'termsOfService.introduction.description': 'These Terms of Service ("Terms") govern your use of the Braziconnect Portal website and services. By using our platform, you agree to these terms and our Privacy Policy.',
       'termsOfService.introduction.lastUpdated': 'Last updated',
       'termsOfService.sections.acceptanceOfTerms.title': 'Acceptance of Terms',
       'termsOfService.sections.acceptanceOfTerms.items': [
-        'By accessing and using Brazi Connect Portal, you accept and agree to be bound by these terms',
+        'By accessing and using Braziconnect Portal, you accept and agree to be bound by these terms',
         'If you disagree with any part of these terms, you may not access our service',
         'These terms apply to all visitors, users, and others who access or use the service',
         'We reserve the right to modify these terms at any time',
@@ -728,7 +728,7 @@ const resources = {
       ],
       'termsOfService.sections.intellectualProperty.title': 'Intellectual Property',
       'termsOfService.sections.intellectualProperty.items': [
-        'The service and its original content are owned by Brazi Connect Portal',
+        'The service and its original content are owned by Braziconnect Portal',
         'You retain ownership of content you submit to the platform',
         'You grant us a license to use your content to provide the service',
         'You may not copy, modify, or distribute our proprietary content',
@@ -736,7 +736,7 @@ const resources = {
       ],
       'termsOfService.sections.limitationOfLiability.title': 'Limitation of Liability',
       'termsOfService.sections.limitationOfLiability.items': [
-        'Brazi Connect Portal is provided "as is" without warranties of any kind',
+        'Braziconnect Portal is provided "as is" without warranties of any kind',
         'We are not liable for any indirect, incidental, or consequential damages',
         'Our total liability shall not exceed the amount you paid for the service',
         'We are not responsible for the actions of other users',
@@ -1012,12 +1012,12 @@ const resources = {
       'viewProfile.sections.actions': 'Actions',
       'viewProfile.actions.requestCandidate': 'Request Candidate',
 
-      'viewProfile.share.text': "Check out {name}'s profile on Job Portal", 
+      'viewProfile.share.text': "Check out {name}'s profile on Braziconnect Portal", 
 
 
       // Admin Info Page
       'admin.hero.title': 'Professional Administration & Management',
-      'admin.hero.subtitle': 'Dedicated to maintaining the highest standards of service quality, security, and user experience across our job portal platform.',
+      'admin.hero.subtitle': 'Dedicated to maintaining the highest standards of service quality, security, and user experience across our Braziconnect Portal platform.',
       'admin.stats.title': 'Administrative Excellence',
       'admin.stats.subtitle': 'Our commitment to quality service delivery and platform management excellence.',
       'admin.stats.jobSeekers': 'Job Seekers Managed',
@@ -1037,7 +1037,7 @@ const resources = {
       'admin.mission.title': 'Our Administrative Mission',
       'admin.mission.description': 'To provide exceptional administrative oversight, ensuring the highest standards of service quality, user experience, and platform security while maintaining transparency and trust with all stakeholders.',
       'admin.vision.title': 'Our Administrative Vision',
-      'admin.vision.description': 'To establish Brazi Connect Portal as the most trusted and efficiently managed job platform in Rwanda, setting industry standards for administrative excellence and user satisfaction.',
+      'admin.vision.description': 'To establish Braziconnect Portal as the most trusted and efficiently managed job platform in Rwanda, setting industry standards for administrative excellence and user satisfaction.',
       'admin.contact.title': 'Administrative Contact',
       'admin.contact.subtitle': 'Get in touch with our administrative team for any platform-related inquiries or support needs.',
       'admin.contact.email': 'Administrative Email',
@@ -1085,9 +1085,9 @@ const resources = {
 
       // Experience translations
       'adminInfo.cv.experience.jobPortaltitle': 'Lead Developer & System Administrator',
-      'adminInfo.cv.experience.jobPortalcompany': 'Job Portal Rwanda',
+      'adminInfo.cv.experience.jobPortalcompany': 'Braziconnect Portal Rwanda',
       'adminInfo.cv.experience.jobPortalperiod': '2023 - Present',
-      'adminInfo.cv.experience.jobPortaldescription': 'Architected and developed a comprehensive job portal platform serving 500+ job seekers and 50+ companies. Implemented secure authentication, real-time messaging, and admin approval workflows.',
+      'adminInfo.cv.experience.jobPortaldescription': 'Architected and developed a comprehensive Braziconnect Portal platform serving 500+ job seekers and 50+ companies. Implemented secure authentication, real-time messaging, and admin approval workflows.',
       'adminInfo.cv.experience.jobPortalachievement1': 'Reduced system downtime by 95%',
       'adminInfo.cv.experience.jobPortalachievement2': 'Improved user engagement by 40%',
       'adminInfo.cv.experience.jobPortalachievement3': 'Implemented automated approval system',
@@ -1120,8 +1120,8 @@ const resources = {
       'adminInfo.cv.education.bachelors.description': 'Major in Computer Science with minor in Mathematics',
 
       // Projects translations
-      'adminInfo.cv.projects.jobPortalname': 'Job Portal Platform',
-      'adminInfo.cv.projects.jobPortaldescription': 'Full-stack job portal with real-time messaging, admin approval workflows, and advanced search capabilities.',
+      'adminInfo.cv.projects.jobPortalname': 'Braziconnect Portal Platform',
+      'adminInfo.cv.projects.jobPortaldescription': 'Full-stack Braziconnect Portal with real-time messaging, admin approval workflows, and advanced search capabilities.',
       'adminInfo.cv.projects.jobPortaltech': 'React, Node.js, PostgreSQL, Socket.io, Redis',
 
       'adminInfo.cv.projects.elearning.name': 'E-Learning Management System',
@@ -1377,11 +1377,11 @@ const resources = {
 
       // Footer
       'footer.description': 'Duhuza impano n\'amahirwe mu Rwanda',
-      'footer.quickLinks': 'Amahoro yihuse',
+      'footer.quickLinks': 'Amahuzanyobora',
       'footer.contact': 'Twandikire',
       'footer.privacy': 'Politiki y\'ibanga',
       'footer.terms': 'Amabwiriza',
-      'footer.copyright': '© 2025 Job Portal. Uburenganzira bwose burabitswe.',
+      'footer.copyright': '© 2025 Braziconnect Portal. Uburenganzira bwose burabitswe.',
       'footer.legal': 'Amategeko',
       'footer.cookies': 'Politiki y\'Amakuki',
       'footer.backToTop': 'Subira hejuru',
@@ -1819,7 +1819,7 @@ const resources = {
       'privacyPolicy.subtitle': 'Ibanga ryawe n\'umutekano w\'amakuru yawe ni iby\'ingenzi',
       'privacyPolicy.backToHome': 'Subira ahabanza',
       'privacyPolicy.introduction.title': 'Icyemezo cyacu cy\'ibanga',
-      'privacyPolicy.introduction.description': 'Mu Brazi Connect Portal, tuyiyemeje kurinda ibanga ryawe no kugenzura umutekano w\'amakuru yawe. Iyi politiki isobanura uko dukusanya, dukoresha, duhira n\'urinda amakuru yawe.',
+      'privacyPolicy.introduction.description': 'Mu Braziconnect Portal, tuyiyemeje kurinda ibanga ryawe no kugenzura umutekano w\'amakuru yawe. Iyi politiki isobanura uko dukusanya, dukoresha, duhira n\'urinda amakuru yawe.',
       'privacyPolicy.introduction.lastUpdated': 'Byahindutse',
       'privacyPolicy.sections.informationWeCollect.title': 'Amakuru dusanya',
       'privacyPolicy.sections.informationWeCollect.items': [
@@ -1889,7 +1889,7 @@ const resources = {
       'termsOfService.introduction.lastUpdated': 'Byahindutse',
       'termsOfService.sections.acceptanceOfTerms.title': 'Kuyemera amabwiriza',
       'termsOfService.sections.acceptanceOfTerms.items': [
-        'Iyo ugera Brazi Connect Portal, uyemera amabwiriza',
+        'Iyo ugera Braziconnect Portal, uyemera amabwiriza',
         'Niba utemeye amabwiriza, ntushobora gukoresha serivisi',
         'Amabwiriza akoreshejwe ku bantu bose bakoresheje serivisi',
         'Dufite uburenganzira bwo guhindura amabwiriza',
@@ -1929,7 +1929,7 @@ const resources = {
       ],
       'termsOfService.sections.intellectualProperty.title': 'Uburenganzira bw\'ikoranabuhanga',
       'termsOfService.sections.intellectualProperty.items': [
-        'Serivisi ni ya Brazi Connect Portal',
+        'Serivisi ni ya Braziconnect Portal',
         'Ufite uburenganzira bw\'ibikoresho wohereje',
         'Uduha uruhushya rwo gukoresha ibikoresho byawe',
         'Ntushobora gukopiya ibikoresho byacu',
@@ -1937,7 +1937,7 @@ const resources = {
       ],
       'termsOfService.sections.limitationOfLiability.title': 'Icyerekezo cy\'umwanya',
       'termsOfService.sections.limitationOfLiability.items': [
-        'Brazi Connect Portal yatanzwe "nk\'uko ari"',
+        'Braziconnect Portal yatanzwe "nk\'uko ari"',
         'Ntitufite umwanya ku mibabaro',
         'Umwanya wacu ntushobora kurenza umubare wamaze gutanga',
         'Ntitufite umwanya ku bikorwa by\'abandi',
@@ -2158,7 +2158,7 @@ const resources = {
       'viewProfile.sections.actions': 'Ibikorwa',
       'viewProfile.actions.requestCandidate': 'Saba Umukandida',
 
-      'viewProfile.share.text': 'Sura umwirondoro wa {name} ku Rubuga rwa Job Portal',
+      'viewProfile.share.text': 'Sura umwirondoro wa {name} ku Rubuga rwa Braziconnect Portal',
       
       // Admin Info Page - Kinyarwanda translations
       'admin.hero.title': 'Ubuyobozi n\'Ucunga bw\'Umwuga',
@@ -2182,7 +2182,7 @@ const resources = {
       'admin.mission.title': 'Intego Yacu yo mu Buyobozi',
       'admin.mission.description': 'Gutanga ubuyobozi bw\'ingenzi, dukugenzura ingamba zizewe z\'ubwiza bw\'ubufasha, uburyo bwo gukoresha, n\'umutekano w\'urubuga mugihe dukugenzura ubwiza n\'ukwizera.',
       'admin.vision.title': 'Icyerekezo Cyacu cyo mu Buyobozi',
-      'admin.vision.description': 'Guteza imbere Brazi Connect Portal nk\'urubuga rwo gushaka akazi rwizewe cyane no gucungwa neza mu Rwanda, dushyiraho ingamba z\'ubuhanga mu buyobozi n\'ubwishime bw\'abakoresha.',
+      'admin.vision.description': 'Guteza imbere Braziconnect Portal nk\'urubuga rwo gushaka akazi rwizewe cyane no gucungwa neza mu Rwanda, dushyiraho ingamba z\'ubuhanga mu buyobozi n\'ubwishime bw\'abakoresha.',
       'admin.contact.title': 'Twandikire mu Buyobozi',
       'admin.contact.subtitle': 'Twandikire itsinda ryawe ryo mu buyobozi ku gusaba cyo ari cyo cyose cyerekeye urubuga cyangwa ubufasha.',
       'admin.contact.email': 'Imeyili yo mu Buyobozi',
@@ -2232,8 +2232,8 @@ const resources = {
 
       // Experience translations in Kinyarwanda
       'adminInfo.cv.experience.jobPortaltitle': 'Umuyobozi w\'Ububatsi & Umuyobozi w\'Sisitemu',
-      'adminInfo.cv.experience.jobPortalcompany': 'Job Portal Rwanda',
-      'adminInfo.cv.experience.jobPortalperiod': '2023 - Nonaha',
+      'adminInfo.cv.experience.jobPortalcompany': 'Braziconnect Portal Rwanda',
+      'adminInfo.cv.experience.jobPortalperiod': '2025 - Nonaha',
       'adminInfo.cv.experience.jobPortaldescription': 'Nabubatse kandi nabashyizeho urubuga rwuzuye rwo gushaka akazi rufasha abashaka akazi 500+ n\'amakompanyi 50+. Nashyizeho ingamba z\'umutekano, gutumanaho mu gihe gisanzwe, n\'uburyo bwo gusuzuma y\'ikoranabuhanga.',
       'adminInfo.cv.experience.jobPortalachievement1': 'Nkuraho igihe sisitemu itakora kuri 95%',
       'adminInfo.cv.experience.jobPortalachievement2': 'Nakuraho uko abantu bakoresha sisitemu kuri 40%',

@@ -87,7 +87,7 @@ const AdminSidebar = ({
         <SidebarHeader
           logo="J"
           title="Admin Panel"
-          subtitle="Job Portal Management"
+          subtitle="Braziconnect Portal Management"
         />
 
         {/* Search Bar */}

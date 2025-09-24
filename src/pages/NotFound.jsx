@@ -58,9 +58,9 @@ const NotFound = () => {
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">JP</span>
+                <span className="text-white font-bold text-sm">BC P</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Job Portal Rwanda</span>
+              <span className="text-xl font-bold text-gray-900">Braziconnect Portal Rwanda</span>
             </Link>
           </div>
         </div>
@@ -166,7 +166,7 @@ const NotFound = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-gray-600">
-              © 2025 Job Portal Rwanda. All rights reserved.
+              © 2025 Braziconnect Portal Rwanda. All rights reserved.
             </p>
             <div className="mt-4 space-x-4">
               <Link to="/" className="text-gray-600 hover:text-gray-900">Home</Link>

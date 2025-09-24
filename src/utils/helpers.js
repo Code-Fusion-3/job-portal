@@ -1,4 +1,4 @@
-// Utility functions for the Job Portal application
+// Utility functions for the Braziconnect Portal application
 
 // Filter job seekers based on search criteria
 export const filterJobSeekers = (jobSeekers, filters) => {

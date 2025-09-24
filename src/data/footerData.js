@@ -11,7 +11,7 @@ import {
 // Footer configuration data
 export const footerConfig = {
   company: {
-    name: 'Brazi Connect Portal',
+    name: 'Braziconnect Portal',
     description: 'footer.description', // Translation key
     logo: {
       text: 'J',
