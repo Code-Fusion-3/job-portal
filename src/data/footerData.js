@@ -23,25 +23,25 @@ export const footerConfig = {
   socialLinks: [
     { 
       icon: Facebook, 
-      href: 'https://facebook.com/Brazi Connect Portal', 
+      href: 'https://facebook.com/Brazi-Connect-Portal', 
       label: 'Facebook',
       color: 'hover:bg-blue-600'
     },
     { 
       icon: Twitter, 
-      href: 'https://twitter.com/Brazi Connect Portal', 
+      href: 'https://twitter.com/Brazi-Connect-Portal', 
       label: 'Twitter',
       color: 'hover:bg-blue-400'
     },
     { 
       icon: Linkedin, 
-      href: 'https://linkedin.com/company/Brazi Connect Portal', 
+      href: 'https://linkedin.com/company/Brazi-Connect-Portal', 
       label: 'LinkedIn',
       color: 'hover:bg-blue-700'
     },
     { 
       icon: Instagram, 
-      href: 'https://instagram.com/Brazi Connect Portal', 
+      href: 'https://instagram.com/Brazi-Connect-Portal', 
       label: 'Instagram',
       color: 'hover:bg-pink-600'
     },
@@ -65,14 +65,14 @@ export const footerConfig = {
       titleKey: 'footer.contact',
       links: [
         { 
-          name: 'info@Brazi Connect Portal.rw', 
-          href: 'mailto:info@Brazi Connect Portal.rw', 
+          name: 'info@braziconnect.rw', 
+          href: 'mailto:info@braziconnect.rw', 
           icon: Mail,
           isExternal: true 
         },
         { 
-          name: '+250 788 123 456', 
-          href: 'tel:+250788123456', 
+          name: '+250 789 176 625', 
+          href: 'tel:+250789176625', 
           icon: Phone,
           isExternal: true 
         },
