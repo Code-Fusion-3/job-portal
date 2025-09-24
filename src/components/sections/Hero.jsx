@@ -22,7 +22,6 @@ const Hero = () => {
 
   // Fetch job categories for quick access
   const { categories, loading: categoriesLoading } = usePublicCategories();
-console.log(categories, categoriesLoading);
   // Three.js setup
   useEffect(() => {
     if (!canvasRef.current) return;
