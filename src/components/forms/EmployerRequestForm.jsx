@@ -31,32 +31,30 @@ const EmployerRequestForm = ({
 
   // Update form data when jobSeekerId prop changes
   useEffect(() => {
+    // Only update if jobSeekerId prop changes and is different from formData.jobSeekerId
     if (jobSeekerId && jobSeekerId !== formData.jobSeekerId) {
       setFormData(prev => ({
         ...prev,
         jobSeekerId: jobSeekerId
       }));
+      return;
     }
-    
-    // Fallback: if jobSeekerId is still null, try to extract from URL
+
+    // Fallback: if jobSeekerId is not provided, try to extract from URL (only on mount)
     if (!jobSeekerId && !formData.jobSeekerId) {
       const urlParams = new URLSearchParams(window.location.search);
       const urlId = urlParams.get('id') || window.location.pathname.split('/').pop();
-      
       if (urlId && urlId !== 'undefined' && urlId !== 'null') {
-        // Convert JS prefix to numeric ID if needed
         let numericId = urlId;
         if (typeof urlId === 'string' && urlId.startsWith('JS')) {
           numericId = parseInt(urlId.replace(/^JS/, ''), 10);
         }
-        
         setFormData(prev => ({
           ...prev,
           jobSeekerId: numericId
         }));
       }
     }
-    
     // Additional fallback: if jobSeekerId is a JS-prefixed ID, convert it to numeric
     if (jobSeekerId && typeof jobSeekerId === 'string' && jobSeekerId.startsWith('JS')) {
       const numericId = parseInt(jobSeekerId.replace(/^JS/, ''), 10);
@@ -67,7 +65,7 @@ const EmployerRequestForm = ({
         }));
       }
     }
-  }, [jobSeekerId, formData.jobSeekerId]);
+  }, [jobSeekerId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

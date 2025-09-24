@@ -18,7 +18,7 @@ export default defineConfig({
             resolve(__dirname, 'public/.htaccess'),
             resolve(__dirname, 'dist/.htaccess')
           )
-          console.log('✅ .htaccess file copied to dist folder')
+          // console.log('✅ .htaccess file copied to dist folder')
         } catch (error) {
           console.warn('⚠️ Could not copy .htaccess file:', error.message)
         }

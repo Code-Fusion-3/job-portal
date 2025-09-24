@@ -11,7 +11,7 @@ import {
 // Footer configuration data
 export const footerConfig = {
   company: {
-    name: 'JobPortal',
+    name: 'Brazi Connect Portal',
     description: 'footer.description', // Translation key
     logo: {
       text: 'J',
@@ -23,25 +23,25 @@ export const footerConfig = {
   socialLinks: [
     { 
       icon: Facebook, 
-      href: 'https://facebook.com/jobportal', 
+      href: 'https://facebook.com/Brazi Connect Portal', 
       label: 'Facebook',
       color: 'hover:bg-blue-600'
     },
     { 
       icon: Twitter, 
-      href: 'https://twitter.com/jobportal', 
+      href: 'https://twitter.com/Brazi Connect Portal', 
       label: 'Twitter',
       color: 'hover:bg-blue-400'
     },
     { 
       icon: Linkedin, 
-      href: 'https://linkedin.com/company/jobportal', 
+      href: 'https://linkedin.com/company/Brazi Connect Portal', 
       label: 'LinkedIn',
       color: 'hover:bg-blue-700'
     },
     { 
       icon: Instagram, 
-      href: 'https://instagram.com/jobportal', 
+      href: 'https://instagram.com/Brazi Connect Portal', 
       label: 'Instagram',
       color: 'hover:bg-pink-600'
     },
@@ -65,8 +65,8 @@ export const footerConfig = {
       titleKey: 'footer.contact',
       links: [
         { 
-          name: 'info@jobportal.rw', 
-          href: 'mailto:info@jobportal.rw', 
+          name: 'info@Brazi Connect Portal.rw', 
+          href: 'mailto:info@Brazi Connect Portal.rw', 
           icon: Mail,
           isExternal: true 
         },

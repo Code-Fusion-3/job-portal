@@ -150,13 +150,17 @@ const JobSeekers = () => {
   // Update local state when public data changes
   useEffect(() => {
     if (publicJobSeekers && publicJobSeekers.length > 0) {
-      setJobSeekers(publicJobSeekers);
+      // Only update if different to avoid infinite loop
+      setJobSeekers(prev => {
+        if (prev.length === publicJobSeekers.length && prev.every((v, i) => v === publicJobSeekers[i])) {
+          return prev;
+        }
+        return publicJobSeekers;
+      });
     } else if (jobSeekersError) {
-      // Set empty arrays if there's an error
-      setJobSeekers([]);
+      setJobSeekers(prev => (prev.length === 0 ? prev : []));
     } else if (!publicJobSeekers || publicJobSeekers.length === 0) {
-      // If no data from API, set empty arrays to show "no user found"
-      setJobSeekers([]);
+      setJobSeekers(prev => (prev.length === 0 ? prev : []));
     }
   }, [publicJobSeekers, jobSeekersError]);
 
@@ -321,7 +325,7 @@ const JobSeekers = () => {
   return (
     <div className="min-h-screen relative">
       {/* Custom CSS for animations */}
-      <style jsx>{`
+  <style>{`
         @keyframes fadeInUp {
           from {
             opacity: 0;

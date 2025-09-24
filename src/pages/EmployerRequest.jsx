@@ -341,37 +341,37 @@ const EmployerRequest = () => {
                     // Try different ways to get the ID
                     let candidateId = null;
                     
-                    console.log('=== DEBUG: Calculating jobSeekerId ===');
-                    console.log('URL id parameter:', id);
-                    console.log('jobSeeker object:', jobSeeker);
-                    console.log('jobSeeker.id:', jobSeeker?.id);
-                    console.log('jobSeeker.profile?.userId:', jobSeeker?.profile?.userId);
-                    console.log('jobSeeker.userId:', jobSeeker?.userId);
+                    // console.log('=== DEBUG: Calculating jobSeekerId ===');
+                    // console.log('URL id parameter:', id);
+                    // console.log('jobSeeker object:', jobSeeker);
+                    // console.log('jobSeeker.id:', jobSeeker?.id);
+                    // console.log('jobSeeker.profile?.userId:', jobSeeker?.profile?.userId);
+                    // console.log('jobSeeker.userId:', jobSeeker?.userId);
                     
                     // Priority order for ID extraction
                     if (jobSeeker?.id && jobSeeker.id !== 'undefined' && jobSeeker.id !== 'null') {
                       candidateId = jobSeeker.id;
-                      console.log('Using jobSeeker.id:', candidateId);
+                      // console.log('Using jobSeeker.id:', candidateId);
                     } else if (jobSeeker?.profile?.userId && jobSeeker.profile.userId !== 'undefined' && jobSeeker.profile.userId !== 'null') {
                       candidateId = jobSeeker.profile.userId;
-                      console.log('Using jobSeeker.profile.userId:', candidateId);
+                      // console.log('Using jobSeeker.profile.userId:', candidateId);
                     } else if (jobSeeker?.userId && jobSeeker.userId !== 'undefined' && jobSeeker.userId !== 'null') {
                       candidateId = jobSeeker.userId;
-                      console.log('Using jobSeeker.userId:', candidateId);
+                      // console.log('Using jobSeeker.userId:', candidateId);
                     } else if (id && id !== 'undefined' && id !== 'null') {
                       // Fallback to URL parameter - try to convert JS prefix if present
                       if (typeof id === 'string' && id.startsWith('JS')) {
                         const numericId = parseInt(id.replace(/^JS/, ''), 10);
                         if (!isNaN(numericId)) {
                           candidateId = numericId;
-                          console.log('Converted JS prefix to numeric ID:', candidateId);
+                          // console.log('Converted JS prefix to numeric ID:', candidateId);
                         } else {
                           candidateId = id;
-                          console.log('Using URL id parameter as fallback (JS format):', candidateId);
+                          // console.log('Using URL id parameter as fallback (JS format):', candidateId);
                         }
                       } else {
                         candidateId = id;
-                        console.log('Using URL id parameter as fallback:', candidateId);
+                        // console.log('Using URL id parameter as fallback:', candidateId);
                       }
                     }
                     
@@ -385,7 +385,7 @@ const EmployerRequest = () => {
                         userId: jobSeeker?.userId
                       });
                     } else {
-                      console.log('✅ Final candidateId:', candidateId);
+                      // console.log('✅ Final candidateId:', candidateId);
                     }
                     
                     return candidateId;

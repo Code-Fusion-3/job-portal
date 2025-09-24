@@ -116,7 +116,7 @@ const AdminProfileManagement = () => {
     if (!data.certifications) data.certifications = [];
     if (!data.personal) data.personal = {};
 
-    console.log('✅ AdminProfileManagement: Data normalized successfully:', data);
+    // console.log('✅ AdminProfileManagement: Data normalized successfully:', data);
     return data;
   };
 
@@ -126,29 +126,29 @@ const AdminProfileManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔍 AdminProfileManagement: Loading profile data...');
+      // console.log('🔍 AdminProfileManagement: Loading profile data...');
 
       // Use public profile to avoid authentication issues
       const data = await adminProfileService.getPublicProfile();
-      console.log('✅ AdminProfileManagement: Profile data loaded:', data);
+      // console.log('✅ AdminProfileManagement: Profile data loaded:', data);
 
       // Normalize data structure to prevent runtime errors
       const normalizedData = normalizeProfileData(data);
-      console.log('🔍 AdminProfileManagement: Setting normalized profile data:', normalizedData);
+      // console.log('🔍 AdminProfileManagement: Setting normalized profile data:', normalizedData);
       setProfileData(normalizedData);
     } catch (error) {
       console.error('❌ AdminProfileManagement: Error loading profile data:', error);
 
       // Retry logic for temporary failures
       if (retryCount < maxRetries) {
-        console.log(`🔄 Retrying profile load... (${retryCount + 1}/${maxRetries})`);
+        // console.log(`🔄 Retrying profile load... (${retryCount + 1}/${maxRetries})`);
         setTimeout(() => {
           loadProfileData(retryCount + 1);
         }, 2000 * (retryCount + 1)); // Exponential backoff
         return;
       }
 
-      setError('Failed to load profile data after multiple attempts. Please try again.');
+      // setError('Failed to load profile data after multiple attempts. Please try again.');
       toast.error('Failed to load profile data');
     } finally {
       setLoading(false);
@@ -158,14 +158,14 @@ const AdminProfileManagement = () => {
   const saveProfileData = async () => {
     try {
       setSaving(true);
-      console.log('🔍 AdminProfileManagement: Saving profile data...');
+      // console.log('🔍 AdminProfileManagement: Saving profile data...');
 
       // Since we're using public profile, we need to check if user is authenticated
       try {
         await adminProfileService.updateProfile(profileData);
         toast.success('Profile updated successfully!');
         setEditingSection(null);
-        console.log('✅ AdminProfileManagement: Profile saved successfully');
+        // console.log('✅ AdminProfileManagement: Profile saved successfully');
       } catch (updateError) {
         console.error('❌ AdminProfileManagement: Update failed, trying to create new profile...');
 

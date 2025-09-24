@@ -196,16 +196,18 @@ const Hero = () => {
       );
 
     // Parallax effect for Three.js background
-    gsap.to(canvasRef.current, {
-      yPercent: -20,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '#home',
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 1
-      }
-    });
+    if (canvasRef.current) {
+      gsap.to(canvasRef.current, {
+        yPercent: -20,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#home',
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1
+        }
+      });
+    }
 
   }, []);
 
@@ -235,6 +237,9 @@ const Hero = () => {
             <p className="hero-subtitle text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] text-reveal">
               {t('hero.subtitle')}
             </p>
+
+            {/* Placeholder for GSAP .hero-categories animation */}
+            <div className="hero-categories" style={{ minHeight: 10 }}></div>
 
             {/* CTA Buttons */}
             <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">

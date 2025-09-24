@@ -133,21 +133,21 @@ const AdminDashboard = () => {
       setError(null);
 
       // Load data sequentially to avoid overwhelming the backend
-      console.log(`🔄 Loading dashboard data sequentially... (attempt ${retryCount + 1})`);
+      // console.log(`🔄 Loading dashboard data sequentially... (attempt ${retryCount + 1})`);
 
       // 1. First load dashboard statistics (most important)
       try {
         setStatsLoading(true);
-        console.log('📊 Loading dashboard statistics...');
+        // console.log('📊 Loading dashboard statistics...');
         const statsResult = await adminService.getDashboardStats();
         if (statsResult.success) {
           setDashboardStats(statsResult.data);
-          console.log('✅ Dashboard statistics loaded');
+          // console.log('✅ Dashboard statistics loaded');
         } else {
-          console.warn('⚠️ Failed to load dashboard statistics');
+          // console.warn('⚠️ Failed to load dashboard statistics');
         }
       } catch (error) {
-        console.error('❌ Error loading dashboard statistics:', error);
+        // console.error('❌ Error loading dashboard statistics:', error);
       } finally {
         setStatsLoading(false);
       }
@@ -155,11 +155,11 @@ const AdminDashboard = () => {
       // 2. Load job seekers data
       try {
         setJobSeekersLocalLoading(true);
-        console.log('👥 Loading job seekers data...');
+        // console.log('👥 Loading job seekers data...');
         await fetchJobSeekers();
-        console.log('✅ Job seekers data loaded');
+        // console.log('✅ Job seekers data loaded');
       } catch (error) {
-        console.error('❌ Error loading job seekers:', error);
+        // console.error('❌ Error loading job seekers:', error);
       } finally {
         setJobSeekersLocalLoading(false);
       }
@@ -167,11 +167,11 @@ const AdminDashboard = () => {
       // 3. Load employer requests
       try {
         setRequestsLocalLoading(true);
-        console.log('📝 Loading employer requests...');
+        // console.log('📝 Loading employer requests...');
         await fetchRequests();
-        console.log('✅ Employer requests loaded');
+        // console.log('✅ Employer requests loaded');
       } catch (error) {
-        console.error('❌ Error loading employer requests:', error);
+        // console.error('❌ Error loading employer requests:', error);
       } finally {
         setRequestsLocalLoading(false);
       }
@@ -179,23 +179,23 @@ const AdminDashboard = () => {
       // 4. Load job categories
       try {
         setCategoriesLocalLoading(true);
-        console.log('🏷️ Loading job categories...');
+        // console.log('🏷️ Loading job categories...');
         await fetchCategories();
-        console.log('✅ Job categories loaded');
+        // console.log('✅ Job categories loaded');
       } catch (error) {
-        console.error('❌ Error loading job categories:', error);
+        // console.error('❌ Error loading job categories:', error);
       } finally {
         setCategoriesLocalLoading(false);
       }
 
-      console.log('✅ Dashboard data loading completed');
+      // console.log('✅ Dashboard data loading completed');
 
     } catch (error) {
-      console.error('❌ Critical error in dashboard loading:', error);
+      // console.error('❌ Critical error in dashboard loading:', error);
       
       // Retry logic for critical errors
       if (retryCount < maxRetries) {
-        console.log(`🔄 Retrying dashboard load... (${retryCount + 1}/${maxRetries})`);
+        // console.log(`🔄 Retrying dashboard load... (${retryCount + 1}/${maxRetries})`);
         setTimeout(() => {
           loadDashboardData(retryCount + 1);
         }, 2000 * (retryCount + 1)); // Exponential backoff
@@ -297,7 +297,7 @@ const AdminDashboard = () => {
         type: 'error',
         duration: 5000
       });
-      console.error('Request update error:', error);
+      // console.error('Request update error:', error);
     }
   };
 

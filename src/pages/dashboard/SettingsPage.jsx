@@ -69,14 +69,14 @@ const SettingsPage = () => {
       setIsLoadingProfile(true);
       setPerformanceMetrics(prev => ({ ...prev, apiCalls: prev.apiCalls + 1 }));
       
-      console.log('🔄 Loading admin profile...');
+      // console.log('🔄 Loading admin profile...');
       const result = await adminService.getAdminProfile();
-      console.log('📊 Admin profile result:', result);
+      // console.log('📊 Admin profile result:', result);
       
       if (result.success) {
         // Map the API response to our profile state
         const adminData = result.data;
-        console.log('👤 Admin data received:', adminData);
+        // console.log('👤 Admin data received:', adminData);
         
         setProfile({
           firstName: adminData.firstName || adminData.profile?.firstName || '',
@@ -97,7 +97,7 @@ const SettingsPage = () => {
         console.warn('❌ API Error:', result.error);
         
         if (user) {
-          console.log('👤 Falling back to user context data:', user);
+          // console.log('👤 Falling back to user context data:', user);
           setProfile({
             firstName: user.profile?.firstName || user.firstName || '',
             lastName: user.profile?.lastName || user.lastName || '',
@@ -119,7 +119,7 @@ const SettingsPage = () => {
       
       // Fall back to user context data on error
       if (user) {
-        console.log('👤 Falling back to user context data on error:', user);
+        // console.log('👤 Falling back to user context data on error:', user);
         setProfile({
           firstName: user.profile?.firstName || user.firstName || '',
           lastName: user.profile?.lastName || user.lastName || '',

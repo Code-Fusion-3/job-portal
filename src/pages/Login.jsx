@@ -100,7 +100,7 @@ const Login = () => {
         setErrors({ general: result.error || t('login.errors.general') });
       }
     } catch (error) {
-      console.error('Login error:', error);
+      // console.error('Login error:', error);
       setErrors({ general: t('login.errors.general') });
     } finally {
       setLoading(false);

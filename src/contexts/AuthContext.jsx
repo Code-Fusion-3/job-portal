@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         
         // Don't check authentication if we're on the login page
         if (window.location.pathname === '/employer/login' || window.location.pathname === '/login') {
-          console.log('🔍 On login page, skipping authentication check');
+          // console.log('🔍 On login page, skipping authentication check');
           setLoading(false);
           return;
         }
@@ -396,14 +396,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Debug logging for authentication state
-  console.log('🔐 AuthContext Debug:', {
-    user: user,
-    sessionValid: sessionValid,
-    isAuthenticated: !!user && sessionValid,
-    userRole: user?.role,
-    userExists: !!user,
-    sessionValidValue: sessionValid
-  });
+  // console.log('🔐 AuthContext Debug:', {
+  //   user: user,
+  //   sessionValid: sessionValid,
+  //   isAuthenticated: !!user && sessionValid,
+  //   userRole: user?.role,
+  //   userExists: !!user,
+  //   sessionValidValue: sessionValid
+  // });
 
   return (
     <AuthContext.Provider value={value}>

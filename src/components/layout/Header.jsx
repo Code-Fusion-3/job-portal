@@ -71,7 +71,7 @@ const Header = () => {
             <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">J</span>
             </div>
-            <span className="ml-2 text-xl font-bold text-white">JobPortal</span>
+            <span className="ml-2 text-xl font-bold text-white">Brazi Connect Portal</span>
           </motion.div>
 
           {/* Desktop Navigation */}

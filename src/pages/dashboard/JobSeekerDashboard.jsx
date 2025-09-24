@@ -202,7 +202,7 @@ const JobSeekerDashboard = () => {
                 <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">J</span>
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900">JobPortal</span>
+                <span className="ml-2 text-xl font-bold text-gray-900">Brazi Connect Portal</span>
               </div>
               
               <div className="flex items-center space-x-4">

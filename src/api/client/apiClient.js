@@ -15,10 +15,10 @@ const apiClient = axios.create({
 });
 
 // Debug logging
-console.log('🔧 API Client Configuration:');
-console.log('🔧 Base URL:', API_CONFIG.BASE_URL);
-console.log('🔧 Timeout:', API_CONFIG.TIMEOUT);
-console.log('🔧 Default Headers:', API_CONFIG.DEFAULT_HEADERS);
+// console.log('🔧 API Client Configuration:');
+// console.log('🔧 Base URL:', API_CONFIG.BASE_URL);
+// console.log('🔧 Timeout:', API_CONFIG.TIMEOUT);
+// console.log('🔧 Default Headers:', API_CONFIG.DEFAULT_HEADERS);
 
 // Add request interceptor
 apiClient.interceptors.request.use(requestInterceptor, (error) => {

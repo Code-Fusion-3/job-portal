@@ -40,19 +40,19 @@ async function run() {
   const files = await fs.promises.readdir(srcDir);
   const targets = files.filter(f => /img[0-9]+\.(jpe?g|png)$/i.test(f));
   if (!targets.length) {
-    console.log('No target images found.');
+    // console.log('No target images found.');
     return;
   }
-  console.log(`Optimizing ${targets.length} images...`);
+  // console.log(`Optimizing ${targets.length} images...`);
   for (const f of targets) {
     try {
       await processImage(f);
-      console.log('Optimized', f);
+      // console.log('Optimized', f);
     } catch (e) {
       console.error('Failed optimizing', f, e.message);
     }
   }
-  console.log('Done.');
+  // console.log('Done.');
 }
 
 run();

@@ -5,9 +5,9 @@ class AdminProfileService {
   // Get admin profile data
   async getProfile() {
     try {
-      console.log('🔍 AdminProfileService: Getting profile...');
+      // console.log('🔍 AdminProfileService: Getting profile...');
       const response = await api.get('/admin-profile/profile');
-      console.log('✅ AdminProfileService: Profile loaded successfully:', response.data);
+      // console.log('✅ AdminProfileService: Profile loaded successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('❌ AdminProfileService: Error getting profile:', error);
@@ -31,20 +31,20 @@ class AdminProfileService {
   // Get public admin profile (for AdminInfo page)
   async getPublicProfile() {
     try {
-      console.log('🔍 AdminProfileService: Getting public profile via API client...');
-      console.log('🔍 API client:', api);
-      console.log('🔍 API client methods:', Object.keys(api));
+      // console.log('🔍 AdminProfileService: Getting public profile via API client...');
+      // console.log('🔍 API client:', api);
+      // console.log('🔍 API client methods:', Object.keys(api));
       
       const response = await api.get('/admin-profile/public-profile');
-      console.log('✅ AdminProfileService: Public profile loaded successfully via API client:', response);
+      // console.log('✅ AdminProfileService: Public profile loaded successfully via API client:', response);
       return response;
     } catch (error) {
-      console.error('❌ AdminProfileService: API client failed, trying fetch fallback...');
-      console.error('❌ Error details:', error);
+      // console.error('❌ AdminProfileService: API client failed, trying fetch fallback...');
+      // console.error('❌ Error details:', error);
       
       // Fallback to fetch since public profile doesn't require authentication
       try {
-        console.log('🔄 AdminProfileService: Using fetch fallback...');
+        // console.log('🔄 AdminProfileService: Using fetch fallback...');
         const fetchResponse = await fetch(`${API_CONFIG.BASE_URL}/admin-profile/public-profile`);
         
         if (!fetchResponse.ok) {
@@ -52,7 +52,7 @@ class AdminProfileService {
         }
         
         const data = await fetchResponse.json();
-        console.log('✅ AdminProfileService: Public profile loaded successfully via fetch:', data);
+        // console.log('✅ AdminProfileService: Public profile loaded successfully via fetch:', data);
         return data;
       } catch (fetchError) {
         console.error('❌ AdminProfileService: Fetch fallback also failed:', fetchError);

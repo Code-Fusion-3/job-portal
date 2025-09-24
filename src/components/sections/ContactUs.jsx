@@ -11,7 +11,7 @@ const contactInfo = [
   {
     id: 1,
     titleKey: 'contact.info.email.title',
-    value: 'info@jobportal.com',
+    value: 'info@Brazi Connect Portal.com',
     descriptionKey: 'contact.info.email.desc',
     icon: 'Mail'
   },
