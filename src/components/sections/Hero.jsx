@@ -14,7 +14,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const Hero = () => {
-  const { t } = useTranslation(); 
+  const { t, i18n } = useTranslation(); 
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const rendererRef = useRef(null);
@@ -269,23 +269,28 @@ console.log(categories, categoriesLoading);
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-                  {categories.slice(0, 6).map((category, index) => (
-                    <motion.div
-                      key={category.id}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
-                    >
-                      <Link
-                        to={`/job-seekers?category=${encodeURIComponent(category.name_en.toLowerCase())}`}
-                        className="group inline-flex items-center px-3 md:px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs md:text-sm font-medium hover:bg-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105"
+                  {categories.slice(0, 6).map((category, index) => {
+                    // Determine the correct name field based on current language
+                    const lang = i18n.language;
+                    const catName = lang === 'rw' ? category.name_rw : category.name_en;
+                    return (
+                      <motion.div
+                        key={category.id}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
                       >
-                        <Briefcase className="h-3 w-3 md:h-4 md:w-4 mr-2 opacity-80 group-hover:opacity-100" />
-                        <span>{category.name_en}</span>
-                        <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-                      </Link>
-                    </motion.div>
-                  ))}
+                        <Link
+                          to={`/job-seekers?category=${encodeURIComponent(catName?.toLowerCase?.() || '')}`}
+                          className="group inline-flex items-center px-3 md:px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs md:text-sm font-medium hover:bg-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105"
+                        >
+                          <Briefcase className="h-3 w-3 md:h-4 md:w-4 mr-2 opacity-80 group-hover:opacity-100" />
+                          <span>{catName}</span>
+                          <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
                   {categories.length > 6 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
