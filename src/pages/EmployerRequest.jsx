@@ -112,65 +112,72 @@ const EmployerRequest = () => {
   if (requestSent) {
     return (
       <div 
-        className="min-h-screen bg-cover bg-center bg-fixed"
+        className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 bg-fixed"
         style={{ backgroundImage: `url(${jobseekerBackground})` }}
       >
         <Header />
-        <div className="pt-16 pb-8">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center"
-            >
-              <div className="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-white" />
+        <div className="pt-20 pb-12 flex flex-col items-center justify-center min-h-[80vh]">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl px-8 py-12 max-w-xl w-full text-center border border-green-100"
+          >
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center shadow-lg mb-4">
+                <CheckCircle className="w-14 h-14 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                {t('employerRequest.success.title', 'Request Sent Successfully!')}
+              <h1 className="text-4xl font-extrabold text-green-700 mb-2 tracking-tight">
+                {t('employerRequest.success.title', 'Request Submitted!')}
               </h1>
-              <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                {t('employerRequest.success.message', 'Your request has been sent to our admin team. We\'ll review it and get back to you within 24 hours.')}
+              <p className="text-lg text-gray-700 font-medium mb-2">
+                {t('employerRequest.success.message', 'Thank you for your interest. Our team will review your request and respond within 24 hours.')}
               </p>
+            </div>
 
-              {/* Show credentials if new account was created */}
-              {loginCredentials && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                  <h3 className="text-lg font-semibold text-green-800 mb-3">
-                    🔐 Your Login Credentials
-                  </h3>
-                  <div className="bg-white p-3 rounded border border-green-300 text-left">
-                    <p className="text-sm text-green-700 mb-2">
-                      <strong>Email:</strong> {loginCredentials.email}
-                    </p>
-                    <p className="text-sm text-green-700 mb-2">
-                      <strong>Password:</strong> {loginCredentials.password}
-                    </p>
-                  </div>
-                  <p className="text-xs text-green-600 mt-2">
-                    {loginCredentials.message || 'Please save these credentials. You can use them to login to your employer dashboard.'}
-                  </p>
+            {loginCredentials && (
+              <div className="bg-gradient-to-br from-green-100 to-blue-100 border border-green-200 rounded-2xl p-6 mb-8 flex flex-col items-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-block bg-green-600 text-white rounded-full px-3 py-1 text-xs font-semibold">New Account</span>
+                  <span className="text-green-700 font-semibold">Login Credentials</span>
                 </div>
-              )}
+                <div className="bg-white p-4 rounded-xl border border-green-300 shadow-sm w-full max-w-xs text-left mx-auto">
+                  <div className="flex items-center mb-2">
+                    <span className="font-bold text-green-800 w-20">Email:</span>
+                    <span className="text-green-900 break-all">{loginCredentials.email}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="font-bold text-green-800 w-20">Password:</span>
+                    <span className="text-green-900 break-all">{loginCredentials.password}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-green-700 mt-3">
+                  {loginCredentials.message || 'Please save these credentials. You will need them to access your employer dashboard.'}
+                </p>
+              </div>
+            )}
 
-              <div className="bg-green-50 rounded-xl p-6 mb-8">
-                <h3 className="font-semibold text-green-800 mb-2">{t('employerRequest.success.whatHappensNext')}</h3>
-                <ul className="text-sm text-green-700 space-y-1">
-                  {/* <li>• {t('employerRequest.success.reviewTimeline')}</li> */}
-                  <li>• {t('employerRequest.success.emailConfirmation')}</li>
-                  <li>• {t('employerRequest.success.contactNextSteps')}</li>
-                  <li>• {t('employerRequest.fullDetail.content')}</li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <BackButton 
-                  to="/employer/login"
-                  text={t('employerRequest.success.loginToDashboard', 'Login to Access Dashboard')}
-                  className="inline-block hover:bg-blue-700 text-red-600 px-6 py-3 rounded-xl font-semibold"
-                />
-              </div>
-            </motion.div>
-          </div>
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-8 text-left">
+              <h3 className="font-semibold text-blue-800 mb-2 text-lg flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                {t('employerRequest.success.whatHappensNext', 'What Happens Next?')}
+              </h3>
+              <ul className="text-sm text-blue-700 space-y-1 pl-4 list-disc">
+                <li>{t('employerRequest.success.emailConfirmation', 'You will receive an email confirmation with further details.')}</li>
+                <li>{t('employerRequest.success.contactNextSteps', 'Our team may contact you for additional information if needed.')}</li>
+                <li>{t('employerRequest.fullDetail.content', 'You can track your request status after logging in.')}</li>
+              </ul>
+            </div>
+
+            <div className="mt-6 flex flex-col items-center">
+              <BackButton 
+                to="/employer/login"
+                text={t('employerRequest.success.loginToDashboard', 'Login to Access Dashboard')}
+                className="inline-block bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-8 py-3 rounded-2xl font-bold text-lg shadow-md transition-colors duration-200"
+              />
+              <p className="text-xs text-gray-400 mt-3">For your security, please do not share your credentials with anyone.</p>
+            </div>
+          </motion.div>
         </div>
         <Footer />
       </div>
