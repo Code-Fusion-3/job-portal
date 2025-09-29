@@ -131,24 +131,9 @@ const Hero = () => {
   useEffect(() => {
     const tl = gsap.timeline({ delay: 0.5 });
 
-    // Hero content animations
-    tl.fromTo('.hero-title',
-      {
-        opacity: 0,
-        y: -100,
-        scale: 0.8,
-        rotationX: -90
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        rotationX: 0,
-        duration: 1.5,
-        ease: 'back.out(1.7)'
-      }
-    )
-      .fromTo('.hero-subtitle',
+    // Hero content animations - title is now always visible
+    // Disabled title animation to ensure visibility on all devices
+    tl.fromTo('.hero-subtitle',
         {
           opacity: 0,
           y: 50,
@@ -211,7 +196,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section id="home" className="w-full h-screen relative overflow-hidden hero-section">
+    <section id="home" className="w-full min-h-screen relative overflow-hidden hero-section">
       {/* Image Slideshow Background */}
       <ImageSlideshow>
         {/* Three.js Background */}
@@ -225,15 +210,21 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60 pointer-events-none" style={{ zIndex: 2 }} />
 
         {/* Main Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center">
-          <div className="space-y-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 min-h-screen flex items-center justify-center text-center py-4">
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 w-full max-w-5xl">
             {/* Main Heading */}
-            <h1 className="hero-title text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] text-reveal">
+            <h1 
+              className="hero-title text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+              style={{ opacity: 1, visibility: 'visible', transform: 'none' }}
+            >
               {t('hero.title')}
             </h1>
 
             {/* Subtitle */}
-            <p className="hero-subtitle text-xl md:text-2xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] text-reveal">
+            <p 
+              className="hero-subtitle text-sm sm:text-base md:text-lg lg:text-xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] px-2"
+              style={{ opacity: 1, visibility: 'visible', transform: 'none' }}
+            >
               {t('hero.subtitle')}
             </p>
 
@@ -241,7 +232,7 @@ const Hero = () => {
             <div className="hero-categories" style={{ minHeight: 10 }}></div>
 
             {/* CTA Buttons */}
-            <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="hero-buttons flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center opacity-100 visible">
               <Link to="/login">
                 <Button variant="primary" size="lg">
                   {t('hero.cta.primary')}
@@ -260,15 +251,15 @@ const Hero = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.2 }}
-                className="hero-categories mt-8 max-w-4xl mx-auto"
+                className="hero-categories mt-2 sm:mt-3 max-w-4xl mx-auto opacity-100 visible"
               >
-                <div className="text-center mb-4">
+                <div className="text-center mb-3 sm:mb-4">
                   <p className="text-white/80 text-sm md:text-base font-medium">
                     {t('hero.categories.title', 'Popular Categories')}
                   </p>
                 </div>
-                <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-                  {categories.slice(0, 6).map((category, index) => {
+                <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3">
+                  {categories.slice(0, 17).reverse().map((category, index) => {
                     // Determine the correct name field based on current language
                     const lang = i18n.language;
                     const catName = lang === 'rw' ? category.name_rw : category.name_en;
@@ -278,30 +269,33 @@ const Hero = () => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
+                        className={`${index >= 8 ? 'hidden lg:block' : ''}`}
                       >
                         <Link
                           to={`/job-seekers?category=${encodeURIComponent(catName?.toLowerCase?.() || '')}`}
-                          className="group inline-flex items-center px-3 md:px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs md:text-sm font-medium hover:bg-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105"
+                          className="group inline-flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs md:text-sm font-medium hover:bg-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105"
                         >
-                          <Briefcase className="h-3 w-3 md:h-4 md:w-4 mr-2 opacity-80 group-hover:opacity-100" />
+                          <Briefcase className="h-3 w-3 mr-1.5 sm:mr-2 opacity-80 group-hover:opacity-100" />
                           <span>{catName}</span>
-                          <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                          <ChevronRight className="h-3 w-3 ml-1 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+
                         </Link>
                       </motion.div>
                     );
                   })}
-                  {categories.length > 6 && (
+                  {categories.length > 8 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 2 }}
+                      className="w-full sm:w-auto"
                     >
                       <Link
                         to="/job-seekers"
-                        className="inline-flex items-center px-3 md:px-4 py-2 bg-red-600/80 backdrop-blur-sm border border-red-500/50 rounded-full text-white text-xs md:text-sm font-medium hover:bg-red-600 hover:border-red-500 transition-all duration-300 hover:scale-105"
+                        className="inline-flex items-center px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-red-600/80 backdrop-blur-sm border border-red-500/50 rounded-full text-white text-xs md:text-sm font-medium hover:bg-red-600 hover:border-red-500 transition-all duration-300 hover:scale-105"
                       >
                         <span>View All ({categories.length})</span>
-                        <ChevronRight className="h-3 w-3 md:h-4 md:w-4 ml-1" />
+                        <ChevronRight className="h-3 w-3 ml-1 flex-shrink-0" />
                       </Link>
                     </motion.div>
                   )}

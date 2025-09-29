@@ -28,7 +28,7 @@ const JobCategories = () => {
   }
 
   // Limit to first 8 categories for homepage display
-  const displayCategories = categories.slice(0, 8);
+  const displayCategories = categories.slice(0, 17).reverse();
 
   return (
     <section className="py-16 bg-gray-50">

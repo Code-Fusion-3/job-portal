@@ -20,7 +20,7 @@ const resources = {
       'nav.account': 'Account',
       
       // Hero Section
-      'hero.title': 'Connect Talent with Opportunity',
+      'hero.title': 'Connect Talent with Opportunities',
       'hero.subtitle': 'A platform that connects employers with workers in Rwanda for basic, semi-skilled, and skilled jobs — from cleaners and house helpers to builders, mechanics, technicians, and more.',
       'hero.cta.primary': 'Get Started',
       'hero.cta.secondary': 'Browse Candidates',

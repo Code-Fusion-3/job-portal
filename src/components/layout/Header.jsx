@@ -69,7 +69,7 @@ const Header = () => {
             whileHover={{ scale: 1.05 }}
           >
             <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">J</span>
+              <span className="text-white font-bold text-lg">BC</span>
             </div>
             <span className="ml-2 text-xl font-bold text-white">Braziconnect Portal</span>
           </motion.div>
@@ -152,20 +152,21 @@ const Header = () => {
             {/* CTA Buttons */}
             <div className="flex items-center space-x-4">
               <Link to="/login">
-                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-black hover:bg-red-600 hover:bg-opacity-20">
                   {t('nav.login')}
                 </Button>
               </Link>
-              <Link to="/employer/login">
-                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-red-400 hover:bg-red-600 hover:bg-opacity-20">
-                  {t('nav.employerLogin') || 'Employer Login'}
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button as="div" variant="red" size="sm">
+               <Link to="/register">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-black hover:bg-red-600 hover:bg-opacity-20">
                   {t('nav.register')}
                 </Button>
               </Link>
+              <Link to="/employer/login">
+                <Button as="div" variant="ghost" size="sm" className="text-white hover:text-black hover:bg-red-600 hover:bg-opacity-20">
+                  {t('nav.employerLogin') || 'Employer Login'}
+                </Button>
+              </Link>
+             
             </div>
           </div>
 
