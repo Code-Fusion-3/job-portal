@@ -703,10 +703,10 @@ const Register = () => {
           </div>
         )}
 
-        <UserTypeSelector
+        {/* <UserTypeSelector
           value={formData.userType}
           onChange={handleUserTypeChange}
-        />
+        /> */}
 
 
 

@@ -1445,12 +1445,12 @@ const resources = {
       'education.other': 'Ibindi',
 
       // Availability Options
-      'availability.available': 'Bihagaze',
+      'availability.available': 'Birambye',
       'availability.partTime': 'Igihe Gitoya',
-      'availability.contract': 'Kubera Hamagara',
-      'availability.freelance': 'Bihindutse',
-      'availability.notAvailable': 'Ntibihagaze',
-      'availability.openToOpportunities': 'Biteguye ku Mahirwe',
+      'availability.contract': 'Amasezerano',
+      'availability.freelance': 'Akazi ko kwigenga',
+      'availability.notAvailable': 'Ntabwo mboneka',
+      'availability.openToOpportunities': 'Niteguye ku Mahirwe Yose',
 
       // Experience Levels
       'experience.noExperience': 'Nta Uburambe (0 imyaka)',
@@ -1655,7 +1655,7 @@ const resources = {
       'register.selectGender': 'Hitamo igitsina',
       'register.selectMaritalStatus': 'Hitamo imiterere y\'ubugeni',
       'register.selectEducationLevel': 'Hitamo amashuri yawe',
-      'register.selectAvailability': 'Hitamo uko ubashobora',
+      'register.selectAvailability': 'Hitamo uko ushobora kuboneka',
       'register.selectExperienceLevel': 'Hitamo uburambe bwawe',
       'register.selectJobCategory': 'Hitamo akazi ukeneye',
       'register.optional': 'Bihitamo',
@@ -1685,7 +1685,7 @@ const resources = {
       'register.gender': 'Igitsina',
       'register.maritalStatus': 'Imiterere y\'ubugeni',
       'register.educationLevel': 'Amashuri',
-      'register.availability': 'Uko ubashobora',
+      'register.availability': 'Kuboneka kwawe',
       'register.location': 'Aho uherereye',
       'register.locationPlaceholder': 'Kigali, Rwanda',
       'register.city': 'Umudugudu',
