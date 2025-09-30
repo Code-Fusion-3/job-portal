@@ -113,23 +113,14 @@ const Register = () => {
     // Optional fields
     email: '', // Add missing email field
     description: '',
-    skills: '',
     gender: '',
     dateOfBirth: '',
-    idNumber: '',
-    maritalStatus: '',
     location: '',
     city: '',
     country: '',
-    references: '',
-    experience: '',
     jobCategoryId: '',
     educationLevel: '',
-    availability: '',
-    languages: '',
-    certifications: '',
     experienceLevel: '',
-    monthlyRate: '',
     // Form controls
     userType: 'jobseeker',
     agreeToTerms: false,
@@ -149,113 +140,15 @@ const Register = () => {
   const [showBackendErrorModal, setShowBackendErrorModal] = useState(false);
   const [backendErrors, setBackendErrors] = useState([]);
 
-  // Collapsible sections state
-  const [expandedSections, setExpandedSections] = useState({
-    additionalInfo: false,
-    professionalInfo: false
-  });
 
-  // Skills selection state
-  const [selectedSkills, setSelectedSkills] = useState([]);
-  const [customSkill, setCustomSkill] = useState('');
-  const [skillSearch, setSkillSearch] = useState('');
 
-  // Languages selection state
-  const [selectedLanguages, setSelectedLanguages] = useState([]);
-  const [customLanguage, setCustomLanguage] = useState('');
-  const [languageSearch, setLanguageSearch] = useState('');
 
-  // Toggle section expansion
-  const toggleSection = (sectionName) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [sectionName]: !prev[sectionName]
-    }));
-  };
 
-  // Filter skills based on search
-  const filteredSkills = predefinedSkills.filter(skill =>
-    skill.toLowerCase().includes(skillSearch.toLowerCase())
-  );
 
-  // Predefined languages - using translation keys
-  const predefinedLanguages = [
-    'languages.kinyarwanda', 'languages.english', 'languages.french', 'languages.swahili', 'languages.german', 'languages.spanish', 'languages.chinese', 'languages.arabic',
-    'languages.portuguese', 'languages.italian', 'languages.dutch', 'languages.russian', 'languages.japanese', 'languages.korean', 'languages.hindi', 'languages.turkish'
-  ];
 
-  // Filter languages based on search
-  const filteredLanguages = predefinedLanguages.filter(language =>
-    language.toLowerCase().includes(languageSearch.toLowerCase())
-  );
 
-  // Skills selection handlers
-  const handleSkillSelect = (skill) => {
-    if (!selectedSkills.includes(skill)) {
-      setSelectedSkills(prev => {
-        const newSkills = [...prev, skill];
-        updateSkillsField(newSkills);
-        return newSkills;
-      });
-    }
-  };
 
-  const handleSkillRemove = (skill) => {
-    setSelectedSkills(prev => {
-      const updatedSkills = prev.filter(s => s !== skill);
-      updateSkillsField(updatedSkills);
-      return updatedSkills;
-    });
-  };
 
-  const handleCustomSkillAdd = () => {
-    if (customSkill.trim() && !selectedSkills.includes(customSkill.trim())) {
-      setSelectedSkills(prev => {
-        const newSkills = [...prev, customSkill.trim()];
-        updateSkillsField(newSkills);
-        return newSkills;
-      });
-      setCustomSkill('');
-    }
-  };
-
-  const updateSkillsField = (skills) => {
-    setFormData(prev => ({ ...prev, skills: skills.join(', ') }));
-  };
-
-  // Language selection handlers
-  const handleLanguageSelect = (language) => {
-    if (!selectedLanguages.includes(language)) {
-      setSelectedLanguages(prev => {
-        const newLanguages = [...prev, language];
-        updateLanguagesField(newLanguages);
-        return newLanguages;
-      });
-    }
-  };
-
-  const handleLanguageRemove = (language) => {
-    setSelectedLanguages(prev => {
-      const updatedLanguages = prev.filter(l => l !== language);
-      updateLanguagesField(updatedLanguages);
-      return updatedLanguages;
-    });
-  };
-
-  const handleCustomLanguageAdd = () => {
-    if (customLanguage.trim() && !selectedLanguages.includes(customLanguage.trim())) {
-      setSelectedLanguages(prev => {
-        const newLanguages = [...prev, customLanguage.trim()];
-        updateLanguagesField(newLanguages);
-        return newLanguages;
-      });
-      setCustomLanguage('');
-    }
-  };
-
-  const updateLanguagesField = (languages) => {
-    setFormData(prev => ({ ...prev, languages: languages.join(', ') }));
-  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -285,18 +178,27 @@ const Register = () => {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         setErrors(prev => ({ ...prev, photo: t('register.errors.photo') }));
+        setPhoto(null);
+        setPhotoPreview(null);
         return;
       }
       
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setErrors(prev => ({ ...prev, photo: t('register.errors.photoSize') }));
+        setPhoto(null);
+        setPhotoPreview(null);
         return;
       }
       
       setPhoto(file);
       setPhotoPreview(URL.createObjectURL(file));
       setErrors(prev => ({ ...prev, photo: '' }));
+    } else {
+      // Handle case when no file is selected (e.g., user cancels file dialog)
+      if (!photo) {
+        setErrors(prev => ({ ...prev, photo: t('register.errors.photoRequired') }));
+      }
     }
   };
 
@@ -304,20 +206,7 @@ const Register = () => {
     setFormData(prev => ({ ...prev, userType }));
   };
 
-  // Initialize skills and languages when form loads
-  React.useEffect(() => {
-    // Initialize skills from formData if they exist
-    if (formData.skills) {
-      const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
-      setSelectedSkills(skillsArray);
-    }
-    
-    // Initialize languages from formData if they exist
-    if (formData.languages) {
-      const languagesArray = formData.languages.split(',').map(l => l.trim()).filter(l => l);
-      setSelectedLanguages(languagesArray);
-    }
-  }, []); // Only run once when component mounts
+
 
   // Helper function to group errors by section
   const groupErrorsBySection = (errors) => {
@@ -389,14 +278,146 @@ const Register = () => {
       });
     }
 
-    // Phone Number - Only validate minimum 9 digits if provided
-    if (formData.contactNumber && formData.contactNumber.replace(/\D/g, '').length < 9) {
+    // Phone Number - Now required
+    if (!formData.contactNumber || !formData.contactNumber.trim()) {
+      newErrors.contactNumber = t('register.errors.phoneRequired');
+      errorList.push({
+        field: 'contactNumber',
+        message: t('register.errors.phoneRequired'),
+        section: 'required',
+        label: t('register.phone')
+      });
+    } else if (formData.contactNumber.replace(/\D/g, '').length < 9) {
       newErrors.contactNumber = 'Phone number must be at least 9 digits';
       errorList.push({
         field: 'contactNumber',
         message: 'Phone number must be at least 9 digits',
         section: 'required',
         label: t('register.phone')
+      });
+    }
+
+    // Email - Now required
+    if (!formData.email || !formData.email.trim()) {
+      newErrors.email = t('register.errors.emailRequired');
+      errorList.push({
+        field: 'email',
+        message: t('register.errors.emailRequired'),
+        section: 'required',
+        label: t('register.email')
+      });
+    } else if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,})$/.test(formData.email)) {
+      newErrors.email = t('register.errors.emailInvalid');
+      errorList.push({
+        field: 'email',
+        message: t('register.errors.emailInvalid'),
+        section: 'required',
+        label: t('register.email')
+      });
+    }
+
+    // Gender - Now required
+    if (!formData.gender || !formData.gender.trim()) {
+      newErrors.gender = t('register.errors.genderRequired');
+      errorList.push({
+        field: 'gender',
+        message: t('register.errors.genderRequired'),
+        section: 'required',
+        label: t('register.gender')
+      });
+    }
+
+    // Date of Birth - Now required
+    if (!formData.dateOfBirth || !formData.dateOfBirth.trim()) {
+      newErrors.dateOfBirth = t('register.errors.dateOfBirthRequired');
+      errorList.push({
+        field: 'dateOfBirth',
+        message: t('register.errors.dateOfBirthRequired'),
+        section: 'required',
+        label: t('register.dateOfBirth')
+      });
+    } else {
+      const dob = new Date(formData.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 18) {
+        newErrors.dateOfBirth = t('register.errors.ageLimit');
+        errorList.push({
+          field: 'dateOfBirth',
+          message: t('register.errors.ageLimit'),
+          section: 'required',
+          label: t('register.dateOfBirth')
+        });
+      }
+    }
+
+    // Job Category - Now required
+    if (!formData.jobCategoryId || !formData.jobCategoryId.toString().trim()) {
+      newErrors.jobCategoryId = t('register.errors.jobCategoryRequired');
+      errorList.push({
+        field: 'jobCategoryId',
+        message: t('register.errors.jobCategoryRequired'),
+        section: 'required',
+        label: t('register.jobCategory')
+      });
+    }
+
+    // Experience Level - Required
+    if (!formData.experienceLevel || formData.experienceLevel.trim().length === 0) {
+      newErrors.experienceLevel = t('register.errors.experienceLevelRequired');
+      errorList.push({
+        field: 'experienceLevel',
+        message: t('register.errors.experienceLevelRequired'),
+        section: 'required',
+        label: t('register.experienceLevel')
+      });
+    }
+
+    // Education Level - Now required
+    if (!formData.educationLevel || !formData.educationLevel.trim()) {
+      newErrors.educationLevel = t('register.errors.educationLevelRequired');
+      errorList.push({
+        field: 'educationLevel',
+        message: t('register.errors.educationLevelRequired'),
+        section: 'required',
+        label: t('register.educationLevel')
+      });
+    }
+
+    // Location - Now required
+    if (!formData.location || !formData.location.trim()) {
+      newErrors.location = t('register.errors.locationRequired');
+      errorList.push({
+        field: 'location',
+        message: t('register.errors.locationRequired'),
+        section: 'required',
+        label: t('register.location')
+      });
+    }
+
+    // City - Now required
+    if (!formData.city || !formData.city.trim()) {
+      newErrors.city = t('register.errors.cityRequired');
+      errorList.push({
+        field: 'city',
+        message: t('register.errors.cityRequired'),
+        section: 'required',
+        label: t('register.city')
+      });
+    }
+
+    // Country - Now required
+    if (!formData.country || !formData.country.trim()) {
+      newErrors.country = t('register.errors.countryRequired');
+      errorList.push({
+        field: 'country',
+        message: t('register.errors.countryRequired'),
+        section: 'required',
+        label: t('register.country')
       });
     }
 
@@ -438,25 +459,25 @@ const Register = () => {
       });
     }
 
-    // Skills - make it more lenient
-    if (!formData.skills || formData.skills.trim().length === 0) {
-      newErrors.skills = t('register.errors.skillsRequired');
+    // Description - Now required
+    if (!formData.description || !formData.description.trim()) {
+      newErrors.description = t('register.errors.descriptionRequired');
       errorList.push({
-        field: 'skills',
-        message: t('register.errors.skillsRequired'),
-        section: 'additional',
-        label: t('register.skills')
+        field: 'description',
+        message: t('register.errors.descriptionRequired'),
+        section: 'required',
+        label: t('register.description')
       });
     }
 
-    // Experience Level - now required
-    if (!formData.experienceLevel || formData.experienceLevel.trim().length === 0) {
-      newErrors.experienceLevel = t('register.errors.experienceLevelRequired');
+    // Profile Photo - Now required
+    if (!photo) {
+      newErrors.photo = t('register.errors.photoRequired');
       errorList.push({
-        field: 'experienceLevel',
-        message: t('register.errors.experienceLevelRequired'),
-        section: 'professional',
-        label: t('register.experienceLevel')
+        field: 'photo',
+        message: t('register.errors.photoRequired'),
+        section: 'required',
+        label: t('register.profilePhoto')
       });
     }
 
@@ -469,40 +490,6 @@ const Register = () => {
         section: 'required',
         label: t('register.terms')
       });
-    }
-
-    // Optional fields: friendly validation
-    if (formData.email && formData.email.trim().length > 0) {
-      // Only validate if provided
-      if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,})$/.test(formData.email)) {
-        newErrors.email = t('register.errors.emailInvalid');
-        errorList.push({
-          field: 'email',
-          message: t('register.errors.emailInvalid'),
-          section: 'additional',
-          label: t('register.email')
-        });
-      }
-    }
-
-    // Date of Birth - make it optional but validate if provided
-    if (formData.dateOfBirth && formData.dateOfBirth.length > 0) {
-      const dob = new Date(formData.dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const m = today.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      if (age < 18) {
-        newErrors.dateOfBirth = t('register.errors.ageLimit');
-        errorList.push({
-          field: 'dateOfBirth',
-          message: t('register.errors.ageLimit'),
-          section: 'additional',
-          label: t('register.dateOfBirth')
-        });
-      }
     }
 
     setErrors(newErrors);
@@ -526,7 +513,7 @@ const Register = () => {
     setLoading(true);
     
     try {
-      // Prepare data for API - Now sending all fields the backend supports
+      // Prepare data for API - simplified user data
       const userData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -534,23 +521,14 @@ const Register = () => {
         password: formData.password,
         email: formData.email.trim() || null,
         description: formData.description.trim() || null,
-        skills: formData.skills.trim() || null,
         gender: formData.gender || null,
         dateOfBirth: formData.dateOfBirth || null,
-        idNumber: formData.idNumber.trim() || null,
-        maritalStatus: formData.maritalStatus || null,
         location: formData.location.trim() || null,
         city: formData.city.trim() || null,
         country: formData.country.trim() || null,
-        references: formData.references.trim() || null,
-        experience: formData.experience.trim() || null,
         jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId, 10) : null,
-        availability: formData.availability || null,
-        certifications: formData.certifications?.trim() || null,
         educationLevel: formData.educationLevel || null,
-        languages: formData.languages.trim() || null,
         experienceLevel: formData.experienceLevel || null,
-        monthlyRate: formData.monthlyRate.trim() || null,
       };
 
       // Remove null and empty string values, but keep fields with actual content
@@ -712,10 +690,10 @@ const Register = () => {
 
 
 
-          {/* Left Column - Required Information */}
+          {/* Single Form Section - All Fields */}
           <div className="space-y-6">
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-6">
                 {t('register.requiredFields')}
               </h3>
               
@@ -752,42 +730,21 @@ const Register = () => {
                   required
                 />
                 <FormInput
-                    id="email"
-                    name="email"
-                    type="email"
-                    label={t('register.email')}
-                    placeholder={t('register.emailPlaceholder')}
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    error={errors.email}
-                    icon={Mail}
-                />
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  label={t('register.password')}
-                  placeholder={t('register.passwordPlaceholder')}
-                  value={formData.password}
+                  id="email"
+                  name="email"
+                  type="email"
+                  label={t('register.email')}
+                  placeholder={t('register.emailPlaceholder')}
+                  value={formData.email}
                   onChange={handleInputChange}
-                  error={errors.password}
-                  showStrength
-                  required
-                />
-
-                <PasswordInput
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  label={t('register.confirmPassword')}
-                  placeholder={t('register.confirmPasswordPlaceholder')}
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  error={errors.confirmPassword}
+                  error={errors.email}
+                  icon={Mail}
                   required
                 />
                 {/* Gender Select */}
                 <div>
                   <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.gender')}
+                    {t('register.gender')} *
                   </label>
                   <select
                     id="gender"
@@ -795,6 +752,7 @@ const Register = () => {
                     value={formData.gender}
                     onChange={handleInputChange}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                    required
                   >
                     <option value="">{t('register.selectGender')}</option>
                     <option value="Male">{t('gender.male')}</option>
@@ -808,19 +766,20 @@ const Register = () => {
                 </div>
                 {/* Date of Birth */}
                 <FormInput
-                    id="dateOfBirth"
-                    name="dateOfBirth"
-                    type="date"
-                    label={t('register.dateOfBirth')}
-                    value={formData.dateOfBirth}
-                    onChange={handleInputChange}
-                    error={errors.dateOfBirth}
-                    icon={Calendar}
-                  />
-              {/* Job Category */}
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  label={t('register.dateOfBirth')}
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
+                  error={errors.dateOfBirth}
+                  icon={Calendar}
+                  required
+                />
+                {/* Job Category */}
                 <div>
                   <label htmlFor="jobCategoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.jobCategory')}
+                    {t('register.jobCategory')} *
                   </label>
                   <select
                     id="jobCategoryId"
@@ -829,6 +788,7 @@ const Register = () => {
                     onChange={handleInputChange}
                     disabled={categoriesLoading}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    required
                   >
                     <option value="">
                       {categoriesLoading 
@@ -849,158 +809,43 @@ const Register = () => {
                     <p className="mt-1 text-sm text-red-600">{t('register.errorLoadingCategories')} {categoriesError}</p>
                   )}
                 </div>
+                {/* Experience Level */}
                 <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('register.experienceLevel')} *
-                </label>
-                <select
-                  name="experienceLevel"
-                  value={formData.experienceLevel}
-                  onChange={handleInputChange}
-                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 ${
-                    errors.experienceLevel ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  required
-                >
-                  <option value="">{t('register.selectExperienceLevel')}</option>
-                  <option value="no_experience">{t('experience.noExperience')}</option>
-                  <option value="beginner">{t('experience.beginner')}</option>
-                  <option value="intermediate">{t('experience.intermediate')}</option>
-                  <option value="experienced">{t('experience.experienced')}</option>
-                  <option value="expert">{t('experience.expert')}</option>
-                </select>
-                {errors.experienceLevel && (
-                  <p className="mt-1 text-sm text-red-600">{t('register.errors.experienceLevelRequired')}</p>
-                )}
-              </div>
-              {/* Photo Upload */}
-              <div className="">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('register.profilePhoto')}
-                </label>
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      className="hidden"
-                      id="photo"
-                    />
-                    <label
-                      htmlFor="photo"
-                      className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
-                    >
-                      {photoPreview ? (
-                        <img
-                          src={photoPreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <Camera className="w-6 h-6 text-gray-400" />
-                      )}
-                    </label>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-600">
-                      {t('register.photoHelp')}
-                    </p>
-                    {errors.photo && (
-                      <p className="text-sm text-red-600 mt-1">{errors.photo}</p>
-                    )}
-                  </div>
-                </div>
-                </div>
-                </div>
-              </div>
-            </div>
-
-          {/* Additional Information Section - Collapsible */}
-          <div className="space-y-6 pb-4">
-            <motion.div 
-              className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden"
-              initial={false}
-            >
-              {/* Section Header */}
-              <button
-                type="button"
-                onClick={() => toggleSection('additionalInfo')}
-                className="w-full p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
-              >
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {t('register.additionalInfo')}
-                  </h3>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {t('register.optional')}
-                  </span>
-                </div>
-                <motion.div
-                  animate={{ rotate: expandedSections.additionalInfo ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
-                </motion.div>
-              </button>
-
-              {/* Collapsible Content */}
-              <AnimatePresence>
-                {expandedSections.additionalInfo && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="p-4 pb-8 border-t border-gray-200">
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-               
-                <FormInput
-                  id="idNumber"
-                  name="idNumber"
-                  label={t('register.idNumber')}
-                  placeholder={t('register.idNumberPlaceholder')}
-                  value={formData.idNumber}
-                  onChange={handleInputChange}
-                  error={errors.idNumber}
-                />
-
-                {/* Marital Status Select */}
-                <div>
-                  <label htmlFor="maritalStatus" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.maritalStatus')}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.experienceLevel')} *
                   </label>
                   <select
-                    id="maritalStatus"
-                    name="maritalStatus"
-                    value={formData.maritalStatus}
+                    name="experienceLevel"
+                    value={formData.experienceLevel}
                     onChange={handleInputChange}
-                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                    className={`w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10 ${
+                      errors.experienceLevel ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    required
                   >
-                    <option value="">{t('register.selectMaritalStatus')}</option>
-                    <option value="Single">{t('maritalStatus.single')}</option>
-                    <option value="Married">{t('maritalStatus.married')}</option>
-                    <option value="Prefer not to say">{t('maritalStatus.preferNotToSay')}</option>
+                    <option value="">{t('register.selectExperienceLevel')}</option>
+                    <option value="no_experience">{t('experience.noExperience')}</option>
+                    <option value="beginner">{t('experience.beginner')}</option>
+                    <option value="intermediate">{t('experience.intermediate')}</option>
+                    <option value="experienced">{t('experience.experienced')}</option>
+                    <option value="expert">{t('experience.expert')}</option>
                   </select>
-                  {errors.maritalStatus && (
-                    <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
+                  {errors.experienceLevel && (
+                    <p className="mt-1 text-sm text-red-600">{t('register.errors.experienceLevelRequired')}</p>
                   )}
                 </div>
-              
-                   {/* Education Level */}
-                  <div>
-                    <label htmlFor="educationLevel" className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('register.educationLevel')}
-                    </label>
+                {/* Education Level */}
+                <div>
+                  <label htmlFor="educationLevel" className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('register.educationLevel')} *
+                  </label>
                   <select
                     id="educationLevel"
                     name="educationLevel"
                     value={formData.educationLevel}
                     onChange={handleInputChange}
                     className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
+                    required
                   >
                     <option value="">{t('register.selectEducationLevel')}</option>
                     {sampleEducationLevels.map(level => (
@@ -1013,29 +858,6 @@ const Register = () => {
                     <p className="mt-1 text-sm text-red-600">{errors.educationLevel}</p>
                   )}
                 </div>
-                {/* Availability */}
-                <div>
-                  <label htmlFor="availability" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.availability')}
-                  </label>
-                  <select
-                    id="availability"
-                    name="availability"
-                    value={formData.availability}
-                    onChange={handleInputChange}
-                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
-                  >
-                    <option value="">{t('register.selectAvailability')}</option>
-                    {sampleAvailabilityOptions.map(option => (
-                      <option key={option} value={option}>
-                        {t(option)}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.availability && (
-                    <p className="mt-1 text-sm text-red-600">{errors.availability}</p>
-                  )}
-                </div>
                 {/* Location */}
                 <FormInput
                   id="location"
@@ -1046,10 +868,8 @@ const Register = () => {
                   onChange={handleInputChange}
                   error={errors.location}
                   icon={MapPin}
+                  required
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormInput
                   id="city"
                   name="city"
@@ -1058,6 +878,7 @@ const Register = () => {
                   value={formData.city}
                   onChange={handleInputChange}
                   error={errors.city}
+                  required
                 />
                 <FormInput
                   id="country"
@@ -1067,302 +888,109 @@ const Register = () => {
                   value={formData.country}
                   onChange={handleInputChange}
                   error={errors.country}
+                  required
                 />
-              {/* Skills Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.skills')} *
-                  </label>
-                  <div className="space-y-3">
-                    {/* Selected Skills Display */}
-                    {selectedSkills.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {selectedSkills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                          >
-                            {t(skill)}
-                            <button
-                              type="button"
-                              onClick={() => handleSkillRemove(skill)}
-                              className="ml-1 text-blue-600 hover:text-blue-800"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
+                {/* Password Fields - Moved to be last */}
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  label={t('register.password')}
+                  placeholder={t('register.passwordPlaceholder')}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  error={errors.password}
+                  showStrength
+                  required
+                />
+                <PasswordInput
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  label={t('register.confirmPassword')}
+                  placeholder={t('register.confirmPasswordPlaceholder')}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  error={errors.confirmPassword}
+                  required
+                />
+              </div>
+              
+              {/* Description and Photo Upload - Two Column Layout */}
+              <div className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('register.description')} *
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                      placeholder={t('register.descriptionPlaceholder')}
+                      rows="4"
+                      required
+                    />
+                    {errors.description && (
+                      <p className="mt-1 text-sm text-red-600">{errors.description}</p>
                     )}
-
-                    {/* Skills Search */}
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={skillSearch}
-                        onChange={(e) => setSkillSearch(e.target.value)}
-                        placeholder={t('register.searchSkills')}
-                        className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
-                      />
-                    </div>
-
-                    {/* Skills Selection */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
-                      {filteredSkills.map((skill) => (
-                        <button
-                          key={skill}
-                          type="button"
-                          onClick={() => handleSkillSelect(skill)}
-                          disabled={selectedSkills.includes(skill)}
-                          className={`text-left p-1 rounded text-xs ${
-                            selectedSkills.includes(skill)
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-200'
-                          }`}
-                        >
-                          {t(skill)}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Custom Skill Input */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <input
-                        type="text"
-                        value={customSkill}
-                        onChange={(e) => setCustomSkill(e.target.value)}
-                        placeholder={t('register.addCustomSkill')}
-                        className="col-span-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomSkillAdd())}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCustomSkillAdd}
-                        className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-800 text-sm transition-colors duration-200"
-                      >
-                        {t('register.addButton')}
-                      </button>
+                  </div>
+                  
+                  {/* Photo Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('register.profilePhoto')} *
+                    </label>
+                    <div className="space-y-4">
+                      <div className="flex items-start space-x-4">
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                            id="photo"
+                            required
+                          />
+                          <label
+                            htmlFor="photo"
+                            className={`flex items-center justify-center w-24 h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                              errors.photo ? 'border-red-300 hover:border-red-400' : 'border-gray-300 hover:border-gray-400'
+                            }`}
+                          >
+                            {photoPreview ? (
+                              <img
+                                src={photoPreview}
+                                alt="Preview"
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Camera className={`w-8 h-8 ${
+                                errors.photo ? 'text-red-400' : 'text-gray-400'
+                              }`} />
+                            )}
+                          </label>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-600 mb-2">
+                            {t('register.photoHelp')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Max size: 5MB. Formats: JPG, PNG, GIF
+                          </p>
+                        </div>
+                      </div>
+                      {errors.photo && (
+                        <p className="text-sm text-red-600">{errors.photo}</p>
+                      )}
                     </div>
                   </div>
-                  {errors.skills && (
-                    <p className="mt-1 text-sm text-red-600">{t('register.errors.skillsRequired')}</p>
-                  )}
                 </div>
-
-                {/* Languages Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('register.languages')}
-                  </label>
-                  <div className="space-y-3">
-                    {/* Selected Languages Display */}
-                    {selectedLanguages.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {selectedLanguages.map((language, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800"
-                          >
-                            {t(language)}
-                            <button
-                              type="button"
-                              onClick={() => handleLanguageRemove(language)}
-                              className="ml-1 text-green-600 hover:text-green-800"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Languages Search */}
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={languageSearch}
-                        onChange={(e) => setLanguageSearch(e.target.value)}
-                        placeholder={t('register.searchLanguages')}
-                        className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
-                      />
-                    </div>
-
-                    {/* Languages Selection */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-1 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
-                      {filteredLanguages.map((language) => (
-                        <button
-                          key={language}
-                          type="button"
-                          onClick={() => handleLanguageSelect(language)}
-                          disabled={selectedLanguages.includes(language)}
-                          className={`text-left p-1 rounded text-xs ${
-                            selectedLanguages.includes(language)
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-white hover:bg-green-50 text-gray-700 border border-gray-200'
-                          }`}
-                        >
-                          {t(language)}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Custom Language Input */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <input
-                        type="text"
-                        value={customLanguage}
-                        onChange={(e) => setCustomLanguage(e.target.value)}
-                        placeholder={t('register.addCustomLanguage')}
-                        className="col-span-2 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors duration-200 text-gray-900 pl-4 pr-10"
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCustomLanguageAdd())}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCustomLanguageAdd}
-                        className="px-3 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm transition-colors duration-200"
-                      >
-                        {t('register.addButton')}
-                      </button>
-                    </div>
-                  </div>
-                  {errors.languages && (
-                    <p className="mt-1 text-sm text-red-600">{t('register.errors.languagesRequired')}</p>
-                  )}
-                </div>
-
-                {/* Certifications */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('register.certifications')}
-                  </label>
-                  <textarea
-                    name="certifications"
-                    value={formData.certifications}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder={t('register.certificationsPlaceholder')}
-                    rows="2"
-                  />
-                </div>
-
-
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  </div>
+          </div>
 
 
-        {/* Professional Information Section - Collapsible */}
-        <motion.div 
-          className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden"
-          initial={false}
-        >
-          {/* Section Header */}
-          <button
-            type="button"
-            onClick={() => toggleSection('professionalInfo')}
-            className="w-full p-4 flex items-center justify-between hover:bg-gray-100 transition-colors duration-200"
-          >
-            <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                    {t('register.professionalInfo')}
-                  </h3>
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                    {t('register.optional')}
-                  </span>
-            </div>
-            <motion.div
-              animate={{ rotate: expandedSections.professionalInfo ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronDown className="w-5 h-5 text-gray-500" />
-            </motion.div>
-          </button>
-
-          {/* Collapsible Content */}
-          <AnimatePresence>
-            {expandedSections.professionalInfo && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <div className="p-4 border-t border-gray-200">
-                  {/* Experience and Description */}
-                  <div className="grid grid-cols-1 gap-4">
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('register.experienceDetails')}
-                      </label>
-                      <textarea
-                        name="experience"
-                        value={formData.experience}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder={t('register.experienceDetailsPlaceholder')}
-                        rows="3"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('register.description')}
-                      </label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder={t('register.descriptionPlaceholder')}
-                        rows="3"
-                      />
-                    </div>
-
-                    {/* Monthly Rate */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('register.monthlyRate')}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          name="monthlyRate"
-                          value={formData.monthlyRate}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 pl-8"
-                          placeholder={t('register.monthlyRatePlaceholder')}
-                        />
-                        <span className="absolute left-3 top-2.5 text-gray-500 text-sm">frw</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {t('register.monthlyRateHelp')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <FormInput
-                      id="references"
-                      name="references"
-                      type="textarea"
-                      label={t('register.references')}
-                      placeholder={t('register.referencesPlaceholder')}
-                      value={formData.references}
-                      onChange={handleInputChange}
-                      error={errors.references}
-                      icon={FileText}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
 
         {/* Form Controls */}
         <div className="pt-6 border-t border-gray-200">
