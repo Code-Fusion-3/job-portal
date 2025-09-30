@@ -45,6 +45,7 @@ import JobSeekerCard from '../../components/ui/JobSeekerCard';
 import Modal from '../../components/ui/Modal';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import AdminHeader from '../../components/layout/AdminHeader';
+import defaultProfileImage from '../../assets/defaultProfileImage.jpeg';
 import JobSeekersPage from './JobSeekersPage';
 import EmployerRequestsPage from './EmployerRequestsPage';
 import ReportsPage from './ReportsPage';
@@ -523,23 +524,54 @@ const AdminDashboard = () => {
                   };
                   const avatarUrl = resolvePhotoUrl(avatarPath);
 
+                  // Generate proper name and fallback
+                  const fullName = jobSeeker.name || `${jobSeeker?.profile?.firstName || ''} ${jobSeeker?.profile?.lastName || ''}`.trim() || 'Unknown';
+
+                  // Get initials for fallback
+                  const getInitials = (f, l) => {
+                    const a = (f || '').trim();
+                    const b = (l || '').trim();
+                    const first = a ? a.charAt(0).toUpperCase() : '';
+                    const last = b ? b.charAt(0).toUpperCase() : '';
+                    return `${first}${last}` || ((a || b) ? (a || b).charAt(0).toUpperCase() : '');
+                  };
+
+                  const firstName = jobSeeker?.profile?.firstName || jobSeeker.firstName || '';
+                  const lastName = jobSeeker?.profile?.lastName || jobSeeker.lastName || '';
+
                   return (
-                    <JobSeekerCard
+                    <div
                       key={jobSeeker.id || index}
-                      jobSeeker={{
-                        id: jobSeeker.id,
-                        name: jobSeeker.name || `${jobSeeker?.profile?.firstName || ''} ${jobSeeker?.profile?.lastName || ''}`.trim() || 'Unknown',
-                        title: 'Job Seeker',
-                        category: jobSeeker.skills?.split(',')[0] || 'General', // Use first skill as category
-                        avatar: avatarUrl,
-                        location: jobSeeker.location || jobSeeker?.profile?.location || 'Unknown',
-                        dailyRate: jobSeeker.dailyRate,
-                        monthlyRate: jobSeeker.monthlyRate
-                      }}
-                      onViewDetails={handleRequestAction}
-                      getCategoryColor={getCategoryColor}
-                      compact={true}
-                    />
+                      className="flex items-center space-x-3 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => handleRequestAction(jobSeeker)}
+                    >
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={`${firstName} ${lastName}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-300 text-sm font-semibold text-white">
+                            {getInitials(firstName, lastName)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 text-sm truncate">{fullName}</h4>
+                        <p className="text-xs text-gray-600 truncate">Job Seeker</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span
+                            className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border ${getCategoryColor(jobSeeker.skills?.split(',')[0] || 'General')}`}
+                          >
+                            {jobSeeker.skills?.split(',')[0] || 'General'}
+                          </span>
+                          <span className="text-xs text-gray-500">{jobSeeker.location || jobSeeker?.profile?.location || 'Unknown'}</span>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>

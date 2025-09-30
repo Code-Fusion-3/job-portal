@@ -1001,17 +1001,32 @@ const EmployerRequestsPage = () => {
       key: 'employerInfo',
       label: 'Employer',
       sortable: false,
-      render: (item) => (
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <Building className="w-5 h-5 text-gray-600" />
+      render: (item) => {
+        // Get initials for employer
+        const getInitials = (name) => {
+          if (!name || name === 'Unknown') return 'U';
+          return name
+            .split(' ')
+            .map(word => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+        };
+
+        return (
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center bg-gray-300 text-sm font-semibold text-white rounded-full">
+                {getInitials(item.employerName)}
+              </div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-900">{item.employerName}</div>
+              <div className="text-sm text-gray-500">{item.companyName}</div>
+            </div>
           </div>
-          <div>
-            <div className="font-medium text-gray-900">{item.employerName}</div>
-            <div className="text-sm text-gray-500">{item.companyName}</div>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       key: 'candidateInfo',
@@ -1025,14 +1040,33 @@ const EmployerRequestsPage = () => {
         if (rawPhoto && !avatarUrl) {
         }
 
+        // Get initials for fallback
+        const getInitials = (name) => {
+          if (!name || name === 'Not specified') return '';
+          return name
+            .split(' ')
+            .map(word => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+        };
+
         return (
           <div className="flex items-center space-x-3">
-            <Avatar
-              src={avatarUrl}
-              alt={item.candidateName}
-              size="sm"
-              fallback={item.candidateName}
-            />
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={item.candidateName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-xs font-semibold text-white">
+                  {getInitials(item.candidateName)}
+                </div>
+              )}
+            </div>
             <div>
               <div className="font-medium text-gray-900">{item.candidateName}</div>
               <div className="text-sm text-gray-500">{item.position}</div>
@@ -2983,14 +3017,33 @@ const EmployerRequestsPage = () => {
                     {(() => {
                       const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
                       const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+
+                      // Get initials for fallback
+                      const getInitials = (name) => {
+                        if (!name || name === 'Not specified') return '';
+                        return name
+                          .split(' ')
+                          .map(word => word.charAt(0))
+                          .join('')
+                          .toUpperCase()
+                          .slice(0, 2);
+                      };
+
                       return (
-                        <Avatar
-                          src={url}
-                          alt={selectedRequest.candidateName}
-                          size="xl"
-                          fallback={selectedRequest.candidateName}
-                          fallbackSrc={defaultProfileImage}
-                        />
+                        <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                          {url ? (
+                            <img
+                              src={url}
+                              alt={selectedRequest.candidateName}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-300 text-lg font-semibold text-white">
+                              {getInitials(selectedRequest.candidateName)}
+                            </div>
+                          )}
+                        </div>
                       );
                     })()}
                     <div className="flex-1">
@@ -3327,14 +3380,33 @@ const EmployerRequestsPage = () => {
                         {(() => {
                           const raw = selectedRequest._backendData?.requestedCandidate?.profile?.photo || selectedRequest._backendData?.requestedCandidate?.photo || null;
                           const url = raw ? (/^https?:\/\//i.test(raw) ? raw : `${API_CONFIG.BASE_URL}/${raw.replace(/^\//, '')}`) : null;
+
+                          // Get initials for fallback
+                          const getInitials = (name) => {
+                            if (!name || name === 'Not specified') return '';
+                            return name
+                              .split(' ')
+                              .map(word => word.charAt(0))
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2);
+                          };
+
                           return (
-                            <Avatar
-                              src={url}
-                              alt={selectedRequest.candidateName}
-                              size="md"
-                              fallback={selectedRequest.candidateName}
-                              fallbackSrc={defaultProfileImage}
-                            />
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                              {url ? (
+                                <img
+                                  src={url}
+                                  alt={selectedRequest.candidateName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { e.currentTarget.src = defaultProfileImage; }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-300 text-sm font-semibold text-white">
+                                  {getInitials(selectedRequest.candidateName)}
+                                </div>
+                              )}
+                            </div>
                           );
                         })()}
                         <div className="flex-1">
