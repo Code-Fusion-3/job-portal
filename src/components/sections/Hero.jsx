@@ -233,6 +233,21 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="hero-buttons flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center opacity-100 visible">
+              {/* Food Image - Left of Login Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden sm:block"
+              >
+                <Link to="/employer-request" className="block">
+                  <img
+                    src="/food.png"
+                    alt="Food Services"
+                    className="w-12 h-12 md:w-16 md:h-16 object-contain rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm p-2"
+                  />
+                </Link>
+              </motion.div>
+
               <Link to="/login">
                 <Button variant="primary" size="lg">
                   {t('hero.cta.primary')}
@@ -243,6 +258,21 @@ const Hero = () => {
                   {t('hero.cta.secondary')}
                 </Button>
               </Link>
+
+              {/* Car Image - Right of Job Seekers Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden sm:block"
+              >
+                <Link to="/employer-request" className="block">
+                  <img
+                    src="/car.png"
+                    alt="Transportation Services"
+                    className="w-12 h-12 md:w-16 md:h-16 object-contain rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm p-2"
+                  />
+                </Link>
+              </motion.div>
             </div>
 
             {/* Quick Categories Access */}

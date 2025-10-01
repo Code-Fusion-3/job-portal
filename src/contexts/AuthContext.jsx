@@ -173,15 +173,16 @@ export const AuthProvider = ({ children }) => {
           
           return { success: true, user: employerUser };
         } else {
-        
-          
+
+
           // Clear authentication state on failed login
           setUser(null);
           setSessionValid(false);
           clearAuthTokens();
-          
-          // setError('Login failed. Please check your credentials.');
-          return { success: false, error: 'Login failed. Please check your credentials.' };
+
+          // Return the actual error from backend or a default message
+          const errorMessage = loginResult.error || 'Login failed. Please check your credentials.';
+          return { success: false, error: errorMessage };
         }
       }
 
