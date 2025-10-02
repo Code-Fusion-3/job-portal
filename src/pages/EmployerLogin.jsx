@@ -1,37 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Button from '../components/ui/Button';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { Eye, EyeOff, Mail, Lock, Building2, AlertCircle, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import Button from '../components/ui/Button';
+import FormInput from '../components/ui/FormInput';
+import PasswordInput from '../components/ui/PasswordInput';
+import FormCheckbox from '../components/ui/FormCheckbox';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
+import HeroSection from '../components/ui/HeroSection';
+// Fallback background image if the specified one is not found
+const defaultBackground = 'https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80';
 
 const EmployerLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, loading: authLoading } = useAuth();
+  
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    rememberMe: false
   });
+  
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (error) setError('');
-  };
-
-  // Add debug mode state
+  const [errors, setErrors] = useState({});
+  const [sessionMessage, setSessionMessage] = useState('');
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
-
+  
   // Toggle debug mode with Ctrl+Shift+D
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -46,18 +47,60 @@ const EmployerLogin = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isDebugMode]);
 
+  // Check for session expiration message
+  useEffect(() => {
+    if (location.state?.message) {
+      setSessionMessage(location.state.message);
+      // Clear the message from location state
+      navigate(location.pathname, { replace: true });
+    } else if (location.search.includes('session=expired')) {
+      setSessionMessage('Your session has expired. Please log in again.');
+      // Clear the URL parameter
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, location.search, navigate]);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (!formData.email || !formData.password) {
-      setError('Please enter both email and password');
-      return;
-    }
+    if (!validateForm()) return;
     
     try {
       setIsLoading(true);
-      setError('');
+      setErrors({});
       
       if (isDebugMode) {
         console.group('🔍 Employer Login Debug');
@@ -86,6 +129,13 @@ const EmployerLogin = () => {
         // Store the token if it's in the result
         if (result.token) {
           localStorage.setItem('job_portal_token', result.token);
+          
+          // Store remember me preference
+          if (formData.rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+          } else {
+            localStorage.removeItem('rememberMe');
+          }
         }
         
         // Add a small delay to ensure state is updated before navigation
@@ -99,10 +149,10 @@ const EmployerLogin = () => {
         
         // Show a temporary loading state
         return (
-          <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-700">Logging you in...</p>
+              <p className="text-gray-700 text-lg font-medium">Logging you in...</p>
               {isDebugMode && (
                 <p className="text-sm text-gray-500 mt-2">Debug: Authentication successful</p>
               )}
@@ -131,7 +181,7 @@ const EmployerLogin = () => {
           console.groupEnd();
         }
         
-        setError(errorMessage);
+        setErrors({ general: errorMessage });
         
         // Clear any stored auth data on failed login
         localStorage.removeItem('employer_user');
@@ -164,7 +214,7 @@ const EmployerLogin = () => {
         console.groupEnd();
       }
       
-      setError(errorMessage);
+      setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
       
@@ -180,180 +230,159 @@ const EmployerLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl relative">
-        {/* Debug mode indicator */}
-        {isDebugMode && (
-          <div className="absolute -top-3 -right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-            DEBUG
-          </div>
-        )}
-        
-        <div className="text-center">
-          <Building2 className="mx-auto h-16 w-16 text-blue-600" />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {t('employerLogin.title', 'Employer Login')}
-            {isDebugMode && ' (Debug Mode)'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {t('employerLogin.subtitle', 'Access your employer dashboard')}
-          </p>
-          
-          {/* Debug info */}
-          {debugInfo && (
-            <div className="mt-2 p-2 bg-blue-50 text-blue-700 text-sm rounded">
-              {debugInfo}
-            </div>
-          )}
-        </div>
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url(${defaultBackground})` }}
+    >
+      <Header />
+      
+      {/* Hero Section */}
+      <HeroSection 
+        title={t('employerLogin.title', 'Employer Portal')}
+        description={t('employerLogin.subtitle', 'Access your employer dashboard to manage requests and payments')}
+      />
 
-        {/* Error Display */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div className="max-w-md mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.2 }}
+            className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20 relative"
           >
-            {error}
-          </motion.div>
-        )}
-
-        {/* Loading State Display */}
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm text-center"
-          >
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-              Logging in...
-            </div>
-          </motion.div>
-        )}
-
-        {/* Login Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
-        >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter your email"
-                />
+            {/* Debug mode indicator */}
+            {isDebugMode && (
+              <div className="absolute -top-3 -right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                DEBUG
               </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
+            )}
+            
+            {/* Debug info */}
+            {debugInfo && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="bg-red-50 border border-red-200 rounded-lg p-4"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm mb-6"
               >
-                <p className="text-sm text-red-600">{error}</p>
+                {debugInfo}
+              </motion.div>
+            )}
+            
+            {/* Session Expiration Message */}
+            {sessionMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6"
+              >
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                  <span className="text-yellow-800 text-sm">{sessionMessage}</span>
+                </div>
               </motion.div>
             )}
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading || authLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading || authLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Logging in...
-                </div>
-              ) : (
-                'Login to Dashboard'
-              )}
-            </Button>
-          </form>
-
-          {/* Additional Links */}
-          <div className="mt-6 text-center space-y-3">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              Forgot your password?
-            </Link>
-            
-            <div className="text-sm text-gray-600">
-              Don't have an employer account?{' '}
-              <Link
-                to="/employer-request"
-                className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            {/* Error Message */}
+            {errors.general && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6"
               >
-                Submit a request
-              </Link>
-            </div>
-          </div>
-        </motion.div>
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-red-700 text-sm">{errors.general}</p>
+                </div>
+              </motion.div>
+            )}
 
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-500">
-            Need help?{' '}
-            <Link to="/contact" className="text-blue-600 hover:text-blue-800 transition-colors">
-              Contact our support team
-            </Link>
-          </p>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <FormInput
+                type="email"
+                id="email"
+                name="email"
+                label="Email Address"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                error={errors.email}
+                icon={Mail}
+                required
+              />
+
+              <PasswordInput
+                id="password"
+                name="password"
+                label="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Enter your password"
+                error={errors.password}
+                showPassword={showPassword}
+                onTogglePassword={togglePasswordVisibility}
+                required
+              />
+
+              <div className="flex items-center justify-between">
+                <FormCheckbox
+                  id="rememberMe"
+                  name="rememberMe"
+                  label="Remember me"
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
+                />
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200 font-medium"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg"
+                disabled={isLoading || authLoading}
+              >
+                {isLoading || authLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+                  </div>
+                </div>
+                
+                <Link
+                  to="/employer-request"
+                  className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200 border border-blue-200 rounded-lg hover:bg-blue-50"
+                >
+                  Request Employer Account
+                </Link>
+              </div>
+            </form>
+          </motion.div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
