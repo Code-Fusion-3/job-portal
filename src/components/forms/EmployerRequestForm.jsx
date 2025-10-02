@@ -104,10 +104,7 @@ const EmployerRequestForm = ({
       newErrors.message = 'Message must be at least 10 characters long';
     }
     
-    // Add validation for jobSeekerId
-    if (!formData.jobSeekerId || formData.jobSeekerId === '') {
-      newErrors.general = 'Candidate ID is missing. This is required to submit the request. Please refresh the page and try again.';
-    }
+    // Make jobSeekerId optional - remove the validation that requires it
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -133,30 +130,28 @@ const EmployerRequestForm = ({
         email: formData.email,
         phoneNumber: formData.phone,
         message: formData.message,
-        requestedCandidateId: (() => {
-          // Extract the numeric ID from JS-prefixed IDs
-          let candidateId = formData.jobSeekerId;
-
-          if (typeof candidateId === 'string' && candidateId.startsWith('JS')) {
-            const numericId = parseInt(candidateId.replace(/^JS/, ''), 10);
-            return numericId;
-          }
-
-          // If it's already a number, use it directly
-          if (typeof candidateId === 'number') {
-            return candidateId;
-          }
-
-          // If it's a string number, convert it
-          const parsedId = parseInt(candidateId, 10);
-          return parsedId;
-        })(),
         priority: formData.priority
       };
 
-      // Validate that requestedCandidateId is a valid number
-      if (isNaN(requestBody.requestedCandidateId) || !requestBody.requestedCandidateId) {
-        throw new Error('Invalid candidate ID. Please refresh the page and try again.');
+      // Only include requestedCandidateId if jobSeekerId is provided and valid
+      if (formData.jobSeekerId) {
+        const candidateId = (() => {
+          // Extract the numeric ID from JS-prefixed IDs
+          if (typeof formData.jobSeekerId === 'string' && formData.jobSeekerId.startsWith('JS')) {
+            return parseInt(formData.jobSeekerId.replace(/^JS/, ''), 10);
+          }
+          // If it's already a number, use it directly
+          if (typeof formData.jobSeekerId === 'number') {
+            return formData.jobSeekerId;
+          }
+          // If it's a string number, convert it
+          return parseInt(formData.jobSeekerId, 10);
+        })();
+
+        // Only add to request if it's a valid number
+        if (!isNaN(candidateId) && candidateId > 0) {
+          requestBody.requestedCandidateId = candidateId;
+        }
       }
 
       const response = await fetch(endpoint, {

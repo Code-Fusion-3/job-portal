@@ -67,14 +67,14 @@ const EmployerRequestsPage = () => {
   const [cleaningData, setCleaningData] = useState(false);
 
   // Fetch data using the new rich data endpoint
-  const fetchRequests = useCallback(async (page = currentPage, search = searchTerm, filterParams = filters) => {
+  const fetchRequests = useCallback(async (page = 1, search = searchTerm, filterParams = filters) => {
     setLoading(true);
     setError(null);
 
     try {
       const queryParams = {
         page,
-        limit: 10,
+        limit: 1000, // Set a high limit to fetch all requests
         search,
         ...filterParams
       };
@@ -82,10 +82,17 @@ const EmployerRequestsPage = () => {
       const result = await EmployerRequestService.getAllAdminRequests(queryParams);
       if (result.success) {
         setSafeData(result.data.requests || []);
-        setTotalPages(result.data.pagination?.totalPages || 1);
-        setTotalItems(result.data.pagination?.total || 0);
-        setCurrentPage(result.data.pagination?.page || 1);
-        setPageInfo(result.data.pagination || {});
+        // Since we're fetching all requests in one go, update pagination accordingly
+        const totalItems = result.data.requests?.length || 0;
+        setTotalPages(1);
+        setTotalItems(totalItems);
+        setCurrentPage(1);
+        setPageInfo({
+          page: 1,
+          limit: 1000,
+          total: totalItems,
+          totalPages: 1
+        });
       } else {
         setError(result.error || 'Failed to fetch requests');
       }
