@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Building2 } from 'lucide-react';
@@ -28,6 +28,24 @@ const EmployerLogin = () => {
     if (error) setError('');
   };
 
+  // Add debug mode state
+  const [isDebugMode, setIsDebugMode] = useState(false);
+  const [debugInfo, setDebugInfo] = useState('');
+
+  // Toggle debug mode with Ctrl+Shift+D
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        setIsDebugMode(prev => !prev);
+        setDebugInfo(prev => prev ? '' : 'Debug mode enabled. Check console for details.');
+        console.log(`Debug mode ${isDebugMode ? 'disabled' : 'enabled'}`);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDebugMode]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -41,17 +59,29 @@ const EmployerLogin = () => {
       setIsLoading(true);
       setError('');
       
-      console.log('Attempting employer login with:', formData.email);
+      if (isDebugMode) {
+        console.group('🔍 Employer Login Debug');
+        console.log('Email:', formData.email);
+        console.log('Password length:', formData.password.length);
+        console.log('Login attempt at:', new Date().toISOString());
+      }
       
       // Clear any existing auth data before new login attempt
       localStorage.removeItem('employer_user');
       localStorage.removeItem('job_portal_token');
       
       const result = await login(formData.email, formData.password, 'employer');
-      console.log('Login result:', result);
+      
+      if (isDebugMode) {
+        console.log('Login result:', result);
+      }
       
       if (result && result.success) {
-        console.log('Login successful, preparing to redirect...');
+        if (isDebugMode) {
+          console.log('✅ Login successful');
+          console.log('User data:', result.user);
+          console.groupEnd();
+        }
         
         // Store the token if it's in the result
         if (result.token) {
@@ -60,7 +90,9 @@ const EmployerLogin = () => {
         
         // Add a small delay to ensure state is updated before navigation
         setTimeout(() => {
-          console.log('Redirecting to employer dashboard...');
+          if (isDebugMode) {
+            console.log('🔀 Redirecting to employer dashboard...');
+          }
           // Force a full page reload to ensure all auth state is properly loaded
           window.location.href = '/dashboard/employer';
         }, 200);
@@ -71,13 +103,34 @@ const EmployerLogin = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-gray-700">Logging you in...</p>
+              {isDebugMode && (
+                <p className="text-sm text-gray-500 mt-2">Debug: Authentication successful</p>
+              )}
             </div>
           </div>
         );
       } else {
         // Login failed - show error from backend or default message
-        const errorMessage = result?.error || 'Login failed. Please check your credentials.';
-        console.error('Login failed:', errorMessage);
+        let errorMessage = 'Login failed. Please check your credentials.';
+        
+        // Enhanced error handling
+        if (result?.error) {
+          if (result.error.includes('401') || result.error.includes('Unauthorized')) {
+            errorMessage = 'Invalid email or password. Please try again.';
+          } else if (result.error.includes('Network Error')) {
+            errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+          } else if (result.error.includes('timeout')) {
+            errorMessage = 'Request timed out. Please try again.';
+          } else {
+            errorMessage = result.error;
+          }
+        }
+        
+        if (isDebugMode) {
+          console.error('❌ Login failed:', result?.error || 'Unknown error');
+          console.groupEnd();
+        }
+        
         setError(errorMessage);
         
         // Clear any stored auth data on failed login
@@ -92,21 +145,33 @@ const EmployerLogin = () => {
       if (err.response) {
         // Server responded with error status
         errorMessage = err.response.data?.error || err.response.statusText || 'Server error occurred';
+        if (isDebugMode) {
+          console.error('Server response:', err.response);
+        }
       } else if (err.request) {
         // Request was made but no response received
         errorMessage = 'No response from server. Please check your connection.';
+        if (isDebugMode) {
+          console.error('No response received. Request:', err.request);
+        }
       } else if (err.message) {
         // Something happened in setting up the request
         errorMessage = err.message;
       }
       
-      setError(errorMessage);
+      if (isDebugMode) {
+        console.error('❌ Unexpected error:', err);
+        console.groupEnd();
+      }
       
-      // Clear any stored auth data on error
-      localStorage.removeItem('employer_user');
-      localStorage.removeItem('job_portal_token');
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
+      
+      if (isDebugMode) {
+        console.log('Login attempt completed at:', new Date().toISOString());
+        console.groupEnd();
+      }
     }
   };
 
@@ -115,29 +180,31 @@ const EmployerLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        {/* Header */}
-        <div className="text-center mb-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <Building2 className="w-8 h-8 text-white" />
-          </motion.div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Employer Login
-          </h1>
-          <p className="text-gray-600">
-            Access your employer dashboard to manage requests and payments
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl relative">
+        {/* Debug mode indicator */}
+        {isDebugMode && (
+          <div className="absolute -top-3 -right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            DEBUG
+          </div>
+        )}
+        
+        <div className="text-center">
+          <Building2 className="mx-auto h-16 w-16 text-blue-600" />
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            {t('employerLogin.title', 'Employer Login')}
+            {isDebugMode && ' (Debug Mode)'}
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            {t('employerLogin.subtitle', 'Access your employer dashboard')}
           </p>
+          
+          {/* Debug info */}
+          {debugInfo && (
+            <div className="mt-2 p-2 bg-blue-50 text-blue-700 text-sm rounded">
+              {debugInfo}
+            </div>
+          )}
         </div>
 
         {/* Error Display */}
@@ -286,9 +353,7 @@ const EmployerLogin = () => {
             </Link>
           </p>
         </div>
-
-
-      </motion.div>
+      </div>
     </div>
   );
 };
