@@ -139,6 +139,8 @@ const Register = () => {
   // Backend error modal state
   const [showBackendErrorModal, setShowBackendErrorModal] = useState(false);
   const [backendErrors, setBackendErrors] = useState([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '', credentials: null });
 
 
 
@@ -503,6 +505,62 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleRegistrationResult = (result) => {
+    console.log('🔍 handleRegistrationResult called with:', result);
+    
+    if (result.success) {
+      // Always clear errors after successful registration
+      setErrors({});
+      setValidationErrors([]);
+      setShowValidationModal(false);
+      setBackendErrors([]);
+      setShowBackendErrorModal(false);
+      
+      // Handle redirection based on user type
+      if (result.user?.role === 'jobseeker') {
+        navigate('/pending-approval');
+      } else if (result.user?.role === 'employer' || result.request) {
+        // If we have login credentials, show them to the user
+        if (result.loginCredentials) {
+          // Store the credentials temporarily to show in the success message
+          setSuccessMessage({
+            title: 'Registration Request Submitted!',
+            message: `Your employer account request has been submitted for review. You will receive an email once your account is approved.`,
+            credentials: result.loginCredentials
+          });
+        } else if (result.message) {
+          // If no credentials but we have a success message
+          setSuccessMessage({
+            title: 'Registration Request Submitted!',
+            message: result.message
+          });
+        } else {
+          // Fallback message
+          setSuccessMessage({
+            title: 'Registration Request Submitted!',
+            message: 'Your employer account request has been submitted for review. You will receive an email once your account is approved.'
+          });
+        }
+        setShowSuccessModal(true);
+      } else if (result.user?.role === 'admin') {
+        navigate('/dashboard/admin');
+      } else {
+        navigate('/');
+      }
+    } else {
+      console.error('❌ Registration failed:', result);
+      // Handle backend validation errors
+      if (result.backendErrors && Array.isArray(result.backendErrors)) {
+        setBackendErrors(result.backendErrors);
+        setShowBackendErrorModal(true);
+      } else {
+        setErrors({ 
+          general: result.error || 'Registration failed. Please try again.' 
+        });
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -513,56 +571,85 @@ const Register = () => {
     setLoading(true);
     
     try {
-      // Prepare data for API - simplified user data
-      const userData = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        contactNumber: formData.contactNumber.trim(),
-        password: formData.password,
-        email: formData.email.trim() || null,
-        description: formData.description.trim() || null,
-        gender: formData.gender || null,
-        dateOfBirth: formData.dateOfBirth || null,
-        location: formData.location.trim() || null,
-        city: formData.city.trim() || null,
-        country: formData.country.trim() || null,
-        jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId, 10) : null,
-        educationLevel: formData.educationLevel || null,
-        experienceLevel: formData.experienceLevel || null,
-      };
+      console.log('🔍 Form submitted:', formData);
+      
+      if (formData.userType === 'jobseeker') {
+        // Job Seeker Registration
+        const userData = {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          contactNumber: formData.contactNumber.trim(),
+          password: formData.password,
+          email: formData.email.trim() || null,
+          description: formData.description.trim() || null,
+          gender: formData.gender || null,
+          dateOfBirth: formData.dateOfBirth || null,
+          location: formData.location.trim() || null,
+          city: formData.city.trim() || null,
+          country: formData.country.trim() || null,
+          jobCategoryId: formData.jobCategoryId ? parseInt(formData.jobCategoryId, 10) : null,
+          educationLevel: formData.educationLevel || null,
+          experienceLevel: formData.experienceLevel || null,
+        };
 
-      // Remove null and empty string values, but keep fields with actual content
-      Object.keys(userData).forEach(key => {
-        if (userData[key] === null || userData[key] === '' || userData[key] === undefined) {
-          delete userData[key];
+        // Remove null and empty string values
+        Object.keys(userData).forEach(key => {
+          if (userData[key] === null || userData[key] === '' || userData[key] === undefined) {
+            delete userData[key];
+          }
+        });
+
+        console.log('🔍 Registering job seeker with data:', userData);
+        const result = await authService.registerJobSeeker(userData, photo);
+        console.log('🔍 Job seeker registration result:', result);
+        handleRegistrationResult(result);
+      } else if (formData.userType === 'employer') {
+        // Employer Registration
+        const employerData = {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          contactNumber: formData.contactNumber.trim(),
+          companyName: formData.companyName?.trim() || null,
+          position: formData.position?.trim() || null,
+          companyDescription: formData.companyDescription?.trim() || null,
+          companyWebsite: formData.companyWebsite?.trim() || null,
+          address: formData.location?.trim() || null,
+          city: formData.city?.trim() || null,
+          country: formData.country?.trim() || null,
+        };
+
+        // Remove null and empty string values
+        Object.keys(employerData).forEach(key => {
+          if (employerData[key] === null || employerData[key] === '' || employerData[key] === undefined) {
+            delete employerData[key];
+          }
+        });
+
+        console.log('🔍 Registering employer with data:', employerData);
+        const result = await authService.registerEmployer(employerData, photo);
+        console.log('🔍 Employer registration result:', result);
+        
+        // If the result has a success property, use it directly
+        if (result && typeof result.success !== 'undefined') {
+          handleRegistrationResult(result);
+        } 
+        // If the result has a message, it's likely a success response
+        else if (result && result.message) {
+          handleRegistrationResult({
+            success: true,
+            message: result.message,
+            request: result.request,
+            loginCredentials: result.loginCredentials
+          });
         }
-      });
-
-
-
-      const result = await authService.registerJobSeeker(userData, photo);
-      if (result.success && result.user) {
-        // Always clear errors after successful registration
-        setErrors({});
-        setValidationErrors([]);
-        setShowValidationModal(false);
-        setBackendErrors([]);
-        setShowBackendErrorModal(false);
-        // Redirect jobseeker to pending approval page
-        if (result.user.role === 'jobseeker') {
-          navigate('/pending-approval');
-        } else if (result.user.role === 'admin') {
-          navigate('/dashboard/admin');
-        } else {
-          navigate('/');
-        }
-      } else {
-        // Handle backend validation errors
-        if (result.backendErrors && Array.isArray(result.backendErrors)) {
-          setBackendErrors(result.backendErrors);
-          setShowBackendErrorModal(true);
-        } else {
-          setErrors({ general: result.error });
+        // Otherwise, assume it's a success
+        else {
+          handleRegistrationResult({
+            success: true,
+            ...result
+          });
         }
       }
       
@@ -648,6 +735,56 @@ const Register = () => {
           >
             {t('register.validationErrors.fixErrors')}
           </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Success Modal Component
+  const SuccessModal = ({ isOpen, onClose, title, message, credentials }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+            <div className="mt-2">
+              <p className="text-sm text-gray-600 whitespace-pre-line">{message}</p>
+              {credentials && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-md text-left">
+                  <p className="text-sm font-medium text-gray-700">Your login credentials (save these for future use):</p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm"><span className="font-medium">Email:</span> {credentials.email}</p>
+                    <p className="text-sm"><span className="font-medium">Password:</span> {credentials.password}</p>
+                  </div>
+                  <p className="mt-2 text-xs text-yellow-700">
+                    Please save these credentials in a secure place. You'll need them to log in to your account.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mt-5 sm:mt-6">
+            <button
+              type="button"
+              className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm"
+              onClick={() => {
+                onClose();
+                // Redirect to login after closing the modal if credentials were provided
+                if (credentials) {
+                  navigate('/login');
+                }
+              }}
+            >
+              {credentials ? 'Go to Login' : 'Close'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1085,6 +1222,15 @@ const Register = () => {
         onClose={() => setShowBackendErrorModal(false)}
         errors={backendErrors}
         onScrollToField={scrollToField}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={successMessage.title}
+        message={successMessage.message}
+        credentials={successMessage.credentials}
       />
       
       <Footer />

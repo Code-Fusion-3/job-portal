@@ -58,6 +58,79 @@ export const authApi = {
     }
   },
 
+  // Employer Registration
+  registerEmployer: async (employerData, logo = null) => {
+    try {
+      console.log('🔍 authClient.registerEmployer called with:', employerData);
+      
+      // Use FormData for file uploads
+      const formData = new FormData();
+      
+      // Append all employer data to formData
+      Object.keys(employerData).forEach(key => {
+        if (employerData[key] !== null && employerData[key] !== undefined) {
+          formData.append(key, employerData[key]);
+        }
+      });
+      
+      // Append logo if provided
+      if (logo) {
+        formData.append('logo', logo);
+      }
+      
+      console.log('🔍 Sending employer registration request to /employer/auth/register');
+      const response = await authClient.post('/employer/auth/register', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data' 
+        },
+        validateStatus: function (status) {
+          // Accept all status codes to handle them in the catch block
+          return true;
+        }
+      });
+      
+      console.log('🔍 Employer registration response status:', response.status);
+      console.log('🔍 Employer registration response data:', response.data);
+      
+      // If the response is successful (2xx)
+      if (response.status >= 200 && response.status < 300) {
+        return response.data;
+      }
+      
+      // If there's an error in the response
+      if (response.data) {
+        // Create a new error object with the response data
+        const error = new Error(response.data.message || 'Registration failed');
+        error.response = response;
+        throw error;
+      }
+      
+      // For other errors
+      throw new Error('Registration failed. Please try again.');
+      
+    } catch (error) {
+      console.error('❌ registerEmployer error:', error);
+      
+      // If this is an error from the server with a response
+      if (error.response) {
+        // Return the error response data if available
+        if (error.response.data) {
+          return error.response.data;
+        }
+        
+        // Otherwise return a structured error object
+        return { 
+          success: false,
+          error: error.message || 'Registration failed',
+          status: error.response.status
+        };
+      }
+      
+      // For other errors, rethrow them
+      throw error;
+    }
+  },
+
   // Job Seeker Login
   loginJobSeeker: async (credentials) => {
     try {
@@ -103,30 +176,49 @@ export const authApi = {
   // Employer Login
   loginEmployer: async (credentials) => {
     try {
-      // console.log('🔍 authClient.loginEmployer called with:', credentials);
+      console.log('🔍 authClient.loginEmployer called with:', credentials);
+      // Don't log the password in production
+      const { password, ...credentialsToLog } = credentials;
+      console.log('🔍 authClient.loginEmployer called with email:', credentialsToLog.email);
+      
       const response = await authClient.post('/employer/auth/login', credentials);
-      // console.log('🔍 authClient.loginEmployer response:', response);
-      // console.log('🔍 authClient.loginEmployer response.data:', response.data);
+      console.log('🔍 authClient.loginEmployer response status:', response.status);
+      
+      // Check if the response indicates an error
+      if (response.data.error) {
+        console.error('❌ Employer login error in response:', response.data.error);
+        return { 
+          error: response.data.error,
+          status: response.status 
+        };
+      }
       
       if (response.data.token) {
-        // console.log('🔍 Token found, setting auth tokens...');
+        console.log('🔍 Token found, setting auth tokens...');
         // Backend returns 'token' instead of 'accessToken'
-        // No refreshToken or expiresAt in the response
         setAuthTokens(
           response.data.token,
           null, // No refresh token
           null  // No expiry time
         );
-        // console.log('🔍 Auth tokens set');
+        console.log('🔍 Auth tokens set');
+        return response.data;
       } else {
-        // console.log('🔍 No token found in response');
+        console.log('🔍 No token found in response');
+        return { 
+          error: 'No authentication token received from server',
+          status: 401
+        };
       }
-
-      // console.log('🔍 loginEmployer returning:', response.data);
-      return response.data;
     } catch (error) {
       console.error('❌ loginEmployer error:', error);
-      throw error;
+      // Return a structured error object instead of throwing
+      return { 
+        error: error.response?.data?.message || 
+              error.message || 
+              'Failed to connect to the server. Please try again.',
+        status: error.response?.status || 500
+      };
     }
   },
 

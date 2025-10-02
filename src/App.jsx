@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import AuthProvider from './contexts/AuthContext';
 import { LiveUpdateProvider } from './contexts/LiveUpdateContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import SessionMonitor from './components/auth/SessionMonitor';
@@ -41,7 +41,8 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const ApprovalComponentsTest = lazy(() => import('./components/admin/ApprovalComponentsTest'));
 const ApprovalQueue = lazy(() => import('./pages/dashboard/ApprovalQueue'));
 const PendingApproval = lazy(() => import('./pages/PendingApproval'));
-
+// Add this import at the top with other page imports
+const EmployerLoginDebug = lazy(() => import('./pages/EmployerLoginDebug'));
 // New Payment Workflow Components
 const EmployerDashboard = lazy(() => import('./pages/dashboard/EmployerDashboard'));
 const AdminPaymentReview = lazy(() => import('./pages/dashboard/AdminPaymentReview'));
@@ -330,6 +331,7 @@ function App() {
                       <UpdateProfile />
                     </ProtectedRoute>
                   } />
+                  <Route path="/employer/login-debug" element={<EmployerLoginDebug />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi, userService, API_CONFIG, getAuthToken, isTokenExpired, clearAuthTokens, handleError } from '../api/index.js';
 
-const AuthContext = createContext();
+// Create and export the context
+export const AuthContext = createContext();
 
-export { AuthContext };
+// Create the provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -133,56 +134,117 @@ export const AuthProvider = ({ children }) => {
     try {
       let loginResult;
       
-      if (role === 'admin') {
-        loginResult = await authApi.loginAdmin({ email, password });
-      } else if (role === 'employer') {
-        // Handle employer login
-        loginResult = await authApi.loginEmployer({ email, password });
-      } else {
-        loginResult = await authApi.loginJobSeeker({ email, password });
+      try {
+        if (role === 'admin') {
+          loginResult = await authApi.loginAdmin({ email, password });
+        } else if (role === 'employer') {
+          console.log('Initiating employer login for:', email);
+          loginResult = await authApi.loginEmployer({ email, password });
+          console.log('Employer login result:', loginResult);
+          
+          // If we got here, the API call didn't throw, but we still need to check for errors in the response
+          if (loginResult && loginResult.error) {
+            console.error('Employer login API returned error:', loginResult.error);
+            return { success: false, error: loginResult.error };
+          }
+        } else {
+          loginResult = await authApi.loginJobSeeker({ email, password });
+        }
+      } catch (apiError) {
+        console.error('Login API error:', apiError);
+        
+        // Default error message
+        let errorMessage = 'An error occurred during login. Please try again.';
+        
+        // Handle different types of errors
+        if (apiError.response) {
+          // Server responded with an error status code
+          if (apiError.response.status === 401) {
+            errorMessage = 'Invalid email or password. Please try again.';
+          } else if (apiError.response.status === 400) {
+            errorMessage = 'Invalid request. Please check your input.';
+          } else if (apiError.response.status === 500) {
+            errorMessage = 'Server error. Please try again later.';
+          } else if (apiError.response.data?.message) {
+            errorMessage = apiError.response.data.message;
+          }
+        } else if (apiError.request) {
+          // Request was made but no response received
+          errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        } else if (apiError.message) {
+          // Error setting up the request
+          if (apiError.message.includes('Network Error')) {
+            errorMessage = 'Network error. Please check your internet connection.';
+          } else if (apiError.message.includes('timeout')) {
+            errorMessage = 'Request timed out. Please try again.';
+          } else {
+            errorMessage = apiError.message;
+          }
+        }
+        
+        return { 
+          success: false, 
+          error: errorMessage,
+          status: apiError.response?.status || 500
+        };
       }
 
       // For employers, use the login response data directly
       if (role === 'employer') {
-       
+        console.log('Processing employer login response...');
         
-        // Check if login was successful (either by success property, message, or by having a token)
-        if (loginResult.success || loginResult.message === 'Login successful' || loginResult.token) {
+        // Check if login was successful by looking for a token in the response
+        if (loginResult && loginResult.token) {
+          console.log('Login successful, processing employer data...');
           
           // Create a user object from the employer login response
           const employerUser = {
-            id: loginResult.employer?.id || loginResult.employer?.accountId,
-            email: loginResult.employer?.email,
+            id: loginResult.employer?.id,
+            email: loginResult.employer?.email || email, // Fallback to email from login if not in response
             name: loginResult.employer?.name,
             role: 'employer',
-            employerAccount: loginResult.employer
+            employerAccount: loginResult.employer || { email } // Ensure we always have at least the email
           };
           
+          console.log('Employer user object created:', employerUser);
           
-          // Store employer user data in localStorage for persistence
-          localStorage.setItem('employer_user', JSON.stringify(employerUser));
-          
-          // Set the state synchronously
-          setUser(employerUser);
-          setSessionValid(true);
-          
-        
-          
-          // Add a longer delay to ensure state updates are processed
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          return { success: true, user: employerUser };
+          try {
+            // Store employer user data in localStorage for persistence
+            localStorage.setItem('employer_user', JSON.stringify(employerUser));
+            
+            // Set the state synchronously
+            setUser(employerUser);
+            setSessionValid(true);
+            
+            console.log('Auth state updated, user should be authenticated now');
+            
+            // Small delay to ensure state updates are processed
+            await new Promise(resolve => setTimeout(resolve, 150));
+            
+            return { 
+              success: true, 
+              user: employerUser,
+              token: loginResult.token
+            };
+          } catch (storageError) {
+            console.error('Error storing auth data:', storageError);
+            throw new Error('Failed to store authentication data');
+          }
         } else {
-
-
+          console.error('No token in employer login response:', loginResult);
+          
           // Clear authentication state on failed login
           setUser(null);
           setSessionValid(false);
           clearAuthTokens();
+          localStorage.removeItem('employer_user');
 
           // Return the actual error from backend or a default message
-          const errorMessage = loginResult.error || 'Login failed. Please check your credentials.';
-          return { success: false, error: errorMessage };
+          const errorMessage = loginResult?.error || 'Login failed. Invalid email or password.';
+          return { 
+            success: false, 
+            error: errorMessage 
+          };
         }
       }
 
@@ -411,12 +473,16 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-}; 
-// Custom hook to use the auth context
+};
+
+// Export the custom hook before the provider
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};
+
+// Export the provider as default
+export default AuthProvider;
