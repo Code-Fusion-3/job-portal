@@ -237,14 +237,18 @@ const Hero = () => {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="hidden sm:block"
+                className="block relative group"
               >
                 <Link to="/employer-request" className="block">
                   <img
                     src="/food.png"
                     alt="Food Services"
-                    className="w-12 h-12 md:w-16 md:h-16 object-contain rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm p-2"
+                    className="w-12 h-8 sm:w-12 sm:h-12 md:w-24 md:h-24 object-contain rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm p-1 sm:p-2"
                   />
+                  {/* Hover Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    Food Services
+                  </div>
                 </Link>
               </motion.div>
 
@@ -263,14 +267,18 @@ const Hero = () => {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="hidden sm:block"
+                className="block relative group"
               >
                 <Link to="/employer-request" className="block">
                   <img
                     src="/car.png"
                     alt="Transportation Services"
-                    className="w-12 h-12 md:w-16 md:h-16 object-contain rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm p-2"
+                    className="w-12 h-8 sm:w-12 sm:h-12 md:w-24 md:h-24 object-contain rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm p-1 sm:p-2"
                   />
+                  {/* Hover Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    Transportation Services
+                  </div>
                 </Link>
               </motion.div>
             </div>
