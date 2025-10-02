@@ -214,15 +214,15 @@ const Hero = () => {
           <div className="space-y-3 sm:space-y-4 md:space-y-6 w-full max-w-5xl">
             {/* Main Heading */}
             <h1 
-              className="hero-title text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+              className="hero-title text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] px-2 mt-30 sm:mt-0"
               style={{ opacity: 1, visibility: 'visible', transform: 'none' }}
             >
               {t('hero.title')}
             </h1>
 
-            {/* Subtitle */}
+           { /* Subtitle */}
             <p 
-              className="hero-subtitle text-sm sm:text-base md:text-lg lg:text-xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] px-2"
+              className="hero-subtitle text-sm sm:text-base md:text-lg lg:text-xl text-white text-opacity-90 max-w-4xl mx-auto leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
               style={{ opacity: 1, visibility: 'visible', transform: 'none' }}
             >
               {t('hero.subtitle')}
